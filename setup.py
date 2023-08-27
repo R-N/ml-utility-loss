@@ -20,7 +20,7 @@ setup(
         "category-encoders>=2.3.0",
         "datasets>=2.6.1",
         "delu",
-        "dython>=0.6.7",
+        "dython~=0.6.4.post1",
         "icecream>=2.1.2",
         "imbalanced-learn>=0.7.0",
         "jupyter>=1.0.0",
