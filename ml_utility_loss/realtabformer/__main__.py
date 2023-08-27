@@ -3,7 +3,7 @@
 if __name__ == "__main__":  # pragma: no cover
     import sys
 
-    import realtabformer
+    import ml_utility_loss.realtabformer
 
     if "--version" in sys.argv:
         print(f"REaLTabFormer version: {realtabformer.__version__}")

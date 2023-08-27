@@ -31,7 +31,7 @@ from transformers import (  # Seq2SeqTrainer,
 )
 from transformers.models.gpt2 import GPT2Config, GPT2LMHeadModel
 
-import realtabformer
+import ml_utility_loss.realtabformer
 
 from .data_utils import (
     ModelFileName,
