@@ -12,7 +12,7 @@ from . import (
 )
 from .realtabformer import REaLTabFormer
 
-__version__ = (Path(__file__).parent / "VERSION").read_text().strip()
+__version__ = "0.1.3" #(Path(__file__).parent / "VERSION").read_text().strip()
 
 __all__ = [
     "REaLTabFormer",
