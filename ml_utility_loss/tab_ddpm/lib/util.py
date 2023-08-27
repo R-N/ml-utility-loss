@@ -1,5 +1,5 @@
 import argparse
-from tab_ddpm.util import try_argparse
+from ..util import try_argparse
 import atexit
 import enum
 import json
