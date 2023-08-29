@@ -175,7 +175,6 @@ class TVAE(BaseSynthesizer):
             transformer=self.transformer, 
             loss_factor=self.loss_factor,
             l2scale=self.l2scale,
-            device=self.device,
             epochs=self.epochs,
         )
 
