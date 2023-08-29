@@ -29,7 +29,7 @@ def fit_discrete(data):
     ohe.fit(data, column_name)
     ohe.column_name = column_name
     ohe.num_categories = len(ohe.dummies)
-    ohe.output_dimensions = ohe.num_components
+    ohe.output_dimensions = ohe.num_categories
     return ohe
 
 def transform_continuous(gm, data):
