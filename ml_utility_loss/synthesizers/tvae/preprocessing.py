@@ -97,7 +97,7 @@ class DataTransformer(object):
         gm = fit_continuous(data)
 
         return ColumnTransformInfo(
-            column_name=gm.olumn_name, column_type='continuous', transform=gm,
+            column_name=gm.column_name, column_type='continuous', transform=gm,
             output_info=[SpanInfo(1, 'tanh'), SpanInfo(gm.num_components, 'softmax')],
             output_dimensions=gm.output_dimensions)
 
