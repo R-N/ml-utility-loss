@@ -7,8 +7,8 @@ from torch.nn.functional import cross_entropy
 from torch.optim import Adam
 from torch.utils.data import DataLoader, TensorDataset
 
-from ctgan.data_transformer import DataTransformer
-from ctgan.synthesizers.base import BaseSynthesizer, random_state
+from ..data_transformer import DataTransformer
+from ..synthesizers.base import BaseSynthesizer, random_state
 
 
 class Encoder(Module):
