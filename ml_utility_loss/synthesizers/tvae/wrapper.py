@@ -25,7 +25,7 @@ class BaseSynthesizer:
             dict:
                 Python dict representing the object.
         """
-        device_backup = self._device
+        device_backup = self.device
         self.set_device(torch.device('cpu'))
         state = self.__dict__.copy()
         self.set_device(device_backup)
@@ -66,7 +66,7 @@ class BaseSynthesizer:
 
     def save(self, path):
         """Save the model in the passed `path`."""
-        device_backup = self._device
+        device_backup = self.device
         self.set_device(torch.device('cpu'))
         torch.save(self, path)
         self.set_device(device_backup)
@@ -138,7 +138,7 @@ class TVAE(BaseSynthesizer):
         else:
             device = 'cuda'
 
-        self._device = torch.device(device)
+        self.device = torch.device(device)
 
     @random_state
     def fit(self, train_data, discrete_columns=()):
@@ -156,7 +156,7 @@ class TVAE(BaseSynthesizer):
         self.transformer = DataTransformer()
         self.transformer.fit(train_data, discrete_columns)
         train_data = self.transformer.transform(train_data)
-        dataset = TensorDataset(torch.from_numpy(train_data.astype('float32')).to(self._device))
+        dataset = TensorDataset(torch.from_numpy(train_data.astype('float32')).to(self.device))
         loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True, drop_last=False)
 
         data_dim = self.transformer.output_dimensions
@@ -166,7 +166,7 @@ class TVAE(BaseSynthesizer):
             compress_dims=self.compress_dims,
             embedding_dim=self.embedding_dim,
             decompress_dims=self.decompress_dims,
-            device=self._device
+            device=self.device
         )
         
         return train(
@@ -200,5 +200,5 @@ class TVAE(BaseSynthesizer):
 
     def set_device(self, device):
         """Set the `device` to be used ('GPU' or 'CPU)."""
-        self._device = device
-        self.model.to(self._device)
+        self.device = device
+        self.model.to(self.device)
