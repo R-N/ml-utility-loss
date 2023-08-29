@@ -10,6 +10,7 @@ class TVAEModel(Module):
         decompress_dims=(128, 128),
         device="cpu"
     ):
+        super(TVAEModel, self).__init__()
         self.data_dim = data_dim
         self.embedding_dim = embedding_dim
         self.compress_dims=compress_dims
