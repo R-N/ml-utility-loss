@@ -3,6 +3,7 @@ import torch
 from torch.nn.functional import cross_entropy
 from torch.optim import Adam
 import numpy as np
+from .preprocessing import DataTransformer
 
 
 def loss_function(recon_x, x, sigmas, mu, logvar, output_info, factor):
