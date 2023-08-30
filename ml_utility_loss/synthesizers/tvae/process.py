@@ -83,4 +83,17 @@ def sample(
     sigmas = sigmas.detach().cpu().numpy()
     if not transformer:
         return data
+    return postprocess(
+        transformer=transformer,
+        data=data,
+        sigmas=sigmas
+    )
+
+def preprocess(train_data, discrete_columns):
+    transformer = DataTransformer()
+    transformer.fit(train_data, discrete_columns)
+    train_data = transformer.transform(train_data)
+    return transformer, train_data
+
+def postprocess(transformer, data, sigmas):
     return transformer.inverse_transform(data, sigmas)

@@ -2,7 +2,7 @@
 from .model import TVAEModel
 from .process import train, sample
 from .util import random_state
-from .preprocessing import DataTransformer
+from .process import preprocess
 
 import numpy as np
 import torch
@@ -153,9 +153,9 @@ class TVAE(BaseSynthesizer):
                 contain the integer indices of the columns. Otherwise, if it is
                 a ``pandas.DataFrame``, this list should contain the column names.
         """
-        self.transformer = DataTransformer()
-        self.transformer.fit(train_data, discrete_columns)
-        train_data = self.transformer.transform(train_data)
+        self.transformer, train_data = preprocess(
+            train_data, discrete_columns
+        )
         dataset = TensorDataset(torch.from_numpy(train_data.astype('float32')).to(self.device))
         loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True, drop_last=False)
 
