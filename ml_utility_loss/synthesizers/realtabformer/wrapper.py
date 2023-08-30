@@ -573,7 +573,9 @@ class REaLTabFormer:
                         original_df = df.sample(
                             n=sensitivity_orig_frac_multiple * gen_total, replace=False
                         )
-                        hold_df = df.loc[df.index.difference(original_df.index)].sample(
+                        hold_df = df.loc[df.index.difference(original_df.index)]
+                        print(len(df), len(hold_df), gen_total)
+                        hold_df = hold_df.sample(
                             n=gen_total, replace=False
                         )
 
