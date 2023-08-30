@@ -681,8 +681,9 @@ class REaLTabFormer:
             numeric_nparts=self.numeric_nparts,
             target_col=self.target_col,
         )
-        self.processed_columns = df.columns.to_list()
         self.vocab = self._generate_vocab(df)
+        self.processed_columns = df.columns.to_list()
+        self.tabular_col_size = df.shape[0]
         return df
 
     def _fit_tabular(
@@ -693,6 +694,8 @@ class REaLTabFormer:
         target_epochs: int = None,
     ) -> Trainer:
         df = self.preprocess(df)
+        self.processed_columns = df.columns.to_list()
+        self.tabular_col_size = df.shape[0]
 
         # NOTE: the index starts at zero, but should be adjusted
         # to account for the special tokens. For tabular data,
