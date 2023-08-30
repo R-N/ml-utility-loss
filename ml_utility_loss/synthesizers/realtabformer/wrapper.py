@@ -271,6 +271,8 @@ class REaLTabFormer:
         load_from_best_mean_sensitivity: bool = False,
         target_col: str = None,
     ):
+        assert len(df.index.unique()) == len(df.index), "Index must be unique"
+
         device = validate_get_device(device)
 
         # Set target col for teacher forcing
@@ -574,7 +576,6 @@ class REaLTabFormer:
                             n=sensitivity_orig_frac_multiple * gen_total, replace=False
                         )
                         hold_df = df.loc[df.index.difference(original_df.index)]
-                        print(len(df), sensitivity_orig_frac_multiple, len(hold_df), frac, gen_total)
                         hold_df = hold_df.sample(
                             n=gen_total, replace=False
                         )
