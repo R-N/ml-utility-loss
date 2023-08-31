@@ -394,7 +394,7 @@ class DataTransformer():
         
         # transforming continuous component of mixed columns similar to purely numeric columns using second fitted bgm model
         model = self.model[id_][1]
-        components = self.components[id_][1]
+        components = self.components[id_]
 
         current = current.reshape([-1, 1])
         filter_arr = self.filter_arr[mixed_counter]
