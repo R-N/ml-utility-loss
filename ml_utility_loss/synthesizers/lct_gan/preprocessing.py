@@ -346,6 +346,8 @@ class DataTransformer():
 
         # storing the original ordering for invoking inverse transform
         self.ordering.append(largest_indices)
+
+        return features, re_ordered_phot
         
 
     def transform_mixed(self, id_, info, data):
