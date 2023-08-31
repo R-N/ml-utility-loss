@@ -325,7 +325,7 @@ class DataTransformer():
         features = features[idx, opt_sel].reshape([-1, 1])
         features = np.clip(features, -.99, .99) 
         
-        return features
+        return features, probs_onehot
     
     def transform_continuous(self, id_, data):
         model = self.model[id_]
