@@ -102,6 +102,7 @@ def latent_gan_experiment(
     # pickle.dump(autoencoder, open(f"ae_pickles/latent_ae{bottleneck}_{ae_epochs}.pickle", 'wb'))
 
     for e in experiment_params:
+        e = dict(e)
 
         dataset_path = e["raw_csv_path"]
         dataset_categories = e["categorical_columns"]
@@ -163,6 +164,7 @@ def ae_experiment():
     ae_batch_size=512
     
     for exp in tqdm(experiment_params):
+        exp = dict(exp)
 
         best_ae = exp["best_ae"]
         del exp["best_ae"]
