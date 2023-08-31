@@ -350,7 +350,7 @@ class DataTransformer():
         return features, re_ordered_phot
         
 
-    def transform_mixed(self, id_, info, data):
+    def transform_mixed(self, id_, info, data, mixed_counter):
         current = data[:, id_]
         
         # means and standard deviation of modes obtained from the first fitted bgm model
@@ -461,7 +461,7 @@ class DataTransformer():
                 # storing transformed numeric column represented as normalized values and corresponding modes 
                 values += [features, re_ordered_phot]
             elif info['type'] == "mixed":
-                final_features, re_ordered_jhot = self.transform_mixed(id_, info, data)
+                final_features, re_ordered_jhot = self.transform_mixed(id_, info, data, mixed_counter)
                 
                 values += [final_features, re_ordered_jhot]
                 
