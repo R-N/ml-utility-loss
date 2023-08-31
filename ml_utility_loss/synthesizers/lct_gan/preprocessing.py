@@ -65,9 +65,9 @@ class DataPrep(object):
         self.lower_bounds = {}
         self.label_encoder_list = []
         
-        self.prep(raw_df, test_ratio=test_ratio)
+        self.prep(raw_df, type=type, test_ratio=test_ratio)
         
-    def prep(self, raw_df: pd.DataFrame, test_ratio:float):
+    def prep(self, raw_df: pd.DataFrame, type:dict, test_ratio:float):
 
         # Spliting the input data to obtain training dataset
         target_col = list(type.values())[0]
