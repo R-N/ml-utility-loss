@@ -488,7 +488,7 @@ class DataTransformer():
         # iterating through original column information
         for id_, info in enumerate(self.meta):
             if info['type'] == "continuous":
-                
+                result = self.inverse_transform_continuous(id_, data, st)
                 
                 data_t[:, id_] = result
                 
@@ -511,7 +511,7 @@ class DataTransformer():
                 st += info['size']
         return data_t
     
-    def inverse_transform_continuous(self, id_, info, data, st):
+    def inverse_transform_continuous(self, id_, data, st):
         # obtaining the generated normalized values and clipping for stability
         u = data[:, st]
         u = np.clip(u, -1, 1)
