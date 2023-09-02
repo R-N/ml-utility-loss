@@ -16,21 +16,6 @@ warnings.filterwarnings("ignore")
 
 def supervised_model_training(x_train, y_train, x_test, y_test, model_name):
     
-    """
-    Trains and evaluates commonly used ML models
-
-    Inputs:
-    1) x_train -> indepedent features of training dataset
-    2) y_train -> dependent feature of training dataset
-    3) x_test -> independent features of testing dataset
-    4) y_test -> dependent feature of testing dataset 
-    5) model_name -> name of ML model to be used
-
-
-    Outputs:
-    1) List of metrics containing accuracy, auc and f1-score of trained ML model as achieved on test-set.
-    
-    """
     
     # Selecting the model
     if model_name == 'lr':
@@ -65,23 +50,6 @@ def supervised_model_training(x_train, y_train, x_test, y_test, model_name):
 
 def get_utility_metrics(real_path, fake_paths, scaler="MinMax", classifiers=["lr","dt","rf","mlp"], test_ratio=.20):
 
-        """
-        Returns ML utility metrics
-
-        Inputs:
-        1) real_path -> path to the real dataset
-        2) fake_paths -> list of paths to corresponding synthetic datasets
-        3) scaler ->  choice of scaling method to normalize/standardize data before fitting ML model
-        4) classifiers -> list of classifiers to be used
-        5) test_ratio -> ratio of the size of test to train data 
-
-        Outputs:
-        1) diff_results -> matrix of average differences in accuracy, auc and f1-scores achieved on test dataset 
-        between ML models trained on real vs synthetic datasets. 
-        
-        Note that the average is computed across the number of replications chosen for the experiment
-
-        """
 
         # Loading the real dataset
         data_real = pd.read_csv(real_path).to_numpy()
@@ -147,20 +115,6 @@ def get_utility_metrics(real_path, fake_paths, scaler="MinMax", classifiers=["lr
 
 def stat_sim(real_path,fake_path,cat_cols=None):
         
-    """
-    Returns statistical similarity metrics
-
-    Inputs:
-    1) real_path -> path to real data
-    2) fake_path -> path to synthetic data
-    3) cat_cols -> list of categorical column names
-        
-
-    Outputs:
-    1) List containing the difference in avg (normalized) wasserstein distance across numeric columns, avg jensen shannon divergence 
-    across categorical columns and euclidean norm of the difference in pair-wise correlations between real and synthetic datasets
-        
-    """
     # Loading real and synthetic data
     real = pd.read_csv(real_path)
     fake = pd.read_csv(fake_path)
@@ -219,20 +173,6 @@ def stat_sim(real_path,fake_path,cat_cols=None):
 
 def privacy_metrics(real_path,fake_path,data_percent=15):
 
-    """
-    Returns privacy metrics
-    
-    Inputs:
-    1) real_path -> path to real data
-    2) fake_path -> path to corresponding synthetic data
-    3) data_percent -> percentage of data to be sampled from real and synthetic datasets for computing privacy metrics
-
-    Outputs:
-    1) List containing the 5th percentile distance to closest record (DCR) between real and synthetic as well as within real and synthetic datasets
-    along with 5th percentile of nearest neighbour distance ratio (NNDR) between real and synthetic as well as within real and synthetic datasets
-    
-    """
-    
     # Loading real and synthetic datasets and removing duplicates if any
     real = pd.read_csv(real_path).drop_duplicates(keep=False)
     fake = pd.read_csv(fake_path).drop_duplicates(keep=False)
