@@ -10,6 +10,7 @@ from typing import Any, Callable, List, Dict, Type, Optional, Tuple, TypeVar, Un
 import pickle
 import numpy as np
 import enum
+import os
 
 RawConfig = Dict[str, Any]
 _CONFIG_NONE = '__none__'
@@ -126,3 +127,15 @@ class TaskType(enum.Enum):
 
     def __str__(self) -> str:
         return self.value
+    
+    
+def read_pure_data(path, split='train'):
+    y = np.load(os.path.join(path, f'y_{split}.npy'), allow_pickle=True)
+    X_num = None
+    X_cat = None
+    if os.path.exists(os.path.join(path, f'X_num_{split}.npy')):
+        X_num = np.load(os.path.join(path, f'X_num_{split}.npy'), allow_pickle=True)
+    if os.path.exists(os.path.join(path, f'X_cat_{split}.npy')):
+        X_cat = np.load(os.path.join(path, f'X_cat_{split}.npy'), allow_pickle=True)
+
+    return X_num, X_cat, y

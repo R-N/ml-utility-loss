@@ -2,7 +2,7 @@
 import numpy as np
 from scipy.spatial.distance import cdist
 import os
-from .util import load_json, raise_unknown, load_pickle, dump_pickle, concat_y_to_X
+from .util import load_json, raise_unknown, load_pickle, dump_pickle, concat_y_to_X, read_pure_data
 from sklearn.model_selection import train_test_split
 from .Dataset import Dataset, ArrayDict, TensorDict, TaskType
 from typing import Any, Literal, Optional, Union, cast, Tuple, Dict, List
@@ -222,16 +222,6 @@ def build_target(
         raise_unknown('policy', policy)
     return y, info
 
-def read_pure_data(path, split='train'):
-    y = np.load(os.path.join(path, f'y_{split}.npy'), allow_pickle=True)
-    X_num = None
-    X_cat = None
-    if os.path.exists(os.path.join(path, f'X_num_{split}.npy')):
-        X_num = np.load(os.path.join(path, f'X_num_{split}.npy'), allow_pickle=True)
-    if os.path.exists(os.path.join(path, f'X_cat_{split}.npy')):
-        X_cat = np.load(os.path.join(path, f'X_cat_{split}.npy'), allow_pickle=True)
-
-    return X_num, X_cat, y
 
 
 @dataclass(frozen=True)

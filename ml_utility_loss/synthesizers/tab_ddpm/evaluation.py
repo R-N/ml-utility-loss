@@ -7,10 +7,9 @@ import numpy as np
 import scipy.special
 import sklearn.metrics as skm
 
-from .util import raise_unknown, load_json, TaskType
+from .util import raise_unknown, load_json, TaskType, read_pure_data
 import numpy as np
 from pathlib import Path
-from .preprocessing import read_pure_data
 from sklearn.model_selection import train_test_split
 
 def read_changed_val(path, val_size=0.2):
