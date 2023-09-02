@@ -4,7 +4,7 @@ import os
 import argparse
 from .util import try_argparse, load_config
 from .process import train as _train, sample as _sample
-from ...evaluation import train_catboost
+from .evaluation import train_catboost
 import delu as zero
 import torch
 
