@@ -106,3 +106,9 @@ def concat_y_to_X(X, y):
     if X is None:
         return y.reshape(-1, 1)
     return np.concatenate([y.reshape(-1, 1), X], axis=1)
+
+
+def get_catboost_config(real_data_path, is_cv=False):
+    ds_name = Path(real_data_path).name
+    C = load_json(f'tuned_models/catboost/{ds_name}_cv.json')
+    return C

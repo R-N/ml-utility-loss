@@ -377,3 +377,28 @@ def make_dataset(
         D = change_val(D)
     
     return transform_dataset(D, T, None)
+
+
+def concat_features(D : Dataset):
+    if D.X_num is None:
+        assert D.X_cat is not None
+        X = {k: pd.DataFrame(v, columns=range(D.n_features)) for k, v in D.X_cat.items()}
+    elif D.X_cat is None:
+        assert D.X_num is not None
+        X = {k: pd.DataFrame(v, columns=range(D.n_features)) for k, v in D.X_num.items()}
+    else:
+        X = {
+            part: pd.concat(
+                [
+                    pd.DataFrame(D.X_num[part], columns=range(D.n_num_features)),
+                    pd.DataFrame(
+                        D.X_cat[part],
+                        columns=range(D.n_num_features, D.n_features),
+                    ),
+                ],
+                axis=1,
+            )
+            for part in D.y.keys()
+        }
+
+    return X

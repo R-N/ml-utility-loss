@@ -7,8 +7,8 @@ import numpy as np
 import scipy.special
 import sklearn.metrics as skm
 
-from . import util
-from .util import TaskType
+from .util import raise_unknown, get_catboost_config, load_json, dump_json
+from .Dataset import TaskType, Dataset
 from catboost import CatBoostClassifier, CatBoostRegressor
 from sklearn.metrics import classification_report, r2_score
 import numpy as np
@@ -16,9 +16,37 @@ import os
 from sklearn.utils import shuffle
 import delu as zero
 from pathlib import Path
-from ml_utility_loss.tab_ddpm import lib
 from pprint import pprint
-from ml_utility_loss.tab_ddpm.lib import concat_features, read_pure_data, get_catboost_config, read_changed_val
+from .preprocessing import concat_features, read_pure_data, Transformations, transform_dataset
+from sklearn.model_selection import train_test_split
+
+def read_changed_val(path, val_size=0.2):
+    path = Path(path)
+    X_num_train, X_cat_train, y_train = read_pure_data(path, 'train')
+    X_num_val, X_cat_val, y_val = read_pure_data(path, 'val')
+    is_regression = load_json(path / 'info.json')['task_type'] == 'regression'
+
+    y = np.concatenate([y_train, y_val], axis=0)
+
+    ixs = np.arange(y.shape[0])
+    if is_regression:
+        train_ixs, val_ixs = train_test_split(ixs, test_size=val_size, random_state=777)
+    else:
+        train_ixs, val_ixs = train_test_split(ixs, test_size=val_size, random_state=777, stratify=y)
+    y_train = y[train_ixs]
+    y_val = y[val_ixs]
+
+    if X_num_train is not None:
+        X_num = np.concatenate([X_num_train, X_num_val], axis=0)
+        X_num_train = X_num[train_ixs]
+        X_num_val = X_num[val_ixs]
+
+    if X_cat_train is not None:
+        X_cat = np.concatenate([X_cat_train, X_cat_val], axis=0)
+        X_cat_train = X_cat[train_ixs]
+        X_cat_val = X_cat[val_ixs]
+    
+    return X_num_train, X_cat_train, y_train, X_num_val, X_cat_val, y_val
 
 class PredictionType(enum.Enum):
     LOGITS = 'logits'
@@ -133,7 +161,7 @@ def _get_labels_and_probs(
     elif prediction_type == PredictionType.PROBS:
         probs = y_pred
     else:
-        util.raise_unknown('prediction_type', prediction_type)
+        raise_unknown('prediction_type', prediction_type)
 
     assert probs is not None
     labels = np.round(probs) if task_type == TaskType.BINCLASS else probs.argmax(axis=1)
@@ -180,8 +208,8 @@ def train_catboost(
     zero.improve_reproducibility(seed)
     if eval_type != "real":
         synthetic_data_path = os.path.join(parent_dir)
-    info = lib.load_json(os.path.join(real_data_path, 'info.json'))
-    T = lib.Transformations(**T_dict)
+    info = load_json(os.path.join(real_data_path, 'info.json'))
+    T = Transformations(**T_dict)
     
     if change_val:
         X_num_real, X_cat_real, y_real, X_num_val, X_cat_val, y_val = read_changed_val(real_data_path, val_size=0.2)
@@ -220,16 +248,16 @@ def train_catboost(
         X_num_val, X_cat_val, y_val = read_pure_data(real_data_path, 'val')
     X_num_test, X_cat_test, y_test = read_pure_data(real_data_path, 'test')
 
-    D = lib.Dataset(
+    D = Dataset(
         {'train': X_num, 'val': X_num_val, 'test': X_num_test} if X_num is not None else None,
         {'train': X_cat, 'val': X_cat_val, 'test': X_cat_test} if X_cat is not None else None,
         {'train': y, 'val': y_val, 'test': y_test},
         {},
-        lib.TaskType(info['task_type']),
+        TaskType(info['task_type']),
         info.get('n_classes')
     )
 
-    D = lib.transform_dataset(D, T, None)
+    D = transform_dataset(D, T, None)
     X = concat_features(D)
     print(f'Train size: {X["train"].shape}, Val size {X["val"].shape}')
 
@@ -285,10 +313,10 @@ def train_catboost(
     report['dataset'] = real_data_path
     report['metrics'] = D.calculate_metrics(predictions,  None if D.is_regression else 'probs')
 
-    metrics_report = lib.MetricsReport(report['metrics'], D.task_type)
+    metrics_report = MetricsReport(report['metrics'], D.task_type)
     metrics_report.print_metrics()
 
     if parent_dir is not None:
-        lib.dump_json(report, os.path.join(parent_dir, "results_catboost.json"))
+        dump_json(report, os.path.join(parent_dir, "results_catboost.json"))
 
     return metrics_report
