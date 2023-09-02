@@ -90,6 +90,10 @@ def ohe_to_categories(ohe, K):
 def load_json(path, **kwargs) -> Any:
     return json.loads(Path(path).read_text(), **kwargs)
 
+def dump_json(x: Any, path: Union[Path, str], **kwargs) -> None:
+    kwargs.setdefault('indent', 4)
+    Path(path).write_text(json.dumps(x, **kwargs) + '\n')
+
 
 def raise_unknown(unknown_what: str, unknown_value: Any):
     raise ValueError(f'Unknown {unknown_what}: {unknown_value}')
