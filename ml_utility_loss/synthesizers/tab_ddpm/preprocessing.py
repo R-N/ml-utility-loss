@@ -10,7 +10,7 @@ from pathlib import Path
 from dataclasses import astuple, dataclass, replace
 from copy import deepcopy
 import hashlib
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, QuantileTransformer, OneHotEncoder
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, QuantileTransformer, OneHotEncoder, OrdinalEncoder
 from category_encoders import LeaveOneOutEncoder
 from sklearn.pipeline import make_pipeline
 import pandas as pd
@@ -160,7 +160,7 @@ def cat_encode(
 
     if encoding is None:
         unknown_value = np.iinfo('int64').max - 3
-        oe = sklearn.preprocessing.OrdinalEncoder(
+        oe = OrdinalEncoder(
             handle_unknown='use_encoded_value',  # type: ignore[code]
             unknown_value=unknown_value,  # type: ignore[code]
             dtype='int64',  # type: ignore[code]
