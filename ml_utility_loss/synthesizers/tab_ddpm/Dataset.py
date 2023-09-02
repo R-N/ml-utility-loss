@@ -12,6 +12,10 @@ ArrayDict = Dict[str, np.ndarray]
 TensorDict = Dict[str, torch.Tensor]
 
 
+def get_category_sizes(X: Union[torch.Tensor, np.ndarray]) -> List[int]:
+    XT = X.T.cpu().tolist() if isinstance(X, torch.Tensor) else X.T.tolist()
+    return [len(set(x)) for x in XT]
+
 @dataclass(frozen=False)
 class Dataset:
     X_num: Optional[ArrayDict]
