@@ -6,7 +6,7 @@ import torch
 import numpy as np
 from .util import load_json
 from pathlib import Path
-from ...evaluation import calculate_metrics as calculate_metrics_
+from .evaluation import calculate_metrics as calculate_metrics_
 
 ArrayDict = Dict[str, np.ndarray]
 TensorDict = Dict[str, torch.Tensor]
