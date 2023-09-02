@@ -9,6 +9,12 @@ from .model import get_model
 import pandas as pd
 from .gaussian_multinomial_diffsuion import GaussianMultinomialDiffusion
 
+from .util import get_catboost_config, load_json, dump_json
+from .Dataset import TaskType, Dataset
+from catboost import CatBoostClassifier, CatBoostRegressor
+from pprint import pprint
+from .preprocessing import concat_features, read_pure_data, Transformations, transform_dataset
+from .evaluation import MetricsReport
 
 DEFAULT_DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else "cpu")
 
@@ -297,3 +303,130 @@ def sample(
     if num_numerical_features < X_gen.shape[1]:
         np.save(os.path.join(parent_dir, 'X_cat_train'), X_cat)
     np.save(os.path.join(parent_dir, 'y_train'), y_gen)
+
+    
+def train_catboost(
+    parent_dir,
+    real_data_path,
+    eval_type,
+    T_dict,
+    seed = 0,
+    params = None,
+    change_val = True,
+    device = None # dummy
+):
+    zero.improve_reproducibility(seed)
+    if eval_type != "real":
+        synthetic_data_path = os.path.join(parent_dir)
+    info = load_json(os.path.join(real_data_path, 'info.json'))
+    T = Transformations(**T_dict)
+    
+    if change_val:
+        X_num_real, X_cat_real, y_real, X_num_val, X_cat_val, y_val = read_changed_val(real_data_path, val_size=0.2)
+
+    X = None
+    print('-'*100)
+    if eval_type == 'merged':
+        print('loading merged data...')
+        if not change_val:
+            X_num_real, X_cat_real, y_real = read_pure_data(real_data_path)
+        X_num_fake, X_cat_fake, y_fake = read_pure_data(synthetic_data_path)
+
+
+        y = np.concatenate([y_real, y_fake], axis=0)
+
+        X_num = None
+        if X_num_real is not None:
+            X_num = np.concatenate([X_num_real, X_num_fake], axis=0)
+
+        X_cat = None
+        if X_cat_real is not None:
+            X_cat = np.concatenate([X_cat_real, X_cat_fake], axis=0)
+
+    elif eval_type == 'synthetic':
+        print(f'loading synthetic data: {parent_dir}')
+        X_num, X_cat, y = read_pure_data(synthetic_data_path)
+
+    elif eval_type == 'real':
+        print('loading real data...')
+        if not change_val:
+            X_num, X_cat, y = read_pure_data(real_data_path)
+    else:
+        raise "Choose eval method"
+
+    if not change_val:
+        X_num_val, X_cat_val, y_val = read_pure_data(real_data_path, 'val')
+    X_num_test, X_cat_test, y_test = read_pure_data(real_data_path, 'test')
+
+    D = Dataset(
+        {'train': X_num, 'val': X_num_val, 'test': X_num_test} if X_num is not None else None,
+        {'train': X_cat, 'val': X_cat_val, 'test': X_cat_test} if X_cat is not None else None,
+        {'train': y, 'val': y_val, 'test': y_test},
+        {},
+        TaskType(info['task_type']),
+        info.get('n_classes')
+    )
+
+    D = transform_dataset(D, T, None)
+    X = concat_features(D)
+    print(f'Train size: {X["train"].shape}, Val size {X["val"].shape}')
+
+    if params is None:
+        catboost_config = get_catboost_config(real_data_path, is_cv=True)
+    else:
+        catboost_config = params
+
+    if 'cat_features' not in catboost_config:
+        catboost_config['cat_features'] = list(range(D.n_num_features, D.n_features))
+
+    for col in range(D.n_features):
+        for split in X.keys():
+            if col in catboost_config['cat_features']:
+                X[split][col] = X[split][col].astype(str)
+            else:
+                X[split][col] = X[split][col].astype(float)
+    print(T_dict)
+    pprint(catboost_config, width=100)
+    print('-'*100)
+    
+    if D.is_regression:
+        model = CatBoostRegressor(
+            **catboost_config,
+            eval_metric='RMSE',
+            random_seed=seed
+        )
+        predict = model.predict
+    else:
+        model = CatBoostClassifier(
+            loss_function="MultiClass" if D.is_multiclass else "Logloss",
+            **catboost_config,
+            eval_metric='TotalF1',
+            random_seed=seed,
+            class_names=[str(i) for i in range(D.n_classes)] if D.is_multiclass else ["0", "1"]
+        )
+        predict = (
+            model.predict_proba
+            if D.is_multiclass
+            else lambda x: model.predict_proba(x)[:, 1]
+        )
+
+    model.fit(
+        X['train'], D.y['train'],
+        eval_set=(X['val'], D.y['val']),
+        verbose=100
+    )
+    predictions = {k: predict(v) for k, v in X.items()}
+    print(predictions['train'].shape)
+
+    report = {}
+    report['eval_type'] = eval_type
+    report['dataset'] = real_data_path
+    report['metrics'] = D.calculate_metrics(predictions,  None if D.is_regression else 'probs')
+
+    metrics_report = MetricsReport(report['metrics'], D.task_type)
+    metrics_report.print_metrics()
+
+    if parent_dir is not None:
+        dump_json(report, os.path.join(parent_dir, "results_catboost.json"))
+
+    return metrics_report
