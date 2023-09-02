@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import torch.optim
 from torch import Tensor
 
-from .modules import ReGLU, GEGLU, ModuleType, _make_nn_module
+from .modules import ReGLU, GEGLU, ModuleType, _make_nn_module, timestep_embedding
 
 class MLP(nn.Module):
 
