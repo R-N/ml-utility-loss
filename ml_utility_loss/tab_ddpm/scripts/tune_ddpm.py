@@ -7,11 +7,11 @@ import shutil
 import argparse
 from ml_utility_loss.tab_ddpm.util import try_argparse
 from pathlib import Path
-from ml_utility_loss.tab_ddpm.scripts.eval_seeds import main as eval_seeds
+from ml_utility_loss.tab_ddpm.scripts.eval_seeds import main as _eval_seeds
 from ml_utility_loss.tab_ddpm.scripts.pipeline import main as pipeline
 
 pipeline_path = f'tab_ddpm/scripts/pipeline.py'
-eval_seeds = f'tab_ddpm/scripts/eval_seeds.py'
+eval_seeds_path = f'tab_ddpm/scripts/eval_seeds.py'
 
 
 def _suggest_mlp_layers(trial):
@@ -164,8 +164,8 @@ def main(
 
     if args.eval_seeds:
         best_exp = str(parent_path / f'{prefix}_best/config.toml')
-        #subprocess.run(['python', f'{eval_seeds}', '--config', f'{best_exp}', '10', "ddpm", eval_type, args.eval_model, '5'], check=True)
-        eval_seeds(
+        #subprocess.run(['python', f'{eval_seeds_path}', '--config', f'{best_exp}', '10', "ddpm", eval_type, args.eval_model, '5'], check=True)
+        _eval_seeds(
             config=f'{best_exp}',
             n_seeds=10,
             sampling_method="ddpm",
