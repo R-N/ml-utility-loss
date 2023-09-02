@@ -7,7 +7,7 @@ from ml_utility_loss.tab_ddpm import lib
 from .preprocessing import round_columns, make_dataset
 from .model import get_model
 import pandas as pd
-from .gaussian_multinomial_diffsuion import GaussianMultinomialDiffusion
+from .gaussian_multinomial_diffusion import GaussianMultinomialDiffusion
 
 from .util import get_catboost_config, load_json, dump_json, read_pure_data
 from .Dataset import TaskType, Dataset
