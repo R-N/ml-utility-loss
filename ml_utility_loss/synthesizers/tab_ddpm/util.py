@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Callable, List, Dict, Type, Optional, Tuple, TypeVar, Union, cast, get_args, get_origin
 import pickle
 import numpy as np
+import enum
 
 RawConfig = Dict[str, Any]
 _CONFIG_NONE = '__none__'
@@ -116,3 +117,12 @@ def get_catboost_config(real_data_path, is_cv=False):
     ds_name = Path(real_data_path).name
     C = load_json(f'tuned_models/catboost/{ds_name}_cv.json')
     return C
+
+
+class TaskType(enum.Enum):
+    BINCLASS = 'binclass'
+    MULTICLASS = 'multiclass'
+    REGRESSION = 'regression'
+
+    def __str__(self) -> str:
+        return self.value

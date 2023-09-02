@@ -4,20 +4,13 @@ from typing import Any, Literal, Optional, Union, cast, Tuple, Dict, List
 import enum
 import torch
 import numpy as np
-from .util import load_json
+from .util import load_json, TaskType
 from pathlib import Path
 from .evaluation import calculate_metrics as calculate_metrics_
 
 ArrayDict = Dict[str, np.ndarray]
 TensorDict = Dict[str, torch.Tensor]
 
-class TaskType(enum.Enum):
-    BINCLASS = 'binclass'
-    MULTICLASS = 'multiclass'
-    REGRESSION = 'regression'
-
-    def __str__(self) -> str:
-        return self.value
 
 @dataclass(frozen=False)
 class Dataset:
