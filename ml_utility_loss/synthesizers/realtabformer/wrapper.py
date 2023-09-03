@@ -708,13 +708,13 @@ class REaLTabFormer:
         )
         return df
     
-    def make_dataset(self, df, preprocess=True, two=False):
+    def make_dataset(self, df, preprocess=True, two=False, map_ids=True):
         if preprocess:
             df = self.preprocess(df)
         # Load the dataframe into a HuggingFace Dataset
         f = make_dataset_2 if two else make_dataset
         dataset = f(
-            df, self.vocab, mask_rate=self.mask_rate, return_token_type_ids=False
+            df, self.vocab, mask_rate=self.mask_rate, return_token_type_ids=False, map_ids=map_ids
         )
 
         # Store the sequence length for the processed data
