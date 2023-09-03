@@ -645,6 +645,7 @@ def make_dataset_2(
             return_token_type_ids=return_token_type_ids,
             remove_columns=df.columns
         )
+    print(df.shape)
     training_dataset = Dataset.from_pandas(df, preserve_index=False)
     
     return training_dataset
