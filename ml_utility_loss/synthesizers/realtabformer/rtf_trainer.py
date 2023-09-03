@@ -138,4 +138,5 @@ class ResumableTrainer(Trainer):
         #return (loss, outputs) if return_outputs else loss
 
     def training_step(self, model, inputs):
+        print(inputs[0])
         return super().training_step(model, inputs)
