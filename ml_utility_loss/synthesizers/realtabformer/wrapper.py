@@ -854,8 +854,13 @@ class REaLTabFormer:
 
         return synth_df
 
-    def postprocess(self, synth_sample):
-        self._check_model()
+    def postprocess(
+        self, 
+        synth_sample,
+        device: str = "cuda",
+        validator: Optional[ObservationValidator] = None,
+    ):
+        #self._check_model()
         device = validate_get_device(device)
 
         # Clear the cache
