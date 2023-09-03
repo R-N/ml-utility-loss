@@ -96,5 +96,5 @@ def preprocess(train_data, discrete_columns):
     train_data = transformer.transform(train_data)
     return transformer, train_data
 
-def postprocess(transformer, data, sigmas):
+def postprocess(transformer, data, sigmas=None):
     return transformer.inverse_transform(data, sigmas)
