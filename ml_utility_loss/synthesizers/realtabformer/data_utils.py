@@ -611,7 +611,7 @@ def map_input_ids(
     return_token_type_ids: bool = False,
     remove_columns=[]
 ):
-    print("Creating the input_ids and label_ids columns 2...")
+    logging.info("Creating the input_ids and label_ids columns 2...")
     f = lambda example: get_input_ids(
         example,
         vocab,
@@ -645,7 +645,6 @@ def make_dataset_2(
             return_token_type_ids=return_token_type_ids,
             remove_columns=df.columns
         )
-    print(len(df["input_ids"][0]))
     training_dataset = Dataset.from_pandas(df, preserve_index=False)
     
     return training_dataset

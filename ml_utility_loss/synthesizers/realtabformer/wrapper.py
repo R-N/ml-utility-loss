@@ -708,7 +708,7 @@ class REaLTabFormer:
         )
         return df
     
-    def make_dataset(self, df, preprocess=True, two=False, map_ids=True):
+    def make_dataset(self, df, preprocess=True, map_ids=True, two=True):
         if preprocess:
             df = self.preprocess(df)
         # Load the dataframe into a HuggingFace Dataset
