@@ -611,7 +611,7 @@ def map_input_ids(
     return_token_type_ids: bool = False,
     remove_columns=[]
 ):
-    # Load the dataframe into a HuggingFace Dataset
+    logging.info("Creating the input_ids and label_ids columns...")
     f = lambda example: get_input_ids(
         example,
         vocab,
@@ -632,18 +632,19 @@ def make_dataset(
     mask_rate: float = 0,
     affix_eos: bool = True,
     return_token_type_ids: bool = False,
+    map_ids=True
 ) -> Dataset:
     
     # Create the input_ids and label_ids columns
-    logging.info("Creating the input_ids and label_ids columns...")
-    df = map_input_ids(
-        df=df,
-        vocab=vocab,
-        mask_rate=mask_rate,
-        affix_eos=affix_eos,
-        return_token_type_ids=return_token_type_ids,
-        remove_columns=df.columns
-    )
+    if map_ids:
+        df = map_input_ids(
+            df=df,
+            vocab=vocab,
+            mask_rate=mask_rate,
+            affix_eos=affix_eos,
+            return_token_type_ids=return_token_type_ids,
+            remove_columns=df.columns
+        )
     training_dataset = Dataset.from_pandas(df, preserve_index=False)
 
 

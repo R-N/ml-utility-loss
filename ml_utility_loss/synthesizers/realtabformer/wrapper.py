@@ -17,6 +17,7 @@ import pandas as pd
 import torch
 from datasets import Dataset
 from sklearn.metrics.pairwise import manhattan_distances
+from .data_utils import map_input_ids
 
 # from sklearn.metrics import accuracy_score
 from transformers import ( 
@@ -696,6 +697,10 @@ class REaLTabFormer:
             for ix, col in enumerate(self.processed_columns)
         }
 
+        return df
+    
+    def map_input_ids(self, df, remove_columns=True):
+        df = map_input_ids(df, remove_columns=df.columns if remove_columns else [])
         return df
     
     def make_dataset(self, df, preprocess=True):
