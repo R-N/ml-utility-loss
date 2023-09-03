@@ -700,7 +700,11 @@ class REaLTabFormer:
         return df
     
     def map_input_ids(self, df, remove_columns=True):
-        df = map_input_ids(df, remove_columns=df.columns if remove_columns else [])
+        df = map_input_ids(
+            df, 
+            self.vocab, mask_rate=self.mask_rate, return_token_type_ids=False,
+            remove_columns=df.columns if remove_columns else []
+        )
         return df
     
     def make_dataset(self, df, preprocess=True):
