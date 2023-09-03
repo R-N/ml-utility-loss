@@ -706,6 +706,7 @@ class REaLTabFormer:
             self.vocab, mask_rate=self.mask_rate, return_token_type_ids=False,
             remove_columns=df.columns
         )
+        self.tabular_max_length = len(df["input_ids"][0])
         return df
     
     def make_dataset(self, df, preprocess=True, map_ids=True, two=True):
@@ -720,7 +721,7 @@ class REaLTabFormer:
         )
 
         # Store the sequence length for the processed data
-        self.tabular_max_length = len(dataset[0]["input_ids"])
+        self.tabular_max_length = len(dataset["input_ids"][0])
         return dataset
 
     def _fit_tabular(
