@@ -625,7 +625,7 @@ def map_input_ids(
 
     return df
 
-
+"""
 def make_dataset(
     df: pd.DataFrame,
     vocab: Dict,
@@ -646,8 +646,32 @@ def make_dataset(
             remove_columns=df.columns
         )
     training_dataset = Dataset.from_pandas(df, preserve_index=False)
-
-
     
     return training_dataset
+"""
+
+def make_dataset(
+    df: pd.DataFrame,
+    vocab: Dict,
+    mask_rate: float = 0,
+    affix_eos: bool = True,
+    return_token_type_ids: bool = False,
+) -> Dataset:
+    # Load the dataframe into a HuggingFace Dataset
+    training_dataset = Dataset.from_pandas(df, preserve_index=False)
+
+    # Create the input_ids and label_ids columns
+    logging.info("Creating the input_ids and label_ids columns...")
+
+    return training_dataset.map(
+        lambda example: get_input_ids(
+            example,
+            vocab,
+            df.columns,
+            mask_rate=mask_rate,
+            affix_eos=affix_eos,
+            return_token_type_ids=return_token_type_ids,
+        ),
+        remove_columns=training_dataset.column_names,
+    )
 
