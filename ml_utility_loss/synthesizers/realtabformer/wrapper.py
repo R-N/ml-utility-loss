@@ -729,7 +729,7 @@ class REaLTabFormer:
         dataset = self.make_dataset(df)
 
         # Create train-eval split if specified
-        self.dataset = dataset
+        self.dataset = self._split_train_eval_dataset(dataset)
 
         # Set up the config and the model
         self.tabular_config.bos_token_id = self.vocab["token2id"][SpecialTokens.BOS]
