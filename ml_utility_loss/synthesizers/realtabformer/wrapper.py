@@ -700,11 +700,11 @@ class REaLTabFormer:
 
         return df
     
-    def map_input_ids(self, df, remove_columns=True):
+    def map_input_ids(self, df):
         df = map_input_ids(
             df, 
             self.vocab, mask_rate=self.mask_rate, return_token_type_ids=False,
-            remove_columns=df.columns if remove_columns else []
+            remove_columns=df.columns
         )
         return df
     
@@ -714,7 +714,9 @@ class REaLTabFormer:
         # Load the dataframe into a HuggingFace Dataset
         f = make_dataset_2 if two else make_dataset
         dataset = f(
-            df, self.vocab, mask_rate=self.mask_rate, return_token_type_ids=False, map_ids=map_ids
+            df, 
+            self.vocab, mask_rate=self.mask_rate, return_token_type_ids=False, 
+            map_ids=map_ids
         )
 
         # Store the sequence length for the processed data
