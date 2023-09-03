@@ -621,7 +621,7 @@ def map_input_ids(
         return_token_type_ids=return_token_type_ids,
     )
 
-    df = df.map(f).drop(remove_columns, axis=1)
+    df = df.apply(f, axis=1, result_type="expand").drop(remove_columns, axis=1)
 
     return df
 
