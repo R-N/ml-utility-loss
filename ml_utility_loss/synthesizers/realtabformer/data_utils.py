@@ -625,8 +625,8 @@ def map_input_ids(
 
     return df
 
-"""
-def make_dataset(
+#"""
+def make_dataset_2(
     df: pd.DataFrame,
     vocab: Dict,
     mask_rate: float = 0,
@@ -648,7 +648,7 @@ def make_dataset(
     training_dataset = Dataset.from_pandas(df, preserve_index=False)
     
     return training_dataset
-"""
+#"""
 
 def make_dataset(
     df: pd.DataFrame,
