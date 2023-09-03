@@ -379,7 +379,7 @@ class REaLSampler:
     ) -> pd.DataFrame:
         assert isinstance(sample_outputs, np.ndarray)
 
-        print(len(sample_outputs))
+        print(len(sample_outputs[0]))
 
         def _decode_tokens(s):
             # No need to remove [BOS] and [EOS] tokens
