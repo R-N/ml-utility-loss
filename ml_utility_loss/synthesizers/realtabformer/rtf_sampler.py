@@ -52,6 +52,7 @@ class REaLSampler:
         col_transform_data: Dict,
         random_state: Optional[int] = 1029,
         device="cuda",
+        ignore_model=False,
     ) -> None:
         self.model_type = model_type
         self.vocab = vocab
@@ -73,16 +74,19 @@ class REaLSampler:
 
         self.device = torch.device(device)
 
-        if model.device != self.device:
-            self.model = model.to(self.device)
-        else:
-            self.model = model
-
         self.invalid_gen_samples = 0
         self.total_gen_samples = 0
 
-        # Set the model to eval mode
-        self.model.eval()
+        if ignore_model:
+            self.model = None
+        else:
+            if model.device != self.device:
+                self.model = model.to(self.device)
+            else:
+                self.model = model
+
+            # Set the model to eval mode
+            self.model.eval()
 
     def _prefix_allowed_tokens_fn(self, batch_id, input_ids) -> List:
         # https://huggingface.co/docs/transformers/v4.24.0/en/main_classes/text_generation#transformers.generation_utils.GenerationMixin.generate.prefix_allowed_tokens_fn
@@ -497,6 +501,7 @@ class TabularSampler(REaLSampler):
         col_transform_data: Dict,
         random_state: Optional[int] = 1029,
         device="cuda",
+        ignore_model=False,
     ) -> None:
         super().__init__(
             model_type,
@@ -514,12 +519,13 @@ class TabularSampler(REaLSampler):
             col_transform_data,
             random_state,
             device,
+            ignore_mode=ignore_model
         )
 
         self.output_vocab = self.vocab
 
     @staticmethod
-    def sampler_from_model(rtf_model, device: str = "cuda"):
+    def sampler_from_model(rtf_model, device: str = "cuda", ignore_model=False):
         device = torch.device(device)
 
         assert rtf_model.tabular_max_length is not None
@@ -542,6 +548,7 @@ class TabularSampler(REaLSampler):
             col_transform_data=rtf_model.col_transform_data,
             random_state=rtf_model.random_state,
             device=device,
+            ignore_model=ignore_model
         )
 
     def _prefix_allowed_tokens_fn(self, batch_id, input_ids) -> List:

@@ -863,7 +863,10 @@ class REaLTabFormer:
         validator: Optional[ObservationValidator] = None,
     ):
         #self._check_model()
-        device = validate_get_device(device)
+        try:
+            device = validate_get_device(device)
+        except AttributeError:
+            pass
 
         # Clear the cache
         torch.cuda.empty_cache()
@@ -874,7 +877,7 @@ class REaLTabFormer:
             assert self.col_transform_data is not None
 
             tabular_sampler = TabularSampler.sampler_from_model(
-                rtf_model=self, device=device
+                rtf_model=self, device=device, ignore_model=True
             )
             synth_sample = tabular_sampler.processes_sample(
                 sample_outputs=synth_sample,
