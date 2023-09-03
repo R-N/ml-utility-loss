@@ -603,6 +603,28 @@ def get_input_ids(
 
     return data
 
+def map_input_ids(
+    df: pd.DataFrame,
+    vocab: Dict,
+    mask_rate: float = 0,
+    affix_eos: bool = True,
+    return_token_type_ids: bool = False,
+    remove_columns=[]
+):
+    # Load the dataframe into a HuggingFace Dataset
+    f = lambda example: get_input_ids(
+        example,
+        vocab,
+        df.columns,
+        mask_rate=mask_rate,
+        affix_eos=affix_eos,
+        return_token_type_ids=return_token_type_ids,
+    )
+
+    df = df.map(f).drop(remove_columns, axis=1)
+
+    return df
+
 
 def make_dataset(
     df: pd.DataFrame,
@@ -611,21 +633,20 @@ def make_dataset(
     affix_eos: bool = True,
     return_token_type_ids: bool = False,
 ) -> Dataset:
-    # Load the dataframe into a HuggingFace Dataset
-    training_dataset = Dataset.from_pandas(df, preserve_index=False)
-
+    
     # Create the input_ids and label_ids columns
     logging.info("Creating the input_ids and label_ids columns...")
-
-    return training_dataset.map(
-        lambda example: get_input_ids(
-            example,
-            vocab,
-            df.columns,
-            mask_rate=mask_rate,
-            affix_eos=affix_eos,
-            return_token_type_ids=return_token_type_ids,
-        ),
-        remove_columns=training_dataset.column_names,
+    df = map_input_ids(
+        df=df,
+        vocab=vocab,
+        mask_rate=mask_rate,
+        affix_eos=affix_eos,
+        return_token_type_ids=return_token_type_ids,
+        remove_columns=df.columns
     )
+    training_dataset = Dataset.from_pandas(df, preserve_index=False)
+
+
+    
+    return training_dataset
 
