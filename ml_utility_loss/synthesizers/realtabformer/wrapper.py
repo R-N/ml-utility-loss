@@ -687,18 +687,6 @@ class REaLTabFormer:
         self.vocab = self._generate_vocab(df)
         self.processed_columns = df.columns.to_list()
         self.tabular_col_size = df.shape[0]
-        return df
-
-    def _fit_tabular(
-        self,
-        df: pd.DataFrame,
-        device="cuda",
-        num_train_epochs: int = None,
-        target_epochs: int = None,
-    ) -> Trainer:
-        df = self.preprocess(df)
-        self.processed_columns = df.columns.to_list()
-        self.tabular_col_size = df.shape[0]
 
         # NOTE: the index starts at zero, but should be adjusted
         # to account for the special tokens. For tabular data,
@@ -715,9 +703,18 @@ class REaLTabFormer:
 
         # Store the sequence length for the processed data
         self.tabular_max_length = len(dataset[0]["input_ids"])
+        return df, dataset
+
+    def _fit_tabular(
+        self,
+        df: pd.DataFrame,
+        device="cuda",
+        num_train_epochs: int = None,
+        target_epochs: int = None,
+    ) -> Trainer:
+        df, dataset = self.preprocess(df)
 
         # Create train-eval split if specified
-        dataset = self._split_train_eval_dataset(dataset)
         self.dataset = dataset
 
         # Set up the config and the model
