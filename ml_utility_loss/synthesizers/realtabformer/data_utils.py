@@ -656,6 +656,7 @@ def make_dataset(
     mask_rate: float = 0,
     affix_eos: bool = True,
     return_token_type_ids: bool = False,
+    map_ids=True
 ) -> Dataset:
     # Load the dataframe into a HuggingFace Dataset
     training_dataset = Dataset.from_pandas(df, preserve_index=False)
