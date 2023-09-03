@@ -696,6 +696,11 @@ class REaLTabFormer:
             for ix, col in enumerate(self.processed_columns)
         }
 
+        return df
+    
+    def make_dataset(self, df, preprocess=True):
+        if preprocess:
+            df = self.preprocess(df)
         # Load the dataframe into a HuggingFace Dataset
         dataset = make_dataset(
             df, self.vocab, mask_rate=self.mask_rate, return_token_type_ids=False
@@ -703,7 +708,7 @@ class REaLTabFormer:
 
         # Store the sequence length for the processed data
         self.tabular_max_length = len(dataset[0]["input_ids"])
-        return df, dataset
+        return dataset
 
     def _fit_tabular(
         self,
@@ -712,7 +717,7 @@ class REaLTabFormer:
         num_train_epochs: int = None,
         target_epochs: int = None,
     ) -> Trainer:
-        df, dataset = self.preprocess(df)
+        dataset = self.make_dataset(df)
 
         # Create train-eval split if specified
         self.dataset = dataset
