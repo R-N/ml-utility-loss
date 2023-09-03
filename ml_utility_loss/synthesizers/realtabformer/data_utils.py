@@ -611,7 +611,7 @@ def map_input_ids(
     return_token_type_ids: bool = False,
     remove_columns=[]
 ):
-    logging.info("Creating the input_ids and label_ids columns...")
+    print("Creating the input_ids and label_ids columns 2...")
     f = lambda example: get_input_ids(
         example,
         vocab,
