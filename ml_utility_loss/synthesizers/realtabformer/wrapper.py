@@ -37,6 +37,7 @@ from .data_utils import (
     TabularArtefact,
     build_vocab,
     make_dataset,
+    make_dataset_2,
     process_data,
 )
 from .rtf_analyze import SyntheticDataBench
@@ -707,11 +708,12 @@ class REaLTabFormer:
         )
         return df
     
-    def make_dataset(self, df, preprocess=True):
+    def make_dataset(self, df, preprocess=True, two=False):
         if preprocess:
             df = self.preprocess(df)
         # Load the dataframe into a HuggingFace Dataset
-        dataset = make_dataset(
+        f = make_dataset_2 if two else make_dataset
+        dataset = f(
             df, self.vocab, mask_rate=self.mask_rate, return_token_type_ids=False
         )
 
