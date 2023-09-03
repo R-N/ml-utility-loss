@@ -73,7 +73,10 @@ class DataPrep(object):
         target_col = list(type.values())[0]
         y_real = raw_df[target_col]
         X_real = raw_df.drop(columns=[target_col])
-        X_train_real, _, y_train_real, _ = model_selection.train_test_split(X_real ,y_real, test_size=test_ratio, stratify=y_real,random_state=42)        
+        if test_ratio > 0:
+            X_train_real, X_test_real, y_train_real, y_test_real = model_selection.train_test_split(X_real ,y_real, test_size=test_ratio, stratify=y_real,random_state=42)     
+        else:
+            X_train_real, y_train_real = X_real, y_real
         X_train_real[target_col]= y_train_real
 
         # Replacing empty strings with na if any and replace na with empty
