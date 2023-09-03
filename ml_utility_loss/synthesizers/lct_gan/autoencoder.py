@@ -8,6 +8,7 @@ import numpy as np
 from torch.nn import functional as F
 from torch import nn, optim
 from .modules import FCDecoder, FCEncoder
+from .process import preprocess, postprocess
 
 Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
@@ -49,9 +50,8 @@ class LatentTAE:
         self.train_data = None
         self.loss = None
 
-    def fit(self, n_epochs, batch_size):
-
-        self.data_prep = DataPrep(
+    def preprocess(self):
+        self.data_prep, self.transformer, self.train_data = preprocess(
             self.raw_df,
             self.categorical_columns,
             self.log_columns,
@@ -60,15 +60,13 @@ class LatentTAE:
             self.problem_type,
             self.test_ratio
         )
+        return self.train_data
 
-        self.transformer = DataTransformer(
-            train_data=self.data_prep.df,
-            categorical_list=self.data_prep.column_types["categorical"],
-            mixed_dict=self.data_prep.column_types["mixed"]
-        )
 
-        self.transformer.fit()
-        self.train_data = self.transformer.transform(self.data_prep.df.values)
+    def fit(self, n_epochs, batch_size):
+
+        self.preprocess()
+
         self.batch_size = batch_size
 
         data_dim = self.transformer.output_dim
@@ -85,13 +83,10 @@ class LatentTAE:
 
         latent = self.ae.encode(real)
         reconstructed = self.ae.decode(latent)
+        l = reconstructed.cpu().detach().numpy()
 
-        inverse_real = self.transformer.inverse_transform(real)
-        recon_inverse = self.transformer.inverse_transform(
-            reconstructed.cpu().detach().numpy())
-
-        table_real = self.data_prep.inverse_prep(inverse_real)
-        table_recon = self.data_prep.inverse_prep(recon_inverse)
+        table_real = self.postprocess(real)
+        table_recon = self.postprocess(l)
 
         print(table_real)
         print()
@@ -103,47 +98,33 @@ class LatentTAE:
         return self.ae.encode(real)
 
     def decode(self, latent, batch=False):
+        table = []
+        batch_start = 0
         if batch:
-            table = []
             latent = latent if type(latent).__module__ == np.__name__ else latent.cpu().detach().numpy()
+        steps = (len(latent) // self.batch_size) + 1
 
-            batch_start = 0
-            steps = (len(latent) // self.batch_size) + 1
+        for _ in range(steps):
+            l = latent[batch_start: batch_start + self.batch_size]
+            batch_start += self.batch_size
+            if len(l) == 0: continue
 
-            for _ in range(steps):
+            if batch:
+                l = torch.cat(l)
 
-                l = latent[batch_start: batch_start + self.batch_size]
-                batch_start += self.batch_size
-                if len(l) == 0: continue
+            reconstructed = self.ae.decode(Tensor(l).to(self.ae.device))
+            reconstructed = reconstructed.cpu().detach().numpy()
 
-                reconstructed = self.ae.decode(Tensor(l).to(self.ae.device))
-                reconstructed = reconstructed.cpu().detach().numpy()
+            table.append(table_recon)
 
-                recon_inverse = self.transformer.inverse_transform(reconstructed)
-                table_recon = self.data_prep.inverse_prep(recon_inverse)
-                table.append(table_recon)
-
-            return pd.concat(table)
-
-        else:
-            # TODO: Refactor
-            table = []
-            batch_start = 0
-            steps = (len(latent) // self.batch_size) + 1
-            for _ in range(steps):
-                l = latent[batch_start: batch_start + self.batch_size]
-                batch_start += self.batch_size
-                if len(l) == 0: continue
-
-                l = torch.cat(l).to(self.ae.device)
-                reconstructed = self.ae.decode(l)
-                reconstructed = reconstructed.cpu().detach().numpy()
-
-                recon_inverse = self.transformer.inverse_transform(reconstructed)
-                table_recon = self.data_prep.inverse_prep(recon_inverse)
-                table.append(table_recon)
-
-            return pd.concat(table)
+        return pd.concat(table)
+    
+    def postprocess(self, reconstructed):
+        return postprocess(
+            self.data_prep,
+            self.transformer,
+            reconstructed
+        )
 
     def get_latent_dataset(self, leave_pytorch_context=False):
 
