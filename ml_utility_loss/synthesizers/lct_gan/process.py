@@ -2,11 +2,11 @@ from .preprocessing import DataPrep, DataTransformer
 
 def preprocess(
     raw_df,
-    categorical_columns,
-    log_columns,
-    mixed_columns,
-    integer_columns,
-    problem_type,
+    categorical_columns=[],
+    log_columns=[],
+    mixed_columns=[],
+    integer_columns=[],
+    problem_type=[],
     test_ratio=0,
 ):
     data_prep = DataPrep(
