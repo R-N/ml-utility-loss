@@ -519,7 +519,7 @@ class TabularSampler(REaLSampler):
             col_transform_data,
             random_state,
             device,
-            ignore_mode=ignore_model
+            ignore_model=ignore_model
         )
 
         self.output_vocab = self.vocab
