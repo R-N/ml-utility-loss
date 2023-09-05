@@ -10,35 +10,6 @@ import sklearn.metrics as skm
 from .util import raise_unknown, load_json, TaskType, read_pure_data
 import numpy as np
 from pathlib import Path
-from sklearn.model_selection import train_test_split
-
-def read_changed_val(path, val_size=0.2):
-    path = Path(path)
-    X_num_train, X_cat_train, y_train = read_pure_data(path, 'train')
-    X_num_val, X_cat_val, y_val = read_pure_data(path, 'val')
-    is_regression = load_json(path / 'info.json')['task_type'] == 'regression'
-
-    y = np.concatenate([y_train, y_val], axis=0)
-
-    ixs = np.arange(y.shape[0])
-    if is_regression:
-        train_ixs, val_ixs = train_test_split(ixs, test_size=val_size, random_state=777)
-    else:
-        train_ixs, val_ixs = train_test_split(ixs, test_size=val_size, random_state=777, stratify=y)
-    y_train = y[train_ixs]
-    y_val = y[val_ixs]
-
-    if X_num_train is not None:
-        X_num = np.concatenate([X_num_train, X_num_val], axis=0)
-        X_num_train = X_num[train_ixs]
-        X_num_val = X_num[val_ixs]
-
-    if X_cat_train is not None:
-        X_cat = np.concatenate([X_cat_train, X_cat_val], axis=0)
-        X_cat_train = X_cat[train_ixs]
-        X_cat_val = X_cat[val_ixs]
-    
-    return X_num_train, X_cat_train, y_train, X_num_val, X_cat_val, y_val
 
 class PredictionType(enum.Enum):
     LOGITS = 'logits'

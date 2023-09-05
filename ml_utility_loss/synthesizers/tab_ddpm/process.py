@@ -8,11 +8,11 @@ from .model import MLPDiffusion
 import pandas as pd
 from .gaussian_multinomial_diffusion import GaussianMultinomialDiffusion
 
-from .util import get_catboost_config, load_json, dump_json, read_pure_data
+from .util import get_catboost_config, load_json, dump_json, read_pure_data, read_changed_val
 from .Dataset import TaskType, Dataset
 from catboost import CatBoostClassifier, CatBoostRegressor
 from pprint import pprint
-from .preprocessing import concat_features, transform_dataset, prepare_fast_dataloader, read_changed_val
+from .preprocessing import concat_features, transform_dataset, prepare_fast_dataloader
 from .evaluation import MetricsReport
 
 DEFAULT_DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else "cpu")
