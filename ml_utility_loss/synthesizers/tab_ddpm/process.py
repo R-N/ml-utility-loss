@@ -3,7 +3,6 @@ import torch
 import os
 import numpy as np
 import delu as zero
-from ml_utility_loss.tab_ddpm import lib
 from .preprocessing import round_columns, make_dataset
 from .model import get_model
 import pandas as pd
@@ -13,7 +12,7 @@ from .util import get_catboost_config, load_json, dump_json, read_pure_data
 from .Dataset import TaskType, Dataset
 from catboost import CatBoostClassifier, CatBoostRegressor
 from pprint import pprint
-from .preprocessing import concat_features, Transformations, transform_dataset
+from .preprocessing import concat_features, Transformations, transform_dataset, prepare_fast_dataloader
 from .evaluation import MetricsReport
 
 DEFAULT_DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else "cpu")
@@ -111,7 +110,7 @@ def train(
 
     zero.improve_reproducibility(seed)
 
-    T = lib.Transformations(**T_dict)
+    T = Transformations(**T_dict)
 
     dataset = make_dataset(
         real_data_path,
@@ -141,7 +140,7 @@ def train(
     model.to(device)
 
     # train_loader = lib.prepare_beton_loader(dataset, split='train', batch_size=batch_size)
-    train_loader = lib.prepare_fast_dataloader(dataset, split='train', batch_size=batch_size)
+    train_loader = prepare_fast_dataloader(dataset, split='train', batch_size=batch_size)
 
 
 
@@ -202,7 +201,7 @@ def sample(
 ):
     zero.improve_reproducibility(seed)
 
-    T = lib.Transformations(**T_dict)
+    T = Transformations(**T_dict)
     D = make_dataset(
         real_data_path,
         T,

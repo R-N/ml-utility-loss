@@ -14,6 +14,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler, QuantileTransfor
 from category_encoders import LeaveOneOutEncoder
 from sklearn.pipeline import make_pipeline
 import pandas as pd
+import torch
 
 CAT_MISSING_VALUE = '__nan__'
 CAT_RARE_VALUE = '__rare__'
@@ -392,3 +393,53 @@ def concat_features(D : Dataset):
         }
 
     return X
+
+
+def prepare_fast_dataloader(
+    D : Dataset,
+    split : str,
+    batch_size: int
+):
+    if D.X_cat is not None:
+        if D.X_num is not None:
+            X = torch.from_numpy(np.concatenate([D.X_num[split], D.X_cat[split]], axis=1)).float()
+        else:
+            X = torch.from_numpy(D.X_cat[split]).float()
+    else:
+        X = torch.from_numpy(D.X_num[split]).float()
+    y = torch.from_numpy(D.y[split])
+    dataloader = FastTensorDataLoader(X, y, batch_size=batch_size, shuffle=(split=='train'))
+    while True:
+        yield from dataloader
+
+
+class FastTensorDataLoader:
+    def __init__(self, *tensors, batch_size=32, shuffle=False):
+        assert all(t.shape[0] == tensors[0].shape[0] for t in tensors)
+        self.tensors = tensors
+
+        self.dataset_len = self.tensors[0].shape[0]
+        self.batch_size = batch_size
+        self.shuffle = shuffle
+
+        # Calculate # batches
+        n_batches, remainder = divmod(self.dataset_len, self.batch_size)
+        if remainder > 0:
+            n_batches += 1
+        self.n_batches = n_batches
+    def __iter__(self):
+        if self.shuffle:
+            r = torch.randperm(self.dataset_len)
+            self.tensors = [t[r] for t in self.tensors]
+        self.i = 0
+        return self
+
+    def __next__(self):
+        if self.i >= self.dataset_len:
+            raise StopIteration
+        batch = tuple(t[self.i:self.i+self.batch_size] for t in self.tensors)
+        self.i += self.batch_size
+        return batch
+
+    def __len__(self):
+        return self.n_batches
