@@ -194,7 +194,8 @@ def sample(
         real_data_path,
         num_classes=model_params['num_classes'],
         is_y_cond=model_params['is_y_cond'],
-        change_val=change_val
+        change_val=change_val,
+        sample=True
     )
 
     K = np.array(D.get_category_sizes('train'))

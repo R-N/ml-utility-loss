@@ -256,7 +256,8 @@ def make_dataset(
     data_path: str,
     num_classes: int,
     is_y_cond: bool,
-    change_val: bool
+    change_val: bool,
+    sample=False
 ):
     # classification
     if num_classes > 0:
@@ -303,7 +304,10 @@ def make_dataset(
     if change_val:
         D = change_val(D)
     
-    return transform_dataset(D, None)
+    return transform_dataset(
+        D,
+        normalization=None if sample else "quantile"
+    )
 
 
 def concat_features(D : Dataset):
