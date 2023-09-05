@@ -30,7 +30,8 @@ def train(
         "is_y_cond": True,
     },
     num_numerical_features = 6,
-    change_val=False
+    change_val=False,
+    device=DEFAULT_DEVICE,
 ):
     device = validate_device(device)
     return _train(
@@ -51,7 +52,8 @@ def sample(
         "is_y_cond": True,
     },
     num_numerical_features = 6,
-    change_val=False
+    change_val=False,
+    device=DEFAULT_DEVICE,
 ):
     device = validate_device(device)
     return _sample(
@@ -68,7 +70,8 @@ def eval(
     parent_dir="exp/default/ddpm_cb_best",
     real_data_path="data/adult/",
     eval_type="synthetic",
-    change_val=False
+    change_val=False,
+    device=DEFAULT_DEVICE,
 ):
     return train_catboost(
         parent_dir=parent_dir,
