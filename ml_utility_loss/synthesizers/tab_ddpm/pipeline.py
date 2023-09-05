@@ -22,13 +22,26 @@ def save_file(parent_dir, config_path):
 def validate_device(device="cuda"):
     return device if torch.cuda.is_available() else "cpu"
 
+DEFAULT_MODEL_PARAMS = {
+    "num_classes": 2,
+    "is_y_cond": True,
+    "rtdl_params": {
+        "d_layers": [
+            256,
+            1024,
+            1024,
+            1024,
+            1024,
+            512,
+        ],
+        "dropout": 0.0
+    }
+},
+
 def train(
     parent_dir="exp/default/ddpm_cb_best",
     real_data_path="data/adult/",
-    model_params = {
-        "num_classes": 2,
-        "is_y_cond": True,
-    },
+    model_params = DEFAULT_MODEL_PARAMS,
     num_numerical_features = 6,
     change_val=False,
     device=DEFAULT_DEVICE,
@@ -47,10 +60,7 @@ def sample(
     parent_dir="exp/default/ddpm_cb_best",
     real_data_path="data/adult/",
     model_path=os.path.join("exp/default/ddpm_cb_best", 'model.pt'),
-    model_params = {
-        "num_classes": 2,
-        "is_y_cond": True,
-    },
+    model_params = DEFAULT_MODEL_PARAMS,
     num_numerical_features = 6,
     change_val=False,
     device=DEFAULT_DEVICE,
