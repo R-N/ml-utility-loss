@@ -36,7 +36,7 @@ DEFAULT_MODEL_PARAMS = {
         ],
         "dropout": 0.0
     }
-},
+}
 
 def train(
     parent_dir="exp/default/ddpm_cb_best",
