@@ -24,9 +24,9 @@ def save_file(parent_dir, config_path):
 
 def main(
     config=None,
-    train=False,
-    sample=False,
-    eval=False,
+    train=True,
+    sample=True,
+    eval=True,
     change_val=False
 ):
     parser = argparse.ArgumentParser()
