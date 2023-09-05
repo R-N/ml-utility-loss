@@ -21,7 +21,7 @@ CAT_RARE_VALUE = '__rare__'
 Normalization = Literal['standard', 'quantile', 'minmax']
 NumNanPolicy = Literal['drop-rows', 'mean']
 CatNanPolicy = Literal['most_frequent']
-CatEncoding = Literal['one-hot', 'counter']
+CatEncoding = Literal['one-hot']
 YPolicy = Literal['default']
 
 def round_columns(X_real, X_synth, columns):
@@ -130,23 +130,6 @@ def cat_process_nans(X: ArrayDict, policy: Optional[CatNanPolicy]) -> ArrayDict:
         X_new = X
     return X_new
 
-
-def cat_drop_rare(X: ArrayDict, min_frequency: float) -> ArrayDict:
-    assert 0.0 < min_frequency < 1.0
-    min_count = round(len(X['train']) * min_frequency)
-    X_new = {x: [] for x in X}
-    for column_idx in range(X['train'].shape[1]):
-        counter = Counter(X['train'][:, column_idx].tolist())
-        popular_categories = {k for k, v in counter.items() if v >= min_count}
-        for part in X_new:
-            X_new[part].append(
-                [
-                    (x if x in popular_categories else CAT_RARE_VALUE)
-                    for x in X[part][:, column_idx].tolist()
-                ]
-            )
-    return {k: np.array(v).T for k, v in X_new.items()}
-
 def cat_encode(
     X: ArrayDict,
     encoding: Optional[CatEncoding],
@@ -191,15 +174,6 @@ def cat_encode(
         # encoder.steps.append(('ohe', ohe))
         encoder.fit(X['train'])
         X = {k: encoder.transform(v) for k, v in X.items()}
-    elif encoding == 'counter':
-        assert y_train is not None
-        assert seed is not None
-        loe = LeaveOneOutEncoder(sigma=0.1, random_state=seed, return_df=False)
-        encoder.steps.append(('loe', loe))
-        encoder.fit(X['train'], y_train)
-        X = {k: encoder.transform(v).astype('float32') for k, v in X.items()}  # type: ignore[code]
-        if not isinstance(X['train'], pd.DataFrame):
-            X = {k: v.values for k, v in X.items()}  # type: ignore[code]
     else:
         raise_unknown('encoding', encoding)
     
@@ -224,75 +198,42 @@ def build_target(
     return y, info
 
 
-
-@dataclass(frozen=True)
-class Transformations:
-    seed: int = 0
-    normalization: Optional[Normalization] = None
-    num_nan_policy: Optional[NumNanPolicy] = None
-    cat_nan_policy: Optional[CatNanPolicy] = None
-    cat_min_frequency: Optional[float] = None
-    cat_encoding: Optional[CatEncoding] = None
-    y_policy: Optional[YPolicy] = 'default'
-
 def transform_dataset(
     dataset: Dataset,
-    transformations: Transformations,
-    cache_dir: Optional[Path],
+    seed=0,
+    num_nan_policy=None,
+    normalization="quantile",
+    cat_nan_policy=None,
+    cat_encoding=None, #one-hot
+    y_policy="default",
     return_transforms: bool = False
 ) -> Dataset:
-    # WARNING: the order of transformations matters. Moreover, the current
-    # implementation is not ideal in that sense.
-    if cache_dir is not None:
-        transformations_md5 = hashlib.md5(
-            str(transformations).encode('utf-8')
-        ).hexdigest()
-        transformations_str = '__'.join(map(str, astuple(transformations)))
-        cache_path = (
-            cache_dir / f'cache__{transformations_str}__{transformations_md5}.pickle'
-        )
-        if cache_path.exists():
-            cache_transformations, value = load_pickle(cache_path)
-            if transformations == cache_transformations:
-                print(
-                    f"Using cached features: {cache_dir.name + '/' + cache_path.name}"
-                )
-                return value
-            else:
-                raise RuntimeError(f'Hash collision for {cache_path}')
-    else:
-        cache_path = None
 
     if dataset.X_num is not None:
-        dataset = num_process_nans(dataset, transformations.num_nan_policy)
+        dataset = num_process_nans(dataset, num_nan_policy)
 
     num_transform = None
     cat_transform = None
     X_num = dataset.X_num
 
-    if X_num is not None and transformations.normalization is not None:
+    if X_num is not None and normalization is not None:
         X_num, num_transform = normalize(
             X_num,
-            transformations.normalization,
-            transformations.seed,
+            normalization,
+            seed,
             return_normalizer=True
         )
         num_transform = num_transform
-    
-    if dataset.X_cat is None:
-        assert transformations.cat_nan_policy is None
-        assert transformations.cat_min_frequency is None
-        # assert transformations.cat_encoding is None
-        X_cat = None
-    else:
-        X_cat = cat_process_nans(dataset.X_cat, transformations.cat_nan_policy)
-        if transformations.cat_min_frequency is not None:
-            X_cat = cat_drop_rare(X_cat, transformations.cat_min_frequency)
+
+        
+    X_cat = None
+    if dataset.X_cat is not None:
+        X_cat = cat_process_nans(dataset.X_cat, cat_nan_policy)
         X_cat, is_num, cat_transform = cat_encode(
             X_cat,
-            transformations.cat_encoding,
+            cat_encoding,
             dataset.y['train'],
-            transformations.seed,
+            seed,
             return_encoder=True
         )
         if is_num:
@@ -302,22 +243,17 @@ def transform_dataset(
                 else {x: np.hstack([X_num[x], X_cat[x]]) for x in X_num}
             )
             X_cat = None
-
-    y, y_info = build_target(dataset.y, transformations.y_policy, dataset.task_type)
+    
+    y, y_info = build_target(dataset.y, y_policy, dataset.task_type)
 
     dataset = replace(dataset, X_num=X_num, X_cat=X_cat, y=y, y_info=y_info)
     dataset.num_transform = num_transform
     dataset.cat_transform = cat_transform
 
-    if cache_path is not None:
-        dump_pickle((transformations, dataset), cache_path)
-    # if return_transforms:
-        # return dataset, num_transform, cat_transform
     return dataset
 
 def make_dataset(
     data_path: str,
-    T: Transformations,
     num_classes: int,
     is_y_cond: bool,
     change_val: bool
@@ -367,7 +303,7 @@ def make_dataset(
     if change_val:
         D = change_val(D)
     
-    return transform_dataset(D, T, None)
+    return transform_dataset(D, None)
 
 
 def concat_features(D : Dataset):

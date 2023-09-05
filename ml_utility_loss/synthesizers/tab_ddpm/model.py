@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import torch.optim
 from torch import Tensor
 
-from .modules import ReGLU, GEGLU, ModuleType, _make_nn_module, timestep_embedding
+from .modules import ModuleType, _make_nn_module, timestep_embedding
 
 class MLP(nn.Module):
 
@@ -131,16 +131,3 @@ class MLPDiffusion(nn.Module):
             emb += F.silu(self.label_emb(y))
         x = self.proj(x) + emb
         return self.mlp(x)
-
-def get_model(
-    model_name,
-    model_params,
-    n_num_features,
-    category_sizes
-): 
-    print(model_name)
-    if model_name == 'mlp':
-        model = MLPDiffusion(**model_params)
-    else:
-        raise "Unknown model!"
-    return model

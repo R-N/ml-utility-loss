@@ -57,7 +57,6 @@ def main(
             real_data_path=raw_config['real_data_path'],
             model_type=raw_config['model_type'],
             model_params=raw_config['model_params'],
-            T_dict=raw_config['train']['T'],
             num_numerical_features=raw_config['num_numerical_features'],
             device=device,
             change_val=args.change_val
@@ -73,7 +72,6 @@ def main(
             model_path=os.path.join(raw_config['parent_dir'], 'model.pt'),
             model_type=raw_config['model_type'],
             model_params=raw_config['model_params'],
-            T_dict=raw_config['train']['T'],
             num_numerical_features=raw_config['num_numerical_features'],
             device=device,
             seed=raw_config['sample'].get('seed', 0),
@@ -87,7 +85,6 @@ def main(
                 parent_dir=raw_config['parent_dir'],
                 real_data_path=raw_config['real_data_path'],
                 eval_type=raw_config['eval']['type']['eval_type'],
-                T_dict=raw_config['eval']['T'],
                 seed=raw_config['seed'],
                 change_val=args.change_val
             )

@@ -4,7 +4,7 @@ import os
 import numpy as np
 import delu as zero
 from .preprocessing import round_columns, make_dataset
-from .model import get_model
+from .model import MLPDiffusion
 import pandas as pd
 from .gaussian_multinomial_diffusion import GaussianMultinomialDiffusion
 
@@ -12,7 +12,7 @@ from .util import get_catboost_config, load_json, dump_json, read_pure_data
 from .Dataset import TaskType, Dataset
 from catboost import CatBoostClassifier, CatBoostRegressor
 from pprint import pprint
-from .preprocessing import concat_features, Transformations, transform_dataset, prepare_fast_dataloader
+from .preprocessing import concat_features, transform_dataset, prepare_fast_dataloader, read_changed_val
 from .evaluation import MetricsReport
 
 DEFAULT_DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else "cpu")
@@ -94,34 +94,30 @@ def train(
     lr = 0.002,
     weight_decay = 1e-4,
     batch_size = 1024,
-    model_type = 'mlp',
     model_params = None,
     num_timesteps = 1000,
     gaussian_loss_type = 'mse',
     scheduler = 'cosine',
-    T_dict = None,
     num_numerical_features = 0,
     device = DEFAULT_DEVICE,
     seed = 0,
-    change_val = False
+    change_val = False,
+    cat_encoding = None, #'one-hot',
 ):
     real_data_path = os.path.normpath(real_data_path)
     parent_dir = os.path.normpath(parent_dir)
 
     zero.improve_reproducibility(seed)
 
-    T = Transformations(**T_dict)
-
     dataset = make_dataset(
         real_data_path,
-        T,
         num_classes=model_params['num_classes'],
         is_y_cond=model_params['is_y_cond'],
         change_val=change_val
     )
 
     K = np.array(dataset.get_category_sizes('train'))
-    if len(K) == 0 or T_dict['cat_encoding'] == 'one-hot':
+    if len(K) == 0 or cat_encoding == 'one-hot':
         K = np.array([0])
     print(K)
 
@@ -131,15 +127,9 @@ def train(
     print(d_in)
     
     print(model_params)
-    model = get_model(
-        model_type,
-        model_params,
-        num_numerical_features,
-        category_sizes=dataset.get_category_sizes('train')
-    )
+    model = MLPDiffusion(**model_params)
     model.to(device)
 
-    # train_loader = lib.prepare_beton_loader(dataset, split='train', batch_size=batch_size)
     train_loader = prepare_fast_dataloader(dataset, split='train', batch_size=batch_size)
 
 
@@ -186,43 +176,35 @@ def sample(
     real_data_path = 'data/higgs-small',
     batch_size = 2000,
     num_samples = 0,
-    model_type = 'mlp',
     model_params = None,
     model_path = None,
     num_timesteps = 1000,
     gaussian_loss_type = 'mse',
     scheduler = 'cosine',
-    T_dict = None,
     num_numerical_features = 0,
     disbalance = None,
     device = DEFAULT_DEVICE,
     seed = 0,
-    change_val = False
+    change_val = False,
+    cat_encoding=None,
 ):
     zero.improve_reproducibility(seed)
 
-    T = Transformations(**T_dict)
     D = make_dataset(
         real_data_path,
-        T,
         num_classes=model_params['num_classes'],
         is_y_cond=model_params['is_y_cond'],
         change_val=change_val
     )
 
     K = np.array(D.get_category_sizes('train'))
-    if len(K) == 0 or T_dict['cat_encoding'] == 'one-hot':
+    if len(K) == 0 or cat_encoding == 'one-hot':
         K = np.array([0])
 
     num_numerical_features_ = D.X_num['train'].shape[1] if D.X_num is not None else 0
     d_in = np.sum(K) + num_numerical_features_
     model_params['d_in'] = int(d_in)
-    model = get_model(
-        model_type,
-        model_params,
-        num_numerical_features_,
-        category_sizes=D.get_category_sizes('train')
-    )
+    model = MLPDiffusion(**model_params)
 
     model.load_state_dict(
         torch.load(model_path, map_location="cpu")
@@ -239,7 +221,6 @@ def sample(
     diffusion.eval()
     
     _, empirical_class_dist = torch.unique(torch.from_numpy(D.y['train']), return_counts=True)
-    # empirical_class_dist = empirical_class_dist.float() + torch.tensor([-5000., 10000.]).float()
     if disbalance == 'fix':
         empirical_class_dist[0], empirical_class_dist[1] = empirical_class_dist[1], empirical_class_dist[0]
         x_gen, y_gen = diffusion.sample_all(num_samples, batch_size, empirical_class_dist.float(), ddim=False)
@@ -272,13 +253,11 @@ def sample(
     X_num_ = X_gen
     if num_numerical_features < X_gen.shape[1]:
         np.save(os.path.join(parent_dir, 'X_cat_unnorm'), X_gen[:, num_numerical_features:])
-        # _, _, cat_encoder = lib.cat_encode({'train': X_cat_real}, T_dict['cat_encoding'], y_real, T_dict['seed'], True)
-        if T_dict['cat_encoding'] == 'one-hot':
+        if cat_encoding == 'one-hot':
             X_gen[:, num_numerical_features:] = to_good_ohe(D.cat_transform.steps[0][1], X_num_[:, num_numerical_features:])
         X_cat = D.cat_transform.inverse_transform(X_gen[:, num_numerical_features:])
 
     if num_numerical_features_ != 0:
-        # _, normalize = lib.normalize({'train' : X_num_real}, T_dict['normalization'], T_dict['seed'], True)
         np.save(os.path.join(parent_dir, 'X_num_unnorm'), X_gen[:, :num_numerical_features])
         X_num_ = D.num_transform.inverse_transform(X_gen[:, :num_numerical_features])
         X_num = X_num_[:, :num_numerical_features]
@@ -308,7 +287,6 @@ def train_catboost(
     parent_dir,
     real_data_path,
     eval_type,
-    T_dict,
     seed = 0,
     params = None,
     change_val = True,
@@ -318,7 +296,6 @@ def train_catboost(
     if eval_type != "real":
         synthetic_data_path = os.path.join(parent_dir)
     info = load_json(os.path.join(real_data_path, 'info.json'))
-    T = Transformations(**T_dict)
     
     if change_val:
         X_num_real, X_cat_real, y_real, X_num_val, X_cat_val, y_val = read_changed_val(real_data_path, val_size=0.2)
@@ -366,7 +343,7 @@ def train_catboost(
         info.get('n_classes')
     )
 
-    D = transform_dataset(D, T, None)
+    D = transform_dataset(D, None)
     X = concat_features(D)
     print(f'Train size: {X["train"].shape}, Val size {X["val"].shape}')
 
@@ -384,7 +361,6 @@ def train_catboost(
                 X[split][col] = X[split][col].astype(str)
             else:
                 X[split][col] = X[split][col].astype(float)
-    print(T_dict)
     pprint(catboost_config, width=100)
     print('-'*100)
     
