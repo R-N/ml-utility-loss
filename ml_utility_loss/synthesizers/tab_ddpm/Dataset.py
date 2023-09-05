@@ -7,10 +7,28 @@ import numpy as np
 from .util import load_json, TaskType
 from pathlib import Path
 from .evaluation import calculate_metrics as calculate_metrics_
+import pandas as pd
 
 ArrayDict = Dict[str, np.ndarray]
 TensorDict = Dict[str, torch.Tensor]
 
+
+def concat_to_pd(X_num, X_cat, y):
+    if X_num is None:
+        return pd.concat([
+            pd.DataFrame(X_cat, columns=list(range(X_cat.shape[1]))),
+            pd.DataFrame(y, columns=['y'])
+        ], axis=1)
+    if X_cat is not None:
+        return pd.concat([
+            pd.DataFrame(X_num, columns=list(range(X_num.shape[1]))),
+            pd.DataFrame(X_cat, columns=list(range(X_num.shape[1], X_num.shape[1] + X_cat.shape[1]))),
+            pd.DataFrame(y, columns=['y'])
+        ], axis=1)
+    return pd.concat([
+            pd.DataFrame(X_num, columns=list(range(X_num.shape[1]))),
+            pd.DataFrame(y, columns=['y'])
+        ], axis=1)
 
 def get_category_sizes(X: Union[torch.Tensor, np.ndarray]) -> List[int]:
     XT = X.T.cpu().tolist() if isinstance(X, torch.Tensor) else X.T.tolist()
@@ -106,4 +124,6 @@ class Dataset:
             score_sign = 1
         for part_metrics in metrics.values():
             part_metrics['score'] = score_sign * part_metrics[score_key]
-        return metrics
+        return 
+    
+    

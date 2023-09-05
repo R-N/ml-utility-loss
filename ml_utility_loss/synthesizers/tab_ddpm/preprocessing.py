@@ -309,6 +309,30 @@ def make_dataset(
         normalization=None if sample else "quantile"
     )
 
+def dataset_from_df(
+    df, 
+    cat_features, 
+    target,
+    sample=False
+
+):
+    assert 'train' in paths
+    y = {}
+    X_num = {}
+    X_cat = {} if len(cat_features) else None
+    for split in paths.keys():
+        df = pd.read_csv(paths[split])
+        y[split] = df[target].to_numpy().astype(float)
+        if X_cat is not None:
+            X_cat[split] = df[cat_features].to_numpy().astype(str)
+        X_num[split] = df.drop(cat_features + [target], axis=1).to_numpy().astype(float)
+
+    D = Dataset(X_num, X_cat, y, {}, None, len(np.unique(y['train'])))
+    
+    return transform_dataset(
+        D,
+        normalization=None if sample else "quantile"
+    )
 
 def concat_features(D : Dataset):
     if D.X_num is None:

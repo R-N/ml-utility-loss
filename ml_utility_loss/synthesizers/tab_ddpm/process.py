@@ -175,7 +175,7 @@ def sample(
     parent_dir,
     real_data_path = 'data/higgs-small',
     batch_size = 2000,
-    num_samples = 0,
+    num_samples = 2000,
     model_params = None,
     model_path = None,
     num_timesteps = 1000,
