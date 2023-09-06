@@ -140,7 +140,7 @@ def cat_encode(
         same_x = True
         X_train = X
     else:
-        same_x = False
+        same_x = X is X_train
 
     if encoding == "ordinal":
         unknown_value = np.iinfo('int64').max - 3
@@ -153,8 +153,13 @@ def cat_encode(
             ).fit(X_train)
             encoder = make_pipeline(oe)
             encoder.fit(X_train)
-
-        X = encoder.transform(X)
+            X_train = encoder.transform(X_train)
+            if same_x:
+                X = X_train
+            else:
+                X = encoder.transform(X)
+        else:
+            X = encoder.transform(X)
 
         max_values = X_train.max(axis=0)
 
