@@ -39,7 +39,7 @@ DEFAULT_MODEL_PARAMS = {
 }
 
 def train(
-    parent_dir="exp/default/ddpm_cb_best",
+    parent_dir="exp/adult/ddpm_cb_best",
     real_data_path="data/adult/",
     model_params = DEFAULT_MODEL_PARAMS,
     num_numerical_features = 6,
@@ -57,7 +57,7 @@ def train(
     )
 
 def sample(
-    parent_dir="exp/default/ddpm_cb_best",
+    parent_dir="exp/adult/ddpm_cb_best",
     real_data_path="data/adult/",
     model_path=os.path.join("exp/default/ddpm_cb_best", 'model.pt'),
     model_params = DEFAULT_MODEL_PARAMS,
@@ -77,7 +77,7 @@ def sample(
     )
 
 def eval(
-    parent_dir="exp/default/ddpm_cb_best",
+    parent_dir="exp/adult/ddpm_cb_best",
     real_data_path="data/adult/",
     eval_type="synthetic",
     change_val=False,
