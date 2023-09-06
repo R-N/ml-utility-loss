@@ -260,6 +260,7 @@ def sample(
         np.save(os.path.join(parent_dir, 'X_cat_unnorm'), X_gen[:, num_numerical_features:])
         if cat_encoding == 'one-hot':
             X_gen[:, num_numerical_features:] = to_good_ohe(D.cat_transform.steps[0][1], X_num_[:, num_numerical_features:])
+        print("PRE 261", cat_encoding, repr(D.cat_transform), len(X_gen), num_numerical_features)
         X_cat = D.cat_transform.inverse_transform(X_gen[:, num_numerical_features:])
 
     if num_numerical_features_ != 0:
