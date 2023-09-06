@@ -90,7 +90,7 @@ class Trainer:
 def train(
     parent_dir,
     real_data_path = 'data/higgs-small',
-    steps = 1000,
+    steps = 100,
     lr = 0.002,
     weight_decay = 1e-4,
     batch_size = 1024,
@@ -175,7 +175,7 @@ def sample(
     parent_dir,
     real_data_path = 'data/higgs-small',
     batch_size = 2000,
-    num_samples = 2000,
+    num_samples = 100,
     model_params = None,
     model_path = None,
     num_timesteps = 1000,
@@ -189,6 +189,8 @@ def sample(
     cat_encoding=None,
 ):
     zero.improve_reproducibility(seed)
+
+    batch_size = min(batch_size, num_samples)
 
     D = make_dataset(
         real_data_path,
