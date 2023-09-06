@@ -312,6 +312,8 @@ def transform_dataset(
     dataset.num_transform = num_transform
     dataset.cat_transform = cat_transform
 
+    print(X_cat)[:5]
+
     return dataset
 
 def make_dataset(

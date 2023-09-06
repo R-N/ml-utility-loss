@@ -435,6 +435,8 @@ def transform_dataset(
     dataset.num_transform = num_transform
     dataset.cat_transform = cat_transform
 
+    print(X_cat)[:5]
+
     if cache_path is not None:
         util.dump_pickle((transformations, dataset), cache_path)
     # if return_transforms:
