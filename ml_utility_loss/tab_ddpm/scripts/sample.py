@@ -135,6 +135,7 @@ def sample(
         if T_dict['cat_encoding'] == 'one-hot':
             X_gen[:, num_numerical_features:] = to_good_ohe(D.cat_transform.steps[0][1], X_num_[:, num_numerical_features:])
         X_cat = D.cat_transform.inverse_transform(X_gen[:, num_numerical_features:])
+        print("SURVIVED 261")
 
     if num_numerical_features_ != 0:
         # _, normalize = lib.normalize({'train' : X_num_real}, T_dict['normalization'], T_dict['seed'], True)
