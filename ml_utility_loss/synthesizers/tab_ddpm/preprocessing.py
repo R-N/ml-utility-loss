@@ -262,6 +262,8 @@ def transform_dataset(
             normalizer=num_transform,
         ) for k, v in X_num.items()}
 
+    print(repr(num_transform))
+
         
     X_cat = dataset.X_cat
     if X_cat is not None:
