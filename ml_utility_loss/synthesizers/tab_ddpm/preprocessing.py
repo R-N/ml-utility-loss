@@ -91,26 +91,37 @@ def change_val(dataset: Dataset, val_size: float = 0.2):
 
 # Inspired by: https://github.com/yandex-research/rtdl/blob/a4c93a32b334ef55d2a0559a4407c8306ffeeaee/lib/data.py#L20
 def normalize(
-    X: ArrayDict, normalization: Normalization, seed: Optional[int], return_normalizer : bool = False
+    X,
+    X_train= None,
+    normalization: Optional[Normalization] = "quantile", 
+    seed: Optional[int] = 0,
+    normalizer=None,
+    return_normalizer : bool = False
 ) -> ArrayDict:
-    X_train = X['train']
-    if normalization == 'standard':
-        normalizer = StandardScaler()
-    elif normalization == 'minmax':
-        normalizer = MinMaxScaler()
-    elif normalization == 'quantile':
-        normalizer = QuantileTransformer(
-            output_distribution='normal',
-            n_quantiles=max(min(X['train'].shape[0] // 30, 1000), 10),
-            subsample=int(1e9),
-            random_state=seed,
-        )
-    else:
-        raise_unknown('normalization', normalization)
-    normalizer.fit(X_train)
+    if X_train is None:
+        X_train = X
+
+    if not normalizer:
+        if normalization == 'standard':
+            normalizer = StandardScaler()
+        elif normalization == 'minmax':
+            normalizer = MinMaxScaler()
+        elif normalization == 'quantile':
+            normalizer = QuantileTransformer(
+                output_distribution='normal',
+                n_quantiles=max(min(X_train.shape[0] // 30, 1000), 10),
+                subsample=int(1e9),
+                random_state=seed,
+            )
+        else:
+            raise_unknown('normalization', normalization)
+        normalizer.fit(X_train)
+
+    X = normalizer.transform(X)
+
     if return_normalizer:
-        return {k: normalizer.transform(v) for k, v in X.items()}, normalizer
-    return {k: normalizer.transform(v) for k, v in X.items()}
+        return X, normalizer
+    return X
 
 
 def cat_process_nans(X, policy: Optional[CatNanPolicy]):
@@ -227,13 +238,24 @@ def transform_dataset(
     X_num = dataset.X_num
 
     if X_num is not None and normalization is not None:
-        X_num, num_transform = normalize(
-            X_num,
-            normalization,
-            seed,
+        X_num_train = X_num["train"]
+        X_num_train, num_transform = normalize(
+            X_num_train,
+            normalization=normalization,
+            seed=seed,
             return_normalizer=True
         )
-        num_transform = num_transform
+
+        X_num = {k: normalize(
+            v,
+            X_train = X_num_train,
+            normalization=normalization,
+            normalizer=num_transform,
+            seed=seed,
+            return_normalizer=False
+        ) for k, v in X_num.items() if k != "train"}
+
+        X_num["train"] = X_num_train
 
         
     X_cat = dataset.X_cat
@@ -241,12 +263,13 @@ def transform_dataset(
         X_cat = {k: cat_process_nans(v, cat_nan_policy) for k, v in X_cat.items()}
         X_cat_train = X_cat["train"]
         is_num = cat_encoding == "ordinal"
+
         X_cat_train, cat_transform = cat_encode(
             X_cat_train,
-            X_train=X_cat_train,
             encoding=cat_encoding,
             return_encoder=True
         )
+
         X_cat = {k: cat_encode(
             v,
             X_train=X_cat_train,
@@ -254,7 +277,9 @@ def transform_dataset(
             encoder=cat_transform,
             return_encoder=False
         ) for k, v in X_cat.items() if k != "train"}
+
         X_cat["train"] = X_cat_train
+
         if is_num:
             X_num = (
                 X_cat
