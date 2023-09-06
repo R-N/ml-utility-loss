@@ -198,8 +198,7 @@ def sample(
         num_classes=model_params['num_classes'],
         is_y_cond=model_params['is_y_cond'],
         change_val=change_val,
-        cat_encoding=cat_encoding,
-        sample=True
+        cat_encoding=cat_encoding
     )
 
     K = np.array(D.get_category_sizes('train'))
