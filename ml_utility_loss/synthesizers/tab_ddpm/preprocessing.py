@@ -218,7 +218,7 @@ def build_target(
         return y
     if y_train is None:
         y_train = y
-    elif policy == 'default':
+    if policy == 'default':
         if task_type == TaskType.REGRESSION:
             if "mean" not in info or "std" not in info:
                 mean, std = float(y_train.mean()), float(y_train.std())
