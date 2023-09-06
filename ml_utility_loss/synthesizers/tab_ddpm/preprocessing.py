@@ -208,11 +208,14 @@ def build_target(
     policy: Optional[YPolicy] = "default", 
     y_train=None,
     info=None,
+    return_info=True,
 ) -> Tuple[ArrayDict, Dict[str, Any]]:
     if info is None:
         info = {"policy": policy}
     if policy is None:
-        return y, info
+        if return_info:
+            return y, info
+        return y
     if y_train is None:
         y_train = y
     elif policy == 'default':
@@ -227,7 +230,9 @@ def build_target(
             else:
                 mean, std = info["mean"], info["std"]
             y = (y - mean) / std
-        return y, info
+        if return_info:
+            return y, info
+        return y
     else:
         raise_unknown('policy', policy)
 
@@ -309,13 +314,15 @@ def transform_dataset(
         y,
         task_type=task_type,
         policy=y_policy, 
+        return_info=True,
     )
 
     y = {k: build_target(
         v,
         task_type=task_type,
         policy=y_policy,
-        info=y_info
+        info=y_info,
+        return_info=False,
     ) for k, v in y.items() if k != "train"}
 
     y["train"] = y_train
