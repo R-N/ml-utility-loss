@@ -203,20 +203,33 @@ def cat_encode(
     return X
 
 def build_target(
-    y: ArrayDict, policy: Optional[YPolicy], task_type: TaskType
+    y, 
+    task_type: TaskType,
+    policy: Optional[YPolicy] = "default", 
+    y_train=None,
+    info=None,
 ) -> Tuple[ArrayDict, Dict[str, Any]]:
-    info: Dict[str, Any] = {'policy': policy}
+    if info is None:
+        info = {"policy": policy}
     if policy is None:
-        pass
+        return y, info
+    if y_train is None:
+        y_train = y
     elif policy == 'default':
         if task_type == TaskType.REGRESSION:
-            mean, std = float(y['train'].mean()), float(y['train'].std())
-            y = {k: (v - mean) / std for k, v in y.items()}
-            info['mean'] = mean
-            info['std'] = std
+            if "mean" not in info or "std" not in info:
+                mean, std = float(y_train.mean()), float(y_train.std())
+                info = {
+                    "policy": policy,
+                    "mean": mean,
+                    "std": std,
+                }
+            else:
+                mean, std = info["mean"], info["std"]
+            y = (y - mean) / std
+        return y, info
     else:
         raise_unknown('policy', policy)
-    return y, info
 
 
 def transform_dataset(
@@ -287,8 +300,25 @@ def transform_dataset(
                 else {x: np.hstack([X_num[x], X_cat[x]]) for x in X_num}
             )
             X_cat = None
-    
-    y, y_info = build_target(dataset.y, y_policy, dataset.task_type)
+
+    y = dataset.y
+    y_train = y["train"]
+    task_type = dataset.task_type
+
+    y_train, y_info = build_target(
+        y,
+        task_type=task_type,
+        policy=y_policy, 
+    )
+
+    y = {k: build_target(
+        v,
+        task_type=task_type,
+        policy=y_policy,
+        info=y_info
+    ) for k, v in y.items() if k != "train"}
+
+    y["train"] = y_train
 
     dataset = replace(dataset, X_num=X_num, X_cat=X_cat, y=y, y_info=y_info)
     dataset.num_transform = num_transform
