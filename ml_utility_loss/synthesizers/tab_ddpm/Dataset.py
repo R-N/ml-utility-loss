@@ -124,6 +124,6 @@ class Dataset:
             score_sign = 1
         for part_metrics in metrics.values():
             part_metrics['score'] = score_sign * part_metrics[score_key]
-        return 
+        return metrics
     
     
