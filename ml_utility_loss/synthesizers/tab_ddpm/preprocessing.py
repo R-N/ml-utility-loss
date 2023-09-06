@@ -224,8 +224,8 @@ def transform_dataset(
         num_transform = num_transform
 
         
-    X_cat = None
-    if dataset.X_cat is not None:
+    X_cat = dataset.X_cat
+    if X_cat is not None:
         X_cat = {k: cat_process_nans(v, cat_nan_policy) for k, v in X_cat.items()}
         X_cat, is_num, cat_transform = cat_encode(
             X_cat,
