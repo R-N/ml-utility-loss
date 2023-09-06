@@ -422,7 +422,7 @@ def transform_dataset(
             return_encoder=True
         )
 
-        print(X_cat)[:5]
+        print(X_cat["train"][:5])
         if is_num:
             X_num = (
                 X_cat

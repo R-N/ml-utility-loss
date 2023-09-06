@@ -279,7 +279,7 @@ def transform_dataset(
             encoder=cat_transform,
         ) for k, v in X_cat.items()}
 
-        print(X_cat)[:5]
+        print(X_cat["train"][:5])
 
         if is_num:
             X_num = (
