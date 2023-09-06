@@ -79,7 +79,7 @@ class Trainer:
 def train(
     parent_dir,
     real_data_path = 'data/higgs-small',
-    steps = 1000,
+    steps = 10,
     lr = 0.002,
     weight_decay = 1e-4,
     batch_size = 1024,
