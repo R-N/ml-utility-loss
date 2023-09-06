@@ -253,7 +253,8 @@ def transform_dataset(
             encoding=cat_encoding,
             encoder=cat_transform,
             return_encoder=False
-        ) for k, v in X_cat.items()}
+        ) for k, v in X_cat.items() if k != "train"}
+        X_cat["train"] = X_cat_train
         if is_num:
             X_num = (
                 X_cat
