@@ -181,6 +181,7 @@ def create_cat_encoder(
         encoder = make_pipeline(oe)
         encoder.fit(X_train)
 
+        X_train = encoder.transform(X_train)
         encoder.max_values = X_train.max(axis=0)
 
     elif encoding == 'one-hot':
