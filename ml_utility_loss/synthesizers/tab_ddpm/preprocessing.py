@@ -259,7 +259,6 @@ def transform_dataset(
 
         X_num = {k: normalize(
             v,
-            X_train = X_num_train,
             normalizer=num_transform,
         ) for k, v in X_num.items()}
 
