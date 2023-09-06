@@ -319,6 +319,7 @@ def make_dataset(
     num_classes: int,
     is_y_cond: bool,
     change_val: bool,
+    cat_encoding="ordinal",
     sample=False
 ):
     # classification
@@ -368,6 +369,7 @@ def make_dataset(
     
     return transform_dataset(
         D,
+        cat_encoding=cat_encoding,
         normalization=None if sample else "quantile"
     )
 

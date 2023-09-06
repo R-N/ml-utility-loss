@@ -102,7 +102,7 @@ def train(
     device = DEFAULT_DEVICE,
     seed = 0,
     change_val = False,
-    cat_encoding = None, #'one-hot',
+    cat_encoding = "ordinal", #'one-hot',
 ):
     real_data_path = os.path.normpath(real_data_path)
     parent_dir = os.path.normpath(parent_dir)
@@ -113,6 +113,7 @@ def train(
         real_data_path,
         num_classes=model_params['num_classes'],
         is_y_cond=model_params['is_y_cond'],
+        cat_encoding=cat_encoding,
         change_val=change_val
     )
 
@@ -186,7 +187,7 @@ def sample(
     device = DEFAULT_DEVICE,
     seed = 0,
     change_val = False,
-    cat_encoding=None,
+    cat_encoding="ordinal",
 ):
     zero.improve_reproducibility(seed)
 
@@ -197,6 +198,7 @@ def sample(
         num_classes=model_params['num_classes'],
         is_y_cond=model_params['is_y_cond'],
         change_val=change_val,
+        cat_encoding=cat_encoding,
         sample=True
     )
 
