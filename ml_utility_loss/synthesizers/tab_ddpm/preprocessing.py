@@ -311,7 +311,7 @@ def transform_dataset(
     task_type = dataset.task_type
 
     y_train, y_info = build_target(
-        y,
+        y_train,
         task_type=task_type,
         policy=y_policy, 
         return_info=True,
