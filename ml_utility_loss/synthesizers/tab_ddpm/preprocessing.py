@@ -21,7 +21,7 @@ CAT_RARE_VALUE = '__rare__'
 Normalization = Literal['standard', 'quantile', 'minmax']
 NumNanPolicy = Literal['drop-rows', 'mean']
 CatNanPolicy = Literal['most_frequent']
-CatEncoding = Literal['one-hot']
+CatEncoding = Literal['one-hot', 'ordinal']
 YPolicy = Literal['default']
 
 def round_columns(X_real, X_synth, columns):
@@ -129,55 +129,62 @@ def cat_process_nans(X, policy: Optional[CatNanPolicy]):
     return X
 
 def cat_encode(
-    X: ArrayDict,
-    encoding: Optional[CatEncoding],
-    y_train: Optional[np.ndarray],
-    seed: Optional[int],
+    X,
+    X_train = None,
+    encoding: CatEncoding = "ordinal",
+    encoder=None,
     return_encoder : bool = False
 ) -> Tuple[ArrayDict, bool, Optional[Any]]:  # (X, is_converted_to_numerical)
-    if encoding != 'counter':
-        y_train = None
 
-    # Step 1. Map strings to 0-based ranges
+    if X_train is None:
+        same_x = True
+        X_train = X
+    else:
+        same_x = False
 
-    if encoding is None:
+    if encoding == "ordinal":
         unknown_value = np.iinfo('int64').max - 3
-        oe = OrdinalEncoder(
-            handle_unknown='use_encoded_value',  # type: ignore[code]
-            unknown_value=unknown_value,  # type: ignore[code]
-            dtype='int64',  # type: ignore[code]
-        ).fit(X['train'])
-        encoder = make_pipeline(oe)
-        encoder.fit(X['train'])
-        X = {k: encoder.transform(v) for k, v in X.items()}
-        max_values = X['train'].max(axis=0)
-        for part in X.keys():
-            if part == 'train': continue
-            for column_idx in range(X[part].shape[1]):
-                X[part][X[part][:, column_idx] == unknown_value, column_idx] = (
+
+        if not encoder:
+            oe = OrdinalEncoder(
+                handle_unknown='use_encoded_value',  # type: ignore[code]
+                unknown_value=unknown_value,  # type: ignore[code]
+                dtype='int64',  # type: ignore[code]
+            ).fit(X_train)
+            encoder = make_pipeline(oe)
+            encoder.fit(X_train)
+
+        X = encoder.transform(X)
+
+        max_values = X_train.max(axis=0)
+
+        if not same_x:
+            for column_idx in range(X.shape[1]):
+                X[X[:, column_idx] == unknown_value, column_idx] = (
                     max_values[column_idx] + 1
                 )
-        if return_encoder:
-            return (X, False, encoder)
-        return (X, False)
 
-    # Step 2. Encode.
+        if return_encoder:
+            return X, encoder
+        return X
 
     elif encoding == 'one-hot':
-        ohe = OneHotEncoder(
-            handle_unknown='ignore', sparse=False, dtype=np.float32 # type: ignore[code]
-        )
-        encoder = make_pipeline(ohe)
+        if not encoder:
+            ohe = OneHotEncoder(
+                handle_unknown='ignore', sparse=False, dtype=np.float32 # type: ignore[code]
+            )
+            encoder = make_pipeline(ohe)
 
-        # encoder.steps.append(('ohe', ohe))
-        encoder.fit(X['train'])
-        X = {k: encoder.transform(v) for k, v in X.items()}
+            # encoder.steps.append(('ohe', ohe))
+            encoder.fit(X_train)
+
+        X = encoder.transform(X)
     else:
         raise_unknown('encoding', encoding)
     
     if return_encoder:
-        return X, True, encoder # type: ignore[code]
-    return (X, True)
+        return X, encoder # type: ignore[code]
+    return X
 
 def build_target(
     y: ArrayDict, policy: Optional[YPolicy], task_type: TaskType
@@ -202,7 +209,7 @@ def transform_dataset(
     num_nan_policy=None,
     normalization="quantile",
     cat_nan_policy=None,
-    cat_encoding=None, #one-hot
+    cat_encoding: CatEncoding = "ordinal", #one-hot
     y_policy="default",
     return_transforms: bool = False
 ) -> Dataset:
@@ -227,13 +234,21 @@ def transform_dataset(
     X_cat = dataset.X_cat
     if X_cat is not None:
         X_cat = {k: cat_process_nans(v, cat_nan_policy) for k, v in X_cat.items()}
-        X_cat, is_num, cat_transform = cat_encode(
-            X_cat,
-            cat_encoding,
-            dataset.y['train'],
-            seed,
+        X_cat_train = X_cat["train"]
+        is_num = cat_encoding == "ordinal"
+        X_cat_train, cat_transform = cat_encode(
+            X_cat_train,
+            X_train=X_cat_train,
+            encoding=cat_encoding,
             return_encoder=True
         )
+        X_cat = {k: cat_encode(
+            v,
+            X_train=X_cat_train,
+            encoding=cat_encoding,
+            encoder=cat_transform,
+            return_encoder=False
+        ) for k, v in X_cat.items()}
         if is_num:
             X_num = (
                 X_cat
