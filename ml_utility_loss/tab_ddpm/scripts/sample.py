@@ -64,6 +64,9 @@ def sample(
         category_sizes=D.get_category_sizes('train')
     )
 
+    print(model_params)
+    print(model_path)
+
     model.load_state_dict(
         torch.load(model_path, map_location="cpu")
     )

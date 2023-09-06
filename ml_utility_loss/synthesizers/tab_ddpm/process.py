@@ -211,6 +211,9 @@ def sample(
     model_params['d_in'] = int(d_in)
     model = MLPDiffusion(**model_params)
 
+    print(model_params)
+    print(model_path)
+
     model.load_state_dict(
         torch.load(model_path, map_location="cpu")
     )
