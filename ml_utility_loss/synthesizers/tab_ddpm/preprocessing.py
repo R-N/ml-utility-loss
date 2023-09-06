@@ -92,37 +92,35 @@ def change_val(dataset: Dataset, val_size: float = 0.2):
 # Inspired by: https://github.com/yandex-research/rtdl/blob/a4c93a32b334ef55d2a0559a4407c8306ffeeaee/lib/data.py#L20
 def normalize(
     X,
-    X_train= None,
-    normalization: Optional[Normalization] = "quantile", 
-    seed: Optional[int] = 0,
     normalizer=None,
-    return_normalizer : bool = False
 ) -> ArrayDict:
-    if X_train is None:
-        X_train = X
-
-    if not normalizer:
-        if normalization == 'standard':
-            normalizer = StandardScaler()
-        elif normalization == 'minmax':
-            normalizer = MinMaxScaler()
-        elif normalization == 'quantile':
-            normalizer = QuantileTransformer(
-                output_distribution='normal',
-                n_quantiles=max(min(X_train.shape[0] // 30, 1000), 10),
-                subsample=int(1e9),
-                random_state=seed,
-            )
-        else:
-            raise_unknown('normalization', normalization)
-        normalizer.fit(X_train)
-
     X = normalizer.transform(X)
-
-    if return_normalizer:
-        return X, normalizer
     return X
 
+
+# Inspired by: https://github.com/yandex-research/rtdl/blob/a4c93a32b334ef55d2a0559a4407c8306ffeeaee/lib/data.py#L20
+def create_normalizer(
+    X_train,
+    normalization: Optional[Normalization] = "quantile", 
+    seed: Optional[int] = 0,
+) :
+
+    if normalization == 'standard':
+        normalizer = StandardScaler()
+    elif normalization == 'minmax':
+        normalizer = MinMaxScaler()
+    elif normalization == 'quantile':
+        normalizer = QuantileTransformer(
+            output_distribution='normal',
+            n_quantiles=max(min(X_train.shape[0] // 30, 1000), 10),
+            subsample=int(1e9),
+            random_state=seed,
+        )
+    else:
+        raise_unknown('normalization', normalization)
+    normalizer.fit(X_train)
+    normalizer.normalization = normalization
+    return normalizer
 
 def cat_process_nans(X, policy: Optional[CatNanPolicy]):
     assert X is not None
@@ -253,23 +251,17 @@ def transform_dataset(
 
     if X_num is not None and normalization is not None:
         X_num_train = X_num["train"]
-        X_num_train, num_transform = normalize(
+        num_transform = create_normalizer(
             X_num_train,
             normalization=normalization,
-            seed=seed,
-            return_normalizer=True
+            seed=seed
         )
 
         X_num = {k: normalize(
             v,
             X_train = X_num_train,
-            normalization=normalization,
             normalizer=num_transform,
-            seed=seed,
-            return_normalizer=False
-        ) for k, v in X_num.items() if k != "train"}
-
-        X_num["train"] = X_num_train
+        ) for k, v in X_num.items()}
 
         
     X_cat = dataset.X_cat
