@@ -423,6 +423,7 @@ def transform_dataset(
         )
 
         print(X_cat["train"][:5])
+        print(is_num)
         if is_num:
             X_num = (
                 X_cat

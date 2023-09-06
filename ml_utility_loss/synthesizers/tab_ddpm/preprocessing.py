@@ -267,7 +267,7 @@ def transform_dataset(
     if X_cat is not None:
         X_cat = {k: cat_process_nans(v, cat_nan_policy) for k, v in X_cat.items()}
         X_cat_train = X_cat["train"]
-        is_num = cat_encoding == "ordinal"
+        is_num = (cat_encoding == "one-hot")
 
         cat_transform = create_cat_encoder(
             X_cat_train,
@@ -280,6 +280,7 @@ def transform_dataset(
         ) for k, v in X_cat.items()}
 
         print(X_cat["train"][:5])
+        print(is_num)
 
         if is_num:
             X_num = (
