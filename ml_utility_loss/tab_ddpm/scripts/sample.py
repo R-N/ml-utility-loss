@@ -39,6 +39,8 @@ def sample(
 ):
     zero.improve_reproducibility(seed)
 
+    batch_size = min(batch_size, num_samples)
+
     T = lib.Transformations(**T_dict)
     D = make_dataset(
         real_data_path,
