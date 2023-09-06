@@ -404,8 +404,6 @@ def transform_dataset(
             return_normalizer=True
         )
         num_transform = num_transform
-
-    print(repr(num_transform))
     
     if dataset.X_cat is None:
         assert transformations.cat_nan_policy is None

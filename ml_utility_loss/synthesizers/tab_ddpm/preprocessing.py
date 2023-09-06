@@ -262,8 +262,6 @@ def transform_dataset(
             normalizer=num_transform,
         ) for k, v in X_num.items()}
 
-    print(repr(num_transform))
-
         
     X_cat = dataset.X_cat
     if X_cat is not None:
@@ -323,7 +321,6 @@ def make_dataset(
     is_y_cond: bool,
     change_val: bool,
     cat_encoding="ordinal",
-    sample=False
 ):
     # classification
     if num_classes > 0:
@@ -373,7 +370,6 @@ def make_dataset(
     return transform_dataset(
         D,
         cat_encoding=cat_encoding,
-        normalization=None if sample else "quantile"
     )
 
 def dataset_from_df(
@@ -398,7 +394,6 @@ def dataset_from_df(
     
     return transform_dataset(
         D,
-        normalization=None if sample else "quantile"
     )
 
 def concat_features(D : Dataset):
