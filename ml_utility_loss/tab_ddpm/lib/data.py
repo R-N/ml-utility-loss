@@ -436,6 +436,8 @@ def transform_dataset(
     dataset = replace(dataset, X_num=X_num, X_cat=X_cat, y=y, y_info=y_info)
     dataset.num_transform = num_transform
     dataset.cat_transform = cat_transform
+    
+    print(dataset.X_num["train"][:5])
 
     if cache_path is not None:
         util.dump_pickle((transformations, dataset), cache_path)

@@ -289,6 +289,7 @@ def transform_dataset(
             )
             X_cat = None
 
+
     y = dataset.y
     y_train = y["train"]
     task_type = dataset.task_type
@@ -313,6 +314,8 @@ def transform_dataset(
     dataset = replace(dataset, X_num=X_num, X_cat=X_cat, y=y, y_info=y_info)
     dataset.num_transform = num_transform
     dataset.cat_transform = cat_transform
+    
+    print(dataset.X_num["train"][:5])
 
     return dataset
 
