@@ -207,13 +207,9 @@ def sample(
         K = np.array([0])
 
     num_numerical_features_ = D.X_num['train'].shape[1] if D.X_num is not None else 0
-    print(num_numerical_features_, np.sum(K))
     d_in = np.sum(K) + num_numerical_features_
     model_params['d_in'] = int(d_in)
     model = MLPDiffusion(**model_params)
-
-    print(model_params)
-    print(model_path)
 
     model.load_state_dict(
         torch.load(model_path, map_location="cpu")
@@ -264,9 +260,7 @@ def sample(
         np.save(os.path.join(parent_dir, 'X_cat_unnorm'), X_gen[:, num_numerical_features:])
         if cat_encoding == 'one-hot':
             X_gen[:, num_numerical_features:] = to_good_ohe(D.cat_transform.steps[0][1], X_num_[:, num_numerical_features:])
-        print("PRE 261", cat_encoding, repr(D.cat_transform), len(X_gen), num_numerical_features)
         X_cat = X_gen[:, num_numerical_features:]
-        print(X_cat)
         X_cat = D.cat_transform.inverse_transform(X_cat)
 
     if num_numerical_features_ != 0:

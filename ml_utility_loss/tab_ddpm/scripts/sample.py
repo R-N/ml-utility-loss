@@ -55,7 +55,6 @@ def sample(
         K = np.array([0])
 
     num_numerical_features_ = D.X_num['train'].shape[1] if D.X_num is not None else 0
-    print(num_numerical_features_, np.sum(K))
     d_in = np.sum(K) + num_numerical_features_
     model_params['d_in'] = int(d_in)
     model = get_model(
@@ -64,9 +63,6 @@ def sample(
         num_numerical_features_,
         category_sizes=D.get_category_sizes('train')
     )
-
-    print(model_params)
-    print(model_path)
 
     model.load_state_dict(
         torch.load(model_path, map_location="cpu")
@@ -139,9 +135,7 @@ def sample(
         if T_dict['cat_encoding'] == 'one-hot':
             X_gen[:, num_numerical_features:] = to_good_ohe(D.cat_transform.steps[0][1], X_num_[:, num_numerical_features:])
         X_cat = X_gen[:, num_numerical_features:]
-        print(X_cat)
         X_cat = D.cat_transform.inverse_transform(X_cat)
-        print("SURVIVED 261", T_dict['cat_encoding'], repr(D.cat_transform), len(X_gen), num_numerical_features)
 
     if num_numerical_features_ != 0:
         # _, normalize = lib.normalize({'train' : X_num_real}, T_dict['normalization'], T_dict['seed'], True)
