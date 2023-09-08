@@ -570,7 +570,6 @@ def dataset_from_df(
     task_type,
     target,
     cat_features=[], 
-    is_y_cond=False,
     splits=DEFAULT_SPLITS,
     seed=0
 ):

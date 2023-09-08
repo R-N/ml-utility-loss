@@ -3,7 +3,7 @@ import torch
 import os
 import numpy as np
 import delu as zero
-from .preprocessing import round_columns, make_dataset, transform_dataset
+from .preprocessing import round_columns, make_dataset, transform_dataset, dataset_from_df
 from .model import MLPDiffusion
 import pandas as pd
 from .gaussian_multinomial_diffusion import GaussianMultinomialDiffusion
@@ -88,8 +88,8 @@ class Trainer:
             step += 1
 
 def train(
+    dataset,
     parent_dir,
-    real_data_path = 'data/higgs-small',
     steps = 10,
     lr = 0.002,
     weight_decay = 1e-4,
@@ -104,17 +104,10 @@ def train(
     change_val = False,
     cat_encoding = "ordinal", #'one-hot',
 ):
-    real_data_path = os.path.normpath(real_data_path)
     parent_dir = os.path.normpath(parent_dir)
 
     zero.improve_reproducibility(seed)
 
-    dataset = make_dataset(
-        real_data_path,
-        num_classes=model_params['num_classes'],
-        is_y_cond=model_params['is_y_cond'],
-        change_val=change_val
-    )
     dataset = transform_dataset(
         dataset,
         is_y_cond=model_params['is_y_cond'],
@@ -169,8 +162,8 @@ def train(
 DEFAULT_DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else "cpu")
 
 def sample(
+    dataset,
     parent_dir,
-    real_data_path = 'data/higgs-small',
     batch_size = 2000,
     num_samples = 10,
     model_params = None,
@@ -189,12 +182,7 @@ def sample(
 
     batch_size = min(batch_size, num_samples)
 
-    D = make_dataset(
-        real_data_path,
-        num_classes=model_params['num_classes'],
-        is_y_cond=model_params['is_y_cond'],
-        change_val=change_val
-    )
+    D = dataset
     D = transform_dataset(
         D,
         is_y_cond=model_params['is_y_cond'],
