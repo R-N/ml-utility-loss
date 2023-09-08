@@ -116,6 +116,7 @@ def train(
         change_val=change_val
     )
     dataset = transform_dataset(
+        dataset,
         is_y_cond=model_params['is_y_cond'],
         cat_encoding=cat_encoding,
         concat_y=False
@@ -195,6 +196,7 @@ def sample(
         change_val=change_val
     )
     D = transform_dataset(
+        D,
         is_y_cond=model_params['is_y_cond'],
         cat_encoding=cat_encoding,
         concat_y=False
