@@ -163,15 +163,6 @@ def train(
 
 DEFAULT_DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else "cpu")
 
-def to_good_ohe(ohe, X):
-    indices = np.cumsum([0] + ohe._n_features_outs)
-    Xres = []
-    for i in range(1, len(indices)):
-        x_ = np.max(X[:, indices[i - 1]:indices[i]], axis=1)
-        t = X[:, indices[i - 1]:indices[i]] - x_.reshape(-1, 1)
-        Xres.append(np.where(t >= 0, 1, 0))
-    return np.hstack(Xres)
-
 def sample(
     parent_dir,
     real_data_path = 'data/higgs-small',
@@ -257,28 +248,11 @@ def sample(
     X_num_ = X_gen
     if num_numerical_features < X_gen.shape[1]:
         np.save(os.path.join(parent_dir, 'X_cat_unnorm'), X_gen[:, num_numerical_features:])
-        if cat_encoding == 'one-hot':
-            X_gen[:, num_numerical_features:] = to_good_ohe(D.cat_transform.steps[0][1], X_num_[:, num_numerical_features:])
-        X_cat = X_gen[:, num_numerical_features:]
-        X_cat = D.cat_transform.inverse_transform(X_cat)
 
     if num_numerical_features_ != 0:
         np.save(os.path.join(parent_dir, 'X_num_unnorm'), X_gen[:, :num_numerical_features])
-        X_num_ = D.num_transform.inverse_transform(X_gen[:, :num_numerical_features])
-        X_num = X_num_[:, :num_numerical_features]
 
-        X_num_real = np.load(os.path.join(real_data_path, "X_num_train.npy"), allow_pickle=True)
-        disc_cols = []
-        for col in range(X_num_real.shape[1]):
-            uniq_vals = np.unique(X_num_real[:, col])
-            if len(uniq_vals) <= 32 and ((uniq_vals - np.round(uniq_vals)) == 0).all():
-                disc_cols.append(col)
-        print("Discrete cols:", disc_cols)
-        if model_params['num_classes'] == 0:
-            y_gen = X_num[:, 0]
-            X_num = X_num[:, 1:]
-        if len(disc_cols):
-            X_num = round_columns(X_num_real, X_num, disc_cols)
+    X_num, X_cat, y_gen = D.transformer.inverse_transform(X_gen, y_gen)
 
     if num_numerical_features != 0:
         print("Num shape: ", X_num.shape)

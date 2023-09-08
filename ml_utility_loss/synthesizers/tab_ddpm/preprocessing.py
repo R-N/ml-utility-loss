@@ -31,6 +31,13 @@ def round_columns(X_real, X_synth, columns):
         X_synth[:, col] = uniq[dist.argmin(axis=1)]
     return X_synth
 
+def round_columns_2(X_synth, uniq_vals, columns=[]):
+    columns = columns or uniq_vals.keys()
+    for col in columns:
+        dist = cdist(X_synth[:, col][:, np.newaxis].astype(float), uniq_vals[:, np.newaxis].astype(float))
+        X_synth[:, col] = uniq_vals[dist.argmin(axis=1)]
+    return X_synth
+
 def num_process_nans(X_num, X_cat=None, y=None, X_num_train=None, X_num_train_means=None, policy: Optional[NumNanPolicy]=None):
     nan_masks = np.isnan(X_num)
     if not nan_masks.any():  # type: ignore[code]
@@ -225,10 +232,20 @@ def build_target(
         raise_unknown('policy', policy)
 
 
+def to_good_ohe(ohe, X):
+    indices = np.cumsum([0] + ohe._n_features_outs)
+    Xres = []
+    for i in range(1, len(indices)):
+        x_ = np.max(X[:, indices[i - 1]:indices[i]], axis=1)
+        t = X[:, indices[i - 1]:indices[i]] - x_.reshape(-1, 1)
+        Xres.append(np.where(t >= 0, 1, 0))
+    return np.hstack(Xres)
+
 class DatasetTransformer:
     def __init__(
         self,
         task_type,
+        initial_numerical_features=0,
         num_nan_policy=None,
         cat_nan_policy=None,
         normalization="quantile",
@@ -236,6 +253,10 @@ class DatasetTransformer:
         y_policy="default",
         seed=0,
     ):
+        self.initial_numerical_features = initial_numerical_features
+        self.current_numerical_features = self.initial_numerical_features
+        self.disc_cols = []
+        self.uniq_vals = {}
         self.num_transform = None
         self.X_num_train_means = None
         self.cat_transform = None
@@ -248,25 +269,68 @@ class DatasetTransformer:
         self.y_policy = y_policy
         self.task_type = task_type
 
+    def is_regression(self):
+        return 1 if self.task_type == TaskType.REGRESSION else 0
+    
+    def num_process_nans(
+        self,
+        X_num=None,
+        X_cat=None,
+        y=None,
+    ):
+        return num_process_nans(
+            X_num=X_num,
+            X_cat=X_cat,
+            y=y,
+            X_num_train_means=self.X_num_train_means, 
+            policy=self.num_nan_policy
+        )
+    
+    def cat_process_nans(self, X_cat):
+        return cat_process_nans(X_cat, self.cat_nan_policy)
+
     def fit(
         self,
         X_num_train=None,
         X_cat_train=None,
         y_train=None,
     ):
-        if X_num_train is not None and len(X_num_train) > 0 and self.normalization is not None:
-            self.num_transform = create_normalizer(
-                X_num_train,
-                normalization=self.normalization,
-                seed=self.seed
+        if X_num_train is not None and len(X_num_train) > 0:
+            X_num_train, X_cat_train, y_train = self.num_process_nans(
+                X_num=X_num_train,
+                X_cat=X_cat_train,
+                y=y_train
             )
+            if self.normalization is not None:
+                self.num_transform = create_normalizer(
+                    X_num_train,
+                    normalization=self.normalization,
+                    seed=self.seed
+                )
             self.X_num_train_means = np.nanmean(X_num_train, axis=0)
+            if not self.initial_numerical_features:
+                self.initial_numerical_features = X_num_train.shape[1]
+            self.current_numerical_features = X_num_train.shape[1]
+            
+            self.disc_cols = []
+            self.uniq_vals = {}
+            for col in range(X_num_train.shape[1]):
+                uniq_vals = np.unique(X_num_train[:, col])
+                if len(uniq_vals) <= 32 and ((uniq_vals - np.round(uniq_vals)) == 0).all():
+                    self.disc_cols.append(col)
+                    self.uniq_vals[col] = uniq_vals
+            print("Discrete cols:", self.disc_cols)
+
 
         if X_cat_train is not None and len(X_cat_train) > 0:
+            X_cat_train = self.cat_process_nans(X_cat_train)
             self.cat_transform = create_cat_encoder(
                 X_cat_train,
                 encoding=self.cat_encoding
             )
+            if not self.current_numerical_features and self.cat_transform.is_num:
+                X_cat_train_2 = self.cat_transform.transform(X_cat_train)
+                self.current_numerical_features += X_cat_train_2.shape[1]
 
         if y_train is not None and len(y_train) > 0:
             self.y_info = build_y_info(
@@ -274,22 +338,21 @@ class DatasetTransformer:
                 task_type=self.task_type,
                 policy=self.y_policy,
             )
+            #self.current_numerical_features += self.is_regression
 
     def transform(self, X_num=None, X_cat=None, y=None):
         if X_num is not None:
-            X_num, X_cat, y = num_process_nans(
+            X_num, X_cat, y = self.num_process_nans(
                 X_num=X_num,
                 X_cat=X_cat,
                 y=y,
-                X_num_train_means=self.X_num_train_means, 
-                policy=self.num_nan_policy
             )
 
             if self.num_transform is not None:
                 X_num = normalize(X_num, normalizer=self.num_transform)
             
         if X_cat is not None:
-            X_cat = cat_process_nans(X_cat, self.cat_nan_policy)
+            X_cat = self.cat_process_nans(X_cat)
 
             X_cat = cat_encode(X_cat, encoder=self.cat_transform)
 
@@ -306,8 +369,31 @@ class DatasetTransformer:
 
         return X_num, X_cat, y
 
-    def inverse_transform(self):
-        pass
+    def inverse_transform(self, X_gen, y_gen):
+        y = y_gen
+
+        n = self.initial_numerical_features + self.is_regression
+        X_num = X_gen[:, :n]
+        X_cat = X_gen[:, n:]
+        if self.cat_transform:
+            if self.cat_encoding == 'one-hot':
+                X_cat = to_good_ohe(
+                    self.cat_transform.steps[0][1], 
+                    X_cat
+                )
+            X_cat = self.cat_transform.inverse_transform(X_cat)
+
+        if self.current_numerical_features != 0:
+            X_num = self.num_transform.inverse_transform(X_num)
+
+            if self.is_regression:
+                y = X_num[:, 0]
+                X_num = X_num[:, 1:]
+
+            if self.uniq_vals:
+                X_num = round_columns_2(X_num, self.uniq_vals)
+
+        return X_num, X_cat, y
 
 
 def transform_dataset(
@@ -343,6 +429,7 @@ def transform_dataset(
     dataset.y_info = transformer.y_info
     dataset.num_transform = transformer.num_transform
     dataset.cat_transform = transformer.cat_transform
+    dataset.transformer = transformer
 
     return dataset
 
