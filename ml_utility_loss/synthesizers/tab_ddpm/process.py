@@ -3,7 +3,7 @@ import torch
 import os
 import numpy as np
 import delu as zero
-from .preprocessing import round_columns, make_dataset
+from .preprocessing import round_columns, make_dataset, transform_dataset
 from .model import MLPDiffusion
 import pandas as pd
 from .gaussian_multinomial_diffusion import GaussianMultinomialDiffusion
@@ -113,8 +113,12 @@ def train(
         real_data_path,
         num_classes=model_params['num_classes'],
         is_y_cond=model_params['is_y_cond'],
-        cat_encoding=cat_encoding,
         change_val=change_val
+    )
+    dataset = transform_dataset(
+        is_y_cond=model_params['is_y_cond'],
+        cat_encoding=cat_encoding,
+        concat_y=False
     )
 
     K = np.array(dataset.get_category_sizes('train'))
@@ -188,8 +192,12 @@ def sample(
         real_data_path,
         num_classes=model_params['num_classes'],
         is_y_cond=model_params['is_y_cond'],
-        change_val=change_val,
-        cat_encoding=cat_encoding
+        change_val=change_val
+    )
+    D = transform_dataset(
+        is_y_cond=model_params['is_y_cond'],
+        cat_encoding=cat_encoding,
+        concat_y=False
     )
 
     K = np.array(D.get_category_sizes('train'))

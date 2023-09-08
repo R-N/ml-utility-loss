@@ -2,9 +2,9 @@
 import numpy as np
 from scipy.spatial.distance import cdist
 import os
-from .util import load_json, raise_unknown, load_pickle, dump_pickle, concat_y_to_X, read_pure_data
+from .util import load_json, raise_unknown, load_pickle, dump_pickle, concat_y_to_X, read_pure_data, TaskType
 from sklearn.model_selection import train_test_split
-from .Dataset import Dataset, ArrayDict, TensorDict, TaskType
+from .Dataset import Dataset, ArrayDict, TensorDict
 from typing import Any, Literal, Optional, Union, cast, Tuple, Dict, List
 from pathlib import Path
 from dataclasses import astuple, dataclass, replace
@@ -201,8 +201,11 @@ def build_y_info(
     y_train,
     task_type: TaskType,
     policy: Optional[YPolicy] = "default", 
+    is_y_cond=None
 ) :
     info = {"policy": policy, "task_type": task_type}
+    if is_y_cond is not None:
+        info["is_cond"] = is_y_cond
     if policy is None:
         return info
     if policy == 'default':
@@ -246,6 +249,7 @@ class DatasetTransformer:
     def __init__(
         self,
         task_type,
+        is_y_cond=False,
         initial_numerical_features=0,
         num_nan_policy=None,
         cat_nan_policy=None,
@@ -261,6 +265,7 @@ class DatasetTransformer:
         self.num_transform = None
         self.X_num_train_means = None
         self.cat_transform = None
+        self.is_y_cond = is_y_cond
         self.y_info = None
         self.num_nan_policy = num_nan_policy
         self.cat_nan_policy = cat_nan_policy
@@ -339,10 +344,19 @@ class DatasetTransformer:
                 y_train,
                 task_type=self.task_type,
                 policy=self.y_policy,
+                is_y_cond=self.is_y_cond
             )
             #self.current_numerical_features += self.is_regression
 
-    def transform(self, X_num=None, X_cat=None, y=None):
+    def transform(self, X_num=None, X_cat=None, y=None, concat_y=True):
+
+        if concat_y:
+            X_num, X_cat, y = concat_y_to_X_2(
+                X_num, X_cat, y, 
+                task_type=self.task_type, 
+                is_y_cond=self.is_y_cond
+            )
+
         if X_num is not None:
             X_num, X_cat, y = self.num_process_nans(
                 X_num=X_num,
@@ -385,10 +399,14 @@ class DatasetTransformer:
                 )
             X_cat = self.cat_transform.inverse_transform(X_cat)
 
+            if not self.is_regression and self.is_y_cond:
+                y = X_cat[:, 0]
+                X_cat = X_cat[:, 1:]
+
         if self.current_numerical_features != 0:
             X_num = self.num_transform.inverse_transform(X_num)
 
-            if self.is_regression:
+            if self.is_regression and self.is_y_cond:
                 y = X_num[:, 0]
                 X_num = X_num[:, 1:]
 
@@ -406,6 +424,8 @@ def transform_dataset(
     cat_nan_policy=None,
     cat_encoding: CatEncoding = "ordinal", #one-hot
     y_policy="default",
+    is_y_cond=False,
+    concat_y=True
 ) -> Dataset:
     
     transformer = DatasetTransformer(
@@ -416,6 +436,7 @@ def transform_dataset(
         cat_encoding=cat_encoding,
         y_policy=y_policy,
         seed=seed,
+        is_y_cond=is_y_cond
     )
     transformer.fit(
         X_num_train=dataset.X_num["train"],
@@ -425,7 +446,8 @@ def transform_dataset(
 
     for t in ["train", "val", "test"]:
         dataset.X_num[t], dataset.X_cat[t], dataset.y[t] = transformer.transform(
-            dataset.X_num[t], dataset.X_cat[t], dataset.y[t]
+            dataset.X_num[t], dataset.X_cat[t], dataset.y[t],
+            concat_y=concat_y
         )
 
     dataset.y_info = transformer.y_info
@@ -440,7 +462,6 @@ def make_dataset(
     num_classes: int,
     is_y_cond: bool,
     change_val: bool,
-    cat_encoding="ordinal",
 ):
     # classification
     if num_classes > 0:
@@ -487,10 +508,7 @@ def make_dataset(
     if change_val:
         D = change_val(D)
     
-    return transform_dataset(
-        D,
-        cat_encoding=cat_encoding,
-    )
+    return transform_dataset(D)
 
 def split_features(
     df,
@@ -505,27 +523,71 @@ def split_features(
     return X_num, X_cat, y
 
 DEFAULT_SPLITS = [0.6, 0.8]
+    
+SPLIT_NAMES = [
+    ["train"],
+    ["train", "test"],
+    ["train", "val", "test"]
+]
 
-def split_train(df, points=DEFAULT_SPLITS, rand=42):
+def split_train(df, points=DEFAULT_SPLITS, seed=42):
+    #if not points:
+    #    return df
     points = points or DEFAULT_SPLITS
     return np.split(
-        df.sample(frac=1, random_state=rand), 
+        df.sample(frac=1, random_state=seed), 
         [int(x*len(df)) for x in points]
     )
-    
+
+def concat_y_to_X_2(
+    X_num,
+    X_cat,
+    y,
+    task_type,
+    is_y_cond=False
+):
+    if is_y_cond:
+        return X_num, X_cat
+    if task_type==TaskType.REGRESSION:
+        X_num = concat_y_to_X(y)
+    else:
+        X_cat = concat_y_to_X(y)
+    return X_num, X_cat, y
 
 def dataset_from_df(
     df, 
-    cat_features, 
+    task_type,
     target,
-    splits=DEFAULT_SPLITS
+    cat_features=[], 
+    is_y_cond=False,
+    splits=DEFAULT_SPLITS,
+    seed=0
 ):
+    split_names = SPLIT_NAMES[len(splits)]
+    dfs = split_train(df, splits, rand=seed)
+    dfs = dict(zip(split_names, dfs))
 
-    D = Dataset(X_num, X_cat, y, {}, None, len(np.unique(y['train'])))
-    
-    return transform_dataset(
-        D,
+    dfs = {k: split_features(
+        v,
+        cat_features=cat_features,
+        target=target,
+    ) for k, v in dfs.items()}
+
+    X_num = {k: dfs[k][0] for k in split_names}
+    X_cat = {k: dfs[k][1] for k in split_names}
+    y = {k: dfs[k][2] for k in split_names}
+
+    n_classes = 0 if task_type==TaskType.REGRESSION else len(np.unique(y['train']))
+    D = Dataset(
+        X_num, 
+        X_cat, 
+        y, 
+        y_info={}, 
+        task_type=task_type, 
+        n_classes=n_classes
     )
+    
+    return D
 
 def concat_features(D : Dataset):
     if D.X_num is None:
