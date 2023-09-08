@@ -260,6 +260,7 @@ class DatasetTransformer:
         cat_encoding: CatEncoding = "ordinal", #one-hot
         y_policy="default",
         seed=0,
+        concat_cat=False,
     ):
         self.initial_numerical_features = initial_numerical_features
         self.current_numerical_features = self.initial_numerical_features
@@ -278,6 +279,7 @@ class DatasetTransformer:
         self.cat_encoding = cat_encoding
         self.y_policy = y_policy
         self.task_type = task_type
+        self.concat_cat = concat_cat
 
     @property
     def is_regression(self):
@@ -366,7 +368,8 @@ class DatasetTransformer:
         return concat_y_to_X_2(
             X_num, X_cat, y, 
             task_type=self.task_type, 
-            is_y_cond=self.is_y_cond
+            is_y_cond=self.is_y_cond,
+            concat_cat=self.concat_cat
         )
 
     def transform(self, X_num=None, X_cat=None, y=None, concat_y=True):
@@ -417,7 +420,7 @@ class DatasetTransformer:
                 )
             X_cat = self.cat_transform.inverse_transform(X_cat)
 
-            if not self.is_regression and self.is_y_cond:
+            if not self.is_regression and self.is_y_cond and self.concat_cat:
                 y = X_cat[:, 0]
                 X_cat = X_cat[:, 1:]
 
@@ -446,7 +449,8 @@ def transform_dataset(
     cat_encoding: CatEncoding = "ordinal", #one-hot
     y_policy="default",
     is_y_cond=False,
-    concat_y=True
+    concat_y=True,
+    concat_cat=False
 ) -> Dataset:
     
     transformer = DatasetTransformer(
@@ -457,7 +461,8 @@ def transform_dataset(
         cat_encoding=cat_encoding,
         y_policy=y_policy,
         seed=seed,
-        is_y_cond=is_y_cond
+        is_y_cond=is_y_cond,
+        concat_cat=concat_cat
     )
     transformer.fit(
         X_num=dataset.X_num["train"],
@@ -573,14 +578,16 @@ def concat_y_to_X_2(
     X_cat,
     y,
     task_type,
-    is_y_cond=False
+    is_y_cond=False,
+    concat_cat=False,
 ):
     if is_y_cond:
         return X_num, X_cat, y
     if task_type==TaskType.REGRESSION:
         X_num = concat_y_to_X(X_num, y)
     else:
-        X_cat = concat_y_to_X(X_cat, y)
+        if concat_cat:
+            X_cat = concat_y_to_X(X_cat, y)
     return X_num, X_cat, y
 
 def dataset_from_df(
