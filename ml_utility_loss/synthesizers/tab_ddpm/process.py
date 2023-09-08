@@ -261,6 +261,7 @@ def sample(
 
     
 def train_catboost(
+    dataset,
     parent_dir,
     real_data_path,
     eval_type,
