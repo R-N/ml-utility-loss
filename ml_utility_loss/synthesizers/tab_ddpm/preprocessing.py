@@ -549,9 +549,9 @@ def concat_y_to_X_2(
     if is_y_cond:
         return X_num, X_cat
     if task_type==TaskType.REGRESSION:
-        X_num = concat_y_to_X(y)
+        X_num = concat_y_to_X(X_num, y)
     else:
-        X_cat = concat_y_to_X(y)
+        X_cat = concat_y_to_X(X_cat, y)
     return X_num, X_cat, y
 
 def dataset_from_df(
