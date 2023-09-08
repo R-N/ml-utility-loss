@@ -298,54 +298,54 @@ class DatasetTransformer:
 
     def fit(
         self,
-        X_num_train=None,
-        X_cat_train=None,
-        y_train=None,
+        X_num=None,
+        X_cat=None,
+        y=None,
         concat_y=True,
     ):
         if concat_y:
             X_num, X_cat, y = self.concat_y(X_num, X_cat, y)
 
-        if X_num_train is not None and len(X_num_train) > 0:
-            X_num_train, X_cat_train, y_train = self.num_process_nans(
-                X_num=X_num_train,
-                X_cat=X_cat_train,
-                y=y_train
+        if X_num is not None and len(X_num) > 0:
+            X_num, X_cat, y = self.num_process_nans(
+                X_num=X_num,
+                X_cat=X_cat,
+                y=y
             )
             if self.normalization is not None:
                 self.num_transform = create_normalizer(
-                    X_num_train,
+                    X_num,
                     normalization=self.normalization,
                     seed=self.seed
                 )
-            self.X_num_train_means = np.nanmean(X_num_train, axis=0)
+            self.X_num_means = np.nanmean(X_num, axis=0)
             if not self.initial_numerical_features:
-                self.initial_numerical_features = X_num_train.shape[1]
-            self.current_numerical_features = X_num_train.shape[1]
+                self.initial_numerical_features = X_num.shape[1]
+            self.current_numerical_features = X_num.shape[1]
             
             self.disc_cols = []
             self.uniq_vals = {}
-            for col in range(X_num_train.shape[1]):
-                uniq_vals = np.unique(X_num_train[:, col])
+            for col in range(X_num.shape[1]):
+                uniq_vals = np.unique(X_num[:, col])
                 if len(uniq_vals) <= 32 and ((uniq_vals - np.round(uniq_vals)) == 0).all():
                     self.disc_cols.append(col)
                     self.uniq_vals[col] = uniq_vals
             print("Discrete cols:", self.disc_cols)
 
 
-        if X_cat_train is not None and len(X_cat_train) > 0:
-            X_cat_train = self.cat_process_nans(X_cat_train)
+        if X_cat is not None and len(X_cat) > 0:
+            X_cat = self.cat_process_nans(X_cat)
             self.cat_transform = create_cat_encoder(
-                X_cat_train,
+                X_cat,
                 encoding=self.cat_encoding
             )
             if not self.current_numerical_features and self.cat_transform.is_num:
-                X_cat_train_2 = self.cat_transform.transform(X_cat_train)
-                self.current_numerical_features += X_cat_train_2.shape[1]
+                X_cat_2 = self.cat_transform.transform(X_cat)
+                self.current_numerical_features += X_cat_2.shape[1]
 
-        if y_train is not None and len(y_train) > 0:
+        if y is not None and len(y) > 0:
             self.y_info = build_y_info(
-                y_train,
+                y,
                 task_type=self.task_type,
                 policy=self.y_policy,
                 is_y_cond=self.is_y_cond
