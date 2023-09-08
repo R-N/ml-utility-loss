@@ -269,6 +269,7 @@ class DatasetTransformer:
         self.y_policy = y_policy
         self.task_type = task_type
 
+    @property
     def is_regression(self):
         return 1 if self.task_type == TaskType.REGRESSION else 0
     
