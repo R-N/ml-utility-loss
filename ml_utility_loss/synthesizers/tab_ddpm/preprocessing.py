@@ -445,9 +445,9 @@ def transform_dataset(
         is_y_cond=is_y_cond
     )
     transformer.fit(
-        X_num_train=dataset.X_num["train"],
-        X_cat_train=dataset.X_cat["train"],
-        y_train=dataset.y["train"],
+        X_num=dataset.X_num["train"],
+        X_cat=dataset.X_cat["train"],
+        y=dataset.y["train"],
         concat_y=concat_y
     )
 
