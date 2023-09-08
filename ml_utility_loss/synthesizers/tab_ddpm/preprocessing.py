@@ -382,7 +382,7 @@ class DatasetTransformer:
                 X_num = (
                     X_cat
                     if X_num is None
-                    else {x: np.hstack([X_num[x], X_cat[x]]) for x in X_num}
+                    else np.hstack([X_num, X_cat]) 
                 )
                 X_cat = None
 

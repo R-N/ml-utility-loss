@@ -63,8 +63,8 @@ class Trainer:
 
         curr_count = 0
         while step < self.steps:
-            x, out_dict = next(self.train_iter)
-            out_dict = {'y': out_dict}
+            x, y = next(self.train_iter)
+            out_dict = {'y': y}
             batch_loss_multi, batch_loss_gauss = self._run_step(x, out_dict)
 
             self._anneal_lr(step)
