@@ -519,11 +519,14 @@ def make_dataset(
 
 def split_features(
     df,
+    task_type,
     target,
     cat_features=[],
 ):
     X_cat = None
-    y = df[target].to_numpy().astype(float)
+    y = df[target].to_numpy()
+    y_type = float if task_type == TaskType.REGRESSION else str
+    y = y.astype(y_type)
     if cat_features:
         X_cat = df[cat_features].to_numpy().astype(str)
         if not len(X_cat):
@@ -579,6 +582,7 @@ def dataset_from_df(
 
     dfs = {k: split_features(
         v,
+        task_type=task_type,
         cat_features=cat_features,
         target=target,
     ) for k, v in dfs.items()}
