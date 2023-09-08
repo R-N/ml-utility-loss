@@ -265,6 +265,7 @@ class DatasetTransformer:
         self.num_transform = None
         self.X_num_train_means = None
         self.cat_transform = None
+        self.y_transform = None
         self.is_y_cond = is_y_cond
         self.y_info = None
         self.num_nan_policy = num_nan_policy
@@ -344,6 +345,12 @@ class DatasetTransformer:
                 self.current_numerical_features += X_cat_2.shape[1]
 
         if y is not None and len(y) > 0:
+            if not self.is_regression:
+                self.y_transform = create_cat_encoder(
+                    y,
+                    encoding="ordinal"
+                )
+                y = self.y_transform.transform(y)
             self.y_info = build_y_info(
                 y,
                 task_type=self.task_type,
@@ -387,6 +394,8 @@ class DatasetTransformer:
                 X_cat = None
 
         if y is not None:
+            if self.y_transform:
+                y = self.y_transform.transform(y)
             y = build_target(y, info=self.y_info)
 
         return X_num, X_cat, y
@@ -418,6 +427,9 @@ class DatasetTransformer:
 
             if self.uniq_vals:
                 X_num = round_columns_2(X_num, self.uniq_vals)
+
+        if self.y_transform:
+            y = self.y_transform.inverse_transform(y)
 
         return X_num, X_cat, y
 
