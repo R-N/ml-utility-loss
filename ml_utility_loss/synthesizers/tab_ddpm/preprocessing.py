@@ -31,37 +31,28 @@ def round_columns(X_real, X_synth, columns):
         X_synth[:, col] = uniq[dist.argmin(axis=1)]
     return X_synth
 
-def num_process_nans(dataset: Dataset, policy: Optional[NumNanPolicy]) -> Dataset:
-    assert dataset.X_num is not None
-    nan_masks = {k: np.isnan(v) for k, v in dataset.X_num.items()}
-    if not any(x.any() for x in nan_masks.values()):  # type: ignore[code]
+def num_process_nans(X_num, X_cat=None, y=None, X_num_train=None, X_num_train_means=None, policy: Optional[NumNanPolicy]=None):
+    nan_masks = np.isnan(X_num)
+    if not nan_masks.any():  # type: ignore[code]
         assert policy is None
-        return dataset
+        return X_num, X_cat, y
 
     assert policy is not None
     if policy == 'drop-rows':
-        valid_masks = {k: ~v.any(1) for k, v in nan_masks.items()}
-        assert valid_masks[
-            'test'
-        ].all(), 'Cannot drop test rows, since this will affect the final metrics.'
-        new_data = {}
-        for data_name in ['X_num', 'X_cat', 'y']:
-            data_dict = getattr(dataset, data_name)
-            if data_dict is not None:
-                new_data[data_name] = {
-                    k: v[valid_masks[k]] for k, v in data_dict.items()
-                }
-        dataset = replace(dataset, **new_data)
+        assert X_cat is not None and y is not None
+        valid_masks = ~nan_masks.any(1)
+        X_cat = X_cat[valid_masks]
+        y = y[valid_masks]
     elif policy == 'mean':
-        new_values = np.nanmean(dataset.X_num['train'], axis=0)
-        X_num = deepcopy(dataset.X_num)
-        for k, v in X_num.items():
-            num_nan_indices = np.where(nan_masks[k])
-            v[num_nan_indices] = np.take(new_values, num_nan_indices[1])
-        dataset = replace(dataset, X_num=X_num)
+        assert X_num_train is not None or X_num_train_means is not None
+        if X_num_train_means is None:
+            X_num_train_means = np.nanmean(X_num_train, axis=0)
+        X_num = deepcopy(X_num)
+        num_nan_indices = np.where(nan_masks)
+        X_num[num_nan_indices] = np.take(X_num_train_means, num_nan_indices[1])
     else:
         assert raise_unknown('policy', policy)
-    return dataset
+    return X_num, X_cat, y
 
 def change_val(dataset: Dataset, val_size: float = 0.2):
     # should be done before transformations
@@ -194,124 +185,165 @@ def create_cat_encoder(
         raise_unknown('encoding', encoding)
 
     encoder.encoding = encoding
+    encoder.is_num = (encoding == "one-hot")
     return encoder
+
+        
+def build_y_info(
+    y_train,
+    task_type: TaskType,
+    policy: Optional[YPolicy] = "default", 
+) :
+    if info is None:
+        info = {"policy": policy, "task_type": task_type}
+    if policy is None:
+        return info
+    if policy == 'default':
+        if task_type == TaskType.REGRESSION:
+            mean, std = float(y_train.mean()), float(y_train.std())
+            info = {
+                "policy": policy,
+                "mean": mean,
+                "std": std,
+            }
+        return info
+    else:
+        raise_unknown('policy', policy)
 
 def build_target(
     y, 
-    task_type: TaskType,
-    policy: Optional[YPolicy] = "default", 
-    y_train=None,
-    info=None,
-    return_info=True,
-) -> Tuple[ArrayDict, Dict[str, Any]]:
-    if info is None:
-        info = {"policy": policy}
+    info,
+):
+    policy = info["policy"]
     if policy is None:
-        if return_info:
-            return y, info
         return y
-    if y_train is None:
-        y_train = y
     if policy == 'default':
-        if task_type == TaskType.REGRESSION:
-            if "mean" not in info or "std" not in info:
-                mean, std = float(y_train.mean()), float(y_train.std())
-                info = {
-                    "policy": policy,
-                    "mean": mean,
-                    "std": std,
-                }
-            else:
-                mean, std = info["mean"], info["std"]
+        if info["task_type"] == TaskType.REGRESSION:
+            mean, std = info["mean"], info["std"]
             y = (y - mean) / std
-        if return_info:
-            return y, info
         return y
     else:
         raise_unknown('policy', policy)
 
 
+class DatasetTransformer:
+    def __init__(
+        self,
+        task_type,
+        num_nan_policy=None,
+        cat_nan_policy=None,
+        normalization="quantile",
+        cat_encoding: CatEncoding = "ordinal", #one-hot
+        y_policy="default",
+        seed=0,
+    ):
+        self.num_transform = None
+        self.X_num_train_means = None
+        self.cat_transform = None
+        self.y_info = None
+        self.num_nan_policy = num_nan_policy
+        self.cat_nan_policy = cat_nan_policy
+        self.normalization = normalization
+        self.seed = seed
+        self.cat_encoding = cat_encoding
+        self.y_policy = y_policy
+        self.task_type = task_type
+
+    def fit(
+        self,
+        X_num_train=None,
+        X_cat_train=None,
+        y_train=None,
+    ):
+        if X_num_train is not None and len(X_num_train) > 0 and self.normalization is not None:
+            self.num_transform = create_normalizer(
+                X_num_train,
+                normalization=self.normalization,
+                seed=self.seed
+            )
+            self.X_num_train_means = np.nanmean(X_num_train, axis=0)
+
+        if X_cat_train is not None and len(X_cat_train) > 0:
+            self.cat_transform = create_cat_encoder(
+                X_cat_train,
+                encoding=self.cat_encoding
+            )
+
+        if y_train is not None and len(y_train) > 0:
+            self.y_info = build_y_info(
+                y_train,
+                task_type=self.task_type,
+                policy=self.y_policy,
+            )
+
+    def transform(self, X_num=None, X_cat=None, y=None):
+        if X_num is not None:
+            X_num, X_cat, y = num_process_nans(
+                X_num=X_num,
+                X_cat=X_cat,
+                y=y,
+                X_num_train_means=self.X_num_train_means, 
+                policy=self.num_nan_policy
+            )
+
+            if self.num_transform is not None:
+                X_num = normalize(X_num, normalizer=self.num_transform)
+            
+        if X_cat is not None:
+            X_cat = cat_process_nans(X_cat, self.cat_nan_policy)
+
+            X_cat = cat_encode(X_cat, encoder=self.cat_transform)
+
+            if self.cat_transform.is_num:
+                X_num = (
+                    X_cat
+                    if X_num is None
+                    else {x: np.hstack([X_num[x], X_cat[x]]) for x in X_num}
+                )
+                X_cat = None
+
+        if y is not None:
+            y = build_target(y, info=self.y_info)
+
+        return X_num, X_cat, y
+
+    def inverse_transform(self):
+        pass
+
+
 def transform_dataset(
-    dataset: Dataset,
+    dataset,
     seed=0,
     num_nan_policy=None,
     normalization="quantile",
     cat_nan_policy=None,
     cat_encoding: CatEncoding = "ordinal", #one-hot
     y_policy="default",
-    return_transforms: bool = False
 ) -> Dataset:
-
-    if dataset.X_num is not None:
-        dataset = num_process_nans(dataset, num_nan_policy)
-
-    num_transform = None
-    cat_transform = None
-    X_num = dataset.X_num
-
-    if X_num is not None and normalization is not None:
-        X_num_train = X_num["train"]
-        num_transform = create_normalizer(
-            X_num_train,
-            normalization=normalization,
-            seed=seed
-        )
-
-        X_num = {k: normalize(
-            v,
-            normalizer=num_transform,
-        ) for k, v in X_num.items()}
-
-        
-    X_cat = dataset.X_cat
-    if X_cat is not None:
-        X_cat = {k: cat_process_nans(v, cat_nan_policy) for k, v in X_cat.items()}
-        X_cat_train = X_cat["train"]
-        is_num = (cat_encoding == "one-hot")
-
-        cat_transform = create_cat_encoder(
-            X_cat_train,
-            encoding=cat_encoding
-        )
-
-        X_cat = {k: cat_encode(
-            v,
-            encoder=cat_transform,
-        ) for k, v in X_cat.items()}
-
-        if is_num:
-            X_num = (
-                X_cat
-                if X_num is None
-                else {x: np.hstack([X_num[x], X_cat[x]]) for x in X_num}
-            )
-            X_cat = None
-
-
-    y = dataset.y
-    y_train = y["train"]
-    task_type = dataset.task_type
-
-    y_train, y_info = build_target(
-        y_train,
-        task_type=task_type,
-        policy=y_policy, 
-        return_info=True,
+    
+    transformer = DatasetTransformer(
+        task_type=dataset.task_type,
+        num_nan_policy=num_nan_policy,
+        cat_nan_policy=cat_nan_policy,
+        normalization=normalization,
+        cat_encoding=cat_encoding,
+        y_policy=y_policy,
+        seed=seed,
+    )
+    transformer.fit(
+        X_num_train=dataset.X_num["train"],
+        X_cat_train=dataset.X_cat["train"],
+        y_train=dataset.y["train"]
     )
 
-    y = {k: build_target(
-        v,
-        task_type=task_type,
-        policy=y_policy,
-        info=y_info,
-        return_info=False,
-    ) for k, v in y.items() if k != "train"}
+    for t in ["train", "val", "test"]:
+        dataset.X_num[t], dataset.X_cat[t], dataset.y[t] = transformer.transform(
+            dataset.X_num[t], dataset.X_cat[t], dataset.y[t]
+        )
 
-    y["train"] = y_train
-
-    dataset = replace(dataset, X_num=X_num, X_cat=X_cat, y=y, y_info=y_info)
-    dataset.num_transform = num_transform
-    dataset.cat_transform = cat_transform
+    dataset.y_info = transformer.y_info
+    dataset.num_transform = transformer.num_transform
+    dataset.cat_transform = transformer.cat_transform
 
     return dataset
 
@@ -372,23 +404,34 @@ def make_dataset(
         cat_encoding=cat_encoding,
     )
 
+def split_features(
+    df,
+    target,
+    cat_features=[],
+):
+    X_cat = None
+    y = df[target].to_numpy().astype(float)
+    if cat_features:
+        X_cat = df[cat_features].to_numpy().astype(str)
+    X_num = df.drop(cat_features + [target], axis=1).to_numpy().astype(float)
+    return X_num, X_cat, y
+
+DEFAULT_SPLITS = [0.6, 0.8]
+
+def split_train(df, points=DEFAULT_SPLITS, rand=42):
+    points = points or DEFAULT_SPLITS
+    return np.split(
+        df.sample(frac=1, random_state=rand), 
+        [int(x*len(df)) for x in points]
+    )
+    
+
 def dataset_from_df(
     df, 
     cat_features, 
     target,
-    sample=False
-
+    splits=DEFAULT_SPLITS
 ):
-    assert 'train' in paths
-    y = {}
-    X_num = {}
-    X_cat = {} if len(cat_features) else None
-    for split in paths.keys():
-        df = pd.read_csv(paths[split])
-        y[split] = df[target].to_numpy().astype(float)
-        if X_cat is not None:
-            X_cat[split] = df[cat_features].to_numpy().astype(str)
-        X_num[split] = df.drop(cat_features + [target], axis=1).to_numpy().astype(float)
 
     D = Dataset(X_num, X_cat, y, {}, None, len(np.unique(y['train'])))
     
