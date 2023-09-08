@@ -194,8 +194,7 @@ def build_y_info(
     task_type: TaskType,
     policy: Optional[YPolicy] = "default", 
 ) :
-    if info is None:
-        info = {"policy": policy, "task_type": task_type}
+    info = {"policy": policy, "task_type": task_type}
     if policy is None:
         return info
     if policy == 'default':
