@@ -334,7 +334,7 @@ def train_catboost(
 
     D = transform_dataset(
         D, 
-        is_y_cond=True,
+        is_y_cond=False,
         #cat_encoding=cat_encoding,
         concat_y=True
     )
