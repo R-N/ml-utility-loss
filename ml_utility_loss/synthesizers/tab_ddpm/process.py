@@ -332,7 +332,12 @@ def train_catboost(
         info.get('n_classes')
     )
 
-    D = transform_dataset(D, None)
+    D = transform_dataset(
+        D, 
+        #is_y_cond=model_params['is_y_cond'],
+        #cat_encoding=cat_encoding,
+        concat_y=False
+    )
     X = concat_features(D)
     print(f'Train size: {X["train"].shape}, Val size {X["val"].shape}')
 
