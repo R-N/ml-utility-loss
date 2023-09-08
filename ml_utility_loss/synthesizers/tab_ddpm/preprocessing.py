@@ -245,6 +245,9 @@ def to_good_ohe(ohe, X):
         Xres.append(np.where(t >= 0, 1, 0))
     return np.hstack(Xres)
 
+def transform_1d(f, y):
+    return f(y.reshape(-1, 1)).flatten()
+
 class DatasetTransformer:
     def __init__(
         self,
@@ -347,10 +350,10 @@ class DatasetTransformer:
         if y is not None and len(y) > 0:
             if not self.is_regression:
                 self.y_transform = create_cat_encoder(
-                    y,
+                    y.reshape(-1, 1),
                     encoding="ordinal"
                 )
-                y = self.y_transform.transform(y)
+                y = transform_1d(self.y_transform.transform, y)
             self.y_info = build_y_info(
                 y,
                 task_type=self.task_type,
@@ -395,7 +398,7 @@ class DatasetTransformer:
 
         if y is not None:
             if self.y_transform:
-                y = self.y_transform.transform(y)
+                y = transform_1d(self.y_transform.transform, y)
             y = build_target(y, info=self.y_info)
 
         return X_num, X_cat, y
@@ -429,7 +432,7 @@ class DatasetTransformer:
                 X_num = round_columns_2(X_num, self.uniq_vals)
 
         if self.y_transform:
-            y = self.y_transform.inverse_transform(y)
+            y = transform_1d(self.y_transform.inverse_transform, y)
 
         return X_num, X_cat, y
 
