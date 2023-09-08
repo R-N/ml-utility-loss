@@ -574,7 +574,7 @@ def dataset_from_df(
     seed=0
 ):
     split_names = SPLIT_NAMES[len(splits)]
-    dfs = split_train(df, splits, rand=seed)
+    dfs = split_train(df, splits, seed=seed)
     dfs = dict(zip(split_names, dfs))
 
     dfs = {k: split_features(
