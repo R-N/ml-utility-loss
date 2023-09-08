@@ -526,7 +526,11 @@ def split_features(
     y = df[target].to_numpy().astype(float)
     if cat_features:
         X_cat = df[cat_features].to_numpy().astype(str)
+        if not len(X_cat):
+            X_cat = None
     X_num = df.drop(cat_features + [target], axis=1).to_numpy().astype(float)
+    if not len(X_num):
+        X_num = None
     return X_num, X_cat, y
 
 DEFAULT_SPLITS = [0.6, 0.8]
@@ -580,9 +584,9 @@ def dataset_from_df(
         target=target,
     ) for k, v in dfs.items()}
 
-    X_num = {k: dfs[k][0] for k in split_names}
-    X_cat = {k: dfs[k][1] for k in split_names}
-    y = {k: dfs[k][2] for k in split_names}
+    X_num = {k: dfs[k][0] for k in split_names} if dfs["train"][0] is not None else None
+    X_cat = {k: dfs[k][1] for k in split_names} if dfs["train"][1] is not None else None
+    y = {k: dfs[k][2] for k in split_names} if dfs["train"][2] is not None else None
 
     n_classes = 0 if task_type==TaskType.REGRESSION else len(np.unique(y['train']))
     D = Dataset(

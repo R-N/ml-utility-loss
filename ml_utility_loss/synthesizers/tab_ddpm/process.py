@@ -327,16 +327,16 @@ def train_catboost(
         {'train': X_num, 'val': X_num_val, 'test': X_num_test} if X_num is not None else None,
         {'train': X_cat, 'val': X_cat_val, 'test': X_cat_test} if X_cat is not None else None,
         {'train': y, 'val': y_val, 'test': y_test},
-        {},
-        TaskType(info['task_type']),
-        info.get('n_classes')
+        y_info={},
+        task_type=TaskType(info['task_type']),
+        n_classes=info.get('n_classes')
     )
 
     D = transform_dataset(
         D, 
-        is_y_cond=False,
+        is_y_cond=True,
         #cat_encoding=cat_encoding,
-        concat_y=True
+        concat_y=False
     )
     X = concat_features(D)
     print(f'Train size: {X["train"].shape}, Val size {X["val"].shape}')
