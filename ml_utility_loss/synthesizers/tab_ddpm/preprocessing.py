@@ -34,8 +34,9 @@ def round_columns(X_real, X_synth, columns):
 def round_columns_2(X_synth, uniq_vals, columns=[]):
     columns = columns or uniq_vals.keys()
     for col in columns:
-        dist = cdist(X_synth[:, col][:, np.newaxis].astype(float), uniq_vals[:, np.newaxis].astype(float))
-        X_synth[:, col] = uniq_vals[dist.argmin(axis=1)]
+        uniq = uniq_vals[col]
+        dist = cdist(X_synth[:, col][:, np.newaxis].astype(float), uniq[:, np.newaxis].astype(float))
+        X_synth[:, col] = uniq[dist.argmin(axis=1)]
     return X_synth
 
 def num_process_nans(X_num, X_cat=None, y=None, X_num_train=None, X_num_train_means=None, policy: Optional[NumNanPolicy]=None):
