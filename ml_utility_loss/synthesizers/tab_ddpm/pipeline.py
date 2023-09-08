@@ -60,7 +60,6 @@ def train(
     return _train(
         dataset,
         parent_dir=parent_dir,
-        real_data_path=real_data_path,
         model_params=model_params,
         num_numerical_features=num_numerical_features,
         device=device,
