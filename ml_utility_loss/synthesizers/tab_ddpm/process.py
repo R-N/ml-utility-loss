@@ -336,7 +336,7 @@ def train_catboost(
         D, 
         is_y_cond=True,
         #cat_encoding=cat_encoding,
-        concat_y=False
+        concat_y=True
     )
     X = concat_features(D)
     print(f'Train size: {X["train"].shape}, Val size {X["val"].shape}')
