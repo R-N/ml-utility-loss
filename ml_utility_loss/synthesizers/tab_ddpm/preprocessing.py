@@ -301,7 +301,11 @@ class DatasetTransformer:
         X_num_train=None,
         X_cat_train=None,
         y_train=None,
+        concat_y=True,
     ):
+        if concat_y:
+            X_num, X_cat, y = self.concat_y(X_num, X_cat, y)
+
         if X_num_train is not None and len(X_num_train) > 0:
             X_num_train, X_cat_train, y_train = self.num_process_nans(
                 X_num=X_num_train,
@@ -348,14 +352,16 @@ class DatasetTransformer:
             )
             #self.current_numerical_features += self.is_regression
 
-    def transform(self, X_num=None, X_cat=None, y=None, concat_y=True):
+    def concat_y(self, X_num, X_cat, y):
+        return concat_y_to_X_2(
+            X_num, X_cat, y, 
+            task_type=self.task_type, 
+            is_y_cond=self.is_y_cond
+        )
 
+    def transform(self, X_num=None, X_cat=None, y=None, concat_y=True):
         if concat_y:
-            X_num, X_cat, y = concat_y_to_X_2(
-                X_num, X_cat, y, 
-                task_type=self.task_type, 
-                is_y_cond=self.is_y_cond
-            )
+            X_num, X_cat, y = self.concat_y(X_num, X_cat, y)
 
         if X_num is not None:
             X_num, X_cat, y = self.num_process_nans(
@@ -441,7 +447,8 @@ def transform_dataset(
     transformer.fit(
         X_num_train=dataset.X_num["train"],
         X_cat_train=dataset.X_cat["train"],
-        y_train=dataset.y["train"]
+        y_train=dataset.y["train"],
+        concat_y=concat_y
     )
 
     for t in ["train", "val", "test"]:
