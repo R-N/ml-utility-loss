@@ -554,7 +554,7 @@ def concat_y_to_X_2(
     is_y_cond=False
 ):
     if is_y_cond:
-        return X_num, X_cat
+        return X_num, X_cat, y
     if task_type==TaskType.REGRESSION:
         X_num = concat_y_to_X(X_num, y)
     else:
