@@ -515,7 +515,7 @@ def make_dataset(
     if change_val:
         D = change_val(D)
     
-    return transform_dataset(D)
+    return D
 
 def split_features(
     df,
