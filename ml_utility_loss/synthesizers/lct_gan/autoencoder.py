@@ -90,21 +90,27 @@ class LatentTAE:
         batch_start = 0
         if batch:
             latent = latent if type(latent).__module__ == np.__name__ else latent.cpu().detach()
+
         steps = (len(latent) // self.batch_size) + 1
 
         for _ in range(steps):
+
             l = latent[batch_start: batch_start + self.batch_size]
             batch_start += self.batch_size
             if len(l) == 0: continue
 
-            if batch:
-                l = torch.cat(l)
+            if not isinstance(l, Tensor):
+                l = Tensor(l).to(self.ae.device)
+            if l.device != self.ae.device:
+                l = l.to(self.ae.device)
 
-            reconstructed = self.ae.decode(Tensor(l).to(self.ae.device))
+            if not batch:
+                l = torch.cat(l).to(self.ae.device)
+            reconstructed = self.ae.decode(l)
             reconstructed = reconstructed.cpu().detach().numpy()
 
-            table_recon = self.self.postprocess(reconstructed)
-    
+            recon_inverse = self.transformer.inverse_transform(reconstructed)
+            table_recon = self.data_prep.inverse_prep(recon_inverse)
             table.append(table_recon)
 
         return pd.concat(table)
