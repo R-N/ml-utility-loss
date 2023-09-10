@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 from sklearn import preprocessing
 from sklearn import model_selection
-import torch
 from sklearn.mixture import BayesianGaussianMixture
 from tqdm import tqdm
 
@@ -32,26 +31,6 @@ def inverse_log_transform(series, lower_bound, eps=1, EMPTY_VALUE=EMPTY_VALUE):
     return result
 
 class DataPrep(object):
-    
-    """
-    Data preparation class for pre-processing input data and post-processing generated data
-
-    Variables:
-    1) raw_df -> dataframe containing input data
-    2) categorical -> list of categorical columns
-    3) log -> list of skewed exponential numerical columns
-    4) mixed -> dictionary of "mixed" column names with corresponding categorical modes 
-    5) integer -> list of numeric columns without floating numbers
-    6) type -> dictionary of problem type (i.e classification/regression) and target column
-    7) test_ratio -> ratio of size of test to train dataset
-
-    Methods:
-    1) __init__() -> instantiates DataPrep object and handles the pre-processing steps for feeding it to the training algorithm
-    2) inverse_prep() -> deals with post-processing of the generated data to have the same format as the original dataset
-
-
-    """
-
 
     def __init__(self, raw_df: pd.DataFrame, categorical: list, log:list, mixed:dict, integer:list, type:dict, test_ratio:float):
         

@@ -1,10 +1,7 @@
 from .autoencoder import LatentTAE
 from .gan import LatentGAN
-from ...evaluation import get_utility_metrics, stat_sim
 from sklearn.preprocessing import StandardScaler
 
-import pandas as pd
-import numpy as np
 import pickle
 from tqdm import tqdm
 
@@ -59,21 +56,6 @@ experiment_params = [
         "integer_columns": ["Time"],
         "problem_type": {"Classification": "Class"}
     },
-    # {
-    #     "best_ae" : 1000,
-    #     "embedding_size" : 96,
-    #     "raw_csv_path": "./data/Intrusion.csv",
-    #     "test_ratio": 0.20,
-    #     "categorical_columns": ['protocol_type', 'service', 'flag', 'land', 'wrong_fragment', 'urgent', 'hot',
-    #                             'num_failed_logins', 'logged_in', 'num_compromised', 'root_shell',
-    #                                 'su_attempted', 'num_root', 'num_file_creations', 'num_shells',
-    #                                 'num_access_files', 'num_outbound_cmds', 'is_host_login',
-    #                                 'is_guest_login', 'class'],
-    #     "log_columns": ["dst_bytes", "src_bytes"],
-    #     "mixed_columns": {},
-    #     "integer_columns": ["duration", "src_bytes", "dst_bytes", "count", "srv_count", "dst_host_count", "dst_host_srv_count"],
-    #     "problem_type": {"Classification": "class"}
-    # },
     {
         "best_ae" : 1000,
         "embedding_size": 32,
@@ -95,11 +77,6 @@ def latent_gan_experiment(
         gan_epochs=500,
         gan_n_critic=2,
         gan_batch_size=512):
-
-    # autoencoder = LatentTAE(embedding_size=bottleneck)
-    # autoencoder.fit(n_epochs=ae_epochs, batch_size=ae_batch_size)
-    # print(f"Autoencoder loss: {autoencoder.loss}")
-    # pickle.dump(autoencoder, open(f"ae_pickles/latent_ae{bottleneck}_{ae_epochs}.pickle", 'wb'))
 
     for e in experiment_params:
         e = dict(e)
@@ -127,9 +104,6 @@ def latent_gan_experiment(
 
         real_path = real_path
         fake_paths = [ decoded_path ]
-        
-        evaluate(real_path, fake_paths, e["categorical_columns"], ml=False)
-        # END OF EVALUATION
 
         sscaler = StandardScaler()
         sscaler.fit(latent_data)
@@ -141,18 +115,8 @@ def latent_gan_experiment(
             df = gan.sample(len(latent_data), ae, sscaler)
             df.to_csv(dataset_path.replace(".csv", "_fake.csv"), index=False)
             print(df)
-            if x == "epoch":
-                res = evaluate(dataset_path, [ dataset_path.replace(".csv", "_fake.csv") ], dataset_categories, ml=False)
-            else: 
-                res = evaluate(dataset_path, [ dataset_path.replace(".csv", "_fake.csv") ], dataset_categories, ml=True)
 
-            pf = open(f"./results/gan/{e['raw_csv_path'].replace('./data/', '').replace('.csv', str(x) + '_results.txt')}", 'a')
-            pf.write(str(res) + "\n")
-            pf.close()
-
-        cb = lambda x : measure(x)
-
-        gan.fit(lat_normalized, ae.train_data, ae.transformer, epochs=gan_epochs, batch_size=gan_batch_size, n_critic=gan_n_critic, callback=cb)
+        gan.fit(lat_normalized, ae.train_data, ae.transformer, epochs=gan_epochs, batch_size=gan_batch_size, n_critic=gan_n_critic, callback=measure)
 
         gan_pf = open("./gan_pickles/" + e['raw_csv_path'].replace("./data/", "").replace(".csv", f"_gan{gan_latent_dim}_{gan_epochs}.pickle"), 'wb')
         pickle.dump(gan, gan_pf)
@@ -189,57 +153,6 @@ def ae_experiment():
 
         reconstructed_data.to_csv(decoded_path, index=False)
 
-        real_path = real_path
-        fake_paths = [ decoded_path ]
-
-        res = [ time_to_train, None ]
-
-        try:
-            res = [ time_to_train, evaluate(real_path, fake_paths, exp["categorical_columns"], ml=True) ]
-        except:
-            pass
-
-        pf = open(f"./results/ae/{exp['raw_csv_path'].replace('./data/', '').replace('.csv','_results.txt')}", 'a')
-        pf.write(str(res[0]) + "\n" + str(res[1]) + "\n")
-        pf.close()
-
-        exp["best_ae"] = best_ae
-
-def evaluate(real_path, fake_paths, categorical, ml=True):
-    print("Statistical similarities")
-
-    # Storing and presenting the results as a dataframe
-    stat_res_avg = []
-    for fake_path in fake_paths:
-        stat_res = stat_sim(real_path, fake_path, categorical)
-        stat_res_avg.append(stat_res)
-
-    stat_columns = ["Average WD (Continuous Columns)",
-                    "Average JSD (Categorical Columns)", "Correlation Distance"]
-    stat_results = pd.DataFrame(np.array(stat_res_avg).mean(
-        axis=0).reshape(1, 3), columns=stat_columns)
-    print(stat_results)
-
-    if ml:
-        print("Machine Learning performance")
-        classifiers_list = ["lr", "dt", "rf", "mlp"]
-        # Storing and presenting the results as a dataframe
-        result_df = None
-        try:
-            result_mat = get_utility_metrics(
-                real_path, fake_paths, "MinMax", test_ratio=0.20)
-            result_df = pd.DataFrame(result_mat, columns=["Acc", "AUC", "F1_Score"])
-            result_df.index = classifiers_list
-            print(result_df)
-
-        except:
-            print(f"There was an issue with {real_path}. Probably not enough classes -> low variety.")
-            pass
-
-        return stat_results, result_df
-
-
-    return stat_results
 
 if __name__ == "__main__":
     ae_experiment()

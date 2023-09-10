@@ -1,8 +1,4 @@
-from cmath import e
-from torch import batch_norm, nn, optim, rand
-from torch.nn import functional as F
 import torch.autograd as autograd
-import random
 
 import numpy as np
 import torch
@@ -12,7 +8,7 @@ import time
 
 from torch.autograd import Variable
 from .modules import FCDiscriminator, FCGenerator
-from .ctabgan import Condvec, Sampler, cond_loss
+from .ctabgan import Condvec, Sampler
 
 Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 

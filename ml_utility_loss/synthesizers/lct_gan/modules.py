@@ -1,9 +1,6 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torch.autograd import Variable
-
-import numpy as  np
 
 class FCEncoder(nn.Module):
     def __init__(self, output_size, input_size):
