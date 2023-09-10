@@ -530,7 +530,7 @@ def dataset_from_df(
     val_set = dict(zip(DATASET_TYPES, dfs["val"])) if "val" in dfs else None
     test_set = dict(zip(DATASET_TYPES, dfs["test"])) if "test" in dfs else None
 
-    n_classes = 0 if task_type==TaskType.REGRESSION else len(np.unique(y['train']))
+    n_classes = 0 if task_type==TaskType.REGRESSION else len(np.unique(train_set["y"]))
     dataset = Dataset(
         train_set=train_set, 
         val_set=val_set, 
