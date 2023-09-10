@@ -121,7 +121,11 @@ def train(
     model = MLPDiffusion(**model_params)
     model.to(device)
 
-    train_loader = prepare_fast_dataloader(dataset, split='train', batch_size=batch_size)
+    train_loader = prepare_fast_dataloader(
+        dataset.train_set, 
+        batch_size=batch_size,
+        shuffle=True
+    )
 
 
 

@@ -542,45 +542,24 @@ def dataset_from_df(
     
     return dataset
 
-def concat_features(dataset : Dataset):
-    if dataset.X_num is None:
-        assert dataset.X_cat is not None
-        X = {k: pd.DataFrame(v, columns=range(dataset.n_features)) for k, v in dataset.X_cat.items()}
-    elif dataset.X_cat is None:
-        assert dataset.X_num is not None
-        X = {k: pd.DataFrame(v, columns=range(dataset.n_features)) for k, v in dataset.X_num.items()}
-    else:
-        X = {
-            part: pd.concat(
-                [
-                    pd.DataFrame(dataset.X_num[part], columns=range(dataset.n_num_features)),
-                    pd.DataFrame(
-                        dataset.X_cat[part],
-                        columns=range(dataset.n_num_features, dataset.n_features),
-                    ),
-                ],
-                axis=1,
-            )
-            for part in dataset.y.keys()
-        }
-
-    return X
-
 
 def prepare_fast_dataloader(
-    dataset : Dataset,
-    split : str,
-    batch_size: int
+    dataset,
+    batch_size: int,
+    shuffle=True
 ):
-    if dataset.X_cat is not None:
-        if dataset.X_num is not None:
-            X = torch.from_numpy(np.concatenate([dataset.X_num[split], dataset.X_cat[split]], axis=1)).float()
+    if dataset.has_cat:
+        if dataset.has_num:
+            X = torch.from_numpy(
+                np.concatenate([dataset["X_num"], dataset["X_cat"]], axis=1)
+            ).float()
         else:
-            X = torch.from_numpy(dataset.X_cat[split]).float()
+            X = torch.from_numpy(dataset["X_cat"]).float()
     else:
-        X = torch.from_numpy(dataset.X_num[split]).float()
-    y = torch.from_numpy(dataset.y[split])
-    dataloader = FastTensorDataLoader(X, y, batch_size=batch_size, shuffle=(split=='train'))
+        X = torch.from_numpy(dataset["X_num"]).float()
+    y = torch.from_numpy(dataset["y"])
+    dataloader = FastTensorDataLoader(
+        X, y, batch_size=batch_size, shuffle=shuffle)
     while True:
         yield from dataloader
 
