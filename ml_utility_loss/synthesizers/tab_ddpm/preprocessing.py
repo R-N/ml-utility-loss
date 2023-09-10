@@ -1,17 +1,11 @@
 
 import numpy as np
 from scipy.spatial.distance import cdist
-import os
-from .util import load_json, raise_unknown, load_pickle, dump_pickle, concat_y_to_X, read_pure_data, TaskType
-from sklearn.model_selection import train_test_split
-from .Dataset import Dataset, ArrayDict, TensorDict
-from typing import Any, Literal, Optional, Union, cast, Tuple, Dict, List
-from pathlib import Path
-from dataclasses import astuple, dataclass, replace
+from .util import raise_unknown, concat_y_to_X,TaskType
+from .Dataset import Dataset, ArrayDict, DATASET_TYPES
+from typing import Any, Literal, Optional, Tuple
 from copy import deepcopy
-import hashlib
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, QuantileTransformer, OneHotEncoder, OrdinalEncoder
-from category_encoders import LeaveOneOutEncoder
 from sklearn.pipeline import make_pipeline
 import pandas as pd
 import torch
@@ -62,31 +56,6 @@ def num_process_nans(X_num, X_cat=None, y=None, X_num_train=None, X_num_train_me
         assert raise_unknown('policy', policy)
     return X_num, X_cat, y
 
-def change_val(dataset: Dataset, val_size: float = 0.2):
-    # should be done before transformations
-
-    y = np.concatenate([dataset.y['train'], dataset.y['val']], axis=0)
-
-    ixs = np.arange(y.shape[0])
-    if dataset.is_regression:
-        train_ixs, val_ixs = train_test_split(ixs, test_size=val_size, random_state=777)
-    else:
-        train_ixs, val_ixs = train_test_split(ixs, test_size=val_size, random_state=777, stratify=y)
-
-    dataset.y['train'] = y[train_ixs]
-    dataset.y['val'] = y[val_ixs]
-
-    if dataset.X_num is not None:
-        X_num = np.concatenate([dataset.X_num['train'], dataset.X_num['val']], axis=0)
-        dataset.X_num['train'] = X_num[train_ixs]
-        dataset.X_num['val'] = X_num[val_ixs]
-
-    if dataset.X_cat is not None:
-        X_cat = np.concatenate([dataset.X_cat['train'], dataset.X_cat['val']], axis=0)
-        dataset.X_cat['train'] = X_cat[train_ixs]
-        dataset.X_cat['val'] = X_cat[val_ixs]
-
-    return dataset
 
 # Inspired by: https://github.com/yandex-research/rtdl/blob/a4c93a32b334ef55d2a0559a4407c8306ffeeaee/lib/data.py#L20
 def normalize(
@@ -465,15 +434,16 @@ def transform_dataset(
         concat_cat=concat_cat
     )
     transformer.fit(
-        X_num=dataset.X_num["train"],
-        X_cat=dataset.X_cat["train"],
-        y=dataset.y["train"],
+        X_num=dataset.train_set["X_num"],
+        X_cat=dataset.train_set["X_cat"],
+        y=dataset.train_set["y"],
         concat_y=concat_y
     )
 
     for t in ["train", "val", "test"]:
-        dataset.X_num[t], dataset.X_cat[t], dataset.y[t] = transformer.transform(
-            dataset.X_num[t], dataset.X_cat[t], dataset.y[t],
+        dataset_t = getattr(dataset, f"{t}_set")
+        dataset_t["X_num"], dataset_t["X_cat"], dataset_t["y"] = transformer.transform(
+            dataset_t["X_num"], dataset_t["X_cat"], dataset_t["y"],
             concat_y=concat_y
         )
 
@@ -483,59 +453,6 @@ def transform_dataset(
     dataset.transformer = transformer
 
     return dataset
-
-def make_dataset(
-    data_path: str,
-    num_classes: int,
-    is_y_cond: bool,
-    change_val: bool,
-):
-    # classification
-    if num_classes > 0:
-        X_cat = {} if os.path.exists(os.path.join(data_path, 'X_cat_train.npy')) or not is_y_cond else None
-        X_num = {} if os.path.exists(os.path.join(data_path, 'X_num_train.npy')) else None
-        y = {} 
-
-        for split in ['train', 'val', 'test']:
-            X_num_t, X_cat_t, y_t = read_pure_data(data_path, split)
-            if X_num is not None:
-                X_num[split] = X_num_t
-            if not is_y_cond:
-                X_cat_t = concat_y_to_X(X_cat_t, y_t)
-            if X_cat is not None:
-                X_cat[split] = X_cat_t
-            y[split] = y_t
-    else:
-        # regression
-        X_cat = {} if os.path.exists(os.path.join(data_path, 'X_cat_train.npy')) else None
-        X_num = {} if os.path.exists(os.path.join(data_path, 'X_num_train.npy')) or not is_y_cond else None
-        y = {}
-
-        for split in ['train', 'val', 'test']:
-            X_num_t, X_cat_t, y_t = read_pure_data(data_path, split)
-            if not is_y_cond:
-                X_num_t = concat_y_to_X(X_num_t, y_t)
-            if X_num is not None:
-                X_num[split] = X_num_t
-            if X_cat is not None:
-                X_cat[split] = X_cat_t
-            y[split] = y_t
-
-    info = load_json(os.path.join(data_path, 'info.json'))
-
-    D = Dataset(
-        X_num,
-        X_cat,
-        y,
-        y_info={},
-        task_type=TaskType(info['task_type']),
-        n_classes=info.get('n_classes')
-    )
-
-    if change_val:
-        D = change_val(D)
-    
-    return D
 
 def split_features(
     df,
@@ -609,60 +526,60 @@ def dataset_from_df(
         target=target,
     ) for k, v in dfs.items()}
 
-    X_num = {k: dfs[k][0] for k in split_names} if dfs["train"][0] is not None else None
-    X_cat = {k: dfs[k][1] for k in split_names} if dfs["train"][1] is not None else None
-    y = {k: dfs[k][2] for k in split_names} if dfs["train"][2] is not None else None
+    train_set = dict(zip(DATASET_TYPES, dfs["train"])) if "train" in dfs else None
+    val_set = dict(zip(DATASET_TYPES, dfs["val"])) if "val" in dfs else None
+    test_set = dict(zip(DATASET_TYPES, dfs["test"])) if "test" in dfs else None
 
     n_classes = 0 if task_type==TaskType.REGRESSION else len(np.unique(y['train']))
-    D = Dataset(
-        X_num, 
-        X_cat, 
-        y, 
+    dataset = Dataset(
+        train_set=train_set, 
+        val_set=val_set, 
+        test_set=test_set, 
         y_info={}, 
         task_type=task_type, 
         n_classes=n_classes
     )
     
-    return D
+    return dataset
 
-def concat_features(D : Dataset):
-    if D.X_num is None:
-        assert D.X_cat is not None
-        X = {k: pd.DataFrame(v, columns=range(D.n_features)) for k, v in D.X_cat.items()}
-    elif D.X_cat is None:
-        assert D.X_num is not None
-        X = {k: pd.DataFrame(v, columns=range(D.n_features)) for k, v in D.X_num.items()}
+def concat_features(dataset : Dataset):
+    if dataset.X_num is None:
+        assert dataset.X_cat is not None
+        X = {k: pd.DataFrame(v, columns=range(dataset.n_features)) for k, v in dataset.X_cat.items()}
+    elif dataset.X_cat is None:
+        assert dataset.X_num is not None
+        X = {k: pd.DataFrame(v, columns=range(dataset.n_features)) for k, v in dataset.X_num.items()}
     else:
         X = {
             part: pd.concat(
                 [
-                    pd.DataFrame(D.X_num[part], columns=range(D.n_num_features)),
+                    pd.DataFrame(dataset.X_num[part], columns=range(dataset.n_num_features)),
                     pd.DataFrame(
-                        D.X_cat[part],
-                        columns=range(D.n_num_features, D.n_features),
+                        dataset.X_cat[part],
+                        columns=range(dataset.n_num_features, dataset.n_features),
                     ),
                 ],
                 axis=1,
             )
-            for part in D.y.keys()
+            for part in dataset.y.keys()
         }
 
     return X
 
 
 def prepare_fast_dataloader(
-    D : Dataset,
+    dataset : Dataset,
     split : str,
     batch_size: int
 ):
-    if D.X_cat is not None:
-        if D.X_num is not None:
-            X = torch.from_numpy(np.concatenate([D.X_num[split], D.X_cat[split]], axis=1)).float()
+    if dataset.X_cat is not None:
+        if dataset.X_num is not None:
+            X = torch.from_numpy(np.concatenate([dataset.X_num[split], dataset.X_cat[split]], axis=1)).float()
         else:
-            X = torch.from_numpy(D.X_cat[split]).float()
+            X = torch.from_numpy(dataset.X_cat[split]).float()
     else:
-        X = torch.from_numpy(D.X_num[split]).float()
-    y = torch.from_numpy(D.y[split])
+        X = torch.from_numpy(dataset.X_num[split]).float()
+    y = torch.from_numpy(dataset.y[split])
     dataloader = FastTensorDataLoader(X, y, batch_size=batch_size, shuffle=(split=='train'))
     while True:
         yield from dataloader

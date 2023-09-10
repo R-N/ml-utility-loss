@@ -1,11 +1,7 @@
+from typing import Callable, List, Type, Union
 
-import math
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, cast
-
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim
 from torch import Tensor
 
 from .modules import ModuleType, _make_nn_module, timestep_embedding
