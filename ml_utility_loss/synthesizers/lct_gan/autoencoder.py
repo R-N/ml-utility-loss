@@ -11,6 +11,16 @@ from .process import preprocess, postprocess
 
 Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
+def handle_type(x):
+    if isinstance(x, np.array):
+        x = torch.from_numpy(x)
+    elif not isinstance(x, torch.Tensor):
+        x = torch.Tensor(x)
+    if x.dim == 1:
+        x = [x]
+    if isinstance(x, tuple):
+        x = torch.stack(x)
+    return x
 
 class LatentTAE:
 
@@ -81,9 +91,9 @@ class LatentTAE:
         print(table_recon)
         #### END OF TEST ####
 
-    def encode(self, datum):
-        real = np.asarray([datum])
-        return self.ae.encode(real)
+    def encode(self, x):
+        x = handle_type(x)
+        return self.ae.encode(x)
 
     def decode(self, latent, batch=False):
         table = []
@@ -148,6 +158,7 @@ class AENetwork(nn.Module):
         self.input_dim = input_dim
 
     def encode(self, x):
+        x = handle_type(x)
         return self.encoder(x)
 
     def decode(self, z):
@@ -173,9 +184,9 @@ class AutoEncoder(object):
         return F.mse_loss(recon_x, x.view(-1, input_size), reduction="sum")
 
     def encode(self, x):
-        datum = torch.from_numpy(x).to(
-            self.device).view(-1, self.input_size).float()
-        return self.model.encode(datum)
+        x = handle_type(x)
+        x = x.to(self.device).view(-1, self.input_size).float()
+        return self.model.encode(x)
 
     def decode(self, z):
         return self.model.decode(z)
