@@ -12,7 +12,7 @@ from .process import preprocess, postprocess
 Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
 def handle_type(x):
-    if isinstance(x, np.array):
+    if isinstance(x, np.ndarray):
         x = torch.from_numpy(x)
     elif not isinstance(x, torch.Tensor):
         x = torch.Tensor(x)
