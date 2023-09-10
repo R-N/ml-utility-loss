@@ -626,7 +626,7 @@ class DataTransformer():
         
         # stores the corresponding bgm models for processing numeric data
         model = []
-        
+        output_dims = []
         # iterating through column information
         for id_, info in tqdm(enumerate(self.meta)):
             if info['type'] == "continuous":
@@ -649,7 +649,9 @@ class DataTransformer():
                         comp.append(False)
                 self.components.append(comp) 
                 self.output_info += [(1, 'tanh'), (np.sum(comp), 'softmax')]
-                self.output_dim += 1 + np.sum(comp)
+                output_dim = 1 + np.sum(comp)
+                self.output_dim += output_dim
+                output_dims.append(output_dim)
                 
             elif info['type'] == "mixed":
                 
@@ -696,15 +698,21 @@ class DataTransformer():
                 
                 # modes of the categorical component are appended to modes produced by the main bgm model
                 self.output_info += [(1, 'tanh'), (np.sum(comp) + len(info['modal']), 'softmax')]
-                self.output_dim += 1 + np.sum(comp) + len(info['modal'])
+                output_dim = 1 + np.sum(comp) + len(info['modal'])
+                self.output_dim += output_dim
+                output_dims.append(output_dim)
             
             else:
                 # in case of categorical columns, bgm model is ignored
                 model.append(None)
                 self.components.append(None)
                 self.output_info += [(info['size'], 'softmax')]
-                self.output_dim += info['size']
+                output_dim = info['size']
+                self.output_dim += output_dim
+                output_dims.append(output_dim)
         
+        print("output_dim", self.output_dim)
+        print("output_dims", output_dims)
         self.model = model
 
     def transform(self, data):
