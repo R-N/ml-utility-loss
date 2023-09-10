@@ -78,15 +78,15 @@ def latent_gan_experiment(
         gan_n_critic=2,
         gan_batch_size=512):
 
-    for e in experiment_params[:1]:
-        e = dict(e)
+    for exp in experiment_params[:1]:
+        exp = dict(exp)
 
-        dataset_path = e["raw_csv_path"]
-        dataset_categories = e["categorical_columns"]
-        best_ae = e["best_ae"]
-        del e["best_ae"]
+        dataset_path = exp["raw_csv_path"]
+        dataset_categories = exp["categorical_columns"]
+        best_ae = exp["best_ae"]
+        del exp["best_ae"]
 
-        pickle_path = "./ae_pickles/" + e['raw_csv_path'].replace("./data/", "").replace(".csv", f"_ae{e['embedding_size']}_{best_ae}.pickle")
+        pickle_path = "./ae_pickles/" + exp['raw_csv_path'].replace("./data/", "").replace(".csv", f"_ae{exp['embedding_size']}_{best_ae}.pickle")
 
         print(f"Opening {pickle_path}")
         ae_pf = open(pickle_path, 'rb')
@@ -96,8 +96,8 @@ def latent_gan_experiment(
         # EVALUATING AUTO-ENCODER
         latent_data = ae.get_latent_dataset() # could be loaded from file
 
-        real_path = e["raw_csv_path"]
-        decoded_path = e["raw_csv_path"].replace("./data/", "./data/decoded/").replace(".csv", f"_decoded{e['embedding_size']}_test.csv")
+        real_path = exp["raw_csv_path"]
+        decoded_path = exp["raw_csv_path"].replace("./data/", "./data/decoded/").replace(".csv", f"_decoded{exp['embedding_size']}_test.csv")
 
         reconstructed_data = ae.decode(latent_data, batch=True)
         reconstructed_data.to_csv(decoded_path, index=False)
@@ -109,7 +109,7 @@ def latent_gan_experiment(
         sscaler.fit(latent_data)
 
         lat_normalized = sscaler.transform(latent_data)
-        gan = LatentGAN(e["embedding_size"], latent_dim=gan_latent_dim)
+        gan = LatentGAN(exp["embedding_size"], latent_dim=gan_latent_dim)
 
         def measure(x):
             df = gan.sample(len(latent_data), ae, sscaler)
@@ -118,7 +118,7 @@ def latent_gan_experiment(
 
         gan.fit(lat_normalized, ae.train_data, ae.transformer, epochs=gan_epochs, batch_size=gan_batch_size, n_critic=gan_n_critic, callback=measure)
 
-        gan_pf = open("./gan_pickles/" + e['raw_csv_path'].replace("./data/", "").replace(".csv", f"_gan{gan_latent_dim}_{gan_epochs}.pickle"), 'wb')
+        gan_pf = open("./gan_pickles/" + exp['raw_csv_path'].replace("./data/", "").replace(".csv", f"_gan{gan_latent_dim}_{gan_epochs}.pickle"), 'wb')
         pickle.dump(gan, gan_pf)
         gan_pf.close()
 
@@ -128,7 +128,7 @@ def ae_experiment(
 ):
 
     
-    for e in experiment_params[:1]:
+    for exp in experiment_params[:1]:
         exp = dict(exp)
 
         best_ae = exp["best_ae"]
