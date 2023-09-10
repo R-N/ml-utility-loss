@@ -548,8 +548,8 @@ def prepare_fast_dataloader(
     batch_size: int,
     shuffle=True
 ):
-    if dataset.has_cat:
-        if dataset.has_num:
+    if "X_cat" in dataset and dataset["X_cat"] is not None:
+        if "X_num" in dataset and dataset["X_num"] is not None:
             X = torch.from_numpy(
                 np.concatenate([dataset["X_num"], dataset["X_cat"]], axis=1)
             ).float()
