@@ -78,7 +78,7 @@ def latent_gan_experiment(
         gan_n_critic=2,
         gan_batch_size=512):
 
-    for e in experiment_params:
+    for e in experiment_params[:1]:
         e = dict(e)
 
         dataset_path = e["raw_csv_path"]
@@ -128,7 +128,7 @@ def ae_experiment(
 ):
 
     
-    for exp in tqdm(experiment_params):
+    for e in experiment_params[:1]:
         exp = dict(exp)
 
         best_ae = exp["best_ae"]
@@ -150,7 +150,7 @@ def ae_experiment(
         decoded_path = exp["raw_csv_path"].replace("./data/", "./data/decoded/").replace(".csv", f"_decoded{exp['embedding_size']}_{epochs}.csv")
 
         lat_data = ae.get_latent_dataset()
-        
+
         reconstructed_data = ae.decode(lat_data, batch=True)
 
         reconstructed_data.to_csv(decoded_path, index=False)
