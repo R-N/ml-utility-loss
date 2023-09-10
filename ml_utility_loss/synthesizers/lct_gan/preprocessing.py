@@ -586,6 +586,7 @@ class DataTransformer():
         self.components = []
         self.filter_arr = []
         self.meta = self.get_metadata()
+        print(self.meta)
         
     def get_metadata(self):
         

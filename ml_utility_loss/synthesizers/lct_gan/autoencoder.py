@@ -72,7 +72,13 @@ class LatentTAE:
 
         print(f"DATA DIMENSION: {self.train_data.shape}")
 
-        self.ae.train(self.train_data, data_dim, data_info, epochs=n_epochs, batch_size=batch_size)
+        self.ae.train(
+            self.train_data, 
+            data_dim, 
+            data_info, 
+            epochs=n_epochs, 
+            batch_size=batch_size
+        )
         self.loss = self.ae.loss
         ##### TEST #####
         print("######## DEBUG ########")
@@ -185,7 +191,7 @@ class AutoEncoder(object):
 
     def encode(self, x):
         x = handle_type(x)
-        x = x.to(self.device).view(-1, self.input_size).float()
+        x = x.to(self.device).view(-1, self.input_size).float() # 151, should be 152
         return self.model.encode(x)
 
     def decode(self, z):
