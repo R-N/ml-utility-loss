@@ -16,7 +16,7 @@ def handle_type(x):
         x = torch.from_numpy(x)
     elif not isinstance(x, torch.Tensor):
         x = torch.Tensor(x)
-    if x.dim == 1:
+    if x.dim() == 1:
         x = [x]
     if isinstance(x, list):
         x = torch.stack(x)
