@@ -184,7 +184,7 @@ def sample(
         concat_y=False
     )
 
-    K = np.array(dataset.get_category_sizes('train'))
+    K = np.array(dataset.train_category_sizes)
     if len(K) == 0 or cat_encoding == 'one-hot':
         K = np.array([0])
 
