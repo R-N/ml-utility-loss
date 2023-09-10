@@ -71,10 +71,10 @@ experiment_params = [
 
 def latent_gan_experiment(
         bottleneck=64,
-        ae_epochs=1000,
+        ae_epochs=1,
         ae_batch_size=512,
         gan_latent_dim=16,
-        gan_epochs=500,
+        gan_epochs=1,
         gan_n_critic=2,
         gan_batch_size=512):
 
@@ -122,10 +122,11 @@ def latent_gan_experiment(
         pickle.dump(gan, gan_pf)
         gan_pf.close()
 
-def ae_experiment():
+def ae_experiment(
+    epochs = 1,
+    ae_batch_size=512,
+):
 
-    epochs = 1000
-    ae_batch_size=512
     
     for exp in tqdm(experiment_params):
         exp = dict(exp)
