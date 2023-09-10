@@ -207,7 +207,7 @@ def sample(
     diffusion.to(device)
     diffusion.eval()
     
-    _, empirical_class_dist = torch.unique(torch.from_numpy(dataset.y['train']), return_counts=True)
+    _, empirical_class_dist = torch.unique(torch.from_numpy(dataset.train_set["y"]), return_counts=True)
     if disbalance == 'fix':
         empirical_class_dist[0], empirical_class_dist[1] = empirical_class_dist[1], empirical_class_dist[0]
         x_gen, y_gen = diffusion.sample_all(num_samples, batch_size, empirical_class_dist.float(), ddim=False)
