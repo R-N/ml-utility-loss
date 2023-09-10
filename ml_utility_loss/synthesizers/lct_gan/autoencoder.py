@@ -11,15 +11,17 @@ from .process import preprocess, postprocess
 
 Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
-def handle_type(x):
+def handle_type(x, device):
     if isinstance(x, np.ndarray):
         x = torch.from_numpy(x)
     elif not isinstance(x, torch.Tensor):
-        x = torch.Tensor(x)
+        x = torch.Tensor(x).to(device)
     if x.dim() == 1:
         x = [x]
     if isinstance(x, list):
         x = torch.stack(x)
+    if device and x.device != device:
+        x = x.to(device)
     return x
 
 class LatentTAE:
@@ -115,13 +117,11 @@ class LatentTAE:
             batch_start += self.batch_size
             if len(l) == 0: continue
 
-            if not isinstance(l, Tensor):
-                l = Tensor(l).to(self.ae.device)
-            if l.device != self.ae.device:
-                l = l.to(self.ae.device)
+            l = handle_type(l, self.ae.device)
 
             if not batch:
                 l = torch.cat(l).to(self.ae.device)
+
             reconstructed = self.ae.decode(l)
             reconstructed = reconstructed.cpu().detach().numpy()
 
