@@ -89,7 +89,7 @@ class LatentTAE:
         table = []
         batch_start = 0
         if batch:
-            latent = latent if type(latent).__module__ == np.__name__ else latent.cpu().detach().numpy()
+            latent = latent if type(latent).__module__ == np.__name__ else latent.cpu().detach()
         steps = (len(latent) // self.batch_size) + 1
 
         for _ in range(steps):
@@ -103,6 +103,8 @@ class LatentTAE:
             reconstructed = self.ae.decode(Tensor(l).to(self.ae.device))
             reconstructed = reconstructed.cpu().detach().numpy()
 
+            table_recon = self.self.postprocess(reconstructed)
+    
             table.append(table_recon)
 
         return pd.concat(table)
