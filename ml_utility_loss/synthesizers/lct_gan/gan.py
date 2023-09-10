@@ -68,8 +68,6 @@ class LatentGAN:
         done_30m = False
         done_60m = False
 
-        epochs = int(1e+9)
-
         adversarial_loss = torch.nn.BCELoss()
         valid = Variable(Tensor(batch_size, 1).fill_(1.0), requires_grad=False)
         non_valid = Variable(Tensor(batch_size, 1).fill_(0.0), requires_grad=False)
