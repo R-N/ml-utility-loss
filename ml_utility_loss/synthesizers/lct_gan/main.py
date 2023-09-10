@@ -150,6 +150,7 @@ def ae_experiment(
         decoded_path = exp["raw_csv_path"].replace("./data/", "./data/decoded/").replace(".csv", f"_decoded{exp['embedding_size']}_{epochs}.csv")
 
         lat_data = ae.get_latent_dataset()
+        
         reconstructed_data = ae.decode(lat_data, batch=True)
 
         reconstructed_data.to_csv(decoded_path, index=False)

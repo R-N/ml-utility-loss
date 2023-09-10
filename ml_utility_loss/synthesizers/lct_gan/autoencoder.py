@@ -14,17 +14,6 @@ Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTen
 
 class LatentTAE:
 
-    """
-    AutoEncoder auxiliary class using and training 
-    an AutoEncoderModel to generate intermediary representation of a dataset
-
-     - __init__(...) -> handles instantiating of the object with specified input parameters
-     - fit(...) -> takes care of pre-processing and fits the AutoEncoder to the input data 
-     - encode(tabular_data) -> returns a latent representation
-     - decode(latent_data) -> tabular_data
-     - get_latent_dataset() -> [latent]
-    """
-
     def __init__(self,
                  embedding_size,
                  raw_csv_path="./data/Adult.csv",
@@ -125,7 +114,7 @@ class LatentTAE:
             reconstructed
         )
 
-    def get_latent_dataset(self, leave_pytorch_context=False):
+    def get_latent_dataset(self, as_numpy=False):
 
         latent_dataset = []
         print("Generating latent dataset")
@@ -135,10 +124,11 @@ class LatentTAE:
             data = self.train_data[curr : curr + self.batch_size]
             curr += self.batch_size
             if len(data) == 0: continue
-            latent = self.encode(data).cpu().detach().numpy()
+            latent = self.encode(data).cpu().detach()
+            latent = latent.numpy() if as_numpy else latent
             latent_dataset = [ *latent_dataset, *latent ]
         
-        return np.asarray(latent_dataset)
+        return np.asarray(latent_dataset) if as_numpy else torch.stack(latent_dataset)
 
 
 class AENetwork(nn.Module):
