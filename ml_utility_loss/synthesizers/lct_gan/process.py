@@ -8,24 +8,28 @@ def preprocess(
     integer_columns=[],
     problem_type=[],
     test_ratio=0,
+    data_prep=None,
+    transformer=None,
 ):
-    data_prep = DataPrep(
-        raw_df,
-        categorical_columns,
-        log_columns,
-        mixed_columns,
-        integer_columns,
-        problem_type,
-        test_ratio
-    )
+    if not data_prep:
+        data_prep = DataPrep(
+            raw_df,
+            categorical_columns,
+            log_columns,
+            mixed_columns,
+            integer_columns,
+            problem_type,
+            test_ratio
+        )
 
-    transformer = DataTransformer(
-        train_data=data_prep.df,
-        categorical_list=data_prep.column_types["categorical"],
-        mixed_dict=data_prep.column_types["mixed"]
-    )
+    if not transformer:
+        transformer = DataTransformer(
+            train_data=data_prep.df,
+            categorical_list=data_prep.column_types["categorical"],
+            mixed_dict=data_prep.column_types["mixed"]
+        )
+        transformer.fit()
 
-    transformer.fit()
     train_data = transformer.transform(data_prep.df.values)
     return data_prep, transformer, train_data
 

@@ -14,7 +14,7 @@ experiment_params = [
         "best_ae" : 1, # steps
         "embedding_size": 64,
         "raw_csv_path": "./data/Adult.csv",
-        "test_ratio": 0.20,
+        "test_ratio": 0.20, # this actually affects transformer dim
         "categorical_columns": ['workclass', 'education', 'marital-status', 'occupation', 'relationship', 'race', 'gender', 'native-country', 'income'],
         "log_columns": [],
         "mixed_columns" : {'capital-loss': [0.0], 'capital-gain': [0.0]},
