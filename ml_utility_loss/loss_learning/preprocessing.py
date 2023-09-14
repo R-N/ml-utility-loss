@@ -123,4 +123,5 @@ class DataAugmenter:
             rates = num_rates if col in self.num_features else cat_rates
             for aug, rate in rates.items():
                 getattr(self, aug)(df, col, rate)
+        df.drop([f"{col}_aug" for col in df.columns], axis=1, inplace=True)
         return df
