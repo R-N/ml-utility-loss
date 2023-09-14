@@ -1,0 +1,14 @@
+{
+    "type": "binclass",
+    "cat_features": [
+        "sex",
+        "source"
+    ],
+    "mixed_features": [],
+    "longtail_features": [
+        "leucocyte",
+        "thrombocyte"
+    ],
+    "target": "source",
+    "num_class": 2
+}

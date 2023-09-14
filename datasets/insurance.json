@@ -1,0 +1,15 @@
+{
+    "type": "regression",
+    "cat_features": [
+        "sex",
+        "smoker",
+        "region"
+    ],
+    "mixed_features": [],
+    "longtail_features": [
+        "children",
+        "charges"
+    ],
+    "target": "charges",
+    "num_class": 0
+}

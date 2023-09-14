@@ -1,0 +1,16 @@
+{
+    "type": "multiclass",
+    "cat_features": [
+        "islam",
+        "working",
+        "husband_occupation",
+        "media_exposure",
+        "contraceptive"
+    ],
+    "mixed_features": [],
+    "longtail_features": [
+        "n_children"
+    ],
+    "target": "contraceptive",
+    "num_class": 3
+}
