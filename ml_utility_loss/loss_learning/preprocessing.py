@@ -78,6 +78,7 @@ class DataAugmenter:
         index = sample(df, col, rate)
         half_n = len(index)
         index_1, index_2 = index[:half_n], index[half_n:]
+        assert len(index_1) == len(index_2) == half_n, f"Inequal sizes {len(index_1)}, {len(index_2)}, {half_n}"
         df.loc[index_1, col], df.loc[index_2, col] = df.loc[index_2, col], df.loc[index_1, col]
         block(df, index, col)
 
