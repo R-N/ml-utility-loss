@@ -84,6 +84,7 @@ class DataAugmenter:
         index_1, index_2 = index[:half_n], index[half_n:]
         assert len(index_1) == len(index_2) == half_n, f"Inequal sizes {len(index_1)}, {len(index_2)}, {half_n}"
         df.loc[index_1, col], df.loc[index_2, col] = df.loc[index_2, col], df.loc[index_1, col]
+        assert not df.isna().any()
         block(df, index, col)
 
     def add_noise(self, df, col, rate):
@@ -93,6 +94,7 @@ class DataAugmenter:
         std = self.noise_std or self.std[col]
         noise = np.random.normal(0, std, len(index))
         df.loc[index, col] = df.loc[index, col] + noise
+        assert not df.isna().any()
         block(df, index, col)
 
     def change_to_noise(self, df, col, rate):
@@ -101,6 +103,7 @@ class DataAugmenter:
         index = sample(df, col, rate)
         noise = np.random.normal(self.mean[col], self.std[col], len(index))
         df.loc[index, col] = noise
+        assert not df.isna().any()
         block(df, index, col)
 
     def set_rand_known(self, df, col, rate):
@@ -112,6 +115,7 @@ class DataAugmenter:
             len(index)
         )
         df.loc[index, col] = rand_known
+        assert not df.isna().any()
         block(df, index, col)
 
     def augment(self, df, cat_rates=None, num_rates=None):
