@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 DEFAULT_CAT_RATES = {
     "swap_values": 0.2,
@@ -20,7 +21,7 @@ def sample(df, col, rate, double=False, regen=None, block=None):
     index = index.loc[~(index[f"{col}_aug"])]
     if block is not None:
         index = index.loc[~index.index.isin(block)]
-    index = index.index.sample(n=n)
+    index = pd.Index(np.random.choice(index.index, n))
     if len(index) == n:
         return index
     regenerate(df, col)
