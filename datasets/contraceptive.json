@@ -1,5 +1,5 @@
 {
-    "type": "multiclass",
+    "task": "multiclass",
     "cat_features": [
         "islam",
         "working",

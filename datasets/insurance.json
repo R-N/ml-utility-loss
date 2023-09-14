@@ -1,5 +1,5 @@
 {
-    "type": "regression",
+    "task": "regression",
     "cat_features": [
         "sex",
         "smoker",
