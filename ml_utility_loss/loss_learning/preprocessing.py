@@ -63,7 +63,7 @@ class DataAugmenter:
 
     def fit(self, df):
         self.uniques = {
-            col: df.unique()
+            col: df[col].unique()
             for col in df.columns
         }
         self.mean = df.mean()
