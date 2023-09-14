@@ -62,7 +62,10 @@ class DataAugmenter:
         self.num_rates = num_rates
 
     def fit(self, df):
-        self.uniques = df.unique()
+        self.uniques = {
+            col: df.unique()
+            for col in df.columns
+        }
         self.mean = df.mean()
         self.std = df.std()
         self.num_features = self.num_features or [x for x in df.columns if x not in self.cat_features]
