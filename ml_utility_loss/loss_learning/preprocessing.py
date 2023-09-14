@@ -83,6 +83,7 @@ class DataAugmenter:
         half_n = len(index)//2
         index_1, index_2 = index[:half_n], index[half_n:]
         assert len(index_1) == len(index_2) == half_n, f"Inequal sizes {len(index_1)}, {len(index_2)}, {half_n}"
+        assert not df.isna().any().any()
         na = df.isna().sum().sum()
         df.loc[index_1, col], df.loc[index_2, col] = df.loc[index_2, col], df.loc[index_1, col]
         assert df.isna().sum().sum() == na
