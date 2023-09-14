@@ -75,7 +75,7 @@ class DataAugmenter:
     def swap_values(self, df, col, rate):
         if not rate:
             return 
-        index = sample(df, col, rate)
+        index = sample(df, col, rate, double=True)
         half_n = len(index)//2
         index_1, index_2 = index[:half_n], index[half_n:]
         assert len(index_1) == len(index_2) == half_n, f"Inequal sizes {len(index_1)}, {len(index_2)}, {half_n}"
