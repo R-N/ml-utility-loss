@@ -91,7 +91,7 @@ class DataAugmenter:
             return 
         index = sample(df, col, rate)
         std = self.noise_std or self.std[col]
-        noise = np.random.normal(0, std, n)
+        noise = np.random.normal(0, std, len(index))
         df.loc[index, col] = df.loc[index, col] + noise
         block(df, index, col)
 
@@ -99,7 +99,7 @@ class DataAugmenter:
         if not rate:
             return 
         index = sample(df, col, rate)
-        noise = np.random.normal(self.mean[col], self.row[col])
+        noise = np.random.normal(self.mean[col], self.row[col], len(index))
         df.loc[index, col] = noise
         block(df, index, col)
 
@@ -107,7 +107,7 @@ class DataAugmenter:
         if not rate:
             return 
         index = sample(df, col, rate)
-        rand_known = self.uniques[col].sample(n=n)
+        rand_known = self.uniques[col].sample(n=len(index))
         df.loc[index, col] = rand_known
         block(df, index, col)
 
