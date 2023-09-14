@@ -21,7 +21,11 @@ def sample(df, col, rate, double=False, regen=None, block=None):
     index = index.loc[~(index[f"{col}_aug"])]
     if block is not None:
         index = index.loc[~index.index.isin(block)]
-    index = pd.Index(np.random.choice(index.index, n))
+    index = pd.Index(np.random.choice(
+        index.index, 
+        min(n, len(index)), 
+        replace=False
+    ))
     if len(index) == n:
         return index
     regenerate(df, col)
