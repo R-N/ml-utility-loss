@@ -107,7 +107,10 @@ class DataAugmenter:
         if not rate:
             return 
         index = sample(df, col, rate)
-        rand_known = self.uniques[col].sample(n=len(index))
+        rand_known = np.random.choice(
+            self.uniques[col], 
+            len(index)
+        )
         df.loc[index, col] = rand_known
         block(df, index, col)
 
