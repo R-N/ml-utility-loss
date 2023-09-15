@@ -54,7 +54,7 @@ class DataAugmenter:
         self, 
         num_features=[],
         cat_features=[],
-        noise_std=1.0,
+        noise_std=None,
         cat_rates=DEFAULT_CAT_RATES,
         num_rates=DEFAULT_NUM_RATES,
         seed=42,
