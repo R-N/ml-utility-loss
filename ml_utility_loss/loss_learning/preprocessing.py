@@ -83,7 +83,6 @@ class DataAugmenter:
         half_n = len(index)//2
         index_1, index_2 = index[:half_n], index[half_n:]
         assert len(index_1) == len(index_2) == half_n, f"Inequal sizes {len(index_1)}, {len(index_2)}, {half_n}"
-        assert not df.isna().any().any()
         na = df.isna().sum().sum()
         df.loc[index_1, col], df.loc[index_2, col] = df.loc[index_2, col].values, df.loc[index_1, col].values
         assert df.isna().sum().sum() == na
@@ -95,7 +94,6 @@ class DataAugmenter:
         index = sample(df, col, rate)
         std = self.noise_std or self.std[col]
         noise = np.random.normal(0, std, len(index))
-        assert not noise.isna().any()
         na = df.isna().sum().sum()
         df.loc[index, col] = df.loc[index, col] + noise
         assert df.isna().sum().sum() == na
@@ -106,7 +104,6 @@ class DataAugmenter:
             return 
         index = sample(df, col, rate)
         noise = np.random.normal(self.mean[col], self.std[col], len(index))
-        assert not noise.isna().any()
         na = df.isna().sum().sum()
         df.loc[index, col] = noise
         assert df.isna().sum().sum() == na
@@ -120,7 +117,6 @@ class DataAugmenter:
             self.uniques[col], 
             len(index)
         )
-        assert not rand_known.isna().any()
         na = df.isna().sum().sum()
         df.loc[index, col] = rand_known
         assert df.isna().sum().sum() == na
@@ -130,10 +126,11 @@ class DataAugmenter:
         cat_rates = combine_rates(self.cat_rates, cat_rates)
         num_rates = combine_rates(self.num_rates, num_rates)
         df = df.copy()
-        for col in df.columns:
+        cols = list(df.columns)
+        for col in cols:
             regenerate(df, col)
             rates = num_rates if col in self.num_features else cat_rates
             for aug, rate in rates.items():
                 getattr(self, aug)(df, col, rate)
-        df.drop([f"{col}_aug" for col in df.columns], axis=1, inplace=True)
+        df.drop([f"{col}_aug" for col in cols], axis=1, inplace=True)
         return df
