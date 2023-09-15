@@ -54,7 +54,7 @@ class DataAugmenter:
         self, 
         num_features=[],
         cat_features=[],
-        noise_std=None,
+        noise_std=1.0,
         cat_rates=DEFAULT_CAT_RATES,
         num_rates=DEFAULT_NUM_RATES,
         seed=42,
@@ -92,7 +92,7 @@ class DataAugmenter:
         if not rate:
             return 
         index = sample(df, col, rate)
-        std = self.noise_std or self.std[col]
+        std = self.noise_std * self.std[col]
         noise = np.random.normal(0, std, len(index))
         na = df.isna().sum().sum()
         df.loc[index, col] = df.loc[index, col] + noise
