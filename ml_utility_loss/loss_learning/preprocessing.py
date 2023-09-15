@@ -71,8 +71,8 @@ class DataAugmenter:
             col: df[col].unique()
             for col in df.columns
         }
-        self.mean = df.mean()
-        self.std = df.std()
+        self.mean = df.mean(numeric_only=True)
+        self.std = df.std(numeric_only=True)
         self.num_features = self.num_features or [x for x in df.columns if x not in self.cat_features]
 
 
