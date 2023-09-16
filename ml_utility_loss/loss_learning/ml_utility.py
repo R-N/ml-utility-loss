@@ -1,4 +1,4 @@
-from catboost import CatBoostClassifier, CatBoostRegressor, metrics
+from catboost import CatBoostClassifier, CatBoostRegressor, metrics, Pool
 
 PARAM_SPACE = {
     "colsample_bylevel": ("log_float", 0.1, 0.3),
@@ -75,3 +75,16 @@ class CatBoostModel:
 
     def eval(self, val):
         return self.model.eval_metrics(val, [self.metric])
+
+def create_pool(df, target, cat_features):
+    X = df.drop(target, axis=1)
+    y = df[target]
+
+    return Pool(
+        X,
+        label=y,
+        cat_features=cat_features
+    )
+
+def create_pool_2(df, info):
+    return create_pool(df, info["target"], info["cat_features"])
