@@ -95,7 +95,7 @@ def create_objective(
     def f(trial):
         id = trial.number
         print(f"Begin trial {trial.number}")
-        trial_dir = os.path.join(study_dir, id)
+        trial_dir = os.path.join(study_dir, str(id))
         mkdir(trial_dir)
 
         params, params_raw = sampler(trial, **sampler_kwargs)
