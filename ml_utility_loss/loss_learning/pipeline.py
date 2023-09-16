@@ -2,8 +2,10 @@ import pandas as pd
 import json
 from .preprocessing import DataAugmenter
 import os
+from pathlib import Path
 
 def augment(df, info, save_dir, n=1, test=0.2):
+    Path(save_dir).mkdir(parents=True, exist_ok=True)
     aug = DataAugmenter(
         cat_features=info["cat_features"]
     )
