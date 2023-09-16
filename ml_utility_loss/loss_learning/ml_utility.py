@@ -54,8 +54,8 @@ class CatBoostModel:
         self.params = {
             "iterations":epochs,
             "learning_rate":lr,
-            "loss_function":loss_function(),
-            "eval_metric":METRICS[self.metric](),
+            "loss_function":loss_function,
+            "eval_metric":METRICS[self.metric],
             "random_seed":random_seed,
             "od_wait":od_wait,
             "use_best_model":True,

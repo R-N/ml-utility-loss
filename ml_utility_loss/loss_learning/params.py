@@ -3,14 +3,15 @@ import torch
 import catboost.metrics
 
 CATBOOST_METRICS = {
-    s: getattr(catboost.metrics, s)
+    s: getattr(catboost.metrics, s)()
     for s in [
         "R2", "F1",
         "Logloss", "CrossEntropy",
         "MultiClass", "MultiClassOneVsAll",
-        "MAE", "RMSE", "Huber"
+        "MAE", "RMSE"
     ]
 }
+CATBOOST_METRICS["Huber"] = catboost.metrics.Huber(2)
 LOSSES = {
     "mse": torch.nn.MSELoss(reduction="none"),
 }
