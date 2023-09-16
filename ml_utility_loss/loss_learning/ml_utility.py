@@ -1,5 +1,5 @@
 from catboost import CatBoostClassifier, CatBoostRegressor, Pool, CatBoostError
-from .params import CATBOOST_METRICS as METRICS
+from .params import CATBOOST_METRICS, SKLEARN_METRICS
 from .util import mkdir
 import os
 from optuna.exceptions import TrialPruned
@@ -50,12 +50,12 @@ class CatBoostModel:
         if checkpoint_dir:
             mkdir(checkpoint_dir)
         if isinstance(loss_function, str):
-            loss_function = METRICS[loss_function]
+            loss_function = CATBOOST_METRICS[loss_function]
         self.params = {
             "iterations":epochs,
             "learning_rate":lr,
             "loss_function":loss_function,
-            "eval_metric":METRICS[self.metric],
+            "eval_metric":CATBOOST_METRICS[self.metric],
             "random_seed":random_seed,
             "od_wait":od_wait,
             "use_best_model":True,
@@ -79,7 +79,11 @@ class CatBoostModel:
             return self.eval(val)
 
     def eval(self, val):
-        return self.model.eval_metrics(val, [self.metric])[self.metric]
+        #ret = self.model.eval_metrics(val, [self.metric])[self.metric]
+        #return sum(ret)/len(ret)
+        y_pred = self.model.predict(val)
+        y_true = val.get_label()
+        return SKLEARN_METRICS[self.metric](y_true, y_pred)
 
     def load_model(self, file_name="best.dump"):
         assert self.checkpoint_dir

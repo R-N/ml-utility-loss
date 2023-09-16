@@ -1,7 +1,12 @@
 
 import torch
 import catboost.metrics
+import sklearn.metrics import f1_score, r2_score
 
+SKLEARN_METRICS = {
+    "F1": sklearn.metrics.f1_score,
+    "R2": sklearn.metrics.r2_score
+}
 CATBOOST_METRICS = {
     s: getattr(catboost.metrics, s)()
     for s in [
