@@ -1,7 +1,8 @@
-from catboost import CatBoostClassifier, CatBoostRegressor, Pool
+from catboost import CatBoostClassifier, CatBoostRegressor, Pool, CatBoostError
 from .params import CATBOOST_METRICS as METRICS
 from .util import mkdir
 import os
+from optuna.exceptions import TrialPruned
 
 PARAM_SPACE = {
     "epochs": ("log_int", 100, 2000),
@@ -115,12 +116,15 @@ def objective(
 ):
     train, test = datasets
 
-    model = CatBoostModel(
-        task=task,
-        checkpoint_dir=checkpoint_dir,
-        **model_params
-    )
-    model.fit(train, test)
+    try:
+        model = CatBoostModel(
+            task=task,
+            checkpoint_dir=checkpoint_dir,
+            **model_params
+        )
+        model.fit(train, test)
+    except CatBoostError:
+        raise TrialPruned()
     value = model.eval(test)
     if checkpoint_dir:
         model.save_model()
