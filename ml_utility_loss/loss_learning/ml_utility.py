@@ -13,7 +13,7 @@ PARAM_SPACE = {
     'lr': ('log_float', 1e-5, 1e-1),
     "subsample": ("float", 0.05, 1.0),
     "min_data_in_leaf": ("int", 1, 100),
-    'max_ctr_complexity': ("int", 10, 8),
+    'max_ctr_complexity': ("int", 0, 8),
 }
 PARAM_SPACE_2 = {
     "binclass": {
