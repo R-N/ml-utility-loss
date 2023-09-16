@@ -71,7 +71,7 @@ class CatBoostModel:
         self.model.fit(
             train,
             eval_set=val,
-            logging_level="Verbose",
+            #logging_level="Verbose",
             plot=True
         )
         self.epoch = self.model.get_best_iteration() + self.od_wait
