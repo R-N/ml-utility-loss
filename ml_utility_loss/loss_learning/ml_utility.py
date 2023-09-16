@@ -17,13 +17,13 @@ PARAM_SPACE = {
 }
 PARAM_SPACE_2 = {
     "binclass": {
-        "objective": ("categorical", ["Logloss", "CrossEntropy"]),
+        "loss_function": ("categorical", ["Logloss", "CrossEntropy"]),
     },
     "multiclass": {
-        "objective": ("categorical", ["MultiClass", "MultiClassOneVsAll"]),
+        "loss_function": ("categorical", ["MultiClass", "MultiClassOneVsAll"]),
     },
     "regression": {
-        "objective": ("categorical", ["MAE", "RMSE", "Huber"]),
+        "loss_function": ("categorical", ["MAE", "RMSE", "Huber"]),
     }
 }
 
