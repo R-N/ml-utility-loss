@@ -1,0 +1,121 @@
+import math
+import os
+from .util import mkdir
+import json
+from .params import PARAM_MAP
+
+def map_parameter(param, source):
+    try:
+        return source[param]
+    except Exception as ex:
+        return param
+
+def sample_parameter(trial, name, type, args, kwargs):
+    return getattr(trial, f"suggest_{type}")(name, *args, **kwargs)
+
+def sample_parameters(trial, param_space, param_map={}):
+    param_map = {**PARAM_MAP, **param_map}
+    params = {}
+    params_raw = {}
+    for k, v in param_space.items():
+        type_0, *args = v
+        type_1 = type_0
+        kwargs = {}
+        if type_0.startswith("bool_"):
+            sample = trial.suggest_categorical(f"{k}_bool", [True, False])
+            if not sample:
+                type_1 = None
+                param = 0
+                params_raw[k] = param
+                params[k] = param
+                continue
+            type_0 = type_0[5:]
+            type_1 = type_0
+        if type_0.startswith("log_"):
+            type_1 = type_0[4:]
+            kwargs["log"] = True
+        if type_0 == "qloguniform":
+            low, high, q = args
+            type_1 = "float"
+            param = round(math.exp(
+                trial.suggest_float(f"{k}_qloguniform", low, high)
+            ) / q) * q
+            params_raw[k] = param
+            params[k] = param
+            continue
+        if type_0 == "int_exp_2":
+            low, high = args
+            low = max(low, 1)
+            low = math.log(low, 2)
+            high = math.log(high, 2)
+            assert low % 1 == 0
+            assert high % 1 == 0
+            type_1 = "int"
+            param = int(math.pow(2, trial.suggest_int(f"{k}_exp_2", low, high)))
+            params_raw[k] = param
+            params[k] = param
+            continue
+        if type_0 in {"bool", "boolean"}:
+            type_1, *args = BOOLEAN
+        if type_0 in param_map:
+            type_1 = "categorical"
+
+        if type_1:
+            param = sample_parameter(trial, k, type_1, args, kwargs)
+        params_raw[k] = param
+        if type_0 in param_map:
+            param = map_parameter(param, param_map[type_0])
+        params[k] = param
+    #params["id"] = trial.number
+    return params, params_raw
+
+
+def map_parameters(params_raw, param_map={}):
+    param_map = {**PARAM_MAP, **param_map}
+    ret = {}
+    for k, v in params_raw.items():
+        if k.endswith("_exp_2"):
+            v = int(math.pow(2, v))
+            k = k[:-6]
+        else:
+            for k0, v0 in param_map.items():
+                if k0 in k:
+                    v = v0[v]
+        ret[k] = v
+    return ret
+
+
+def create_objective(
+    objective, sampler=sample_parameters, 
+    objective_kwargs={}, sampler_kwargs={}, 
+    checkpoint_dir="checkpoints", log_dir="logs",
+    study_dir="studies",
+):
+    objective_kwargs = dict(objective_kwargs)
+    def f(trial):
+        id = trial.number
+        print(f"Begin trial {trial.number}")
+        trial_dir = os.path.join(study_dir, id)
+        mkdir(trial_dir)
+
+        params, params_raw = sampler(trial, **sampler_kwargs)
+        param_path = os.path.join(trial_dir, "params.json")
+        with open(param_path, 'w') as f:
+            try:
+                json.dump(params_raw, f, indent=4)
+            except TypeError as ex:
+                print(params_raw)
+                raise
+        print(json.dumps(params_raw, indent=4))
+        kwargs = {}
+        if checkpoint_dir:
+            kwargs["checkpoint_dir"] = os.path.join(trial_dir, checkpoint_dir)
+        if log_dir:
+            kwargs["log_dir"] = os.path.join(trial_dir, log_dir)
+        return objective(
+            **objective_kwargs,
+            **params, 
+            **kwargs,
+            trial=trial,
+        )
+    return f
