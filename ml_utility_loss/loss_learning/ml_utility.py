@@ -47,11 +47,13 @@ class CatBoostModel:
         self.Model = CatBoostRegressor if task == "regression" else CatBoostClassifier
         self.metric = "R2" if task == "regression" else "F1"
         self.od_wait = od_wait
+        if isinstance(loss_function, str):
+            loss_function = METRICS[loss_function]
         self.model = self.Model(
             iterations=epochs,
             learning_rate=lr,
-            loss_function=loss_function,
-            eval_metric=METRICS[self.metric],
+            loss_function=loss_function(),
+            eval_metric=METRICS[self.metric](),
             random_seed=random_seed,
             od_wait=od_wait,
             use_best_model=True,
