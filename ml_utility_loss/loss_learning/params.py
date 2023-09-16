@@ -11,7 +11,7 @@ CATBOOST_METRICS = {
         "MAE", "RMSE"
     ]
 }
-CATBOOST_METRICS["Huber"] = catboost.metrics.Huber(2)
+CATBOOST_METRICS["Huber"] = catboost.metrics.Huber(delta=2)
 LOSSES = {
     "mse": torch.nn.MSELoss(reduction="none"),
 }
