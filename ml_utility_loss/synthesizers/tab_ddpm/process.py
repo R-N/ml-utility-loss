@@ -98,6 +98,9 @@ def train(
 
     zero.improve_reproducibility(seed)
 
+    if "is_y_cond" not in model_params:
+        model_params["is_y_cond"] = not dataset.is_regression
+
     dataset_kwargs = {}
     if "is_y_cond" in model_params:
         dataset_kwargs["is_y_cond"] = model_params["is_y_cond"]
