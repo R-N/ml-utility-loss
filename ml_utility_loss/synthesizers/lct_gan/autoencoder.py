@@ -133,11 +133,11 @@ class LatentTAE:
     def postprocess(self, reconstructed):
         return self.data_preprocessor.postprocess(reconstructed)
 
-    def get_latent_dataset(self, as_numpy=False):
+    def get_latent_dataset(self, n=1, as_numpy=False):
 
         latent_dataset = []
         print("Generating latent dataset")
-        steps = (len(self.train_data) // self.batch_size) + 1
+        steps = (n // self.batch_size) + 1
         curr = 0
         for _ in tqdm(range(steps)):
             data = self.train_data[curr : curr + self.batch_size]
