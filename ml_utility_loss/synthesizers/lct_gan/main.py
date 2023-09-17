@@ -51,7 +51,8 @@ def latent_gan_experiment(
         raw_df = pd.read_csv(dataset_path)
 
         # EVALUATING AUTO-ENCODER
-        latent_data = ae.encode(raw_df) # could be loaded from file
+        preprocessed = ae.preprocess(raw_df)
+        latent_data = ae.encode(preprocessed, preprocessed=True) # could be loaded from file
 
         real_path = dataset_path
         decoded_path = dataset_path.replace("./data/", "./data/decoded/").replace(".csv", f"_decoded{exp['embedding_size']}_test.csv")
@@ -73,7 +74,15 @@ def latent_gan_experiment(
             df.to_csv(dataset_path.replace(".csv", "_fake.csv"), index=False)
             print(df)
 
-        gan.fit(lat_normalized, ae.train_data, ae.transformer, epochs=gan_epochs, batch_size=gan_batch_size, n_critic=gan_n_critic, callback=measure)
+        gan.fit(
+            lat_normalized, 
+            preprocessed, 
+            transformer_output_info=ae.data_preprocessor.output_info, 
+            epochs=gan_epochs, 
+            batch_size=gan_batch_size, 
+            n_critic=gan_n_critic, 
+            callback=measure
+        )
 
         gan_pf = open("./gan_pickles/" + dataset_path.replace("./data/", "").replace(".csv", f"_gan{gan_latent_dim}_{gan_epochs}.pickle"), 'wb')
         pickle.dump(gan, gan_pf)
@@ -98,6 +107,8 @@ def ae_experiment(
 
         ae = LatentTAE(**exp)
         ae.fit_preprocessor(raw_df)
+        preprocessed = ae.preprocess(raw_df)
+        latent_data = ae.encode(preprocessed, preprocessed=True) # could be loaded from file
         ae.fit(raw_df, n_epochs=epochs, batch_size=ae_batch_size)
         time_to_train = time.time() - start_time
         print("--- %s seconds ---" % (time_to_train))
@@ -108,8 +119,6 @@ def ae_experiment(
 
         real_path = dataset_path
         decoded_path = dataset_path.replace("./data/", "./data/decoded/").replace(".csv", f"_decoded{exp['embedding_size']}_{epochs}.csv")
-
-        latent_data = ae.encode(raw_df) # could be loaded from file
 
         reconstructed_data = ae.decode(latent_data, batch=True)
 

@@ -25,11 +25,21 @@ class LatentGAN:
         self.lambda_gp = 10
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    def fit(self, latent_data, original_data, transformer, epochs=5, batch_size=256, lr=0.0002, b1=0.5, b2=0.999, n_critic=5, callback=None):
+    def fit(
+        self, 
+        latent_data, 
+        original_data, 
+        transformer_output_info, 
+        epochs=5, 
+        batch_size=256, 
+        lr=0.0002, 
+        b1=0.5, 
+        b2=0.999, 
+        n_critic=5, 
+        callback=None
+    ):
         
         assert len(latent_data) == len(original_data)
-
-        transformer_output_info = transformer.output_info
         
         cond_generator = Condvec(original_data, transformer_output_info)
         data_sampler = Sampler(original_data, transformer_output_info)
@@ -37,7 +47,6 @@ class LatentGAN:
         self.cond_generator = cond_generator
         self.data_sampler = data_sampler
         self.batch_size = batch_size
-        self.transformer = transformer
 
         # self.generator = FCGenerator(self.input_size, self.latent_dim + cond_generator.n_opt)
         self.generator = FCGenerator(self.input_size, self.latent_dim)

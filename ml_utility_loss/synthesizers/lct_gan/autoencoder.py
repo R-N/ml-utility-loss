@@ -61,19 +61,20 @@ class LatentTAE:
         return self.data_preprocessor.preprocess(raw_df)
 
 
-    def fit(self, raw_df, n_epochs, batch_size):
+    def fit(self, df, n_epochs, batch_size, preprocessed=False):
 
-        preprocessed = self.preprocess(raw_df)
+        if not preprocessed:
+            df = self.preprocess(df)
 
         self.batch_size = batch_size
 
         data_dim = self.data_preprocessor.output_dim
         data_info = self.data_preprocessor.output_info
 
-        print(f"DATA DIMENSION: {preprocessed.shape}")
+        print(f"DATA DIMENSION: {df.shape}")
 
         self.ae.train(
-            preprocessed, 
+            df, 
             data_dim, 
             data_info, 
             epochs=n_epochs, 
@@ -83,7 +84,7 @@ class LatentTAE:
         ##### TEST #####
         print("######## DEBUG ########")
 
-        real = np.asarray(preprocessed[0:batch_size])
+        real = np.asarray(df[0:batch_size])
 
         latent = self.ae.encode(real)
         reconstructed = self.ae.decode(latent)
@@ -127,9 +128,10 @@ class LatentTAE:
     def postprocess(self, reconstructed):
         return self.data_preprocessor.postprocess(reconstructed)
 
-    def encode(self, df, as_numpy=False):
+    def encode(self, df, as_numpy=False, preprocessed=False):
 
-        df = self.preprocess(df)
+        if not preprocessed:
+            df = self.preprocess(df)
 
         latent_dataset = []
         print("Generating latent dataset")
