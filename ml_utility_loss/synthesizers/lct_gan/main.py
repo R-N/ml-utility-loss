@@ -36,12 +36,12 @@ def latent_gan_experiment(
     for exp in experiment_params[:1]:
         exp = dict(exp)
 
-        dataset_path = exp["raw_csv_path"]
+        dataset_path = exp.pop("raw_csv_path")
         dataset_categories = exp["categorical_columns"]
         best_ae = exp["best_ae"]
         del exp["best_ae"]
 
-        pickle_path = "./ae_pickles/" + exp['raw_csv_path'].replace("./data/", "").replace(".csv", f"_ae{exp['embedding_size']}_{best_ae}.pickle")
+        pickle_path = "./ae_pickles/" + dataset_path.replace("./data/", "").replace(".csv", f"_ae{exp['embedding_size']}_{best_ae}.pickle")
 
         print(f"Opening {pickle_path}")
         ae_pf = open(pickle_path, 'rb')
@@ -53,8 +53,8 @@ def latent_gan_experiment(
         # EVALUATING AUTO-ENCODER
         latent_data = ae.encode(raw_df) # could be loaded from file
 
-        real_path = exp["raw_csv_path"]
-        decoded_path = exp["raw_csv_path"].replace("./data/", "./data/decoded/").replace(".csv", f"_decoded{exp['embedding_size']}_test.csv")
+        real_path = dataset_path
+        decoded_path = dataset_path.replace("./data/", "./data/decoded/").replace(".csv", f"_decoded{exp['embedding_size']}_test.csv")
 
         reconstructed_data = ae.decode(latent_data, batch=True)
         reconstructed_data.to_csv(decoded_path, index=False)
@@ -75,7 +75,7 @@ def latent_gan_experiment(
 
         gan.fit(lat_normalized, ae.train_data, ae.transformer, epochs=gan_epochs, batch_size=gan_batch_size, n_critic=gan_n_critic, callback=measure)
 
-        gan_pf = open("./gan_pickles/" + exp['raw_csv_path'].replace("./data/", "").replace(".csv", f"_gan{gan_latent_dim}_{gan_epochs}.pickle"), 'wb')
+        gan_pf = open("./gan_pickles/" + dataset_path.replace("./data/", "").replace(".csv", f"_gan{gan_latent_dim}_{gan_epochs}.pickle"), 'wb')
         pickle.dump(gan, gan_pf)
         gan_pf.close()
 
@@ -88,11 +88,11 @@ def ae_experiment(
     for exp in experiment_params[:1]:
         exp = dict(exp)
 
-        dataset_path = exp["raw_csv_path"]
+        dataset_path = exp.pop("raw_csv_path")
         best_ae = exp["best_ae"]
         del exp["best_ae"]
         
-        print(f"Training on {exp['raw_csv_path']}")
+        print(f"Training on {dataset_path}")
         start_time = time.time()
         raw_df = pd.read_csv(dataset_path)
 
@@ -102,12 +102,12 @@ def ae_experiment(
         time_to_train = time.time() - start_time
         print("--- %s seconds ---" % (time_to_train))
 
-        ae_pf = open("./ae_pickles/" + exp['raw_csv_path'].replace("./data/", "").replace(".csv", f"_ae{exp['embedding_size']}_{epochs}.pickle"), 'wb')
+        ae_pf = open("./ae_pickles/" + dataset_path.replace("./data/", "").replace(".csv", f"_ae{exp['embedding_size']}_{epochs}.pickle"), 'wb')
         pickle.dump(ae, ae_pf)
         ae_pf.close()
 
-        real_path = exp["raw_csv_path"]
-        decoded_path = exp["raw_csv_path"].replace("./data/", "./data/decoded/").replace(".csv", f"_decoded{exp['embedding_size']}_{epochs}.csv")
+        real_path = dataset_path
+        decoded_path = dataset_path.replace("./data/", "./data/decoded/").replace(".csv", f"_decoded{exp['embedding_size']}_{epochs}.csv")
 
         latent_data = ae.encode(raw_df) # could be loaded from file
 
