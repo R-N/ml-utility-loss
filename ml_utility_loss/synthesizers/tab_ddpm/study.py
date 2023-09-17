@@ -14,7 +14,7 @@ PARAM_SPACE = {
     #rtdl_params
     "dropout": ("float", 0.0, 0.2),
     "d_layers": ("list_int_exp_2", 2, 6, 128, 2048),
-    "steps": ("log_int", 100, 1000),
+    #"steps": ("log_int", 100, 1000),
 }
 
 RTDL_PARAMS = ["dropout", "d_layers"]
