@@ -116,7 +116,7 @@ class DataPrep(object):
                 pass
             try:
                 df_sample[self.label_encoder_list[i]["column"]] = le.inverse_transform(df_sample[self.label_encoder_list[i]["column"]])
-            except IndexError:
+            except (IndexError, ValueError):
                 pass
 
         # Reversing log by applying exponential transformation with appropriate scaling for non-positive numeric columns 
