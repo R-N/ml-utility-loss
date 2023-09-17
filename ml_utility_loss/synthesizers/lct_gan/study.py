@@ -14,9 +14,9 @@ PARAM_SPACE = {
 }
 
 GAN_PARAMS = {
-    k: (k[4:] if k.startswith("gan_") else k)
+    k: k[4:]
     for k in PARAM_SPACE.keys()
-    if not k.startswith("ae_")
+    if k.startswith("gan_")
 }
 
 AE_PARAMS = {
