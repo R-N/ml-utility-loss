@@ -109,8 +109,11 @@ class DataPrep(object):
         # Reversing the label encoding assigned to categorical columns according to the original dataset 
         for i in range(len(self.label_encoder_list)):
             le = self.label_encoder_list[i]["label_encoder"]
-            df_sample[self.label_encoder_list[i]["column"]] = df_sample[self.label_encoder_list[i]["column"]].astype(int)
-            df_sample[self.label_encoder_list[i]["column"]] = le.inverse_transform(df_sample[self.label_encoder_list[i]["column"]])
+            df_sample[self.label_encoder_list[i]["column"]] = df_sample[self.label_encoder_list[i]["column"]]
+            try:
+                df_sample[self.label_encoder_list[i]["column"]] = le.inverse_transform(df_sample[self.label_encoder_list[i]["column"]])
+            except IndexError:
+                pass
 
         # Reversing log by applying exponential transformation with appropriate scaling for non-positive numeric columns 
         # EMPTY_VALUE used to denote missing values are similarly ignored
