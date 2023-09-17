@@ -18,13 +18,13 @@ PARAM_SPACE = {
 }
 PARAM_SPACE_2 = {
     "binclass": {
-        "loss_function": ("categorical", ["Logloss", "CrossEntropy"]),
+        "loss_function": ("categorical", ["CrossEntropy", "Logloss"]),
     },
     "multiclass": {
         "loss_function": ("categorical", ["MultiClass", "MultiClassOneVsAll"]),
     },
     "regression": {
-        "loss_function": ("categorical", ["MAE", "RMSE", "Huber"]),
+        "loss_function": ("categorical", ["RMSE", "Huber", "MAE"]),
     }
 }
 
@@ -32,7 +32,7 @@ class CatBoostModel:
     def __init__(
         self, 
         task,
-        loss_function,
+        loss_function=None,
         epochs=1,
         lr=0.1,
         random_seed=42,
@@ -45,6 +45,8 @@ class CatBoostModel:
         self.task = task
         self.Model = CatBoostRegressor if task == "regression" else CatBoostClassifier
         self.metric = "R2" if task == "regression" else "F1"
+        if loss_function is None:
+            loss_function = PARAM_SPACE_2[task]["loss_function"][1][0]
         self.od_wait = od_wait
         self.checkpoint_dir = checkpoint_dir
         if checkpoint_dir:
