@@ -28,24 +28,21 @@ class LatentTAE:
 
     def __init__(
         self,
-        embedding_size,
-        problem_type={"Classification": 'income'},
+        embedding_size = 64,
         categorical_columns = [],
         log_columns=[],
         integer_columns=[],
         mixed_columns={}, #dict(col: 0)
         batch_size=512,
-        test_ratio=0.20,
     ):
 
         self.__name__ = 'AutoEncoder'
-        self.ae = AutoEncoder({"embedding_size": embedding_size, "log_interval": 5})
-        self.test_ratio = test_ratio
+        self.ae = AutoEncoder(embedding_size=embedding_size)
+        self.embedding_size = embedding_size
         self.categorical_columns = categorical_columns
         self.log_columns = log_columns
         self.mixed_columns = mixed_columns
         self.integer_columns = integer_columns
-        self.problem_type = problem_type
         self.batch_size=batch_size
         self.train_data = None
         self.loss = None
@@ -153,11 +150,11 @@ class LatentTAE:
 
 
 class AENetwork(nn.Module):
-    def __init__(self, args, input_dim):
+    def __init__(self, input_dim, embedding_size):
         super(AENetwork, self).__init__()
 
-        self.encoder = FCEncoder(args["embedding_size"], input_size=input_dim)
-        self.decoder = FCDecoder(args["embedding_size"], input_size=input_dim)
+        self.encoder = FCEncoder(embedding_size, input_size=input_dim)
+        self.decoder = FCDecoder(embedding_size, input_size=input_dim)
         self.input_dim = input_dim
 
     def encode(self, x):
@@ -174,8 +171,8 @@ class AENetwork(nn.Module):
 
 class AutoEncoder(object):
 
-    def __init__(self, args):
-        self.args = args  # has to have 'embedding_size' and 'cuda' = True
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs  # has to have 'embedding_size' and 'cuda' = True
         self.device = torch.device(
             "cuda:0" if torch.cuda.is_available() else "cpu")
         self.model = None
@@ -202,7 +199,7 @@ class AutoEncoder(object):
         col_size_d = output_dim
         self.input_size = col_size_d
 
-        self.model = AENetwork(self.args, input_dim=col_size_d)
+        self.model = AENetwork(input_dim=col_size_d, **self.kwargs)
         self.model.to(self.device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
 

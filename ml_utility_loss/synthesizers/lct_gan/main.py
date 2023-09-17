@@ -23,38 +23,24 @@ experiment_params = {
 }
 
 def latent_gan_experiment(
+    ae,
+    df,
     gan_latent_dim=16,
     gan_epochs=1,
     gan_n_critic=2,
     gan_batch_size=512,
     sample=1,
-    ae=None
 ):
 
-    exp = dict(experiment_params)
-
-    dataset_path = exp.pop("raw_csv_path")
-    best_ae = exp["best_ae"]
-    del exp["best_ae"]
-
-    pickle_path = "./ae_pickles/" + dataset_path.replace("./data/", "").replace(".csv", f"_ae{exp['embedding_size']}_{best_ae}.pickle")
-
-    if not ae:
-        print(f"Opening {pickle_path}")
-        with open(pickle_path, 'rb') as ae_pf:
-            ae = pickle.load(ae_pf)
-
-    raw_df = pd.read_csv(dataset_path)
-
     # EVALUATING AUTO-ENCODER
-    preprocessed = ae.preprocess(raw_df)
+    preprocessed = ae.preprocess(df)
     latent_data = ae.encode(preprocessed, preprocessed=True) # could be loaded from file
 
     sscaler = StandardScaler()
     sscaler.fit(latent_data)
 
     lat_normalized = sscaler.transform(latent_data)
-    gan = LatentGAN(exp["embedding_size"], latent_dim=gan_latent_dim)
+    gan = LatentGAN(ae.embedding_size, latent_dim=gan_latent_dim)
 
     gan.fit(
         lat_normalized, 
@@ -71,29 +57,30 @@ def latent_gan_experiment(
     return synth_df
 
 def ae_experiment(
+    df,
     epochs = 1,
-    ae_batch_size=512,
+    batch_size=512,
+    embedding_size = 64,
+    categorical_columns = ['workclass', 'education', 'marital-status', 'occupation', 'relationship', 'race', 'gender', 'native-country', 'income'],
+    log_columns = [],
+    mixed_columns = {'capital-loss': [0.0], 'capital-gain': [0.0]},
+    integer_columns = ['age', 'fnlwgt', 'capital-gain', 'capital-loss', 'hours-per-week'],
 ):
-
-    exp = dict(experiment_params)
-    dataset_path = exp.pop("raw_csv_path")
-    del exp["best_ae"]
-    
-    raw_df = pd.read_csv(dataset_path)
-
-    ae = LatentTAE(batch_size=ae_batch_size, **exp)
-    ae.fit_preprocessor(raw_df)
-    preprocessed = ae.preprocess(raw_df)
+    ae = LatentTAE(
+        batch_size=batch_size,
+        embedding_size = embedding_size,
+        categorical_columns = categorical_columns,
+        log_columns=log_columns,
+        integer_columns=integer_columns,
+        mixed_columns=mixed_columns, #dict(col: 0)
+    )
+    ae.fit_preprocessor(df)
+    preprocessed = ae.preprocess(df)
     ae.fit(preprocessed, n_epochs=epochs, preprocessed=True)
     
 
     latent_data = ae.encode(preprocessed, preprocessed=True) # could be loaded from file
     reconstructed_data = ae.decode(latent_data, batch=True)
-
-    ae_pf = open("./ae_pickles/" + dataset_path.replace("./data/", "").replace(".csv", f"_ae{exp['embedding_size']}_{epochs}.pickle"), 'wb')
-    pickle.dump(ae, ae_pf)
-    ae_pf.close()
-
     return ae
 
 
