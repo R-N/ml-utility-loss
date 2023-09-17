@@ -62,6 +62,14 @@ def objective(
         **gan_kwargs
     )
 
+    value = eval_ml_utility(
+        (synth, test),
+        task,
+        target=target,
+        cat_features=cat_features,
+        **ml_utility_params
+    )
+    """
     try:
         value = eval_ml_utility(
             (synth, test),
@@ -72,5 +80,6 @@ def objective(
         )
     except CatBoostError:
         raise TrialPruned()
+    """
 
     return value
