@@ -19,7 +19,6 @@ def validate_device(device="cuda"):
     return device if torch.cuda.is_available() else "cpu"
 
 DEFAULT_MODEL_PARAMS = {
-    "is_y_cond": True,
     "rtdl_params": {
         "d_layers": [
             256,
@@ -59,9 +58,9 @@ def train(
     )
     return _train(
         dataset,
-        model_params=kwargs,
         num_numerical_features=num_numerical_features,
         device=device,
+        **kwargs,
     )
 
 def sample(
