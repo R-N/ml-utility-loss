@@ -62,6 +62,8 @@ def objective(
         **gan_kwargs
     )
 
+    print(synth)
+
     try:
         value = eval_ml_utility(
             (synth, test),
