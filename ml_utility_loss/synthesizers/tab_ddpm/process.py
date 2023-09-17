@@ -121,7 +121,7 @@ def train(
     
     print(model_params)
     model = MLPDiffusion(
-        num_classes=dataset.n_classes
+        num_classes=dataset.n_classes,
         **model_params
     )
     model.to(device)
