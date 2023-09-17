@@ -42,11 +42,25 @@ class LatentGAN:
         self.b1=b1
         self.b2=b2
         self.n_critic=n_critic
+        self.decoder=decoder
+        self.scaler=scaler
+
+    def prepare_training(self):
+
+        # self.generator = FCGenerator(self.input_size, self.latent_dim + cond_generator.n_opt)
+        self.generator = FCGenerator(self.input_size, self.latent_dim)
+        # self.discriminator = FCDiscriminator(self.input_size + cond_generator.n_opt, batch_size=batch_size)
+        self.discriminator = FCDiscriminator(self.input_size, batch_size=self.batch_size)
+
+        self.generator.to(self.device)
+        self.discriminator.to(self.device)
+
+        if torch.cuda.is_available():
+            self.generator.cuda()
+            self.discriminator.cuda()
         # Optimizers
         self.optimizer_G = torch.optim.Adam(self.generator.parameters(), lr=self.lr, betas=(self.b1, self.b2))
         self.optimizer_D = torch.optim.Adam(self.discriminator.parameters(), lr=self.lr, betas=(self.b1, self.b2))
-        self.decoder=decoder
-        self.scaler=scaler
 
     def fit(
         self, 
@@ -62,19 +76,6 @@ class LatentGAN:
 
         self.cond_generator = cond_generator
         self.data_sampler = data_sampler
-
-        # self.generator = FCGenerator(self.input_size, self.latent_dim + cond_generator.n_opt)
-        self.generator = FCGenerator(self.input_size, self.latent_dim)
-        # self.discriminator = FCDiscriminator(self.input_size + cond_generator.n_opt, batch_size=batch_size)
-        self.discriminator = FCDiscriminator(self.input_size, batch_size=self.batch_size)
-
-        self.generator.to(self.device)
-        self.discriminator.to(self.device)
-
-        if torch.cuda.is_available():
-            self.generator.cuda()
-            self.discriminator.cuda()
-
         
         steps = (len(latent_data) // self.batch_size) + 1
 
