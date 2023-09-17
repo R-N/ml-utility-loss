@@ -99,10 +99,6 @@ class LatentTAE:
         print(table_recon)
         #### END OF TEST ####
 
-    def encode(self, x):
-        x = handle_type(x)
-        return self.ae.encode(x)
-
     def decode(self, latent, batch=False):
         table = []
         batch_start = 0
@@ -133,17 +129,20 @@ class LatentTAE:
     def postprocess(self, reconstructed):
         return self.data_preprocessor.postprocess(reconstructed)
 
-    def get_latent_dataset(self, n=1, as_numpy=False):
+    def encode(self, df, as_numpy=False):
+
+        df = self.preprocess(df)
 
         latent_dataset = []
         print("Generating latent dataset")
-        steps = (n // self.batch_size) + 1
+        steps = (len(df) // self.batch_size) + 1
         curr = 0
         for _ in tqdm(range(steps)):
-            data = self.train_data[curr : curr + self.batch_size]
+            data = df[curr : curr + self.batch_size]
             curr += self.batch_size
             if len(data) == 0: continue
-            latent = self.encode(data).cpu().detach()
+            data = handle_type(data)
+            latent = self.ae.encode(data).cpu().detach()
             latent = latent.numpy() if as_numpy else latent
             latent_dataset = [ *latent_dataset, *latent ]
         

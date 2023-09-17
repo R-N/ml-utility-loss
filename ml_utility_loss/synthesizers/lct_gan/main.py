@@ -48,7 +48,7 @@ def latent_gan_experiment(
         ae_pf.close()
 
         # EVALUATING AUTO-ENCODER
-        latent_data = ae.get_latent_dataset(len(ae.raw_df)) # could be loaded from file
+        latent_data = ae.encode(ae.raw_df) # could be loaded from file
 
         real_path = exp["raw_csv_path"]
         decoded_path = exp["raw_csv_path"].replace("./data/", "./data/decoded/").replace(".csv", f"_decoded{exp['embedding_size']}_test.csv")
@@ -104,9 +104,9 @@ def ae_experiment(
         real_path = exp["raw_csv_path"]
         decoded_path = exp["raw_csv_path"].replace("./data/", "./data/decoded/").replace(".csv", f"_decoded{exp['embedding_size']}_{epochs}.csv")
 
-        lat_data = ae.get_latent_dataset(len(ae.raw_df))
+        latent_data = ae.encode(ae.raw_df) # could be loaded from file
 
-        reconstructed_data = ae.decode(lat_data, batch=True)
+        reconstructed_data = ae.decode(latent_data, batch=True)
 
         reconstructed_data.to_csv(decoded_path, index=False)
 
