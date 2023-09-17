@@ -211,7 +211,8 @@ def sample(
     X_num, X_cat, y_gen = diffusion.transformer.inverse_transform(X_gen, y_gen)
 
     df = pd.DataFrame(
-        np.concatenate([X_num, X_cat, y_gen.reshape(-1, 1)], axis=1)
+        np.concatenate([X_num, X_cat, y_gen.reshape(-1, 1)], axis=1),
+        columns=diffusion.cols
     )
 
     return df
