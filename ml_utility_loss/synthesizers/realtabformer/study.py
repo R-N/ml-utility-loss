@@ -3,6 +3,8 @@ from .wrapper import REaLTabFormer
 from ...loss_learning.pipeline import eval_ml_utility
 from ...util import filter_dict
 from transformers.models.gpt2 import GPT2Config
+from catboost import CatBoostError
+from optuna.exceptions import TrialPruned
 
 GPT2_PARAM_SPACE = {
     "vocab_size": ("int", 32000, 64000),
@@ -69,12 +71,15 @@ def objective(
 
     synth = rtf_model.sample(n_samples=len(train))
 
-    value = eval_ml_utility(
-        (synth, test),
-        task,
-        target=target,
-        cat_features=cat_features,
-        **ml_utility_params
-    )
+    try:
+        value = eval_ml_utility(
+            (synth, test),
+            task,
+            target=target,
+            cat_features=cat_features,
+            **ml_utility_params
+        )
+    except CatBoostError:
+        raise TrialPruned()
 
     return value

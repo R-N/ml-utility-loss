@@ -1,6 +1,8 @@
 
 from .wrapper import TVAE
 from ...loss_learning.pipeline import eval_ml_utility
+from catboost import CatBoostError
+from optuna.exceptions import TrialPruned
 
 PARAM_SPACE = {
     "embedding_dim": ("int_exp_2", 128, 512),
@@ -41,12 +43,15 @@ def objective(
     # Create synthetic data
     synth = tvae.sample(len(train))
 
-    value = eval_ml_utility(
-        (synth, test),
-        task,
-        target=target,
-        cat_features=cat_features,
-        **ml_utility_params
-    )
+    try:
+        value = eval_ml_utility(
+            (synth, test),
+            task,
+            target=target,
+            cat_features=cat_features,
+            **ml_utility_params
+        )
+    except CatBoostError:
+        raise TrialPruned()
 
     return value

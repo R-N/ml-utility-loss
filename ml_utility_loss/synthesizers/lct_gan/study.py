@@ -2,6 +2,8 @@
 from ...loss_learning.pipeline import eval_ml_utility
 from .pipeline import create_ae, create_gan
 from ...util import filter_dict_2
+from catboost import CatBoostError
+from optuna.exceptions import TrialPruned
 
 PARAM_SPACE = {
     "ae_epochs" : ("log_int", 100, 1000),
@@ -60,12 +62,15 @@ def objective(
         **gan_kwargs
     )
 
-    value = eval_ml_utility(
-        (synth, test),
-        task,
-        target=target,
-        cat_features=cat_features,
-        **ml_utility_params
-    )
+    try:
+        value = eval_ml_utility(
+            (synth, test),
+            task,
+            target=target,
+            cat_features=cat_features,
+            **ml_utility_params
+        )
+    except CatBoostError:
+        raise TrialPruned()
 
     return value
