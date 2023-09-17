@@ -98,7 +98,7 @@ class LatentTAE:
         print(table_recon)
         #### END OF TEST ####
 
-    def decode(self, latent, batch=False):
+    def decode(self, latent, batch=False, postprocessing=True):
         table = []
         batch_start = 0
         if batch:
@@ -120,10 +120,13 @@ class LatentTAE:
             reconstructed = self.ae.decode(l)
             reconstructed = reconstructed.cpu().detach().numpy()
 
-            table_recon = self.postprocess(reconstructed)
-            table.append(table_recon)
+            if postprocessing:
+                reconstructed = self.postprocess(reconstructed)
+            table.append(reconstructed)
 
-        return pd.concat(table)
+        if postprocessing:
+            return pd.concat(table)
+        return table
     
     def postprocess(self, reconstructed):
         return self.data_preprocessor.postprocess(reconstructed)

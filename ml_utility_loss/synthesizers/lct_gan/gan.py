@@ -36,7 +36,6 @@ class LatentGAN:
         b1=0.5, 
         b2=0.999, 
         n_critic=5, 
-        callback=None
     ):
         
         assert len(latent_data) == len(original_data)
@@ -73,10 +72,6 @@ class LatentGAN:
 
         start_time = time.time()
 
-        done_15m = False
-        done_30m = False
-        done_60m = False
-
         adversarial_loss = torch.nn.BCELoss()
         valid = Variable(Tensor(batch_size, 1).fill_(1.0), requires_grad=False)
         non_valid = Variable(Tensor(batch_size, 1).fill_(0.0), requires_grad=False)
@@ -84,28 +79,10 @@ class LatentGAN:
 
         for epoch in tqdm(range(epochs)):
 
-            if epoch % 50 == 0:
-                callback("epoch")
-
             self.generator.train()
             self.discriminator.train()
 
             for i in range(steps):
-
-                ### EXPERIMENTATION
-                elapsed_time = time.time() - start_time 
-
-                if elapsed_time > 15*60 and not done_15m:
-                    callback(15)
-                    done_15m = True
-                elif elapsed_time > 30*60 and not done_30m:
-                    callback(30)
-                    done_30m = True
-                elif elapsed_time > 60*60 and not done_60m:
-                    callback(60)
-                    done_60m = True
-                    return
-                #### EXPERIMENTATION
                 
                 cond_vecs = cond_generator.sample_train(batch_size)
                 c, m, col, opt = cond_vecs
@@ -168,7 +145,6 @@ class LatentGAN:
                 % (epoch + 1, epochs, loss_d.item(), loss_g.item())
             )
 
-        callback(None)
 
     def compute_gradient_penalty(self, D, real_samples, fake_samples):
 
@@ -213,10 +189,8 @@ class LatentGAN:
             z = torch.cat([z], dim=1).to(self.device)
 
             fake = self.generator(z).cpu().detach().numpy()
-            decoded = decoder.decode(scaler.inverse_transform(fake), batch=True)
-            data.append(decoded)
+            data.append(fake)
 
-        data = pd.concat(data)
         print("Sampled data length")
         print(len(data))
-        return data[0:n]
+        return np.stack(data[0:n])
