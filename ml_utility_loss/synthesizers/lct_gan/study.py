@@ -30,7 +30,7 @@ def objective(
     task,
     target,
     cat_features=[],
-    mixed_features=[],
+    mixed_features={},
     longtail_features=[],
     integer_features=[],
     ml_utility_params={},
