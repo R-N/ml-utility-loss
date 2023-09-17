@@ -10,7 +10,7 @@ PARAM_SPACE = {
     "decompress_depth": ("int", 1, 4),
     "l2scale": ("log_float", 1e-6, 1e-4),
     "batch_size": ("int_exp_2", 32, 512),
-    "epochs": ("int", 100, 1000),
+    "epochs": ("log_int", 100, 1000),
     "loss_factor": ("log_float", 0.5, 2.8),
 }
 
