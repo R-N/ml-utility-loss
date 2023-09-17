@@ -2,7 +2,7 @@ import math
 import os
 from .util import mkdir
 import json
-from .params import PARAM_MAP
+from .params import PARAM_MAP, BOOLEAN
 
 def map_parameter(param, source):
     try:
@@ -12,6 +12,15 @@ def map_parameter(param, source):
 
 def sample_parameter(trial, name, type, args, kwargs):
     return getattr(trial, f"suggest_{type}")(name, *args, **kwargs)
+
+def sample_int_exp_2(trial, k, low, high):
+    low = max(low, 1)
+    low = math.log(low, 2)
+    high = math.log(high, 2)
+    assert low % 1 == 0
+    assert high % 1 == 0
+    param = int(math.pow(2, trial.suggest_int(f"{k}_exp_2", low, high)))
+    return param
 
 def sample_parameters(trial, param_space, param_map={}):
     param_map = {**PARAM_MAP, **param_map}
@@ -43,15 +52,19 @@ def sample_parameters(trial, param_space, param_map={}):
             params_raw[k] = param
             params[k] = param
             continue
+        if type_0 == "list_int_exp_2":
+            type_1 = type_0[5:]
+            min, max, low, high = args
+            length = trial.suggest_int(f"{k}_len", min, max)
+            params[k] = [
+                sample_int_exp_2(trial, f"{k}_{i}", low, high)
+                for i in range(length)
+            ]
+            params_raw = repr(params[k])
         if type_0 == "int_exp_2":
             low, high = args
-            low = max(low, 1)
-            low = math.log(low, 2)
-            high = math.log(high, 2)
-            assert low % 1 == 0
-            assert high % 1 == 0
+            param = sample_int_exp_2(trial, k, low, high)
             type_1 = "int"
-            param = int(math.pow(2, trial.suggest_int(f"{k}_exp_2", low, high)))
             params_raw[k] = param
             params[k] = param
             continue
