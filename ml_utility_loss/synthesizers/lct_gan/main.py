@@ -76,6 +76,7 @@ def ae_experiment(
 
     exp = dict(experiment_params)
     dataset_path = exp.pop("raw_csv_path")
+    del exp["best_ae"]
     
     raw_df = pd.read_csv(dataset_path)
 
