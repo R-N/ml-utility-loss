@@ -27,7 +27,8 @@ def latent_gan_experiment(
     gan_epochs=1,
     gan_n_critic=2,
     gan_batch_size=512,
-    sample=1
+    sample=1,
+    ae=None
 ):
 
     exp = dict(experiment_params)
@@ -38,10 +39,10 @@ def latent_gan_experiment(
 
     pickle_path = "./ae_pickles/" + dataset_path.replace("./data/", "").replace(".csv", f"_ae{exp['embedding_size']}_{best_ae}.pickle")
 
-    print(f"Opening {pickle_path}")
-    ae_pf = open(pickle_path, 'rb')
-    ae = pickle.load(ae_pf)
-    ae_pf.close()
+    if not ae:
+        print(f"Opening {pickle_path}")
+        with open(pickle_path, 'rb') as ae_pf:
+            ae = pickle.load(ae_pf)
 
     raw_df = pd.read_csv(dataset_path)
 
@@ -88,6 +89,10 @@ def ae_experiment(
 
     latent_data = ae.encode(preprocessed, preprocessed=True) # could be loaded from file
     reconstructed_data = ae.decode(latent_data, batch=True)
+
+    ae_pf = open("./ae_pickles/" + dataset_path.replace("./data/", "").replace(".csv", f"_ae{exp['embedding_size']}_{epochs}.pickle"), 'wb')
+    pickle.dump(ae, ae_pf)
+    ae_pf.close()
 
     return ae
 
