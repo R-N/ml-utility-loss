@@ -94,6 +94,7 @@ class DataPrep(object):
                 self.column_types["mixed"][column_index] = self.mixed_columns[column]
         
         self.columns = df.columns
+        return df
         
     def inverse_prep(self, data, eps=1):
         
