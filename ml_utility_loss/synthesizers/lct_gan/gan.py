@@ -45,6 +45,8 @@ class LatentGAN:
         self.decoder=decoder
         self.scaler=scaler
 
+        self.prepare_training()
+
     def prepare_training(self):
 
         # self.generator = FCGenerator(self.input_size, self.latent_dim + cond_generator.n_opt)
