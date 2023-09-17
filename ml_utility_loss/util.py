@@ -7,3 +7,6 @@ def load_json(path, **kwargs):
 def dump_json(x, path, **kwargs) -> None:
     kwargs.setdefault('indent', 4)
     Path(path).write_text(json.dumps(x, **kwargs) + '\n')
+
+def mkdir(dir):
+    Path(dir).mkdir(parents=True, exist_ok=True)

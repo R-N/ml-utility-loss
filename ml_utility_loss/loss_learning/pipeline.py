@@ -2,7 +2,7 @@ import pandas as pd
 import json
 from .preprocessing import DataAugmenter
 import os
-from .util import mkdir
+from ..util import mkdir
 
 def augment(df, info, save_dir, n=1, test=0.2):
     mkdir(save_dir)

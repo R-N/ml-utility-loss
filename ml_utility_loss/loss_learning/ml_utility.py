@@ -1,6 +1,6 @@
 from catboost import CatBoostClassifier, CatBoostRegressor, Pool, CatBoostError
-from .params import CATBOOST_METRICS, SKLEARN_METRICS
-from .util import mkdir
+from ..params import CATBOOST_METRICS, SKLEARN_METRICS
+from ..util import mkdir
 import os
 from optuna.exceptions import TrialPruned
 
