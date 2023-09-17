@@ -7,7 +7,7 @@ import numpy as np
 from torch.nn import functional as F
 from torch import nn, optim
 from .modules import FCDecoder, FCEncoder
-from .process import preprocess, postprocess
+from .preprocessing import DataPreprocessor
 
 Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
@@ -26,17 +26,17 @@ def handle_type(x, device=None):
 
 class LatentTAE:
 
-    def __init__(self,
-                 embedding_size,
-                 raw_csv_path="./data/Adult.csv",
-                 test_ratio=0.20,
-                 categorical_columns=['workclass', 'education', 'marital-status',
-                                      'occupation', 'relationship', 'race', 'gender', 'native-country', 'income'],
-                 log_columns=[],
-                 mixed_columns={'capital-loss': [0.0], 'capital-gain': [0.0]},
-                 integer_columns=['age', 'fnlwgt', 'capital-gain',
-                                  'capital-loss', 'hours-per-week'],
-                 problem_type={"Classification": 'income'}):
+    def __init__(
+        self,
+        embedding_size,
+        raw_csv_path="./data/Adult.csv",
+        problem_type={"Classification": 'income'},
+        categorical_columns = [],
+        log_columns=[],
+        integer_columns=[],
+        mixed_columns={}, #dict(col: 0)
+        test_ratio=0.20,
+    ):
 
         self.__name__ = 'AutoEncoder'
         self.raw_df = pd.read_csv(raw_csv_path)
@@ -49,33 +49,33 @@ class LatentTAE:
         self.problem_type = problem_type
         self.train_data = None
         self.loss = None
-
-    def preprocess(self):
-        self.data_prep, self.transformer, self.train_data = preprocess(
-            self.raw_df,
-            self.categorical_columns,
-            self.log_columns,
-            self.mixed_columns,
-            self.integer_columns,
-            self.problem_type,
-            self.test_ratio
+        self.data_preprocessor = DataPreprocessor(
+            categorical_columns=self.categorical_columns,
+            log_columns=self.log_columns,
+            mixed_columns=self.mixed_columns,
+            integer_columns=self.integer_columns
         )
-        return self.train_data
+
+    def fit_preprocessor(self, raw_df):
+        self.data_preprocessor.fit(raw_df)
+
+    def preprocess(self, raw_df):
+        return self.data_preprocessor.preprocess(raw_df)
 
 
-    def fit(self, n_epochs, batch_size):
+    def fit(self, raw_df, n_epochs, batch_size):
 
-        self.preprocess()
+        preprocessed = self.preprocess(raw_df)
 
         self.batch_size = batch_size
 
         data_dim = self.transformer.output_dim
         data_info = self.transformer.output_info
 
-        print(f"DATA DIMENSION: {self.train_data.shape}")
+        print(f"DATA DIMENSION: {preprocessed.shape}")
 
         self.ae.train(
-            self.train_data, 
+            preprocessed, 
             data_dim, 
             data_info, 
             epochs=n_epochs, 
@@ -85,7 +85,7 @@ class LatentTAE:
         ##### TEST #####
         print("######## DEBUG ########")
 
-        real = np.asarray(self.train_data[0:batch_size])
+        real = np.asarray(preprocessed[0:batch_size])
 
         latent = self.ae.encode(real)
         reconstructed = self.ae.decode(latent)
@@ -125,18 +125,13 @@ class LatentTAE:
             reconstructed = self.ae.decode(l)
             reconstructed = reconstructed.cpu().detach().numpy()
 
-            recon_inverse = self.transformer.inverse_transform(reconstructed)
-            table_recon = self.data_prep.inverse_prep(recon_inverse)
+            table_recon = self.postprocess(reconstructed)
             table.append(table_recon)
 
         return pd.concat(table)
     
     def postprocess(self, reconstructed):
-        return postprocess(
-            self.data_prep,
-            self.transformer,
-            reconstructed
-        )
+        return self.data_preprocessor.postprocess(reconstructed)
 
     def get_latent_dataset(self, as_numpy=False):
 
