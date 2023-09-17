@@ -52,8 +52,8 @@ class DataPrep(object):
         self.lower_bounds = {}
         self.label_encoder_list = []
         
-    def prep(self, df):
-
+    def fit(self, df):
+        df = df.copy()
         # Replacing empty strings with na if any and replace na with empty
         df = df.replace(r' ', np.nan)
         df = df.fillna('empty')
@@ -68,14 +68,9 @@ class DataPrep(object):
                     df[i] = df[i].apply(lambda x: EMPTY_VALUE if x==EMPTY else x )
                     self.mixed_columns[i].append(EMPTY_VALUE)
             else:
-                if EMPTY in list(df[i].values):   
+                if EMPTY in list(df[i].values):
                     df[i] = df[i].apply(lambda x: EMPTY_VALUE if x==EMPTY else x)
                     self.mixed_columns[i] = [EMPTY_VALUE]
-        
-        # Dealing with skewed exponential numeric distributions by applying log transformation
-        if self.log_columns:
-            for log_column in self.log_columns:
-                df[log_column], self.lower_bounds[log_column] = log_transform(df[log_column])
         
         # Encoding categorical column using label encoding to assign each category within a column with an integer value
         for column_index, column in enumerate(df.columns):
@@ -87,8 +82,6 @@ class DataPrep(object):
                 current_label_encoder = dict()
                 current_label_encoder['column'] = column
                 current_label_encoder['label_encoder'] = label_encoder
-                transformed_column = label_encoder.transform(df[column])
-                df[column] = transformed_column
                 self.label_encoder_list.append(current_label_encoder)
                 self.column_types["categorical"].append(column_index)
             
@@ -96,6 +89,36 @@ class DataPrep(object):
                 self.column_types["mixed"][column_index] = self.mixed_columns[column]
         
         self.columns = df.columns
+
+    def prep(self, df):
+        df = df.copy()
+
+        # Replacing empty strings with na if any and replace na with empty
+        df = df.replace(r' ', np.nan)
+        df = df.fillna('empty')
+
+        # Dealing with empty values in numeric columns by replacing it with EMPTY_VALUE and treating it as categorical mode 
+        all_columns= set(df.columns)
+        irrelevant_missing_columns = set(self.categorical_columns)
+        relevant_missing_columns = list(all_columns - irrelevant_missing_columns)
+        for i in relevant_missing_columns:
+            if i in list(self.mixed_columns.keys()):
+                if EMPTY in list(df[i].values):
+                    df[i] = df[i].apply(lambda x: EMPTY_VALUE if x==EMPTY else x )
+            else:
+                if EMPTY in list(df[i].values):   
+                    df[i] = df[i].apply(lambda x: EMPTY_VALUE if x==EMPTY else x)
+        
+        # Dealing with skewed exponential numeric distributions by applying log transformation
+        if self.log_columns:
+            for log_column in self.log_columns:
+                df[log_column], self.lower_bounds[log_column] = log_transform(df[log_column])
+        
+        # Encoding categorical column using label encoding to assign each category within a column with an integer value
+        for le in self.label_encoder_list:
+            column = le["column"]
+            df[column] = le["label_encoder"].transform(df[column].astype(str))
+        
         return df
         
     def inverse_prep(self, data, eps=1):
@@ -623,6 +646,8 @@ class DataPreprocessor:
             mixed=self.mixed_columns,
             integer=self.integer_columns
         )
+
+        data_prep.fit(raw_df)
 
         prepped = data_prep.prep(raw_df)
 
