@@ -37,14 +37,14 @@ class DataPrep(object):
         categorical: list=[], 
         log:list=[], 
         integer:list=[],
-        mixed:dict={}, 
+        mixed:dict={}, #dict(col: [0.0])
     ):
         
         self.categorical_columns = categorical
         self.log_columns = log
         self.mixed_columns = mixed
         if isinstance(self.mixed_columns, list):
-            self.mixed_columns = {k: 0.0 for k in self.mixed_columns}
+            self.mixed_columns = {k: [0.0] for k in self.mixed_columns}
         self.integer_columns = integer
         self.column_types = dict()
         self.column_types["categorical"] = []

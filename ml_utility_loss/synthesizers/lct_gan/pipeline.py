@@ -45,13 +45,13 @@ def create_gan(
 
 def create_ae(
     df,
-    categorical_columns = ['workclass', 'education', 'marital-status', 'occupation', 'relationship', 'race', 'gender', 'native-country', 'income'],
-    log_columns = [],
-    mixed_columns = {'capital-loss': [0.0], 'capital-gain': [0.0]},
-    integer_columns = ['age', 'fnlwgt', 'capital-gain', 'capital-loss', 'hours-per-week'],
-    epochs = 1,
+    categorical_columns=[],
+    log_columns=[],
+    mixed_columns={}, #dict(col: [0.0])
+    integer_columns=[],
+    epochs=1,
     batch_size=512,
-    embedding_size = 64,
+    embedding_size=64,
 ):
     ae = LatentTAE(
         batch_size=batch_size,
