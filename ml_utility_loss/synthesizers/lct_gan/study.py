@@ -1,5 +1,4 @@
 
-from .wrapper import TVAE
 from ...loss_learning.pipeline import eval_ml_utility
 from .pipeline import create_ae, create_gan
 from ...util import filter_dict_2
