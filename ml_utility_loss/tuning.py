@@ -53,7 +53,7 @@ def sample_parameters(trial, param_space, param_map={}):
             params[k] = param
             continue
         if type_0 == "list_int_exp_2":
-            type_1 = type_0[5:]
+            #type_1 = type_0[5:]
             min, max, low, high = args
             length = trial.suggest_int(f"{k}_len", min, max)
             params[k] = [
