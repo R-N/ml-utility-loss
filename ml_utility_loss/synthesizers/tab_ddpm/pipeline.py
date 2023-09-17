@@ -19,7 +19,6 @@ def validate_device(device="cuda"):
     return device if torch.cuda.is_available() else "cpu"
 
 DEFAULT_MODEL_PARAMS = {
-    "num_classes": 2,
     "is_y_cond": True,
     "rtdl_params": {
         "d_layers": [
@@ -31,7 +30,14 @@ DEFAULT_MODEL_PARAMS = {
             512,
         ],
         "dropout": 0.0
-    }
+    },
+    "lr": 0.002,
+    "weight_decay": 1e-4,
+    "batch_size": 1024,
+    "num_timesteps": 1000,
+    "gaussian_loss_type": 'mse',
+    "scheduler": 'cosine',
+    "cat_encoding": "ordinal", #'one-hot',
 }
 
 def train(
@@ -39,10 +45,11 @@ def train(
     task_type,
     target,
     cat_features=[], 
-    model_params = DEFAULT_MODEL_PARAMS,
     num_numerical_features = 6,
     device=DEFAULT_DEVICE,
+    **kwargs
 ):
+    kwargs = {**DEFAULT_MODEL_PARAMS, **kwargs}
     device = validate_device(device)
     dataset = dataset_from_df(
         df,
@@ -52,7 +59,7 @@ def train(
     )
     return _train(
         dataset,
-        model_params=model_params,
+        model_params=kwargs,
         num_numerical_features=num_numerical_features,
         device=device,
     )
