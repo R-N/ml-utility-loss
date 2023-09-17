@@ -32,7 +32,7 @@ def objective(
     target,
     cat_features=[],
     mixed_features=[],
-    log_features=[],
+    longtail_features=[],
     integer_features=[],
     ml_utility_params={},
     checkpoint_dir=None,
@@ -50,7 +50,7 @@ def objective(
         categorical_columns = cat_features,
         mixed_columns = mixed_features,
         integer_columns = integer_features,
-        log_columns=log_features,
+        log_columns=longtail_features,
         **ae_kwargs
     )
 
