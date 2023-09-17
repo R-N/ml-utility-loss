@@ -193,4 +193,4 @@ class LatentGAN:
 
         print("Sampled data length")
         print(len(data))
-        return np.stack(data[0:n])
+        return np.concatenate(data[0:n])
