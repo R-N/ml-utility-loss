@@ -98,11 +98,15 @@ def train(
 
     zero.improve_reproducibility(seed)
 
+    dataset_kwargs = {}
+    if "is_y_cond" in model_params:
+        dataset_kwargs["is_y_cond"] = model_params["is_y_cond"]
+
     dataset = transform_dataset(
         dataset,
-        is_y_cond=model_params['is_y_cond'],
         cat_encoding=cat_encoding,
-        concat_y=False
+        concat_y=False,
+        **dataset_kwargs
     )
 
     K = np.array(dataset.train_category_sizes)

@@ -418,7 +418,7 @@ def transform_dataset(
     cat_nan_policy=None,
     cat_encoding: CatEncoding = "ordinal", #one-hot
     y_policy="default",
-    is_y_cond=False,
+    is_y_cond=True,
     concat_y=True,
     concat_cat=False
 ) -> Dataset:
