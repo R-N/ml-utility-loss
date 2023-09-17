@@ -1,6 +1,6 @@
 from ...params import BOOLEAN
 from .wrapper import REaLTabFormer
-from ...ml_utility.pipeline import eval_ml_utility
+from ...loss_learning.ml_utility.pipeline import eval_ml_utility
 from ...util import filter_dict
 from transformers.models.gpt2 import GPT2Config
 
