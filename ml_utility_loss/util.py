@@ -10,3 +10,6 @@ def dump_json(x, path, **kwargs) -> None:
 
 def mkdir(dir):
     Path(dir).mkdir(parents=True, exist_ok=True)
+
+def filter_dict(dict, keys):
+    return {k: v for k, v in dict.items() if k in keys}

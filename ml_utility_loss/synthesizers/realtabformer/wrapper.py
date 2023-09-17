@@ -51,17 +51,14 @@ from .util import validate_get_device
 class REaLTabFormer:
     def __init__(
         self,
-        model_type: str,
+        model_type: str = ModelType.tabular,
         tabular_config: Optional[GPT2Config] = None,
-        #parent_realtabformer_path: Optional[Path] = None,
-        #freeze_parent_model: Optional[bool] = True,
         checkpoints_dir: str = "rtf_checkpoints",
         samples_save_dir: str = "rtf_samples",
         epochs: int = 100,
         batch_size: int = 8,
         random_state: int = 1029,
         train_size: float = 1,
-        #output_max_length: int = 512,
         early_stopping_patience: int = 5,
         early_stopping_threshold: float = 0,
         mask_rate: float = 0,
