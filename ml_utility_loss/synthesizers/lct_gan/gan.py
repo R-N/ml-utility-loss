@@ -171,7 +171,7 @@ class LatentGAN:
 
         return gradient_penalty
 
-    def sample(self, n, decoder, scaler):
+    def sample(self, n):
         
         # turning the generator into inference mode to effectively use running statistics in batch norm layers
         self.generator.eval()
