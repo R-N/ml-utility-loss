@@ -8,13 +8,13 @@ PARAM_SPACE = {
     "lr": ("log_float", 1e-5, 1e-3),
     "weight_decay": ("log_float", 1e-5, 1e-3),
     "batch_size": ("int_exp_2", 256, 2048),
-    "num_timesteps": ("int", 100, 2000, 100),
+    "num_timesteps": ("int", 100, 1000, 100),
     "gaussian_loss_type": ("categorical", ['mse', 'kl']),
     "cat_encoding": ("categorical", ["ordinal", 'one-hot']),
     #rtdl_params
     "dropout": ("float", 0.0, 0.2),
     "d_layers": ("list_int_exp_2", 2, 6, 128, 2048),
-    #"steps": ("log_int", 100, 1000),
+    "steps": ("log_int", 100, 1000),
 }
 
 RTDL_PARAMS = ["dropout", "d_layers"]
@@ -50,15 +50,15 @@ def objective(
         num_samples=len(train)
     )
 
-    #try:
-    value = eval_ml_utility(
-        (synth, test),
-        task,
-        target=target,
-        cat_features=cat_features,
-        **ml_utility_params
-    )
-    #except CatBoostError:
-    #    raise TrialPruned()
+    try:
+        value = eval_ml_utility(
+            (synth, test),
+            task,
+            target=target,
+            cat_features=cat_features,
+            **ml_utility_params
+        )
+    except CatBoostError:
+        raise TrialPruned()
 
     return value
