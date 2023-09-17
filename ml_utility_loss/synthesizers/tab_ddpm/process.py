@@ -82,7 +82,6 @@ class Trainer:
 
 def train(
     dataset,
-    parent_dir,
     steps = 10,
     lr = 0.002,
     weight_decay = 1e-4,
@@ -96,7 +95,6 @@ def train(
     seed = 0,
     cat_encoding = "ordinal", #'one-hot',
 ):
-    parent_dir = os.path.normpath(parent_dir)
 
     zero.improve_reproducibility(seed)
 

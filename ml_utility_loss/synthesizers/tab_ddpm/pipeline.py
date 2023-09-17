@@ -39,7 +39,6 @@ def train(
     task_type,
     target,
     cat_features=[], 
-    parent_dir="exp/adult/ddpm_cb_best",
     model_params = DEFAULT_MODEL_PARAMS,
     num_numerical_features = 6,
     device=DEFAULT_DEVICE,
@@ -53,35 +52,22 @@ def train(
     )
     return _train(
         dataset,
-        parent_dir=parent_dir,
         model_params=model_params,
         num_numerical_features=num_numerical_features,
         device=device,
     )
 
 def sample(
-    df, 
-    task_type,
-    target,
-    cat_features=[], 
-    parent_dir="exp/adult/ddpm_cb_best",
-    model_path="exp/adult/ddpm_cb_best/model.pt",
-    model_params = DEFAULT_MODEL_PARAMS,
-    num_numerical_features = 6,
-    device=DEFAULT_DEVICE,
+    diffusion, 
+    batch_size = 2000,
+    num_samples = 10,
+    disbalance = None,
+    seed = 0,
 ):
-    device = validate_device(device)
-    dataset = dataset_from_df(
-        df,
-        task_type=task_type,
-        target=target,
-        cat_features=cat_features, 
-    )
     return _sample(
-        dataset,
-        parent_dir=parent_dir,
-        model_path=model_path,
-        model_params=model_params,
-        num_numerical_features=num_numerical_features,
-        device=device,
+        diffusion,
+        batch_size=batch_size,
+        num_samples=num_samples,
+        disbalance=disbalance,
+        seed=seed
     )
