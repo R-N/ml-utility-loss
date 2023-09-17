@@ -639,3 +639,11 @@ class DataPreprocessor:
         recon_inverse = self.transformer.inverse_transform(reconstructed)
         table_recon = self.data_prep.inverse_prep(recon_inverse)
         return table_recon
+
+    @property
+    def output_dim(self):
+        return self.transformer.output_dim
+
+    @property
+    def output_info(self):
+        return self.transformer.output_info

@@ -69,8 +69,8 @@ class LatentTAE:
 
         self.batch_size = batch_size
 
-        data_dim = self.transformer.output_dim
-        data_info = self.transformer.output_info
+        data_dim = self.data_preprocessor.output_dim
+        data_info = self.data_preprocessor.output_info
 
         print(f"DATA DIMENSION: {preprocessed.shape}")
 
