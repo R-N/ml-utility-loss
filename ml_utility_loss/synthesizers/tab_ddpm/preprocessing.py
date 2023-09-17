@@ -175,6 +175,7 @@ def build_y_info(
     info = {"policy": policy, "task_type": task_type}
     if is_y_cond is not None:
         info["is_cond"] = is_y_cond
+    _, info["empirical_class_dist"] = torch.unique(torch.from_numpy(y_train), return_counts=True)
     if policy is None:
         return info
     if policy == 'default':
@@ -531,13 +532,17 @@ def dataset_from_df(
     test_set = dict(zip(DATASET_TYPES, dfs["test"])) if "test" in dfs else None
 
     n_classes = 0 if task_type==TaskType.REGRESSION else len(np.unique(train_set["y"]))
+    num_cols = [c for c in df.columns if c not in [*cat_features, target]]
+    cols = [*num_cols, *cat_features, target]
+
     dataset = Dataset(
         train_set=train_set, 
         val_set=val_set, 
         test_set=test_set, 
         y_info={}, 
         task_type=task_type, 
-        n_classes=n_classes
+        n_classes=n_classes,
+        cols=cols,
     )
     
     return dataset

@@ -28,6 +28,7 @@ class Dataset:
     y_info: Dict[str, Any]
     task_type: TaskType
     n_classes: Optional[int]
+    cols: List
 
     @property
     def is_binclass(self) -> bool:
@@ -92,5 +93,3 @@ class Dataset:
     @property
     def train_category_sizes(self) -> List[int]:
         return [] if not self.has_cat else get_category_sizes(self.train_set["X_cat"])
-
-    

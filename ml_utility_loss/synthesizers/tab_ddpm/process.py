@@ -128,7 +128,6 @@ def train(
     )
 
 
-
     diffusion = GaussianMultinomialDiffusion(
         num_classes=K,
         num_numerical_features=num_numerical_features,
@@ -141,6 +140,12 @@ def train(
     diffusion.to(device)
     diffusion.train()
 
+    diffusion.empirical_class_dist = dataset.y_info["empirical_class_dist"]
+    diffusion.transformer = dataset.transformer
+    diffusion.is_regression = dataset.is_regression
+    diffusion.num_numerical_features_2 = num_numerical_features + int(dataset.is_regression and not model_params["is_y_cond"])
+    diffusion.cols = dataset.cols
+
     trainer = Trainer(
         diffusion,
         train_loader,
@@ -151,65 +156,23 @@ def train(
     )
     trainer.run_loop()
 
-    trainer.loss_history.to_csv(os.path.join(parent_dir, 'loss.csv'), index=False)
-    torch.save(diffusion._denoise_fn.state_dict(), os.path.join(parent_dir, 'model.pt'))
-    torch.save(trainer.ema_model.state_dict(), os.path.join(parent_dir, 'model_ema.pt'))
-
     return model, diffusion, trainer
 
 DEFAULT_DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else "cpu")
 
 def sample(
-    dataset,
-    parent_dir,
+    diffusion,
     batch_size = 2000,
     num_samples = 10,
-    model_params = None,
-    model_path = None,
-    num_timesteps = 1000,
-    gaussian_loss_type = 'mse',
-    scheduler = 'cosine',
-    num_numerical_features = 0,
     disbalance = None,
-    device = DEFAULT_DEVICE,
     seed = 0,
-    cat_encoding="ordinal",
 ):
     zero.improve_reproducibility(seed)
 
     batch_size = min(batch_size, num_samples)
 
-    dataset = transform_dataset(
-        dataset,
-        is_y_cond=model_params['is_y_cond'],
-        cat_encoding=cat_encoding,
-        concat_y=False
-    )
-
-    K = np.array(dataset.train_category_sizes)
-    if len(K) == 0 or cat_encoding == 'one-hot':
-        K = np.array([0])
-
-    num_numerical_features_ = dataset.num_numerical_features
-    d_in = np.sum(K) + num_numerical_features_
-    model_params['d_in'] = int(d_in)
-    model = MLPDiffusion(**model_params)
-
-    model.load_state_dict(
-        torch.load(model_path, map_location="cpu")
-    )
-
-    diffusion = GaussianMultinomialDiffusion(
-        K,
-        num_numerical_features=num_numerical_features_,
-        denoise_fn=model, num_timesteps=num_timesteps, 
-        gaussian_loss_type=gaussian_loss_type, scheduler=scheduler, device=device
-    )
-
-    diffusion.to(device)
-    diffusion.eval()
+    empirical_class_dist = diffusion.empirical_class_dist
     
-    _, empirical_class_dist = torch.unique(torch.from_numpy(dataset.train_set["y"]), return_counts=True)
     if disbalance == 'fix':
         empirical_class_dist[0], empirical_class_dist[1] = empirical_class_dist[1], empirical_class_dist[0]
         x_gen, y_gen = diffusion.sample_all(num_samples, batch_size, empirical_class_dist.float(), ddim=False)
@@ -237,9 +200,11 @@ def sample(
 
     X_gen, y_gen = x_gen.numpy(), y_gen.numpy()
 
-    num_numerical_features = num_numerical_features + int(dataset.is_regression and not model_params["is_y_cond"])
+    X_num, X_cat, y_gen = diffusion.transformer.inverse_transform(X_gen, y_gen)
 
-    X_num, X_cat, y_gen = dataset.transformer.inverse_transform(X_gen, y_gen)
+    df = pd.DataFrame(
+        np.concatenate([X_num, X_cat, y_gen.reshape(-1, 1)], axis=1)
+    )
 
-    return X_num, X_cat, y_gen
+    return df
     
