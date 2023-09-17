@@ -15,7 +15,19 @@ Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTen
 class LatentGAN:
 
     # input_size should be input_size + cond_vector
-    def __init__(self, input_size, latent_dim, minutes=15):
+    def __init__(
+        self, 
+        input_size, 
+        latent_dim, 
+        transformer_output_info, 
+        batch_size=256, 
+        lr=0.0002, 
+        b1=0.5, 
+        b2=0.999, 
+        n_critic=5, 
+        decoder=None,
+        scaler=None
+    ):
         self.input_size = input_size
         self.generator = None
         self.discriminator = None
@@ -24,33 +36,37 @@ class LatentGAN:
         # Loss weight for gradient penalty
         self.lambda_gp = 10
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.transformer_output_info=transformer_output_info
+        self.batch_size=batch_size
+        self.lr=lr
+        self.b1=b1
+        self.b2=b2
+        self.n_critic=n_critic
+        # Optimizers
+        self.optimizer_G = torch.optim.Adam(self.generator.parameters(), lr=self.lr, betas=(self.b1, self.b2))
+        self.optimizer_D = torch.optim.Adam(self.discriminator.parameters(), lr=self.lr, betas=(self.b1, self.b2))
+        self.decoder=decoder
+        self.scaler=scaler
 
     def fit(
         self, 
         latent_data, 
         original_data, 
-        transformer_output_info, 
         epochs=5, 
-        batch_size=256, 
-        lr=0.0002, 
-        b1=0.5, 
-        b2=0.999, 
-        n_critic=5, 
     ):
         
         assert len(latent_data) == len(original_data)
         
-        cond_generator = Condvec(original_data, transformer_output_info)
-        data_sampler = Sampler(original_data, transformer_output_info)
+        cond_generator = Condvec(original_data, self.transformer_output_info)
+        data_sampler = Sampler(original_data, self.transformer_output_info)
 
         self.cond_generator = cond_generator
         self.data_sampler = data_sampler
-        self.batch_size = batch_size
 
         # self.generator = FCGenerator(self.input_size, self.latent_dim + cond_generator.n_opt)
         self.generator = FCGenerator(self.input_size, self.latent_dim)
         # self.discriminator = FCDiscriminator(self.input_size + cond_generator.n_opt, batch_size=batch_size)
-        self.discriminator = FCDiscriminator(self.input_size, batch_size=batch_size)
+        self.discriminator = FCDiscriminator(self.input_size, batch_size=self.batch_size)
 
         self.generator.to(self.device)
         self.discriminator.to(self.device)
@@ -59,11 +75,8 @@ class LatentGAN:
             self.generator.cuda()
             self.discriminator.cuda()
 
-        # Optimizers
-        optimizer_G = torch.optim.Adam(self.generator.parameters(), lr=lr, betas=(b1, b2))
-        optimizer_D = torch.optim.Adam(self.discriminator.parameters(), lr=lr, betas=(b1, b2))
         
-        steps = (len(latent_data) // batch_size) + 1
+        steps = (len(latent_data) // self.batch_size) + 1
 
         loss_g  = torch.tensor([1.0]) # just for logging purposes, it is reassigned down
         loss_d = torch.tensor([1.0])  # just for logging purposes, it is reassigned down
@@ -73,8 +86,8 @@ class LatentGAN:
         start_time = time.time()
 
         adversarial_loss = torch.nn.BCELoss()
-        valid = Variable(Tensor(batch_size, 1).fill_(1.0), requires_grad=False)
-        non_valid = Variable(Tensor(batch_size, 1).fill_(0.0), requires_grad=False)
+        valid = Variable(Tensor(self.batch_size, 1).fill_(1.0), requires_grad=False)
+        non_valid = Variable(Tensor(self.batch_size, 1).fill_(0.0), requires_grad=False)
         # Experimentation purposes
 
         for epoch in tqdm(range(epochs)):
@@ -84,19 +97,19 @@ class LatentGAN:
 
             for i in range(steps):
                 
-                cond_vecs = cond_generator.sample_train(batch_size)
+                cond_vecs = cond_generator.sample_train(self.batch_size)
                 c, m, col, opt = cond_vecs
                 c = torch.from_numpy(c).to(self.device)
                 m = torch.from_numpy(m).to(self.device)
 
-                original_idx = data_sampler.sample_idx(batch_size, col, opt)
+                original_idx = data_sampler.sample_idx(self.batch_size, col, opt)
                 real = latent_data[original_idx]
                 real = torch.from_numpy(real.astype('float32')).to(self.device)
                 
                 ### TRAIN DISCRIMINATOR
-                optimizer_D.zero_grad()
+                self.optimizer_D.zero_grad()
 
-                z = Tensor(np.random.uniform(0, 1, (batch_size, self.latent_dim))).to(self.device)
+                z = Tensor(np.random.uniform(0, 1, (self.batch_size, self.latent_dim))).to(self.device)
                 # z = torch.cat([z , c], dim=1).to(self.device)
                 z = torch.cat([z], dim=1).to(self.device)
                 z = Variable(z).to(self.device)
@@ -123,12 +136,12 @@ class LatentGAN:
                 # loss_d = (real_loss + fake_loss) / 2
                 loss_d.backward()
 
-                optimizer_D.step()
+                self.optimizer_D.step()
 
                 ### TRAIN GENERATOR
-                optimizer_G.zero_grad()
+                self.optimizer_G.zero_grad()
 
-                if i % n_critic == 0:
+                if i % self.n_critic == 0:
                         # Generate a batch of data
                     fake = self.generator(z).to(self.device)
                     # fake_probability = self.discriminator(torch.cat([fake, c], dim=1).to(self.device))
@@ -139,7 +152,7 @@ class LatentGAN:
                     loss_g = -torch.mean(fake_probability)
                     loss_g.backward()
 
-                    optimizer_G.step()
+                    self.optimizer_G.step()
 
             print("[Epoch %d/%d] [D loss: %f] [G loss: %f]" 
                 % (epoch + 1, epochs, loss_d.item(), loss_g.item())
@@ -193,4 +206,10 @@ class LatentGAN:
 
         print("Sampled data length")
         print(len(data))
-        return np.concatenate(data[0:n])
+        data = np.concatenate(data[0:n])
+
+        if self.scaler:
+            data = self.scaler.inverse_transform(data)
+        if self.decoder:
+            data = self.decoder.decode(data, batch=True)
+        return data
