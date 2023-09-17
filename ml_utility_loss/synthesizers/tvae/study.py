@@ -26,6 +26,9 @@ def objective(
 ):
     train, test = datasets
 
+    kwargs["compress_dims"] = [kwargs["compress_dims"] for i in range(kwargs["compress_depth"])]
+    kwargs["decompress_dims"] = [kwargs["decompress_dims"] for i in range(kwargs["decompress_depth"])]
+
     tvae = TVAE(**kwargs)
     tvae.fit(train, cat_features)
 
