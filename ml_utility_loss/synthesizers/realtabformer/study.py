@@ -7,9 +7,9 @@ from transformers.models.gpt2 import GPT2Config
 GPT2_PARAM_SPACE = {
     "vocab_size": ("int", 32000, 64000),
     "n_positions": ("int_exp_2", 512, 2048),
-    "n_embd": ("int", 512, 1024, 16),
+    "n_embd": ("int", 512, 1024, 32),
     "n_layer": ("int", 8, 16),
-    "n_head": ("int", 8, 16),
+    "n_head": ("int_exp_2", 8, 32),
     "activation_function": ("categorical", ["relu", "silu", "gelu", "tanh", "gelu_new"]),
     "resid_pdrop": ("float", 0.0, 0.2),
     "embd_pdrop": ("float", 0.0, 0.2),
