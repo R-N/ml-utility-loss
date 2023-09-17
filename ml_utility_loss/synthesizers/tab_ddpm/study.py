@@ -2,7 +2,7 @@ from ...loss_learning.pipeline import eval_ml_utility
 from catboost import CatBoostError
 from optuna.exceptions import TrialPruned
 from ...util import filter_dict
-from .pipeline import train, sample
+from .pipeline import train as _train, sample as _sample
 
 PARAM_SPACE = {
     "lr": ("log_float", 1e-5, 1e-3),
@@ -36,7 +36,7 @@ def objective(
     kwargs = {k: v for k, v in kwargs.items() if k not in rtdl_params}
     kwargs["rtdl_params"] = rtdl_params
 
-    model, diffusion, trainer = train(
+    model, diffusion, trainer = _train(
         train,
         task_type=task,
         target=target,
@@ -44,21 +44,21 @@ def objective(
 
     )
     # Create synthetic data
-    synth = sample(
+    synth = _sample(
         diffusion, 
         batch_size=kwargs["batch_size"],
         num_samples=len(train)
     )
 
-    try:
-        value = eval_ml_utility(
-            (synth, test),
-            task,
-            target=target,
-            cat_features=cat_features,
-            **ml_utility_params
-        )
-    except CatBoostError:
-        raise TrialPruned()
+    #try:
+    value = eval_ml_utility(
+        (synth, test),
+        task,
+        target=target,
+        cat_features=cat_features,
+        **ml_utility_params
+    )
+    #except CatBoostError:
+    #    raise TrialPruned()
 
     return value
