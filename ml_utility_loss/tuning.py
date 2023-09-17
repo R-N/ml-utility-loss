@@ -60,7 +60,8 @@ def sample_parameters(trial, param_space, param_map={}):
                 sample_int_exp_2(trial, f"{k}_{i}", low, high)
                 for i in range(length)
             ]
-            params_raw = repr(params[k])
+            params_raw[k] = repr(params[k])
+            continue
         if type_0 == "int_exp_2":
             low, high = args
             param = sample_int_exp_2(trial, k, low, high)
