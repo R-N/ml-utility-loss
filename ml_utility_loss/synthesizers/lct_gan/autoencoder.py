@@ -34,6 +34,7 @@ class LatentTAE:
         log_columns=[],
         integer_columns=[],
         mixed_columns={}, #dict(col: 0)
+        batch_size=512,
         test_ratio=0.20,
     ):
 
@@ -45,6 +46,7 @@ class LatentTAE:
         self.mixed_columns = mixed_columns
         self.integer_columns = integer_columns
         self.problem_type = problem_type
+        self.batch_size=batch_size
         self.train_data = None
         self.loss = None
         self.data_preprocessor = DataPreprocessor(
@@ -61,12 +63,10 @@ class LatentTAE:
         return self.data_preprocessor.preprocess(raw_df)
 
 
-    def fit(self, df, n_epochs, batch_size, preprocessed=False):
+    def fit(self, df, n_epochs, preprocessed=False):
 
         if not preprocessed:
             df = self.preprocess(df)
-
-        self.batch_size = batch_size
 
         data_dim = self.data_preprocessor.output_dim
         data_info = self.data_preprocessor.output_info
@@ -78,13 +78,13 @@ class LatentTAE:
             data_dim, 
             data_info, 
             epochs=n_epochs, 
-            batch_size=batch_size
+            batch_size=self.batch_size
         )
         self.loss = self.ae.loss
         ##### TEST #####
         print("######## DEBUG ########")
 
-        real = np.asarray(df[0:batch_size])
+        real = np.asarray(df[0:self.batch_size])
 
         latent = self.ae.encode(real)
         reconstructed = self.ae.decode(latent)

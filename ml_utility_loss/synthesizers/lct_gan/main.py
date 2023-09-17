@@ -105,11 +105,11 @@ def ae_experiment(
         start_time = time.time()
         raw_df = pd.read_csv(dataset_path)
 
-        ae = LatentTAE(**exp)
+        ae = LatentTAE(batch_size=ae_batch_size, **exp)
         ae.fit_preprocessor(raw_df)
         preprocessed = ae.preprocess(raw_df)
-        latent_data = ae.encode(preprocessed, preprocessed=True) # could be loaded from file
-        ae.fit(raw_df, n_epochs=epochs, batch_size=ae_batch_size)
+        ae.fit(preprocessed, n_epochs=epochs, preprocessed=True)
+        
         time_to_train = time.time() - start_time
         print("--- %s seconds ---" % (time_to_train))
 
@@ -117,9 +117,9 @@ def ae_experiment(
         pickle.dump(ae, ae_pf)
         ae_pf.close()
 
-        real_path = dataset_path
         decoded_path = dataset_path.replace("./data/", "./data/decoded/").replace(".csv", f"_decoded{exp['embedding_size']}_{epochs}.csv")
 
+        latent_data = ae.encode(preprocessed, preprocessed=True) # could be loaded from file
         reconstructed_data = ae.decode(latent_data, batch=True)
 
         reconstructed_data.to_csv(decoded_path, index=False)
