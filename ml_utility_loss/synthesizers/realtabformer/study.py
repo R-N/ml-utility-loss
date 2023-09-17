@@ -28,7 +28,7 @@ REALTABFORMER_PARAM_SPACE = {
     "numeric_max_len": ("int", 10, 16),
     "evaluation_strategy": ("categorical", ["steps", "epoch"]),
     "gradient_accumulation_steps": ("int_exp_2", 1, 8),
-    "optim": ("category", ["adam_torch", "sgd_torch", "adamw_torch"]),
+    "optim": ("categorical", ["adam_torch", "sgd_torch", "adamw_torch"]),
 }
 
 PARAM_SPACE = {
