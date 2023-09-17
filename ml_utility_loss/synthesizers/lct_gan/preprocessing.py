@@ -111,6 +111,10 @@ class DataPrep(object):
             le = self.label_encoder_list[i]["label_encoder"]
             df_sample[self.label_encoder_list[i]["column"]] = df_sample[self.label_encoder_list[i]["column"]]
             try:
+                df_sample[self.label_encoder_list[i]["column"]] = df_sample[self.label_encoder_list[i]["column"]].astype(int)
+            except ValueError:
+                pass
+            try:
                 df_sample[self.label_encoder_list[i]["column"]] = le.inverse_transform(df_sample[self.label_encoder_list[i]["column"]])
             except IndexError:
                 pass
