@@ -213,6 +213,6 @@ class LatentGAN:
 
         if self.scaler:
             data = self.scaler.inverse_transform(data)
-        if self.decoder:
-            data = self.decoder.decode(data, batch=True)
+            if self.decoder:
+                data = self.decoder.decode(data)
         return data

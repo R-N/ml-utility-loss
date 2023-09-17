@@ -39,7 +39,7 @@ def create_gan(
         epochs=epochs, 
     )
 
-    synth_df = gan.sample(sample or len(latent_data))
+    synth_df = gan.sample(sample or len(df))
 
     return gan, synth_df
 
