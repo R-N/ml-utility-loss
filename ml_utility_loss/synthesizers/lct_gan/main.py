@@ -92,7 +92,8 @@ def ae_experiment(
         start_time = time.time()
 
         ae = LatentTAE(**exp)
-        ae.fit(n_epochs=epochs, batch_size=ae_batch_size)
+        ae.fit_preprocessor(ae.raw_df)
+        ae.fit(ae.raw_df, n_epochs=epochs, batch_size=ae_batch_size)
         time_to_train = time.time() - start_time
         print("--- %s seconds ---" % (time_to_train))
 
