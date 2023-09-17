@@ -86,7 +86,6 @@ def train(
     lr = 0.002,
     weight_decay = 1e-4,
     batch_size = 1024,
-    model_params = None,
     num_timesteps = 1000,
     gaussian_loss_type = 'mse',
     scheduler = 'cosine',
@@ -94,6 +93,7 @@ def train(
     device = DEFAULT_DEVICE,
     seed = 0,
     cat_encoding = "ordinal", #'one-hot',
+    **model_params
 ):
 
     zero.improve_reproducibility(seed)
@@ -116,7 +116,10 @@ def train(
     print(d_in)
     
     print(model_params)
-    model = MLPDiffusion(**model_params)
+    model = MLPDiffusion(
+        num_classes=dataset.n_classes
+        **model_params
+    )
     model.to(device)
 
     train_loader = prepare_fast_dataloader(
@@ -160,7 +163,7 @@ DEFAULT_DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else "cpu")
 
 def sample(
     diffusion,
-    batch_size = 2000,
+    batch_size = 1024,
     num_samples = 10,
     disbalance = None,
     seed = 0,
