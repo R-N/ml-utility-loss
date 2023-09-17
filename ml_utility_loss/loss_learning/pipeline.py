@@ -1,9 +1,10 @@
 import pandas as pd
+from catboost import Pool
 import json
 from .preprocessing import DataAugmenter
 import os
 from ..util import mkdir
-from .ml_utility import CatBoostModel
+from .ml_utility import CatBoostModel, create_pool
 
 def augment(df, info, save_dir, n=1, test=0.2):
     mkdir(save_dir)
@@ -33,6 +34,8 @@ def eval_ml_utility(
     datasets,
     task,
     checkpoint_dir=None,
+    target=None,
+    cat_features=[],
     **model_params
 ):
     train, test = datasets
@@ -42,6 +45,12 @@ def eval_ml_utility(
         checkpoint_dir=checkpoint_dir,
         **model_params
     )
+
+    if not isinstance(train, Pool):
+        train = create_pool(train, target=target, cat_features=cat_features)
+    if not isinstance(test, Pool):
+        test = create_pool(test, target=target, cat_features=cat_features)
+
     model.fit(train, test)
 
     value = model.eval(test)
