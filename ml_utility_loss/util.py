@@ -13,3 +13,6 @@ def mkdir(dir):
 
 def filter_dict(dict, keys):
     return {k: v for k, v in dict.items() if k in keys}
+
+def filter_dict_2(dict, keys):
+    return {keys[k]: v for k, v in dict.items() if k in keys}

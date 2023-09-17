@@ -18,7 +18,7 @@ def objective(
     datasets,
     task,
     target,
-    cat_features,
+    cat_features=[],
     ml_utility_params={},
     checkpoint_dir=None,
     log_dir=None,

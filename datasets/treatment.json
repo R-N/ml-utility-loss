@@ -5,9 +5,13 @@
         "source"
     ],
     "mixed_features": [],
+    "log_features": [],
     "longtail_features": [
         "leucocyte",
         "thrombocyte"
+    ],
+    "integer_features": [
+        "age"
     ],
     "target": "source",
     "num_class": 2

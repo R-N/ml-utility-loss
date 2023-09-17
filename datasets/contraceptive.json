@@ -8,8 +8,16 @@
         "contraceptive"
     ],
     "mixed_features": [],
+    "log_features": [],
     "longtail_features": [
         "n_children"
+    ],
+    "integer_features": [
+        "age",
+        "education",
+        "partner_education",
+        "n_children",
+        "living_standard"
     ],
     "target": "contraceptive",
     "num_class": 3

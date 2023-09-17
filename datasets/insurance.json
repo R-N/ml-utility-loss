@@ -6,9 +6,14 @@
         "region"
     ],
     "mixed_features": [],
+    "log_features": [],
     "longtail_features": [
         "children",
         "charges"
+    ],
+    "integer_features": [
+        "age",
+        "children"
     ],
     "target": "charges",
     "num_class": 0
