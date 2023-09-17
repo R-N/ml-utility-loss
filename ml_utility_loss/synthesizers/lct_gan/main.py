@@ -1,6 +1,7 @@
 from .autoencoder import LatentTAE
 from .gan import LatentGAN
 from sklearn.preprocessing import StandardScaler
+import pandas as pd
 
 import pickle
 from tqdm import tqdm
@@ -47,8 +48,10 @@ def latent_gan_experiment(
         ae = pickle.load(ae_pf)
         ae_pf.close()
 
+        raw_df = pd.read_csv(dataset_path)
+
         # EVALUATING AUTO-ENCODER
-        latent_data = ae.encode(ae.raw_df) # could be loaded from file
+        latent_data = ae.encode(raw_df) # could be loaded from file
 
         real_path = exp["raw_csv_path"]
         decoded_path = exp["raw_csv_path"].replace("./data/", "./data/decoded/").replace(".csv", f"_decoded{exp['embedding_size']}_test.csv")
@@ -85,15 +88,17 @@ def ae_experiment(
     for exp in experiment_params[:1]:
         exp = dict(exp)
 
+        dataset_path = exp["raw_csv_path"]
         best_ae = exp["best_ae"]
         del exp["best_ae"]
         
         print(f"Training on {exp['raw_csv_path']}")
         start_time = time.time()
+        raw_df = pd.read_csv(dataset_path)
 
         ae = LatentTAE(**exp)
-        ae.fit_preprocessor(ae.raw_df)
-        ae.fit(ae.raw_df, n_epochs=epochs, batch_size=ae_batch_size)
+        ae.fit_preprocessor(raw_df)
+        ae.fit(raw_df, n_epochs=epochs, batch_size=ae_batch_size)
         time_to_train = time.time() - start_time
         print("--- %s seconds ---" % (time_to_train))
 
@@ -104,7 +109,7 @@ def ae_experiment(
         real_path = exp["raw_csv_path"]
         decoded_path = exp["raw_csv_path"].replace("./data/", "./data/decoded/").replace(".csv", f"_decoded{exp['embedding_size']}_{epochs}.csv")
 
-        latent_data = ae.encode(ae.raw_df) # could be loaded from file
+        latent_data = ae.encode(raw_df) # could be loaded from file
 
         reconstructed_data = ae.decode(latent_data, batch=True)
 

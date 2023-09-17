@@ -29,7 +29,6 @@ class LatentTAE:
     def __init__(
         self,
         embedding_size,
-        raw_csv_path="./data/Adult.csv",
         problem_type={"Classification": 'income'},
         categorical_columns = [],
         log_columns=[],
@@ -39,7 +38,6 @@ class LatentTAE:
     ):
 
         self.__name__ = 'AutoEncoder'
-        self.raw_df = pd.read_csv(raw_csv_path)
         self.ae = AutoEncoder({"embedding_size": embedding_size, "log_interval": 5})
         self.test_ratio = test_ratio
         self.categorical_columns = categorical_columns
