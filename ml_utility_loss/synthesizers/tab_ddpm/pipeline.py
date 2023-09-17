@@ -66,7 +66,7 @@ def train(
 
 def sample(
     diffusion, 
-    batch_size = 2000,
+    batch_size = 1024,
     num_samples = 10,
     disbalance = None,
     seed = 0,
