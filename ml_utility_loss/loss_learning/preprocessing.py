@@ -252,7 +252,8 @@ class DataPreprocessor: #preprocess all with this. save all model here
             return x
         if model == "tab_ddpm":
             X_num, X_cat, y = x = self.tab_ddpm_preprocessor.preprocess(df)
-            self.embedding_sizes[model] = sum(xi.shape[-1] for xi in x)
+            y1 = y.reshape(-1, 1)
+            self.embedding_sizes[model] = sum(xi.shape[-1] for xi in (X_num, X_cat, y1))
             return x
         raise ValueError(f"Unknown model: {model}")
         
