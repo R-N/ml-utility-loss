@@ -75,6 +75,7 @@ class DataAugmenter:
         }
         self.mean = df.mean(numeric_only=True, skipna=True)
         self.mode = df.mode(numeric_only=False, dropna=True)
+        self.mode = {c: self.mode[c].values[0] for c in self.mode.columns}
         self.std = df.std(numeric_only=True, skipna=True)
         self.num_features = self.num_features or [x for x in df.columns if x not in self.cat_features]
 
