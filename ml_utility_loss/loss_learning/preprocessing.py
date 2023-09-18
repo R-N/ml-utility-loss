@@ -2,15 +2,16 @@ import numpy as np
 import pandas as pd
 
 DEFAULT_CAT_RATES = {
-    "swap_values": 0.2,
-    "set_rand_known": 0.2,
+    "swap_values": 0.25,
+    "set_rand_known": 0.25,
 }
 
 DEFAULT_NUM_RATES = {
     "swap_values": 0.1,
     "add_noise": 0.1,
-    "change_to_noise": 0.1,
+    "set_to_noise": 0.1,
     "set_rand_known": 0.1,
+    "set_to_mean": 0.1,
 }
 
 def sample(df, col, rate, double=False, regen=None, block=None):
@@ -72,8 +73,10 @@ class DataAugmenter:
             for col in df.columns
         }
         self.mean = df.mean(numeric_only=True)
+        self.mode = df.mode(numeric_only=False)
         self.std = df.std(numeric_only=True)
         self.num_features = self.num_features or [x for x in df.columns if x not in self.cat_features]
+
 
 
     def swap_values(self, df, col, rate):
@@ -99,13 +102,23 @@ class DataAugmenter:
         assert df.isna().sum().sum() == na
         block(df, index, col)
 
-    def change_to_noise(self, df, col, rate):
+    def set_to_noise(self, df, col, rate):
         if not rate:
             return 
         index = sample(df, col, rate)
         noise = np.random.normal(self.mean[col], self.std[col], len(index))
         na = df.isna().sum().sum()
         df.loc[index, col] = noise
+        assert df.isna().sum().sum() == na
+        block(df, index, col)
+
+    def set_to_mean(self, df, col, rate):
+        if not rate:
+            return 
+        index = sample(df, col, rate)
+        mean = self.mean[col] if col in self.num_features else self.mode[col]
+        na = df.isna().sum().sum()
+        df.loc[index, col] = mean
         assert df.isna().sum().sum() == na
         block(df, index, col)
 
