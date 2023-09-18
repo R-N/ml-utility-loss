@@ -163,6 +163,8 @@ class DataAugmenter:
         df.drop([f"{col}_aug" for col in cols], axis=1, inplace=True)
         return df
 
+MODELS = ["tvae", "realtabformer", "lct_gan_latent", "lct_gan", "tab_ddpm"]
+
 class DataPreprocessor: #preprocess all with this. save all model here
     def __init__(
         self, 
@@ -217,9 +219,15 @@ class DataPreprocessor: #preprocess all with this. save all model here
             )
         self.tab_ddpm_preprocessor.fit(train)
 
+        self.embedding_sizes = {
+            k: self.preprocess(train, k).shape[-1]
+            for k in MODELS
+        }
+
     def preprocess(self, df, model):
         if model == "tvae":
-            return self.tvae_transformer.transform(df)
+            x = self.tvae_transformer.transform(df)
+            return x
         if model == "realtabformer":
             preprocessed = self.rtf_model.preprocess(df)
             ids = self.rtf_model.map_input_ids(preprocessed)
@@ -234,11 +242,14 @@ class DataPreprocessor: #preprocess all with this. save all model here
                 x = np.array(x)
             return x
         if model == "lct_gan_latent":
-            return self.lct_ae.encode(df)
+            x = self.lct_ae.encode(df)
+            return x
         if model == "lct_gan":
-            return self.lct_ae.preprocess(df)
+            x = self.lct_ae.preprocess(df)
+            return x
         if model == "tab_ddpm":
-            return self.tab_ddpm_preprocessor.preprocess(df)
+            x = self.tab_ddpm_preprocessor.preprocess(df)
+            return x
         raise ValueError(f"Unknown model: {model}")
         
     def postprocess(self, x, model):
