@@ -219,14 +219,14 @@ class DataPreprocessor: #preprocess all with this. save all model here
             )
         self.tab_ddpm_preprocessor.fit(train)
 
-        self.embedding_sizes = {
-            k: self.preprocess(train, k).shape[-1]
-            for k in MODELS
-        }
+        self.embedding_sizes = {}
+        for k in MODELS:
+            self.preprocess(train, k).shape[-1]
 
-    def preprocess(self, df, model):
+    def preprocess(self, df, model, store_embedding_size=False):
         if model == "tvae":
             x = self.tvae_transformer.transform(df)
+            self.embedding_sizes[model] = x.shape[-1]
             return x
         if model == "realtabformer":
             preprocessed = self.rtf_model.preprocess(df)
@@ -240,15 +240,19 @@ class DataPreprocessor: #preprocess all with this. save all model here
                 x = x.to_list()
             if not isinstance(x, np.ndarray):
                 x = np.array(x)
+            self.embedding_sizes[model] = x.shape[-1]
             return x
         if model == "lct_gan_latent":
             x = self.lct_ae.encode(df)
+            self.embedding_sizes[model] = x.shape[-1]
             return x
         if model == "lct_gan":
             x = self.lct_ae.preprocess(df)
+            self.embedding_sizes[model] = x.shape[-1]
             return x
         if model == "tab_ddpm":
-            x = self.tab_ddpm_preprocessor.preprocess(df)
+            X_num, X_cat, y = x = self.tab_ddpm_preprocessor.preprocess(df)
+            self.embedding_sizes[model] = sum(xi.shape[-1] for xi in x)
             return x
         raise ValueError(f"Unknown model: {model}")
         
