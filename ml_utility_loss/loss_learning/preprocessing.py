@@ -73,6 +73,7 @@ class DataAugmenter:
             col: df[col].dropna().unique()
             for col in df.columns
         }
+        self.dtypes = df.dtypes
         self.mean = df.mean(numeric_only=True, skipna=True)
         self.mode = df.mode(numeric_only=False, dropna=True)
         self.mode = {c: self.mode[c].values[0] for c in self.mode.columns}
@@ -90,6 +91,7 @@ class DataAugmenter:
         assert len(index_1) == len(index_2) == half_n, f"Inequal sizes {len(index_1)}, {len(index_2)}, {half_n}"
         na = df.isna().sum().sum()
         df.loc[index_1, col], df.loc[index_2, col] = df.loc[index_2, col].values, df.loc[index_1, col].values
+        df[col] = df[col].astype(self.dtypes[col])
         assert df.isna().sum().sum() <= na
         block(df, index, col)
 
@@ -99,8 +101,10 @@ class DataAugmenter:
         index = sample(df, col, rate)
         std = self.noise_std * self.std[col]
         noise = np.random.normal(0, std, len(index))
+        noise = noise.astype(self.dtypes[col])
         na = df.isna().sum().sum()
         df.loc[index, col] = df.loc[index, col] + noise
+        df[col] = df[col].astype(self.dtypes[col])
         assert df.isna().sum().sum() <= na
         block(df, index, col)
 
@@ -109,8 +113,10 @@ class DataAugmenter:
             return 
         index = sample(df, col, rate)
         noise = np.random.normal(self.mean[col], self.std[col], len(index))
+        noise = noise.astype(self.dtypes[col])
         na = df.isna().sum().sum()
         df.loc[index, col] = noise
+        df[col] = df[col].astype(self.dtypes[col])
         assert df.isna().sum().sum() <= na
         block(df, index, col)
 
@@ -121,6 +127,7 @@ class DataAugmenter:
         mean = self.mean[col] if col in self.num_features else self.mode[col]
         na = df.isna().sum().sum()
         df.loc[index, col] = mean
+        df[col] = df[col].astype(self.dtypes[col])
         assert df.isna().sum().sum() <= na
         block(df, index, col)
 
@@ -134,6 +141,7 @@ class DataAugmenter:
         )
         na = df.isna().sum().sum()
         df.loc[index, col] = rand_known
+        df[col] = df[col].astype(self.dtypes[col])
         assert df.isna().sum().sum() <= na
         block(df, index, col)
 
