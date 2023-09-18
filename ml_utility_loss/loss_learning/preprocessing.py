@@ -249,7 +249,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
                 return self.tvae_transformer.inverse_transform(**x)
             return self.tvae_transformer.inverse_transform(x)
         if model == "realtabformer":
-            if "input_ids" in x:
+            if isinstance(x, dict) or isinstance(x, pd.DataFrame):
                 x = x["input_ids"]
             #if isinstance(x, pd.Series):
             #    x = x.to_list()
