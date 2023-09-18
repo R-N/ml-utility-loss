@@ -228,7 +228,8 @@ class DataPreprocessor: #preprocess all with this. save all model here
             #dataset = self.rtf_model.make_dataset(ids, False, False)
             #dataset = Dataset.from_pandas(ids, preserve_index=False)
             x = ids["input_ids"]
-            x = np.array(x.to_list())
+            x = x.to_list()
+            x = np.array(x)
             return x
         if model == "lct_gan_latent":
             return self.lct_ae.encode(df)
@@ -248,6 +249,8 @@ class DataPreprocessor: #preprocess all with this. save all model here
         if model == "realtabformer":
             if "input_ids" in x:
                 x = x["input_ids"]
+            if isinstance(x. pd.Series):
+                x = x.to_list()
             if not isinstance(x, np.ndarray):
                 x = np.array(x)
             return self.rtf_model.postprocess(x)
