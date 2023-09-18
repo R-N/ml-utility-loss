@@ -221,7 +221,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
 
         self.embedding_sizes = {}
         for k in MODELS:
-            self.preprocess(train, k).shape[-1]
+            self.preprocess(train, k)
 
     def preprocess(self, df, model, store_embedding_size=False):
         if model == "tvae":
