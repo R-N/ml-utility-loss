@@ -2,8 +2,9 @@ import numpy as np
 import pandas as pd
 
 DEFAULT_CAT_RATES = {
-    "swap_values": 0.25,
-    "set_rand_known": 0.25,
+    "swap_values": 0.5/3.0,
+    "set_rand_known": 0.5/3.0,
+    "set_to_mean": 0.5/3.0,
 }
 
 DEFAULT_NUM_RATES = {
