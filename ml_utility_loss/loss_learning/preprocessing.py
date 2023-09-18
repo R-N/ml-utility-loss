@@ -228,8 +228,8 @@ class DataPreprocessor: #preprocess all with this. save all model here
             #dataset = self.rtf_model.make_dataset(ids, False, False)
             #dataset = Dataset.from_pandas(ids, preserve_index=False)
             x = ids["input_ids"]
-            if isinstance(x, pd.Series):
-                x = x.to_list()
+            #if isinstance(x, pd.Series):
+            #    x = x.to_list()
             if not isinstance(x, np.ndarray):
                 x = np.array(x)
             return x
@@ -251,8 +251,8 @@ class DataPreprocessor: #preprocess all with this. save all model here
         if model == "realtabformer":
             if "input_ids" in x:
                 x = x["input_ids"]
-            if isinstance(x, pd.Series):
-                x = x.to_list()
+            #if isinstance(x, pd.Series):
+            #    x = x.to_list()
             if not isinstance(x, np.ndarray):
                 x = np.array(x)
             return self.rtf_model.postprocess(x)
