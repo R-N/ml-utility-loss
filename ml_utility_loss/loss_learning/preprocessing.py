@@ -248,7 +248,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
                 x = x["input_ids"]
             return self.rtf_model.postprocess(x)
         if model == "lct_gan_latent":
-            return self.lct_ae.decode(x)
+            return self.lct_ae.decode(x, batch=True)
         if model == "lct_gan":
             return self.lct_ae.postprocess(x)
         if model == "tab_ddpm":
