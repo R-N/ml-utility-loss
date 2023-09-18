@@ -246,6 +246,8 @@ class DataPreprocessor: #preprocess all with this. save all model here
         if model == "realtabformer":
             if "input_ids" in x:
                 x = x["input_ids"]
+            if not isinstance(x, np.ndarray):
+                x = np.array(x)
             return self.rtf_model.postprocess(x)
         if model == "lct_gan_latent":
             return self.lct_ae.decode(x, batch=True)
