@@ -599,3 +599,65 @@ class FastTensorDataLoader:
 
     def __len__(self):
         return self.n_batches
+
+class DataPreprocessor:
+    def __init__(
+        self,
+        task_type,
+        target=None,
+        cat_features=[],
+        normalization="quantile",
+        cat_encoding="ordinal",
+        y_policy="default",
+        is_y_cond=True,
+    ):
+        self.task_type = task_type
+        self.target = target
+        self.cat_features = cat_features
+        self.transformer = DatasetTransformer(
+            task_type=task_type,
+            normalization=normalization,
+            cat_encoding=cat_encoding,
+            y_policy=y_policy,
+            is_y_cond=is_y_cond
+        )
+
+    def split_features(self, df):
+        if isinstance(df, pd.DataFrame):
+            return split_features(
+                df,
+                task_type=self.task_type,
+                cat_features=self.cat_features,
+                target=self.target,
+            )
+        return df
+
+    def fit(self, df):
+        X_num, X_cat, y = self.split_features(df)
+        self.transformer.fit(
+            X_num=X_num,
+            X_cat=X_cat,
+            y=y,
+        )
+        self.cols = df.columns
+
+    def preprocess(self, df):
+        X_num, X_cat, y = self.split_features(df)
+        X_num, X_cat, y = self.transformer.transform(
+            X_num, X_cat, y,
+        )
+        return X_num, X_cat, y
+
+    def postprocess(self, X_num, X_cat, y):
+        X_num, X_cat, y = self.transformer.inverse_transform(
+            np.concatenate(
+                [X_num, X_cat],
+                axis=1
+            ),
+            y
+        )
+        df_postprocessed = pd.DataFrame(
+            np.concatenate([X_num, X_cat, y.reshape(-1, 1)], axis=1),
+            columns=self.cols
+        )
+        return df_postprocessed

@@ -1,5 +1,10 @@
 import numpy as np
 import pandas as pd
+from ...synthesizers.tvae.preprocessing import DataTransformer as TVAEDataTransformer
+from ...synthesizers.realtabformer.wrapper import REaLTabFormer
+from ...synthesizers.realtabformer.data_utils import make_dataset_2, map_input_ids
+from ...synthesizers.lct_gan.pipeline import create_ae
+from ml_utility_loss.synthesizers.tab_ddpm.preprocessing import DatasetTransformer, split_features, DataPreprocessor
 
 DEFAULT_CAT_RATES = {
     "swap_values": 0.5/3.0,
@@ -157,3 +162,101 @@ class DataAugmenter:
                 getattr(self, aug)(df, col, rate)
         df.drop([f"{col}_aug" for col in cols], axis=1, inplace=True)
         return df
+
+class DataPreprocessor: #preprocess all with this. save all model here
+    def __init__(
+        self, 
+        task,
+        target=None,
+        cat_features=[],
+        mixed_features={},
+        longtail_features=[],
+        integer_features=[],
+        lct_ae=None,
+        lct_ae_embedding_size=64,
+        tab_ddpm_normalization="quantile",
+        tab_ddpm_cat_encoding="ordinal",
+        tab_ddpm_y_policy="default",
+        tab_ddpm_is_y_cond=True,
+    ):
+        self.cat_features = cat_features
+        self.mixed_features = mixed_features
+        self.longtail_features = longtail_features
+        self.integer_features = integer_features
+        self.tvae_transformer = TVAEDataTransformer()
+        self.rtf_model = REaLTabFormer(
+            model_type="tabular",
+            gradient_accumulation_steps=1,
+            epochs=1
+        )
+        self.lct_ae = lct_ae
+        self.lct_ae_embedding_size = lct_ae_embedding_size
+        if self.lct_ae:
+            self.lct_ae_embedding_size = self.lct_ae.embedding_size
+        self.tab_ddpm_preprocessor = DataPreprocessor(
+            task_type=task,
+            cat_features=cat_features,
+            target=target,
+            normalization=tab_ddpm_normalization,
+            cat_encoding=tab_ddpm_cat_encoding,
+            y_policy=tab_ddpm_y_policy,
+            is_y_cond=tab_ddpm_is_y_cond
+        )
+
+    def fit(self, train):
+        self.tvae_transformer.fit(train, self.cat_features)
+        if not self.lct_ae:
+            self.lct_ae, recon = create_ae(
+                train,
+                categorical_columns = self.cat_features,
+                mixed_columns = self.mixed_features,
+                integer_columns = self.integer_features,
+                embedding_size = self.lct_ae_embedding_size,
+                epochs = 1,
+                batch_size=1,
+            )
+        self.tab_ddpm_preprocessor.fit(train)
+
+    def preprocess(self, df, model):
+        if model == "tvae":
+            return self.tvae_transformer.transform(df)
+        if model == "realtabformer":
+            preprocessed = self.rtf_model.preprocess(df)
+            ids = self.rtf_model.map_input_ids(preprocessed)
+            #dataset = self.rtf_model.make_dataset(df)
+            #dataset = self.rtf_model.make_dataset(preprocessed, False)
+            #dataset = self.rtf_model.make_dataset(ids, False, False)
+            #dataset = Dataset.from_pandas(ids, preserve_index=False)
+            return ids
+        if model == "lct_gan_latent":
+            return self.lct_ae.encode(df)
+        if model == "lct_gan":
+            return self.lct_ae.preprocess(df)
+        if model == "tab_ddpm":
+            return self.tab_ddpm_preprocessor.preprocess(df)
+        raise ValueError(f"Unknown model: {model}")
+        
+    def postprocess(self, x, model):
+        if model == "tvae":
+            if isinstance(x, list) or isinstance(x, tuple):
+                return self.tvae_transformer.inverse_transform(*x)
+            if isinstance(x, dict):
+                return self.tvae_transformer.inverse_transform(**x)
+            return self.tvae_transformer.inverse_transform(x)
+        if model == "realtabformer":
+            if "input_ids" in x:
+                x = x["input_ids"]
+            return self.rtf_model.postprocess(x)
+        if model == "lct_gan_latent":
+            return self.lct_ae.decode(x)
+        if model == "lct_gan":
+            return self.lct_ae.postprocess(x)
+        if model == "tab_ddpm":
+            if isinstance(x, list) or isinstance(x, tuple):
+                return self.tab_ddpm_preprocessor.postprocess(*x)
+            if isinstance(x, dict):
+                return self.tab_ddpm_preprocessor.postprocess(**x)
+            raise ValueError(f"Invalid argument type for tab_ddpm preprocessor: {type(x)}")
+        raise ValueError(f"Unknown model: {model}")
+        
+        
