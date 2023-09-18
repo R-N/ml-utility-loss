@@ -345,6 +345,9 @@ class DataTransformer():
         
         if store_ordering:
             self.ordering = []
+
+        if isinstance(data, pd.DataFrame):
+            data = data.values
         # stores the transformed values
         values = []
 
