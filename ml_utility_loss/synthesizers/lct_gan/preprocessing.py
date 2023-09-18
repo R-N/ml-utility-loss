@@ -197,10 +197,9 @@ def keep_modes(gm, series, n_clusters=10, eps=0.005):
 
 class DataTransformer():
     
-    def __init__(self, train_data=pd.DataFrame, categorical_list=[], mixed_dict={}, n_clusters=10, eps=0.005):
+    def __init__(self, categorical_list=[], mixed_dict={}, n_clusters=10, eps=0.005):
         
         self.meta = None
-        self.train_data = train_data
         self.categorical_columns= categorical_list
         self.mixed_columns= mixed_dict
         self.n_clusters = n_clusters
@@ -210,15 +209,14 @@ class DataTransformer():
         self.output_dim = 0
         self.components = []
         self.filter_arr = []
-        self.meta = self.get_metadata()
         print(self.meta)
         
-    def get_metadata(self):
+    def get_metadata(self, train_data):
         
         meta = []
     
-        for index in range(self.train_data.shape[1]):
-            column = self.train_data.iloc[:,index]
+        for index in range(train_data.shape[1]):
+            column = train_data.iloc[:,index]
             if index in self.categorical_columns:
                 mapper = column.value_counts().index.tolist()
                 meta.append({
@@ -245,9 +243,11 @@ class DataTransformer():
 
         return meta
 
-    def fit(self):
+    def fit(self, train_data):
+        self.meta = self.get_metadata(train_data)
         
-        data = self.train_data.values
+        self.ordering = []
+        data = train_data.values
         
         # stores the corresponding bgm models for processing numeric data
         model = []
@@ -339,9 +339,12 @@ class DataTransformer():
         print("output_dim", self.output_dim)
         print("output_dims", output_dims)
         self.model = model
+        self.transform(train_data, store_ordering=True)
 
-    def transform(self, data):
+    def transform(self, data, store_ordering=False):
         
+        if store_ordering:
+            self.ordering = []
         # stores the transformed values
         values = []
 
@@ -393,7 +396,8 @@ class DataTransformer():
                     re_ordered_phot[:,id] = probs_onehot[:,val]
                 
                 # storing the original ordering for invoking inverse transform
-                self.ordering.append(largest_indices)
+                if store_ordering:
+                    self.ordering.append(largest_indices)
                 
                 # storing transformed numeric column represented as normalized values and corresponding modes 
                 values += [features, re_ordered_phot]
@@ -505,7 +509,8 @@ class DataTransformer():
                 final_features = final[:,0].reshape([-1, 1])
                 
                 # storing the original ordering for invoking inverse transform
-                self.ordering.append(largest_indices)
+                if store_ordering:
+                    self.ordering.append(largest_indices)
                 
                 values += [final_features, re_ordered_jhot]
                 
@@ -513,7 +518,8 @@ class DataTransformer():
     
             else:
                 # for categorical columns, standard one-hot-encoding is applied where categories are in descending order of frequency by default
-                self.ordering.append(None)
+                if store_ordering:
+                    self.ordering.append(None)
                 col_t = np.zeros([len(data), info['size']])
                 idx = list(map(info['i2s'].index, current))
                 col_t[np.arange(len(data)), idx] = 1
@@ -652,11 +658,10 @@ class DataPreprocessor:
         prepped = data_prep.prep(raw_df)
 
         transformer = DataTransformer(
-            train_data=prepped,
             categorical_list=data_prep.column_types["categorical"],
             mixed_dict=data_prep.column_types["mixed"]
         )
-        transformer.fit()
+        transformer.fit(prepped)
 
         self.data_prep = data_prep
         self.transformer = transformer
