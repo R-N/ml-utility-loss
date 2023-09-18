@@ -4,7 +4,7 @@ from ..synthesizers.tvae.preprocessing import DataTransformer as TVAEDataTransfo
 from ..synthesizers.realtabformer.wrapper import REaLTabFormer
 from ..synthesizers.realtabformer.data_utils import make_dataset_2, map_input_ids
 from ..synthesizers.lct_gan.pipeline import create_ae
-from ml_utility_loss.synthesizers.tab_ddpm.preprocessing import DatasetTransformer, split_features, DataPreprocessor
+from ml_utility_loss.synthesizers.tab_ddpm.preprocessing import DatasetTransformer, split_features, DataPreprocessor as TabDDPMDataPreprocessor
 
 DEFAULT_CAT_RATES = {
     "swap_values": 0.5/3.0,
@@ -193,7 +193,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         self.lct_ae_embedding_size = lct_ae_embedding_size
         if self.lct_ae:
             self.lct_ae_embedding_size = self.lct_ae.embedding_size
-        self.tab_ddpm_preprocessor = DataPreprocessor(
+        self.tab_ddpm_preprocessor = TabDDPMDataPreprocessor(
             task_type=task,
             cat_features=cat_features,
             target=target,
