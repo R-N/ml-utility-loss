@@ -70,12 +70,12 @@ class DataAugmenter:
 
     def fit(self, df):
         self.uniques = {
-            col: df[col].unique()
+            col: df[col].dropna().unique()
             for col in df.columns
         }
-        self.mean = df.mean(numeric_only=True)
-        self.mode = df.mode(numeric_only=False)
-        self.std = df.std(numeric_only=True)
+        self.mean = df.mean(numeric_only=True, skipna=True)
+        self.mode = df.mode(numeric_only=False, dropna=True)
+        self.std = df.std(numeric_only=True, skipna=True)
         self.num_features = self.num_features or [x for x in df.columns if x not in self.cat_features]
 
 
