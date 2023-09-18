@@ -227,7 +227,8 @@ class DataPreprocessor: #preprocess all with this. save all model here
             #dataset = self.rtf_model.make_dataset(preprocessed, False)
             #dataset = self.rtf_model.make_dataset(ids, False, False)
             #dataset = Dataset.from_pandas(ids, preserve_index=False)
-            x = np.array(ids["input_ids"])
+            x = ids["input_ids"]
+            #x = np.array(x)
             return x
         if model == "lct_gan_latent":
             return self.lct_ae.encode(df)
