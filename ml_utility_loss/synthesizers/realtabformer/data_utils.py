@@ -593,13 +593,14 @@ def get_input_ids(
         if return_token_type_ids:
             token_type_ids.append(vocab["token2id"][SpecialTokens.SPTYPE])
 
+    input_ids = np.array(input_ids)
     data = dict(input_ids=input_ids)
 
     if return_label_ids:
-        data["label_ids"] = input_ids
+        data["label_ids"] = np.array(input_ids)
 
     if return_token_type_ids:
-        data["token_type_ids"] = token_type_ids
+        data["token_type_ids"] = np.array(token_type_ids)
 
     return data
 
