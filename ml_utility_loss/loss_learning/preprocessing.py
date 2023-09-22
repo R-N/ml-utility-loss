@@ -155,12 +155,16 @@ class DataAugmenter:
         num_rates = combine_rates(self.num_rates, num_rates)
         df = df.copy()
         cols = list(df.columns)
+        aug_cols = [f"{col}_aug" for col in cols]
         for col in cols:
             regenerate(df, col)
             rates = num_rates if col in self.num_features else cat_rates
             for aug, rate in rates.items():
                 getattr(self, aug)(df, col, rate)
-        df.drop([f"{col}_aug" for col in cols], axis=1, inplace=True)
+        # calculate the rate of augmentation for each row
+        df["aug"] = df[aug_cols].sum(axis=1)
+        df["aug"] = df["aug"] / len(cols)
+        df.drop(aug_cols, axis=1, inplace=True)
         return df
 
 MODELS = ["tvae", "realtabformer", "lct_gan_latent", "lct_gan", "tab_ddpm"]
