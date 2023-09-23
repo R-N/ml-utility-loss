@@ -353,7 +353,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         raise ValueError(f"Unknown model: {model}")
         
         
-def generate_overlap(df, augmenter=None):
+def generate_overlap(df, augmenter=None, drop_aug=True):
 
     # sample 2/3 to expect 50% overlap at average
     train = df.sample(frac=2.0/3.0)
@@ -380,5 +380,9 @@ def generate_overlap(df, augmenter=None):
         
     # calculate intersection over union
     y = y.to_numpy().sum() / len(test.index.union(train.index))
+
+    if drop_aug:
+        train = train.drop(["aug"], axis=1, errors="ignore")
+        test = test.drop(["aug"], axis=1, errors="ignore")
 
     return train, test, y
