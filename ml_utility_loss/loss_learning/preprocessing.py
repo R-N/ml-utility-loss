@@ -267,7 +267,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
 
         self.embedding_sizes = {}
         for k in self.models:
-            self.preprocess(train, k)
+            self.preprocess(train, k, store_embedding_size=True)
 
     def preprocess(self, df, model=None, store_embedding_size=False):
         model = model or self.model
