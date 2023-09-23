@@ -335,7 +335,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
             return self.lct_ae.decode(x, batch=True)
         if model == "lct_gan":
             return self.lct_ae.postprocess(x)
-        if model == "tab_ddpm":
+        if model in ("tab_ddpm", "tab_ddpm_concat"):
             if isinstance(x, list) or isinstance(x, tuple):
                 return self.tab_ddpm_preprocessor.postprocess(*x)
             if isinstance(x, dict):
