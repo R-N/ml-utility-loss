@@ -15,6 +15,8 @@ setup(
         #"lct_gan @ git+https://github.com/R-N/LCT-GAN@master",
         #"ctab_gan_plus @ git+https://github.com/R-N/CTAB-GAN-Plus@main",
         #"realtabformer @ git+https://github.com/R-N/REaLTabFormer@main",
+        "alpharelu", # @ git+https://github.com/MaxatTezekbayev/alpha-relu@main",
+        "entmax", # @ git+https://github.com/deep-spin/entmax@master",
         "accelerate>=0.20.3",
         "catboost>=1.0.3",
         "category-encoders>=2.3.0",

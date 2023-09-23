@@ -35,6 +35,7 @@ def sample(df, col, rate, double=False, regen=None, block=None):
     ))
     if len(index) == n:
         return index
+    raise Exception("Not enough original value to augment")
     regenerate(df, col)
     return sample(
         df, 
@@ -50,10 +51,16 @@ def block(df, index, col):
 def regenerate(df, col):
     df.loc[:, f"{col}_aug"] = False
 
-def combine_rates(self_rates, arg_rates=None):
-    arg_rates = arg_rates or {}
+def combine_rates(self_rates, arg_rates=None, scale=1.0):
+    scale = 1.0 if scale is None else scale
+    if not scale:
+        return {}
+    arg_rates = {} if arg_rates is None else arg_rates
     rates = {**self_rates, **arg_rates}
-    rates = {k: v for k, v in rates.items() if v}
+    rates = {k: v*scale for k, v in rates.items() if v}
+
+    assert sum(rates.values()) <= 1, "Rates cannot exceed 1"
+
     return rates
 
 class DataAugmenter:
@@ -65,13 +72,16 @@ class DataAugmenter:
         cat_rates=DEFAULT_CAT_RATES,
         num_rates=DEFAULT_NUM_RATES,
         seed=42,
+        scale=1.0
     ):
+        assert sum(cat_rates.values()) <= 1 and sum(num_rates.values()) <= 1, "Rates cannot exceed 1"
         self.cat_features = cat_features
         self.num_features = num_features
         self.noise_std = noise_std
         self.seed = seed
         self.cat_rates = cat_rates
         self.num_rates = num_rates
+        self.scale = scale
 
     def fit(self, df):
         self.uniques = {
@@ -150,24 +160,36 @@ class DataAugmenter:
         assert df.isna().sum().sum() <= na
         block(df, index, col)
 
-    def augment(self, df, cat_rates=None, num_rates=None):
-        cat_rates = combine_rates(self.cat_rates, cat_rates)
-        num_rates = combine_rates(self.num_rates, num_rates)
+    def augment(self, df, cat_rates=None, num_rates=None, scale=None):
+        scale = self.scale if scale is None else scale
+
+        cat_rates = combine_rates(self.cat_rates, cat_rates, scale)
+        num_rates = combine_rates(self.num_rates, num_rates, scale)
+
         df = df.copy()
+
+        if not cat_rates and not num_rates:
+            df["aug"] = 0.0
+            return df
+
         cols = list(df.columns)
-        aug_cols = [f"{col}_aug" for col in cols]
         for col in cols:
             regenerate(df, col)
             rates = num_rates if col in self.num_features else cat_rates
             for aug, rate in rates.items():
-                getattr(self, aug)(df, col, rate)
+                getattr(self, aug)(df, col, rate) # * scale)
+
         # calculate the rate of augmentation for each row
-        df["aug"] = df[aug_cols].sum(axis=1)
+        aug_cols = [f"{col}_aug" for col in cols]
+        df["aug"] = df[aug_cols].sum(axis=1).astype(float)
         df["aug"] = df["aug"] / len(cols)
+
         df.drop(aug_cols, axis=1, inplace=True)
+    
         return df
 
-MODELS = ["tvae", "realtabformer", "lct_gan_latent", "lct_gan", "tab_ddpm"]
+MODELS = ["tvae", "realtabformer", "lct_gan_latent", "lct_gan", "tab_ddpm", "tab_ddpm_concat"]
+DEFAULT_MODELS = ["tvae", "realtabformer", "lct_gan_latent", "lct_gan", "tab_ddpm_concat"]
 
 class DataPreprocessor: #preprocess all with this. save all model here
     def __init__(
@@ -184,53 +206,77 @@ class DataPreprocessor: #preprocess all with this. save all model here
         tab_ddpm_cat_encoding="ordinal",
         tab_ddpm_y_policy="default",
         tab_ddpm_is_y_cond=True,
+        model=None,
+        models=DEFAULT_MODELS,
     ):
         self.cat_features = cat_features
         self.mixed_features = mixed_features
         self.longtail_features = longtail_features
         self.integer_features = integer_features
-        self.tvae_transformer = TVAEDataTransformer()
-        self.rtf_model = REaLTabFormer(
-            model_type="tabular",
-            gradient_accumulation_steps=1,
-            epochs=1
-        )
-        self.lct_ae = lct_ae
-        self.lct_ae_embedding_size = lct_ae_embedding_size
+        
+        self.models = models
+        assert not model or model in models
+        self.model = model
+
+        self.tvae_transformer = None
+        self.rtf_model = None
+        self.lct_ae = None
+        self.tab_ddpm_preprocessor = None
+
+        if "tvae" in self.models:
+            self.tvae_transformer = TVAEDataTransformer()
+        if "realtabformer" in self.models:
+            self.rtf_model = REaLTabFormer(
+                model_type="tabular",
+                gradient_accumulation_steps=1,
+                epochs=1
+            )
+        if "lct_gan" in self.models or "lct_gan_latent" in self.models:
+            self.lct_ae = lct_ae
+            self.lct_ae_embedding_size = lct_ae_embedding_size
         if self.lct_ae:
             self.lct_ae_embedding_size = self.lct_ae.embedding_size
-        self.tab_ddpm_preprocessor = TabDDPMDataPreprocessor(
-            task_type=task,
-            cat_features=cat_features,
-            target=target,
-            normalization=tab_ddpm_normalization,
-            cat_encoding=tab_ddpm_cat_encoding,
-            y_policy=tab_ddpm_y_policy,
-            is_y_cond=tab_ddpm_is_y_cond
-        )
+        if "tab_ddpm" in self.models or "tab_ddpm_concat" in self.models:
+            self.tab_ddpm_preprocessor = TabDDPMDataPreprocessor(
+                task_type=task,
+                cat_features=cat_features,
+                target=target,
+                normalization=tab_ddpm_normalization,
+                cat_encoding=tab_ddpm_cat_encoding,
+                y_policy=tab_ddpm_y_policy,
+                is_y_cond=tab_ddpm_is_y_cond
+            )
 
     def fit(self, train):
-        self.tvae_transformer.fit(train, self.cat_features)
-        if not self.lct_ae:
-            self.lct_ae, recon = create_ae(
-                train,
-                categorical_columns = self.cat_features,
-                mixed_columns = self.mixed_features,
-                integer_columns = self.integer_features,
-                embedding_size = self.lct_ae_embedding_size,
-                epochs = 1,
-                batch_size=1,
-            )
-        self.tab_ddpm_preprocessor.fit(train)
+        if "tvae" in self.models:
+            self.tvae_transformer.fit(train, self.cat_features)
+        if "lct_gan" in self.models or "lct_gan_latent" in self.models:
+            if not self.lct_ae:
+                self.lct_ae, recon = create_ae(
+                    train,
+                    categorical_columns = self.cat_features,
+                    mixed_columns = self.mixed_features,
+                    integer_columns = self.integer_features,
+                    embedding_size = self.lct_ae_embedding_size,
+                    epochs = 1,
+                    batch_size=1,
+                )
+
+        if "tab_ddpm" in self.models or "tab_ddpm_concat" in self.models:
+            self.tab_ddpm_preprocessor.fit(train)
 
         self.embedding_sizes = {}
-        for k in MODELS:
+        for k in self.models:
             self.preprocess(train, k)
 
-    def preprocess(self, df, model, store_embedding_size=False):
+    def preprocess(self, df, model=None, store_embedding_size=False):
+        model = model or self.model
+        assert model, "must provide model"
+        assert model in self.models
         if model == "tvae":
             x = self.tvae_transformer.transform(df)
-            self.embedding_sizes[model] = x.shape[-1]
+            if store_embedding_size:
+                self.embedding_sizes[model] = x.shape[-1]
             return x
         if model == "realtabformer":
             preprocessed = self.rtf_model.preprocess(df)
@@ -244,24 +290,33 @@ class DataPreprocessor: #preprocess all with this. save all model here
                 x = x.to_list()
             if not isinstance(x, np.ndarray):
                 x = np.array(x)
-            self.embedding_sizes[model] = x.shape[-1]
+            if store_embedding_size:
+                self.embedding_sizes[model] = x.shape[-1]
             return x
         if model == "lct_gan_latent":
             x = self.lct_ae.encode(df)
-            self.embedding_sizes[model] = x.shape[-1]
+            if store_embedding_size:
+                self.embedding_sizes[model] = x.shape[-1]
             return x
         if model == "lct_gan":
             x = self.lct_ae.preprocess(df)
-            self.embedding_sizes[model] = x.shape[-1]
+            if store_embedding_size:
+                self.embedding_sizes[model] = x.shape[-1]
             return x
-        if model == "tab_ddpm":
+        if model in ("tab_ddpm", "tab_ddpm_concat"):
             X_num, X_cat, y = x = self.tab_ddpm_preprocessor.preprocess(df)
             y1 = y.reshape(-1, 1)
-            self.embedding_sizes[model] = sum(xi.shape[-1] for xi in (X_num, X_cat, y1))
+            if store_embedding_size:
+                self.embedding_sizes[model] = sum(xi.shape[-1] for xi in (X_num, X_cat, y1))
+            if model == "tab_ddpm_concat":
+                x = np.concatenate([X_num, X_cat, y1], axis=1)
             return x
         raise ValueError(f"Unknown model: {model}")
         
-    def postprocess(self, x, model):
+    def postprocess(self, x, model=None):
+        model = model or self.model
+        assert model, "must provide model"
+        assert model in self.models
         if model == "tvae":
             if isinstance(x, list) or isinstance(x, tuple):
                 return self.tvae_transformer.inverse_transform(*x)
@@ -289,3 +344,32 @@ class DataPreprocessor: #preprocess all with this. save all model here
         raise ValueError(f"Unknown model: {model}")
         
         
+def generate_overlap(df, augmenter=None):
+
+    # sample 2/3 to expect 50% overlap at average
+    train = df.sample(frac=2.0/3.0)
+    test = df.sample(frac=2.0/3.0)
+    
+    # find overlap
+    overlaps = test.index.isin(train.index)
+    y = overlaps.astype(float)
+
+    # augmentations
+    aug = None
+    if "aug" in test.columns:
+        aug = test["aug"]
+    else:
+        if "aug" not in train.columns and augmenter:
+            train = augmenter.augment(train)
+        if "aug" in train.columns:
+            aug = train.loc[test.index, "aug"]
+            aug = aug.fillna(0)
+
+    # reduce overlap by augmentations
+    if aug is not None:
+        y.loc[overlaps] = y[overlaps] - aug[overlaps]
+        
+    # calculate intersection over union
+    y = y.sum() / len(test.index.union(train.index))
+
+    return train, test, y
