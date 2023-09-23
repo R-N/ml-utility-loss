@@ -249,7 +249,7 @@ class Head(nn.Module):
 
     def forward(self, x):
         x = self.pma(x)
-        x = x.squeeze(-2)
+        x = x.flatten(-2, -1)
         y = self.linear(x)
         return y
         
@@ -342,21 +342,27 @@ class MLUtilityWhole(nn.Module):
     def __init__(
         self,
         body,
-        adapter_dims=DEFAULT_ADAPTER_DIMS,
+        adapters=DEFAULT_ADAPTER_DIMS,
         heads=["mlu"],
-        adapter_args={},
-        head_args={},
+        adapter_args=None,
+        head_args=None,
         models=None,
         objectives=None
     ):
         self.cache = {}
+
+        adapter_args = adapter_args or {}
+        head_args = head_args or {}
+
+        adapter_args["d_model"] = body.d_model
+        head_args["d_model"] = body.d_model
 
         self.adapters = {
             model: Adapter(
                 **adapter_args,
                 d_input=d_input
             )
-            for model, d_input in adapter_dims.items()
+            for model, d_input in adapters.items()
         }
         self.adapter_list = nn.ModuleList(list(self.adapters.values()))
         self.body = body
