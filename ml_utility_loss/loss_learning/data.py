@@ -53,7 +53,8 @@ class OverlapDataset(Dataset):
         self.augmenter=augmenter
         self.size = size
             
-        self.len = len(self.dfs)
+        self.len_dfs = len(self.dfs)
+        self.len = self.len_dfs
         self.cache = None
         if max_cache:
             self.cache = Cache(max_cache)
@@ -70,7 +71,7 @@ class OverlapDataset(Dataset):
         if self.cache and idx in self.cache:
             return self.cache[idx]
         
-        df = self.dfs[idx]
+        df = self.dfs.iloc[idx%self.len_dfs]
         if self.size and len(df) > self.size:
             df = df.sample(n=self.size)
 
