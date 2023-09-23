@@ -634,6 +634,8 @@ class DataPreprocessor:
 
     def fit(self, df):
         X_num, X_cat, y = self.split_features(df)
+        self.n_num = X_num.shape[-1]
+        self.n_cat = X_cat.shape[-1]
         self.transformer.fit(
             X_num=X_num,
             X_cat=X_cat,
