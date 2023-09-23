@@ -371,7 +371,7 @@ def generate_overlap(df, augmenter=None):
         if "aug" not in train.columns and augmenter:
             train = augmenter.augment(train)
         if "aug" in train.columns:
-            aug = pd.merge(y, train["aug"], how="left", left_index=True)
+            aug = pd.merge(y, train["aug"], how="left", left_index=True, right_index=True)
             aug = aug["aug"].fillna(0)
 
     # reduce overlap by augmentations
