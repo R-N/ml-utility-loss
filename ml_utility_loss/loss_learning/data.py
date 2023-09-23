@@ -71,7 +71,7 @@ class OverlapDataset(Dataset):
         if self.cache and idx in self.cache:
             return self.cache[idx]
         
-        df = self.dfs.iloc[idx%self.len_dfs]
+        df = self.dfs[idx%self.len_dfs]
         if self.size and len(df) > self.size:
             df = df.sample(n=self.size)
 
