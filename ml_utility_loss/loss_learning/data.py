@@ -86,6 +86,7 @@ class OverlapDataset(Dataset):
 class PreprocessedDataset(Dataset):
     def __init__(self, dataset, preprocessor, model=None, max_cache=None):
         self.dataset = dataset
+        assert model or preprocessor.model
         self.preprocessor = preprocessor
         self.model = model
         self.cache = None
