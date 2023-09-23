@@ -346,10 +346,8 @@ class DataPreprocessor: #preprocess all with this. save all model here
                 y = np.squeeze(x[:,-1])
                 n_num = self.tab_ddpm_preprocessor.n_num
                 n_cat = self.tab_ddpm_preprocessor.n_cat
-                print(n_num, n_cat)
                 X_num = x[:, :n_num]
                 X_cat = x[:, n_num:n_num+n_cat]
-                print(x.shape, X_num.shape, X_cat.shape)
                 return self.tab_ddpm_preprocessor.postprocess(X_num, X_cat, y)
             raise ValueError(f"Invalid argument type for tab_ddpm preprocessor: {type(x)}")
         raise ValueError(f"Unknown model: {model}")
