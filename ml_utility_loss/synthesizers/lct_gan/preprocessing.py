@@ -341,7 +341,7 @@ class DataTransformer():
         self.model = model
         self.transform(train_data, store_ordering=True)
 
-    def transform(self, data, store_ordering=False):
+    def transform(self, data, store_ordering=True):
         
         if store_ordering:
             self.ordering = []
