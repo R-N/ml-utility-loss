@@ -16,6 +16,7 @@ def train_epoch(
     whole_model, 
     train_loader, 
     optim, 
+    grad_loss_mul=1.0,
     loss_fn=F.mse_loss,
     grad_loss_fn=F.mse_loss,
     adapter_loss_fn=F.mse_loss
@@ -76,6 +77,8 @@ def train_epoch(
             g = 2 * torch.sqrt(loss.detach().item())
             # gradient penalty
             g_loss = grad_loss_fn(dbody_dx_norm, g)
+            # weight the gradient penalty
+            g_loss = grad_loss_mul * g_loss
             # add gradient penalty to total loss
             total_loss += g_loss
 
