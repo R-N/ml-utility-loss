@@ -81,3 +81,5 @@ class Cache:
     def __contains__(self, item):
         return item in self.cache
     
+def validate_device(device="cuda"):
+    return device if torch.cuda.is_available() else "cpu"
