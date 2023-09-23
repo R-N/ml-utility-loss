@@ -361,7 +361,7 @@ def generate_overlap(df, augmenter=None):
     
     # find overlap
     overlaps = test.index.isin(train.index)
-    y = overlaps.astype(float).rename("overlap")
+    y = pd.Series(overlaps.astype(float), index=test.index, name="overlap")
 
     # augmentations
     aug = None
@@ -379,6 +379,6 @@ def generate_overlap(df, augmenter=None):
         y.loc[overlaps] = y[overlaps] - aug[overlaps]
         
     # calculate intersection over union
-    y = y.sum() / len(test.index.union(train.index))
+    y = y.to_numpy().sum() / len(test.index.union(train.index))
 
     return train, test, y
