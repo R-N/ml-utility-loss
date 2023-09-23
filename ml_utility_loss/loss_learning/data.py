@@ -140,7 +140,7 @@ class MultiPreprocessedDataset:
                 dataset=self.dataset,
                 preprocessor=preprocessor,
                 model=idx,
-                max_cache=self.cache.max_cache
+                max_cache=self.cache.max_cache if self.cache else None
             )
         if hasattr(idx, "__iter__"):
             return stack_sample_dicts([self[id] for id in idx])
