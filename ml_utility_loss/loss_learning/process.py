@@ -8,6 +8,7 @@ def calc_gradient(inputs, outputs):
         grad_outputs=torch.ones_like(outputs), 
         create_graph=True,
         retain_graph=True,
+        is_grads_batched=False, # default
     )[0]
     return gradient
 
