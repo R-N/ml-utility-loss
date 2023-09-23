@@ -340,6 +340,16 @@ class DataPreprocessor: #preprocess all with this. save all model here
                 return self.tab_ddpm_preprocessor.postprocess(*x)
             if isinstance(x, dict):
                 return self.tab_ddpm_preprocessor.postprocess(**x)
+            if isinstance(x, pd.DataFrame):
+                x = x.to_numpy()
+            if isinstance(x, np.ndarray):
+                n = len(x)
+                y = np.squeeze(x[:,-1])
+                n_cat = len(self.tab_ddpm_preprocessor.cat_features)
+                n_num = n - n_cat - 1
+                X_num = x[:, :n_num]
+                X_cat = x[:, n_num:-1]
+                return self.tab_ddpm_preprocessor.postprocess(X_num, X_cat, y)
             raise ValueError(f"Invalid argument type for tab_ddpm preprocessor: {type(x)}")
         raise ValueError(f"Unknown model: {model}")
         
