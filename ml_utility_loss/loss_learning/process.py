@@ -5,7 +5,7 @@ def calc_gradient(inputs, outputs):
     gradient = torch.autograd.grad(
         inputs = inputs,
         outputs = outputs,
-        grad_outputs=torch.ones_like(inputs),  #outputs?
+        grad_outputs=torch.ones_like(outputs), 
         create_graph=True,
         retain_graph=True,
     )[0]
