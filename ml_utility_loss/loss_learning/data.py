@@ -131,8 +131,6 @@ class MultiPreprocessedDataset:
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-        if hasattr(idx, "__iter__"):
-            return stack_sample_dicts([self[id] for id in idx])
         if isinstance(idx, str):
             assert idx in self.models
             preprocessor = self.preprocessor
@@ -144,6 +142,8 @@ class MultiPreprocessedDataset:
                 model=idx,
                 max_cache=self.cache.max_cache
             )
+        if hasattr(idx, "__iter__"):
+            return stack_sample_dicts([self[id] for id in idx])
         if self.cache and idx in self.cache:
             return self.cache[idx]
         
