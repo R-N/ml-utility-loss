@@ -75,7 +75,7 @@ class OverlapDataset(Dataset):
         if self.size and len(df) > self.size:
             df = df.sample(n=self.size)
 
-        train, test, y = generate_overlap(self.df, augmenter=self.augmenter)
+        train, test, y = generate_overlap(df, augmenter=self.augmenter)
 
         sample = train, test, y
 
