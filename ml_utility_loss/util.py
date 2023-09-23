@@ -53,6 +53,14 @@ def stack_samples(samples):
     samples = [torch.stack(x) for x in samples]
     return samples
 
+def stack_sample_dicts(samples, keys=None):
+    keys = keys or samples[0].keys()
+    sample_dicts = {
+        model: stack_samples([x[model] for x in samples])
+        for model in keys
+    }
+    return sample_dicts
+
 class Cache:
     def __init__(self, max_cache=torch.inf):
         self.max_cache = max_cache

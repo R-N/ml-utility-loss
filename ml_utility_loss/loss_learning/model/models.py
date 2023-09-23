@@ -319,9 +319,11 @@ class MLUtilitySingle(nn.Module):
         self.body = body
         self.head = head
 
-    def forward(self, train, test):
+    def forward(self, train, test, skip_train_adapter=False):
         if self.adapter:
-            train, test = self.adapter(train), self.adapter(test)
+            if not skip_train_adapter:
+                train = self.adapter(train)
+            test = self.adapter(test)
         out = self.body(train, test)
         if self.head:
             out = self.head(out)
@@ -388,3 +390,6 @@ class MLUtilityWhole(nn.Module):
         self.cache[idx] = single
         return single
 
+    def forward(self, train, test, model, skip_train_adapter=False):
+        single = self[model]
+        return single(train, test, skip_train_adapter=skip_train_adapter)
