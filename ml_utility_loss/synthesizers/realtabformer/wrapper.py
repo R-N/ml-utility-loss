@@ -703,7 +703,7 @@ class REaLTabFormer:
             self.vocab, mask_rate=self.mask_rate, return_token_type_ids=False,
             remove_columns=df.columns
         )
-        self.tabular_max_length = len(df["input_ids"][0])
+        self.tabular_max_length = len(df["input_ids"].iloc[0])
         return df
     
     def make_dataset(self, df, preprocess=True, map_ids=True, two=True):
