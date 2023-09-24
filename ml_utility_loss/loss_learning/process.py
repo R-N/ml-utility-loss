@@ -129,7 +129,7 @@ def train_epoch(
         non_role_model_g_loss.backward()
         whole_model.non_adapter_zero_grad()
         # Now we backward the role model
-        role_model_g_loss = computes[role_model][g_loss]
+        role_model_g_loss = computes[role_model]["g_loss"]
         role_model_loss = min_loss + role_model_g_loss
         role_model_loss.backward()
 
