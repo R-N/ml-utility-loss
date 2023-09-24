@@ -29,6 +29,7 @@ def train_epoch(
     # Set the model to training mode - important for batch normalization and dropout layers
     # Unnecessary in this situation but added for best practices
     whole_model.train()
+    total_loss = 0
     for batch, batch_dict in enumerate(train_loader):
         optim.zero_grad()
         # Compute prediction and loss for all adapters
@@ -44,7 +45,6 @@ def train_epoch(
             m = whole_model.adapters[model](train)
             # make prediction using intermediate tensor
             pred = whole_model(m, test, model, skip_train_adapter=True)
-            print(pred.shape, y.shape)
             # none reduction to retain the batch shape
             loss = loss_fn(pred, y, reduction="none")
             """
@@ -168,12 +168,16 @@ def train_epoch(
         total_embed_loss.backward()
 
         # Finally, backprop
+        batch_loss = role_model_loss + non_role_model_g_loss + total_embed_loss
         # Now we will not call backward on total loss, 
         # But we called on every piece of loss
-        # total_loss.backward()
+        # batch_loss.backward()
         optim.step()
         optim.zero_grad()
 
-        if batch % 100 == 0:
-            loss, current = loss.item(), (batch + 1) * len(X)
-            print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+        batch_loss = batch_loss.item()
+        total_loss += batch_loss
+
+    return total_loss
+        
+        

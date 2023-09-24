@@ -251,7 +251,6 @@ class Head(nn.Module):
         ])
 
     def forward(self, x, return_attns=False):
-        print("A", x.shape)
         x, pma_attn = self.pma(x)
         x = x.flatten(-2, -1)
         y = self.linear(x)
