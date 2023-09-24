@@ -71,7 +71,9 @@ def train_epoch(
             # calculate gradient
             train = batch_dict[model][0]
             m = compute_dict["m"]
-            dbody_dx = dbody_dadapter * calc_gradient(train, m)
+            dadapter_dx = calc_gradient(train, m)
+            print(dbody_dadapter.shape, dadapter_dx.shape)
+            dbody_dx = dbody_dadapter * dadapter_dx
             # Flatten the gradients so that each row captures one image
             dbody_dx = dbody_dx.view(len(dbody_dx), -1)
             # Calculate the magnitude of every row
