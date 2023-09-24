@@ -36,6 +36,7 @@ def train_epoch(
             pred = whole_model(m, test, model, skip_train_adapter=True)
             loss = loss_fn(pred, y)
             # calculate partial gradient for later use
+            print(train.dtype, m.dtype, pred.dtype, loss.dtype)
             dbody_dadapter = calc_gradient(m, loss)
 
             computes[model] = {
