@@ -51,6 +51,7 @@ class Encoder(nn.Module):
     def __init__(
         self, 
         n_layers, 
+        n_inds,
         d_model, 
         d_inner, 
         n_head, 
@@ -79,6 +80,7 @@ class Encoder(nn.Module):
 
         self.layer_stack = nn.ModuleList([
             EncoderLayer(
+                n_inds=n_inds,
                 d_model=d_model, 
                 d_inner=d_inner, 
                 n_head=n_head, 
@@ -115,6 +117,7 @@ class Decoder(nn.Module):
     def __init__(
         self, 
         n_layers, 
+        n_inds,
         d_model, 
         d_inner, 
         n_head, 
@@ -143,6 +146,7 @@ class Decoder(nn.Module):
 
         self.layer_stack = nn.ModuleList([
             DecoderLayer(
+                n_inds=n_inds,
                 d_model=d_model, 
                 d_inner=d_inner, 
                 n_head=n_head, 
@@ -215,6 +219,7 @@ class Head(nn.Module):
         n_head, 
         d_model, 
         d_qk=None, 
+        d_output=1,
         dropout=0.1, 
         activation=nn.Sigmoid,
         share_ffn=True,
@@ -244,7 +249,7 @@ class Head(nn.Module):
         self.linear = nn.Sequential([
             Linear(n_seeds*d_model, d_hid),
             *[Linear(d_hid, d_hid) for i in range(n_layers-2)],
-            Linear(d_hid, 1),
+            Linear(d_hid, d_output),
         ])
 
     def forward(self, x):
@@ -259,6 +264,7 @@ class Transformer(nn.Module):
 
     def __init__(
         self, 
+        n_inds=32,
         d_model=512, 
         d_inner=2048,
         n_layers=6, 
@@ -275,6 +281,7 @@ class Transformer(nn.Module):
         self.d_model = d_model
 
         self.encoder = Encoder(
+            n_inds=n_inds,
             d_model=d_model, d_inner=d_inner,
             n_layers=n_layers, n_head=n_head, d_qk=d_qk, 
             dropout=dropout,
@@ -283,6 +290,7 @@ class Transformer(nn.Module):
         )
 
         self.decoder = Decoder(
+            n_inds=n_inds,
             d_model=d_model, d_inner=d_inner,
             n_layers=n_layers, n_head=n_head, d_qk=d_qk,
             dropout=dropout,
