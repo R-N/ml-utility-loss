@@ -76,6 +76,8 @@ def train_epoch(
             dadapter_dx = calc_gradient(train, m)
             print(train.shape, m.shape, loss.shape)
             print(dbody_dadapter.shape, dadapter_dx.shape)
+            dbody_dx = calc_gradient(train, loss)
+            print(dbody_dx.shape)
             dbody_dx = dbody_dadapter * dadapter_dx
             # Flatten the gradients so that each row captures one image
             dbody_dx = dbody_dx.view(len(dbody_dx), -1)
