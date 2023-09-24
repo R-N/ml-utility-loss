@@ -125,12 +125,13 @@ class InducedSetAttention(nn.Module):
 class SimpleInducedSetAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, num_inds, n_head, d_model, d_qk=None, dropout=0.1, softmax=nn.Softmax):
+    def __init__(self, num_inds, n_head, d_model, d_qk=None, dropout=0.1, skip_small=True, softmax=nn.Softmax):
         super().__init__()
         self.isab = InducedSetAttention(
             num_inds, d_model, d_model,
             n_head, d_model, d_model, d_model, 
             d_qk=d_qk, dropout=dropout,
+            skip_small=skip_small,
             softmax=softmax
         )
 
