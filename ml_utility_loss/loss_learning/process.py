@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+import gc
 
 Tensor = torch.FloatTensor
 
@@ -31,6 +32,7 @@ def train_epoch(
     whole_model.train()
     total_loss = 0
     for batch, batch_dict in enumerate(train_loader):
+        gc.collect()
         optim.zero_grad()
         # Compute prediction and loss for all adapters
         computes = {}
@@ -187,6 +189,7 @@ def train_epoch(
         batch_loss = batch_loss.item()
         total_loss += batch_loss
 
+    gc.collect()
     return total_loss
         
         
