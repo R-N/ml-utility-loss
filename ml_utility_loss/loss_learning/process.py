@@ -33,6 +33,7 @@ def train_epoch(
         # Compute prediction and loss for all adapters
         computes = {}
         for model, (train, test, y) in batch_dict.items():
+            print(train.shape, test.shape, y.shape)
             train.requires_grad_()
             # Somehow y keeps being 64 bit tensor
             # I have no idea what went wrong, I converted it in dataset
