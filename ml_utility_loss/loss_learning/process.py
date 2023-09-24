@@ -9,7 +9,7 @@ def calc_gradient(inputs, outputs):
     gradient = torch.autograd.grad(
         inputs = inputs,
         outputs = outputs,
-        grad_outputs=grad_outputs, 
+        #grad_outputs=grad_outputs, 
         create_graph=True,
         retain_graph=True,
         is_grads_batched=False, # default
