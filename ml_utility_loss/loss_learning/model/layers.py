@@ -27,10 +27,11 @@ class EncoderLayer(nn.Module):
         enc_output, enc_slf_attn = self.slf_attn(
             enc_input, enc_input, enc_input, mask=slf_attn_mask)
         enc_output = self.pos_ffn(enc_output)
+        pma_attn = None
         if self.pma:
-            dec_output = self.pma(dec_output)
+            enc_output, pma_attn = self.pma(enc_output)
             enc_output = self.pos_ffn_pma(enc_output)
-        return enc_output, enc_slf_attn
+        return enc_output, (enc_slf_attn, pma_attn)
 
 
 class DecoderLayer(nn.Module):
@@ -60,8 +61,8 @@ class DecoderLayer(nn.Module):
         # But it doesn't seem to happen here
         dec_output, dec_slf_attn = self.slf_attn(dec_input, dec_input, dec_input, mask=slf_attn_mask)
         dec_output, dec_enc_attn = self.enc_attn(dec_output, enc_output, enc_output, mask=dec_enc_attn_mask)
-        enc_output = self.pos_ffn(enc_output)
+        dec_output = self.pos_ffn(dec_output)
         if self.pma:
-            dec_output = self.pma(dec_output)
-            enc_output = self.pos_ffn_pma(enc_output)
-        return dec_output, dec_slf_attn, dec_enc_attn
+            dec_output, pma_attn = self.pma(dec_output)
+            dec_output = self.pos_ffn_pma(dec_output)
+        return dec_output, (dec_slf_attn, dec_enc_attn, pma_attn)

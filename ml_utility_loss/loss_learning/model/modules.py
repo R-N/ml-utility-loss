@@ -34,7 +34,7 @@ class ScaledDotProductAttention(nn.Module):
         attn = self.dropout(self.softmax(attn, **self.softmax_args))
         output = torch.matmul(attn, v)
 
-        return output, attn
+        return output, [attn]
 
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
@@ -141,8 +141,9 @@ class InducedSetAttention(nn.Module):
         print("ISAB", q.shape)
         I = self.I.unsqueeze(0).repeat(q.size(0), 1, 1) if q.dim() > 2 else self.I
         print("ISAB I", I.shape)
-        H = self.mab0(I, k, v, mask=None) #yes it's none
-        return self.mab1(q, H, H, mask=mask)
+        H, I_attn = self.mab0(I, k, v, mask=None) #yes it's none
+        O, O_attn = self.mab1(q, H, H, mask=mask)
+        return O, (I_attn, O_attn)
     
 class SimpleInducedSetAttention(nn.Module):
     ''' Multi-Head Attention module '''
@@ -172,7 +173,7 @@ class PoolingByMultiheadAttention(nn.Module):
 
     def forward(self, X):
         if self.skip_small and self.num_seeds > X.shape[-2]:
-            return X
+            return X, None
         return self.mab(self.S.repeat(X.size(0), 1, 1), X, X)
 
 

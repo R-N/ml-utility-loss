@@ -98,18 +98,18 @@ class Encoder(nn.Module):
         # Here we should still have inputs of shape (batch, size, d_model)
         # The actual head splitting should occur within each layer
 
-        enc_slf_attn_list = []
+        enc_attn_list = []
 
         # -- Forward
         enc_output = src_seq
 
         for enc_layer in self.layer_stack:
-            enc_output, enc_slf_attn = enc_layer(enc_output, slf_attn_mask=src_mask)
-            enc_slf_attn_list += [enc_slf_attn] if return_attns else []
+            enc_output, enc_attn = enc_layer(enc_output, slf_attn_mask=src_mask)
+            enc_attn_list += [enc_attn] if return_attns else []
 
         if return_attns:
-            return enc_output, enc_slf_attn_list
-        return enc_output,
+            return enc_output, enc_attn_list
+        return enc_output
 
 
 class Decoder(nn.Module):
@@ -164,20 +164,19 @@ class Decoder(nn.Module):
     def forward(self, trg_seq, enc_output, src_mask=None, trg_mask=None, return_attns=False):
         # Here we should still have inputs of shape (batch, size, d_model)
         # The actual head splitting should occur within each layer
-        dec_slf_attn_list, dec_enc_attn_list = [], []
+        dec_attn_list = []
 
         # -- Forward
         dec_output = trg_seq
 
         for dec_layer in self.layer_stack:
-            dec_output, dec_slf_attn, dec_enc_attn = dec_layer(
+            dec_output, dec_attn = dec_layer(
                 dec_output, enc_output, slf_attn_mask=trg_mask, dec_enc_attn_mask=src_mask)
-            dec_slf_attn_list += [dec_slf_attn] if return_attns else []
-            dec_enc_attn_list += [dec_enc_attn] if return_attns else []
+            dec_attn_list += [dec_attn] if return_attns else []
 
         if return_attns:
-            return dec_output, dec_slf_attn_list, dec_enc_attn_list
-        return dec_output,
+            return dec_output, dec_attn_list
+        return dec_output
 
 class Adapter(nn.Module):
     def __init__(
@@ -252,10 +251,12 @@ class Head(nn.Module):
             Linear(d_hid, d_output),
         ])
 
-    def forward(self, x):
-        x = self.pma(x)
+    def forward(self, x, return_attns=False):
+        x, pma_attn = self.pma(x)
         x = x.flatten(-2, -1)
         y = self.linear(x)
+        if return_attns:
+            return y, pma_attn
         return y
         
 
@@ -304,15 +305,18 @@ class Transformer(nn.Module):
         self.flip = flip
 
 
-    def forward(self, src_seq, trg_seq):
+    def forward(self, src_seq, trg_seq, return_attns=False):
 
         if self.flip:
             src_seq, trg_seq = trg_seq, src_seq
 
-        enc_output, *_ = self.encoder(src_seq)
-        dec_output, *_ = self.decoder(trg_seq, enc_output)
+        enc_output, enc_attn = self.encoder(src_seq)
+        dec_output, dec_attn = self.decoder(trg_seq, enc_output)
 
-        return dec_output.view(-1, dec_output.size(2))
+        output = dec_output.view(-1, dec_output.size(2))
+        if return_attns:
+            return output, (enc_attn, dec_attn)
+        return output
 
 class MLUtilitySingle(nn.Module):
     def __init__(
@@ -327,7 +331,7 @@ class MLUtilitySingle(nn.Module):
         self.body = body
         self.head = head
 
-    def forward(self, train, test, skip_train_adapter=False):
+    def forward(self, train, test, skip_train_adapter=False, return_attns=False):
         # So here we have train and test with shape (batch, size, d_input)
         if self.adapter:
             if not skip_train_adapter:
@@ -336,14 +340,16 @@ class MLUtilitySingle(nn.Module):
         # The adapter is normal deep MLP so here it will still be (batch, size, d_model)
         # Transformer should take the same input, 
         # but inside it will be uhhh (batch, size, head, d_model/head)?
-        out = self.body(train, test)
+        out, body_attn = self.body(train, test, return_attns=return_attns)
         # Idk what it outputs but head expects (batch, size, d_model)
         if self.head:
-            out = self.head(out)
+            out, head_attn = self.head(out, return_attns=return_attns)
         # Head will flatten the input into (batch, size*d_model)
         # size is actually n_seeds though
         # but anyway, it will later be (batch, d_head), 
         # which by default d_head=1
+        if return_attns:
+            return out, (body_attn, head_attn)
         return out
     
 DEFAULT_ADAPTER_DIMS = {
