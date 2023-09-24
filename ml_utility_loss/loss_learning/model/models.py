@@ -310,9 +310,12 @@ class Transformer(nn.Module):
         if self.flip:
             src_seq, trg_seq = trg_seq, src_seq
 
-        enc_output, enc_attn = self.encoder(src_seq)
-        dec_output, dec_attn = self.decoder(trg_seq, enc_output)
-
+        enc_attn, dec_attn = None, None
+        enc_output = self.encoder(src_seq, return_attns=return_attns)
+        dec_output = self.decoder(trg_seq, enc_output, return_attns=return_attns)
+        if return_attns:
+            enc_output, enc_attn = enc_output
+            dec_output, dec_attn = dec_output
         output = dec_output.view(-1, dec_output.size(2))
         if return_attns:
             return output, (enc_attn, dec_attn)
