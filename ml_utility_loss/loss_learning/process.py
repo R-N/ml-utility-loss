@@ -71,7 +71,9 @@ def train_epoch(
             # calculate gradient
             train = batch_dict[model][0]
             m = compute_dict["m"]
+            loss = compute_dict["loss"]
             dadapter_dx = calc_gradient(train, m)
+            print(train.shape, m.shape, loss.shape)
             print(dbody_dadapter.shape, dadapter_dx.shape)
             dbody_dx = dbody_dadapter * dadapter_dx
             # Flatten the gradients so that each row captures one image
@@ -80,7 +82,6 @@ def train_epoch(
             dbody_dx_norm = dbody_dx.norm(2, dim=1)
             # because we want to model this model as squared error, 
             # the expected gradient g is 2*sqrt(loss)
-            loss = compute_dict["loss"]
             # Is this necessary?
             loss = loss.view(len(loss), -1)
             g = 2 * torch.sqrt(loss.detach().item())
