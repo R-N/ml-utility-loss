@@ -57,6 +57,7 @@ def train_epoch(
                 "dbody_dadapter": dbody_dadapter,
             }
             """
+            """
             # Scratch that, we'll use backward with respect to train
             # retain_graph is needed because torch will not recreate graph
             # inputs argument makes it so that only that one is populated
@@ -66,7 +67,15 @@ def train_epoch(
                 "loss": loss,
                 "m": m,
             }
-            
+            """
+            # Okay okay it causes memory leak.
+            # We have to use autograd.grad
+            grad = calc_gradient(train, loss)
+            computes[model] = {
+                "loss": loss,
+                "m": m,
+                "grad": grad,
+            }
         
         # determine role model (adapter) by minimum loss
         role_model, min_compute = min(
@@ -96,14 +105,14 @@ def train_epoch(
             dbody_dx = dbody_dadapter * dadapter_dx
         """
         for model, compute in computes.items():
-            train = batch_dict[model][0]
+            #train = batch_dict[model][0]
             # the grad is empty
             """
             # Detach the gradient of m just to be sure
             if model != role_model:
                 compute["m"].grad.detach_()
             """
-            dbody_dx = train.grad
+            dbody_dx = compute["grad"]
             # Flatten the gradients so that each row captures one image
             dbody_dx = dbody_dx.view(len(dbody_dx), -1)
             # Calculate the magnitude of every row
