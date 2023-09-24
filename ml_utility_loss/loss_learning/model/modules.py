@@ -134,7 +134,9 @@ class InducedSetAttention(nn.Module):
         # Ok so this is actually a problem
         # It expects batched input so I is repeated to the batch dimension
         # So it has to be handled
+        print("ISAB", q.shape)
         I = self.I.unsqueeze(0).repeat(q.size(0), 1, 1) if q.dim() > 2 else self.I
+        print("ISAB I", I.shape)
         H = self.mab0(I, k, v, mask=None) #yes it's none
         return self.mab1(q, H, H, mask=mask)
     
