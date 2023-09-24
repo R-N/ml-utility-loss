@@ -4,12 +4,11 @@ import torch.nn.functional as F
 Tensor = torch.FloatTensor
 
 def calc_gradient(inputs, outputs):
-    grad_outputs = torch.ones_like(outputs)
-    print(grad_outputs.shape)
+    grad_outputs = None if outputs.dim() == 0 else torch.ones_like(outputs)
     gradient = torch.autograd.grad(
         inputs = inputs,
         outputs = outputs,
-        #grad_outputs=grad_outputs, 
+        grad_outputs=grad_outputs, 
         create_graph=True,
         retain_graph=True,
         is_grads_batched=False, # default
