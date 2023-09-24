@@ -141,7 +141,7 @@ class PreprocessedDataset(Dataset):
             return self.cache[idx]
         
         sample = self.dataset[idx]
-        sample = preprocess_sample(sample, self.preprocessor, self.model)
+        sample = preprocess_sample(sample, self.preprocessor, self.model, dtype=float)
         sample = to_dtype(sample, self.dtype)
         sample = to_tensor(sample, self.Tensor)
 
@@ -158,6 +158,7 @@ class MultiPreprocessedDataset:
         if max_cache:
             self.cache = Cache(max_cache)
         self.Tensor = Tensor
+        self.dtype = dtype
 
     @property
     def models(self):
