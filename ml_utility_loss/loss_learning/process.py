@@ -1,6 +1,8 @@
 import torch
 import torch.nn.functional as F
 
+Tensor = torch.Tensor
+
 def calc_gradient(inputs, outputs):
     gradient = torch.autograd.grad(
         inputs = inputs,
@@ -30,13 +32,17 @@ def train_epoch(
         # Compute prediction and loss for all adapters
         computes = {}
         for model, (train, test, y) in batch_dict.items():
+            # Somehow y keeps being 64 bit tensor
+            # I have no idea what went wrong, I converted it in dataset
+            # So yeah this is a workaround, hope it works
+            y = Tensor(y)
             # calculate intermediate tensor for later use
             m = whole_model.adapters[model](train)
             # make prediction using intermediate tensor
             pred = whole_model(m, test, model, skip_train_adapter=True)
             loss = loss_fn(pred, y)
             # calculate partial gradient for later use
-            print(train.dtype, m.dtype, pred.dtype, loss.dtype)
+            print(train.dtype, m.dtype, pred.dtype, y.dtype, loss.dtype)
             dbody_dadapter = calc_gradient(m, loss)
 
             computes[model] = {
