@@ -311,6 +311,7 @@ class Transformer(nn.Module):
         if self.flip:
             src_seq, trg_seq = trg_seq, src_seq
 
+        print("C", src_seq.shape, trg_seq.shape)
         enc_attn, dec_attn = None, None
         enc_output = self.encoder(src_seq, return_attns=return_attns)
         dec_output = self.decoder(trg_seq, enc_output, return_attns=return_attns)
@@ -319,7 +320,7 @@ class Transformer(nn.Module):
             dec_output, dec_attn = dec_output
         # It expected size 2 of dim 3, so (0, 1, 2)
         # Meaning it should be -1
-        print("Z", dec_output.shape)
+        print("Z", enc_output.shape, dec_output.shape)
         output = dec_output.view(-1, dec_output.size(-1))
         print("X", output.shape)
         if return_attns:
