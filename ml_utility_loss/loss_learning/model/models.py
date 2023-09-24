@@ -219,7 +219,6 @@ class Head(nn.Module):
         n_layers=2, 
         n_head=8,  
         d_qk=None, 
-        d_output=1,
         dropout=0.1, 
         activation=nn.Sigmoid,
         skip_small=True,
@@ -248,7 +247,7 @@ class Head(nn.Module):
         self.linear = nn.Sequential(*[
             Linear(n_seeds*d_model, d_hid),
             *[Linear(d_hid, d_hid) for i in range(n_layers-2)],
-            Linear(d_hid, d_output),
+            Linear(d_hid, 1),
         ])
 
     def forward(self, x, return_attns=False):
@@ -256,6 +255,7 @@ class Head(nn.Module):
         x, pma_attn = self.pma(x)
         x = x.flatten(-2, -1)
         y = self.linear(x)
+        y = y.squeeze(dim=-1)
         if return_attns:
             return y, pma_attn
         return y
