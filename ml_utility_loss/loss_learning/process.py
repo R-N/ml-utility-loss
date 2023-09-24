@@ -39,31 +39,30 @@ def train_epoch(
             # So yeah this is a workaround
             y = y.to(torch.float32)
 
-            """
             # calculate intermediate tensor for later use
             m = whole_model.adapters[model](train)
             # make prediction using intermediate tensor
             pred = whole_model(m, test, model, skip_train_adapter=True)
             loss = loss_fn(pred, y)
+            """
             # calculate partial gradient for later use
             dbody_dadapter = calc_gradient(m, loss)
 
             computes[model] = {
                 "loss": loss,
                 "m": m,
-                "dbody_dadapter": dbody_dadapter
+                "dbody_dadapter": dbody_dadapter,
             }
             """
             # Scratch that, we'll use backward with respect to train
-            pred = whole_model(train, test, model)
-            loss = loss_fn(pred, y)
-            computes[model] = {
-                "loss": loss
-            }
             # retain_graph is needed because torch will not recreate graph
             # inputs argument makes it so that only that one is populated
             # thus, this will populate train.grad and only that
             loss.backward(retain_graph=True, create_graph=True, inputs=train)
+            computes[model] = {
+                "loss": loss,
+                "m": m,
+            }
             
         
         # determine role model (adapter) by minimum loss
@@ -94,6 +93,9 @@ def train_epoch(
         """
         for model, compute in computes.items():
             train = batch_dict[model][0]
+            # Detach the gradient of m just to be sure
+            if model != role_model:
+                compute["m"].grad.detach_()
             dbody_dx = train.grad
             # Flatten the gradients so that each row captures one image
             dbody_dx = dbody_dx.view(len(dbody_dx), -1)
