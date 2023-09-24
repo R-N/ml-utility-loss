@@ -306,7 +306,7 @@ class DatasetTransformer:
                 if len(uniq_vals) <= 32 and ((uniq_vals - np.round(uniq_vals)) == 0).all():
                     self.disc_cols.append(col)
                     self.uniq_vals[col] = uniq_vals
-            print("Discrete cols:", self.disc_cols)
+            #print("Discrete cols:", self.disc_cols)
 
 
         if X_cat is not None and len(X_cat) > 0:
