@@ -26,7 +26,10 @@ def to_dtype(x, dtype=None):
     if isinstance(x, dict):
         return {k: to_dtype(v, dtype) for k, v in x.items()}
     if torch.is_tensor(x):
-        return x
+        try:
+            return x.to(dtype)
+        except Exception:
+            return x
     if hasattr(x, "__iter__"):
         return x.astype(dtype)
     return dtype(x)
@@ -40,6 +43,8 @@ def to_tensor(x, Tensor=None):
         return [to_tensor(a, Tensor) for a in x]
     if isinstance(x, dict):
         return {k: to_tensor(v, Tensor) for k, v in x.items()}
+    if torch.is_tensor(x):
+        return x.to(Tensor)
     if hasattr(x, "__iter__"):
         return Tensor(x)
     return Tensor([x]).item()

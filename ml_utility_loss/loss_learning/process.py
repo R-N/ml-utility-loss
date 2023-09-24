@@ -35,7 +35,7 @@ def train_epoch(
             # Somehow y keeps being 64 bit tensor
             # I have no idea what went wrong, I converted it in dataset
             # So yeah this is a workaround, hope it works
-            y = Tensor(y)
+            #y = y.to(torch.float32)
             # calculate intermediate tensor for later use
             m = whole_model.adapters[model](train)
             # make prediction using intermediate tensor
