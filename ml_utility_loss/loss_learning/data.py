@@ -48,7 +48,7 @@ def to_tensor(x, Tensor=None):
         return x.to(Tensor.dtype)
     if hasattr(x, "__iter__"):
         return Tensor(x)
-    return Tensor([x]).item()
+    return Tensor([x]).squeeze()
 
 class DatasetDataset(Dataset):
 
