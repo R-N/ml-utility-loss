@@ -95,6 +95,8 @@ class Encoder(nn.Module):
         self.d_model = d_model
 
     def forward(self, src_seq, src_mask=None, return_attns=False):
+        # Here we should still have inputs of shape (batch, size, d_model)
+        # The actual head splitting should occur within each layer
 
         enc_slf_attn_list = []
 
@@ -160,7 +162,8 @@ class Decoder(nn.Module):
         self.d_model = d_model
 
     def forward(self, trg_seq, enc_output, src_mask=None, trg_mask=None, return_attns=False):
-
+        # Here we should still have inputs of shape (batch, size, d_model)
+        # The actual head splitting should occur within each layer
         dec_slf_attn_list, dec_enc_attn_list = [], []
 
         # -- Forward
@@ -325,13 +328,22 @@ class MLUtilitySingle(nn.Module):
         self.head = head
 
     def forward(self, train, test, skip_train_adapter=False):
+        # So here we have train and test with shape (batch, size, d_input)
         if self.adapter:
             if not skip_train_adapter:
                 train = self.adapter(train)
             test = self.adapter(test)
+        # The adapter is normal deep MLP so here it will still be (batch, size, d_model)
+        # Transformer should take the same input, 
+        # but inside it will be uhhh (batch, size, head, d_model/head)?
         out = self.body(train, test)
+        # Idk what it outputs but head expects (batch, size, d_model)
         if self.head:
             out = self.head(out)
+        # Head will flatten the input into (batch, size*d_model)
+        # size is actually n_seeds though
+        # but anyway, it will later be (batch, d_head), 
+        # which by default d_head=1
         return out
     
 DEFAULT_ADAPTER_DIMS = {

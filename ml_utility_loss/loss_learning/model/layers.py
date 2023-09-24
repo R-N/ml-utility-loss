@@ -21,6 +21,9 @@ class EncoderLayer(nn.Module):
                 self.pos_ffn_pma = DoubleFeedForward(d_model, d_inner, dropout=dropout, activation=activation)
 
     def forward(self, enc_input, slf_attn_mask=None):
+        # Here we should still have inputs of shape (batch, size, d_model)
+        # I don't know if the head splitting occurs here or in the attention module
+        # But it doesn't seem to happen here
         enc_output, enc_slf_attn = self.slf_attn(
             enc_input, enc_input, enc_input, mask=slf_attn_mask)
         enc_output = self.pos_ffn(enc_output)
@@ -52,6 +55,9 @@ class DecoderLayer(nn.Module):
         slf_attn_mask=None, 
         dec_enc_attn_mask=None
     ):
+        # Here we should still have inputs of shape (batch, size, d_model)
+        # I don't know if the head splitting occurs here or in the attention module
+        # But it doesn't seem to happen here
         dec_output, dec_slf_attn = self.slf_attn(dec_input, dec_input, dec_input, mask=slf_attn_mask)
         dec_output, dec_enc_attn = self.enc_attn(dec_output, enc_output, enc_output, mask=dec_enc_attn_mask)
         enc_output = self.pos_ffn(enc_output)

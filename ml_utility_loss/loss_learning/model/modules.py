@@ -61,29 +61,38 @@ class MultiHeadAttention(nn.Module):
 
 
     def forward(self, q, k, v, mask=None):
+        # Ok so the head splitting should happen here
 
-        d_k, d_v, n_head = self.d_k, self.d_v, self.n_head
-        sz_b, len_q, len_k, len_v = q.size(0), q.size(1), k.size(1), v.size(1)
+        d_qk, d_v, n_head = self.d_qk, self.d_v, self.n_head
+        # IT EXPECTED A BATCHED INPUT
+        # This might by why it failed
+        sz_b = q.size(0) if q.dim() > 2 else None
+        sz_b_arg = [sz_b] if sz_b else []
+        len_q, len_k, len_v = q.size(-2), k.size(-2), v.size(-2)
 
         residual = q
 
         # Pass through the pre-attention projection: b x lq x (n*dv)
         # Separate different heads: b x lq x n x dv
-        q = self.w_qs(q).view(sz_b, len_q, n_head, d_k)
-        k = self.w_ks(k).view(sz_b, len_k, n_head, d_k)
-        v = self.w_vs(v).view(sz_b, len_v, n_head, d_v)
+        q = self.w_qs(q).view(*sz_b_arg, len_q, n_head, d_qk)
+        k = self.w_ks(k).view(*sz_b_arg, len_k, n_head, d_qk)
+        v = self.w_vs(v).view(*sz_b_arg, len_v, n_head, d_v)
 
         # Transpose for attention dot product: b x n x lq x dv
-        q, k, v = q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2)
+        # it was (1, 2) expecting 4 dims (0, 1, 2, 3)
+        # That means (1, 2) was (size, head)
+        # But anyway, to adjust, it'll be (-3, -2) for 4 dims (-4, -3, -2, -1)
+        q, k, v = q.transpose(-3, -2), k.transpose(-3, -2), v.transpose(-3, -2)
 
         if mask is not None:
-            mask = mask.unsqueeze(1)   # For head axis broadcasting.
+            mask = mask.unsqueeze(-2)   # For head axis broadcasting.
 
         o, attn = self.attention(q, k, v, mask=mask)
 
         # Transpose to move the head dimension back: b x lq x n x dv
         # Combine the last two dimensions to concatenate all the heads together: b x lq x (n*dv)
-        o = o.transpose(1, 2).contiguous().view(sz_b, len_q, -1)
+        # again, (1, 2) to (-3, -2)
+        o = o.transpose(-3, -2).contiguous().view(*sz_b_arg, len_q, -1)
 
         if self.d_Q != self.d_O:
             residual = o
@@ -119,6 +128,7 @@ class InducedSetAttention(nn.Module):
         self.mab1 = MultiHeadAttention(n_head, d_Q, d_H, d_O, d_qk=d_qk, dropout=dropout, softmax=softmax)
 
     def forward(self, q, k, v, mask=None):
+        # This just uses MultiheadAttention
         if self.skip_small and self.num_inds > k.shape[-2] and self.d_H == k.shape[-1]:
             return self.mab1(q, k, v, mask=mask)
         H = self.mab0(self.I.repeat(q.size(0), 1, 1), k, v, mask=None) #yes it's none
@@ -138,6 +148,7 @@ class SimpleInducedSetAttention(nn.Module):
         )
 
     def forward(self, q, k, v, mask=None):
+        # This is just a wrapper for InducedSetAttention
         return self.isab.forward(q, k, v, mask=mask)
 
 class PoolingByMultiheadAttention(nn.Module):

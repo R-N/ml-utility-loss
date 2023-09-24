@@ -86,7 +86,7 @@ def train_epoch(
         # dim 0 is batch, dim 1 is size, not sure which to use but size I guess
         # wait is that correct tho?
         train, test, y = batch_dict[role_model]
-        embed_x = torch.cat([train, test], dim=1)
+        embed_x = torch.cat([train, test], dim=-2)
         # Should I have used norm too here? Or maybe sum?
         embed_y = whole_model.adapters[role_model](embed_x).detach()
 
