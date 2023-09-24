@@ -42,8 +42,8 @@ def train_epoch(
             # calculate intermediate tensor for later use
             m = whole_model.adapters[model](train)
             # make prediction using intermediate tensor
-            print(pred.shape, y.shape)
             pred = whole_model(m, test, model, skip_train_adapter=True)
+            print(pred.shape, y.shape)
             # none reduction to retain the batch shape
             loss = loss_fn(pred, y, reduction="none")
             """
