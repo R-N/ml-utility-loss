@@ -209,7 +209,7 @@ class DataTransformer():
         self.output_dim = 0
         self.components = []
         self.filter_arr = []
-        print(self.meta)
+        #print(self.meta)
         
     def get_metadata(self, train_data):
         
@@ -253,7 +253,7 @@ class DataTransformer():
         model = []
         output_dims = []
         # iterating through column information
-        for id_, info in tqdm(enumerate(self.meta)):
+        for id_, info in enumerate(self.meta):
             if info['type'] == "continuous":
                 # fitting bgm model  
                 gm = BayesianGaussianMixture(
@@ -336,8 +336,8 @@ class DataTransformer():
                 self.output_dim += output_dim
                 output_dims.append(output_dim)
         
-        print("output_dim", self.output_dim)
-        print("output_dims", output_dims)
+        #print("output_dim", self.output_dim)
+        #print("output_dims", output_dims)
         self.model = model
         self.transform(train_data, store_ordering=True)
 

@@ -68,7 +68,7 @@ class LatentTAE:
         data_dim = self.data_preprocessor.output_dim
         data_info = self.data_preprocessor.output_info
 
-        print(f"DATA DIMENSION: {df.shape}")
+        #print(f"DATA DIMENSION: {df.shape}")
 
         self.ae.train(
             df, 
@@ -79,7 +79,7 @@ class LatentTAE:
         )
         self.loss = self.ae.loss
         ##### TEST #####
-        print("######## DEBUG ########")
+        #print("######## DEBUG ########")
 
         real = np.asarray(df[0:self.batch_size])
 
@@ -90,9 +90,9 @@ class LatentTAE:
         table_real = self.postprocess(real)
         table_recon = self.postprocess(l)
 
-        print(table_real)
-        print()
-        print(table_recon)
+        #print(table_real)
+        #print()
+        #print(table_recon)
         #### END OF TEST ####
 
     def decode(self, latent, batch=False, postprocessing=True):
@@ -137,7 +137,7 @@ class LatentTAE:
         #print("Generating latent dataset")
         steps = (len(df) // self.batch_size) + 1
         curr = 0
-        for _ in tqdm(range(steps)):
+        for _ in range(steps):
             data = df[curr : curr + self.batch_size]
             curr += self.batch_size
             if len(data) == 0: continue
@@ -233,5 +233,5 @@ class AutoEncoder(object):
 
                 last_loss = (loss.item() / len(batch))
 
-        print(last_loss)
+        #print(last_loss)
         self.loss = last_loss
