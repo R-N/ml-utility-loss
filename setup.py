@@ -42,6 +42,7 @@ setup(
         "tomli-w>=0.4.0",
         "tomli>=1.2.2",
         "torch>=1.13.0",
+        "torchinfo",
         "torchvision>=0.12.0",
         "tqdm>=4.64.1",
         "transformers==4.28.0",

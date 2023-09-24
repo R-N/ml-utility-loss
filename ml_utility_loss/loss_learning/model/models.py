@@ -94,7 +94,7 @@ class Encoder(nn.Module):
         ])
         self.d_model = d_model
 
-    def forward(self, src_seq, src_mask, return_attns=False):
+    def forward(self, src_seq, src_mask=None, return_attns=False):
 
         enc_slf_attn_list = []
 
