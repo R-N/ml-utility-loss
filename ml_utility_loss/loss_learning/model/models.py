@@ -220,7 +220,6 @@ class Head(nn.Module):
         d_output=1,
         dropout=0.1, 
         activation=nn.Sigmoid,
-        share_ffn=True,
         skip_small=True,
         softmax=nn.Softmax,
     ):
@@ -231,7 +230,7 @@ class Head(nn.Module):
             n_head, 
             d_model, 
             d_qk=d_qk, 
-            dropout=dropout, share_ffn=share_ffn, skip_small=skip_small,
+            dropout=dropout, skip_small=skip_small,
             softmax=softmax,
         )
         def Linear(
