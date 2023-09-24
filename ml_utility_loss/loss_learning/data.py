@@ -203,3 +203,10 @@ class MultiPreprocessedDataset:
         sample_dict = to_tensor(sample_dict, self.Tensor)
         return sample_dict
     
+def collate_fn(samples):
+    sample = samples[0]
+    if isinstance(sample, dict):
+        return stack_sample_dicts(samples)
+    if isinstance(sample, tuple) or isinstance(sample, list):
+        return stack_samples(samples)
+    raise ValueError(f"Invalid sample type: {type(sample)}")
