@@ -45,7 +45,6 @@ def train_epoch(
             pred = whole_model(m, test, model, skip_train_adapter=True)
             # none reduction to retain the batch shape
             loss = loss_fn(pred, y, reduction="none")
-            print(loss.shape)
             """
             # calculate partial gradient for later use
             dbody_dadapter = calc_gradient(m, loss)
@@ -60,7 +59,7 @@ def train_epoch(
             # retain_graph is needed because torch will not recreate graph
             # inputs argument makes it so that only that one is populated
             # thus, this will populate train.grad and only that
-            loss.backward(retain_graph=True, create_graph=True, inputs=train)
+            torch.mean(loss).backward(retain_graph=True, create_graph=True, inputs=train)
             computes[model] = {
                 "loss": loss,
                 "m": m,
@@ -105,12 +104,11 @@ def train_epoch(
             # Flatten the gradients so that each row captures one image
             dbody_dx = dbody_dx.view(len(dbody_dx), -1)
             # Calculate the magnitude of every row
-            dbody_dx_norm = dbody_dx.norm(2, dim=1)
-            # Is this necessary?
-            loss = loss.view(len(loss), -1)
+            dbody_dx_norm = dbody_dx.norm(2, dim=-1)
             # because we want to model this model as squared error, 
             # the expected gradient g is 2*sqrt(loss)
-            g = 2 * torch.sqrt(loss.detach().item())
+            g = 2 * torch.sqrt(loss.detach())
+            print(dbody_dx_norm.shape, g.shape)
             # gradient penalty
             g_loss = grad_loss_fn(dbody_dx_norm, g)
             # weight the gradient penalty
