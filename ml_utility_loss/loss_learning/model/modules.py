@@ -122,7 +122,7 @@ class InducedSetAttention(nn.Module):
         self.d_I = d_I
         self.d_H = d_H
         self.num_inds = num_inds
-        self.I = nn.Parameter(Tensor(1, num_inds, d_I))
+        self.I = nn.Parameter(Tensor(num_inds, d_I))
         nn.init.xavier_uniform_(self.I)
         self.mab0 = MultiHeadAttention(n_head, d_I, d_KV, d_H, d_qk=d_qk, dropout=dropout, softmax=softmax)
         self.mab1 = MultiHeadAttention(n_head, d_Q, d_H, d_O, d_qk=d_qk, dropout=dropout, softmax=softmax)
@@ -131,7 +131,11 @@ class InducedSetAttention(nn.Module):
         # This just uses MultiheadAttention
         if self.skip_small and self.num_inds > k.shape[-2] and self.d_H == k.shape[-1]:
             return self.mab1(q, k, v, mask=mask)
-        H = self.mab0(self.I.repeat(q.size(0), 1, 1), k, v, mask=None) #yes it's none
+        # Ok so this is actually a problem
+        # It expects batched input so I is repeated to the batch dimension
+        # So it has to be handled
+        I = self.I.unsqueeze(0).repeat(q.size(0), 1, 1) if q.dim() > 2 else self.I
+        H = self.mab0(I, k, v, mask=None) #yes it's none
         return self.mab1(q, H, H, mask=mask)
     
 class SimpleInducedSetAttention(nn.Module):
