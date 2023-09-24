@@ -44,7 +44,7 @@ def to_tensor(x, Tensor=None):
     if isinstance(x, dict):
         return {k: to_tensor(v, Tensor) for k, v in x.items()}
     if torch.is_tensor(x):
-        return x.to(Tensor)
+        return x.to(Tensor.dtype)
     if hasattr(x, "__iter__"):
         return Tensor(x)
     return Tensor([x]).item()
