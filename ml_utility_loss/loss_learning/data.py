@@ -27,7 +27,7 @@ def to_tensor(x, Tensor=None):
         return {k: to_tensor(v, Tensor) for k, v in x.items()}
     if hasattr(x, "__iter__"):
         return Tensor(x)
-    return x
+    return Tensor([x]).item()
 
 class DatasetDataset(Dataset):
 
@@ -105,7 +105,7 @@ class OverlapDataset(Dataset):
         return sample
 
 class PreprocessedDataset(Dataset):
-    def __init__(self, dataset, preprocessor, model=None, max_cache=None, Tensor=Tensor):
+    def __init__(self, dataset, preprocessor, model=None, max_cache=None, Tensor=Tensor, dtype=float):
         self.dataset = dataset
         assert model or preprocessor.model
         self.preprocessor = preprocessor
@@ -114,6 +114,7 @@ class PreprocessedDataset(Dataset):
         if max_cache:
             self.cache = Cache(max_cache)
         self.Tensor = Tensor
+        self.dtype = dtype
 
     def __len__(self):
         return len(self.dataset)
