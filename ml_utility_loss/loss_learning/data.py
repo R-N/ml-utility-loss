@@ -143,9 +143,7 @@ class PreprocessedDataset(Dataset):
         sample = self.dataset[idx]
         sample = preprocess_sample(sample, self.preprocessor, self.model)
         sample = to_dtype(sample, self.dtype)
-        print([x.dtype for x in sample])
         sample = to_tensor(sample, self.Tensor)
-        print([x.dtype for x in sample])
 
         if self.cache:
             self.cache[idx] = sample
@@ -192,6 +190,7 @@ class MultiPreprocessedDataset:
             model: preprocess_sample(sample, self.preprocessor, model)
             for model in self.models
         }
+        sample_dict = to_dtype(sample_dict, self.dtype)
         sample_dict = to_tensor(sample_dict, self.Tensor)
         return sample_dict
     
