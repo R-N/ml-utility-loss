@@ -7,6 +7,7 @@ from .preprocessing import generate_overlap
 from ..util import Cache, stack_samples, stack_sample_dicts
 from copy import deepcopy
 
+Tensor=torch.Tensor
 
 def preprocess_sample(sample, preprocessor=None, model=None):
     if not preprocessor:
@@ -15,12 +16,24 @@ def preprocess_sample(sample, preprocessor=None, model=None):
     train, test = preprocessor.preprocess(train, model=model), preprocessor.preprocess(test, model=model)
     return train, test, y
 
+def to_tensor(x, Tensor=None):
+    if not Tensor:
+        return x
+    if isinstance(x, tuple):
+        return tuple([to_tensor(a) for a in x])
+    if isinstance(x, list):
+        return [to_tensor(a) for a in x]
+    if isinstance(x, dict):
+        return {k: to_tensor(v) for k, v in x.items()}
+    return Tensor(x)
+
 class DatasetDataset(Dataset):
 
-    def __init__(self, dir, file="info.csv", max_cache=None):
+    def __init__(self, dir, file="info.csv", max_cache=None, Tensor=None):
         self.dir = dir
         self.info = pd.read_csv(os.path.join(dir, file)).to_dict("records")
         self.cache = Cache(max_cache) if max_cache else None
+        self.Tensor = Tensor
 
     def __len__(self):
         return len(self.info)
@@ -40,6 +53,8 @@ class DatasetDataset(Dataset):
 
         sample = train, test, y
 
+        sample = to_tensor(sample, self.Tensor)
+
         if self.cache:
             self.cache[idx] = sample
 
@@ -48,7 +63,7 @@ class DatasetDataset(Dataset):
 
 class OverlapDataset(Dataset):
 
-    def __init__(self, dfs, size=None, augmenter=None, max_cache=None):
+    def __init__(self, dfs, size=None, augmenter=None, max_cache=None, Tensor=None):
         self.dfs = dfs
         self.augmenter=augmenter
         self.size = size
@@ -59,6 +74,7 @@ class OverlapDataset(Dataset):
         if max_cache:
             self.cache = Cache(max_cache)
             self.len = max_cache // self.len
+        self.Tensor = Tensor
 
     def __len__(self):
         return self.len
@@ -79,13 +95,15 @@ class OverlapDataset(Dataset):
 
         sample = train, test, y
 
+        sample = to_tensor(sample, self.Tensor)
+
         if self.cache:
             self.cache[idx] = sample
 
         return sample
 
 class PreprocessedDataset(Dataset):
-    def __init__(self, dataset, preprocessor, model=None, max_cache=None):
+    def __init__(self, dataset, preprocessor, model=None, max_cache=None, Tensor=Tensor):
         self.dataset = dataset
         assert model or preprocessor.model
         self.preprocessor = preprocessor
@@ -93,6 +111,7 @@ class PreprocessedDataset(Dataset):
         self.cache = None
         if max_cache:
             self.cache = Cache(max_cache)
+        self.Tensor = Tensor
 
     def __len__(self):
         return len(self.dataset)
@@ -108,18 +127,21 @@ class PreprocessedDataset(Dataset):
         sample = self.dataset[idx]
         sample = preprocess_sample(sample, self.preprocessor, self.model)
 
+        sample = to_tensor(sample, self.Tensor)
+
         if self.cache:
             self.cache[idx] = sample
 
         return sample
 
 class MultiPreprocessedDataset:
-    def __init__(self, dataset, preprocessor, max_cache=None):
+    def __init__(self, dataset, preprocessor, max_cache=None, tensor=Tensor):
         self.dataset = dataset
         self.preprocessor = preprocessor
         self.cache = None
         if max_cache:
             self.cache = Cache(max_cache)
+        self.Tensor = Tensor
 
     @property
     def models(self):
@@ -152,5 +174,6 @@ class MultiPreprocessedDataset:
             model: preprocess_sample(sample, self.preprocessor, model)
             for model in self.models
         }
+        sample_dict = to_tensor(sample_dict, self.Tensor)
         return sample_dict
     

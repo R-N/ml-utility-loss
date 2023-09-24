@@ -5,6 +5,8 @@ from entmax import sparsemax, entmax15, Sparsemax, Entmax15
 from alpharelu import relu15, ReLU15
 import inspect
 
+Tensor = torch.Tensor
+
 __author__ = "Yu-Hsiang Huang"
 
 class ScaledDotProductAttention(nn.Module):
@@ -111,7 +113,7 @@ class InducedSetAttention(nn.Module):
         self.d_I = d_I
         self.d_H = d_H
         self.num_inds = num_inds
-        self.I = nn.Parameter(torch.Tensor(1, num_inds, d_I))
+        self.I = nn.Parameter(Tensor(1, num_inds, d_I))
         nn.init.xavier_uniform_(self.I)
         self.mab0 = MultiHeadAttention(n_head, d_I, d_KV, d_H, d_qk=d_qk, dropout=dropout, softmax=softmax)
         self.mab1 = MultiHeadAttention(n_head, d_Q, d_H, d_O, d_qk=d_qk, dropout=dropout, softmax=softmax)
@@ -143,7 +145,7 @@ class PoolingByMultiheadAttention(nn.Module):
         super().__init__()
         self.num_seeds = num_seeds
         self.skip_small = skip_small
-        self.S = nn.Parameter(torch.Tensor(1, num_seeds, d_model))
+        self.S = nn.Parameter(Tensor(1, num_seeds, d_model))
         nn.init.xavier_uniform_(self.S)
         self.mab = SimpleMultiHeadAttention(n_head, d_model, d_qk=d_qk, dropout=dropout, softmax=softmax)
 
