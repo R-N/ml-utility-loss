@@ -67,10 +67,11 @@ def train_epoch(
             
         
         # determine role model (adapter) by minimum loss
-        role_model, min_loss = min(
+        role_model, min_compute = min(
             computes.items(), 
             key=lambda item: item[-1]["loss"].sum().item()
         )
+        min_loss = min_compute["loss"]
 
         # Now we calculate the gradient penalty
         # We do this only for "train" input because test is supposedly the real dataset
