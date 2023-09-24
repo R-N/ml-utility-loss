@@ -20,11 +20,11 @@ def to_tensor(x, Tensor=None):
     if not Tensor:
         return x
     if isinstance(x, tuple):
-        return tuple([to_tensor(a) for a in x])
+        return tuple([to_tensor(a, Tensor) for a in x])
     if isinstance(x, list):
-        return [to_tensor(a) for a in x]
+        return [to_tensor(a, Tensor) for a in x]
     if isinstance(x, dict):
-        return {k: to_tensor(v) for k, v in x.items()}
+        return {k: to_tensor(v, Tensor) for k, v in x.items()}
     return Tensor(x)
 
 class DatasetDataset(Dataset):
