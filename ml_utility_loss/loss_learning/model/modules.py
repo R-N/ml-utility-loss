@@ -169,7 +169,7 @@ class PoolingByMultiheadAttention(nn.Module):
         super().__init__()
         self.num_seeds = num_seeds
         self.skip_small = skip_small
-        self.S = nn.Parameter(Tensor(1, num_seeds, d_model))
+        self.S = nn.Parameter(Tensor(num_seeds, d_model))
         nn.init.xavier_uniform_(self.S)
         self.mab = SimpleMultiHeadAttention(n_head, d_model, d_qk=d_qk, dropout=dropout, softmax=softmax)
 
