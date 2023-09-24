@@ -182,9 +182,9 @@ class Adapter(nn.Module):
     def __init__(
         self, 
         d_input,
-        d_hid, 
         d_model, 
-        n_layers, 
+        d_hid=32, 
+        n_layers=2, 
         dropout=0.1, 
         activation=nn.ReLU,
     ):
@@ -213,11 +213,11 @@ class Adapter(nn.Module):
 class Head(nn.Module):
     def __init__(
         self, 
-        n_seeds,
-        d_hid, 
-        n_layers, 
-        n_head, 
-        d_model, 
+        d_model,
+        n_seeds=1,
+        d_hid=32, 
+        n_layers=2, 
+        n_head=8,  
         d_qk=None, 
         d_output=1,
         dropout=0.1, 
@@ -265,8 +265,8 @@ class Transformer(nn.Module):
     def __init__(
         self, 
         num_inds=32,
-        d_model=512, 
-        d_inner=2048,
+        d_model=64, 
+        d_inner=64,
         n_layers=6, 
         n_head=8, 
         d_qk=None, 
