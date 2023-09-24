@@ -25,7 +25,9 @@ def to_dtype(x, dtype=None):
         return [to_dtype(a, dtype) for a in x]
     if isinstance(x, dict):
         return {k: to_dtype(v, dtype) for k, v in x.items()}
-    return x.astype(dtype)
+    if hasattr(x, "__iter__"):
+        return x.astype(dtype)
+    return dtype(x)
 
 def to_tensor(x, Tensor=None):
     if not Tensor:
