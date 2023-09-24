@@ -200,7 +200,7 @@ class Adapter(nn.Module):
                 activation=activation,
                 dropout=dropout,
             )
-        self.linear = nn.Sequential([
+        self.linear = nn.Sequential(*[
             Linear(d_input, d_hid),
             *[Linear(d_hid, d_hid) for i in range(n_layers-2)],
             Linear(d_hid, d_model),
@@ -246,7 +246,7 @@ class Head(nn.Module):
                 activation=activation,
                 dropout=dropout,
             )
-        self.linear = nn.Sequential([
+        self.linear = nn.Sequential(*[
             Linear(n_seeds*d_model, d_hid),
             *[Linear(d_hid, d_hid) for i in range(n_layers-2)],
             Linear(d_hid, d_output),
