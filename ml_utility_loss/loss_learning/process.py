@@ -114,6 +114,7 @@ def train_epoch(
             print(dbody_dx_norm.shape, g.shape)
             # gradient penalty
             g_loss = grad_loss_fn(dbody_dx_norm, g)
+            print(g_loss.shape)
             # weight the gradient penalty
             g_loss = grad_loss_mul * g_loss
             # add to compute
