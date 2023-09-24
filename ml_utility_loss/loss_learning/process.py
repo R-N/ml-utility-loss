@@ -22,7 +22,8 @@ def train_epoch(
     grad_loss_mul=1.0,
     loss_fn=F.mse_loss,
     grad_loss_fn=F.mse_loss,
-    adapter_loss_fn=F.mse_loss
+    adapter_loss_fn=F.mse_loss,
+    reduction=torch.mean
 ):
     size = len(train_loader.dataset)
     # Set the model to training mode - important for batch normalization and dropout layers
@@ -61,7 +62,7 @@ def train_epoch(
             # retain_graph is needed because torch will not recreate graph
             # inputs argument makes it so that only that one is populated
             # thus, this will populate train.grad and only that
-            torch.mean(loss).backward(retain_graph=True, create_graph=True, inputs=train)
+            reduction(loss).backward(retain_graph=True, create_graph=True, inputs=train)
             computes[model] = {
                 "loss": loss,
                 "m": m,
@@ -73,7 +74,7 @@ def train_epoch(
             computes.items(), 
             key=lambda item: item[-1]["loss"].sum().item()
         )
-        min_loss = min_compute["loss"]
+        min_loss = reduction(min_compute["loss"])
 
         # Now we calculate the gradient penalty
         # We do this only for "train" input because test is supposedly the real dataset
@@ -111,10 +112,9 @@ def train_epoch(
             # because we want to model this model as squared error, 
             # the expected gradient g is 2*sqrt(loss)
             g = 2 * torch.sqrt(loss.detach())
-            print(dbody_dx_norm.shape, g.shape)
             # gradient penalty
-            g_loss = grad_loss_fn(dbody_dx_norm, g)
-            print(g_loss.shape)
+            g_loss = grad_loss_fn(dbody_dx_norm, g, reduction="none")
+            g_loss = reduction(g_loss)
             # weight the gradient penalty
             g_loss = grad_loss_mul * g_loss
             # add to compute
@@ -133,7 +133,7 @@ def train_epoch(
         non_role_model_g_loss.backward()
         whole_model.non_adapter_zero_grad()
         # Now we backward the role model
-        role_model_g_loss = computes[role_model]["g_loss"]
+        role_model_g_loss = reduction(computes[role_model]["g_loss"])
         role_model_loss = min_loss + role_model_g_loss
         role_model_loss.backward()
 
@@ -155,7 +155,8 @@ def train_epoch(
             embed_x = torch.cat([train, test], dim=1)
 
             embed_pred = whole_model.adapters[model](embed_x)
-            embed_loss = adapter_loss_fn(embed_pred, embed_y)
+            embed_loss = adapter_loss_fn(embed_pred, embed_y, reduction="none")
+            embed_loss = reduction(embed_loss)
 
             compute["embed_loss"] = embed_loss
 
