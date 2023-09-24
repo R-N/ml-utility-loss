@@ -16,6 +16,17 @@ def preprocess_sample(sample, preprocessor=None, model=None):
     train, test = preprocessor.preprocess(train, model=model), preprocessor.preprocess(test, model=model)
     return train, test, y
 
+def to_dtype(x, dtype=None):
+    if not dtype:
+        return x
+    if isinstance(x, tuple):
+        return tuple([to_dtype(a, dtype) for a in x])
+    if isinstance(x, list):
+        return [to_dtype(a, dtype) for a in x]
+    if isinstance(x, dict):
+        return {k: to_dtype(v, dtype) for k, v in x.items()}
+    return x.astype(dtype)
+
 def to_tensor(x, Tensor=None):
     if not Tensor:
         return x
@@ -129,7 +140,7 @@ class PreprocessedDataset(Dataset):
         
         sample = self.dataset[idx]
         sample = preprocess_sample(sample, self.preprocessor, self.model)
-
+        sample = to_dtype(sample, self.dtype)
         sample = to_tensor(sample, self.Tensor)
 
         if self.cache:
