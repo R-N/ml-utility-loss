@@ -134,7 +134,7 @@ class LatentTAE:
             df = self.preprocess(df)
 
         latent_dataset = []
-        print("Generating latent dataset")
+        #print("Generating latent dataset")
         steps = (len(df) // self.batch_size) + 1
         curr = 0
         for _ in tqdm(range(steps)):

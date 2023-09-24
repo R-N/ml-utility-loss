@@ -355,8 +355,8 @@ class DataTransformer():
         mixed_counter = 0
         
         # iterating through column information
-        for id_, info in tqdm(enumerate(self.meta)):
-            print(f"Building transformer: {info}")
+        for id_, info in enumerate(self.meta):
+            #print(f"Building transformer: {info}")
             current = data[:, id_]
             if info['type'] == "continuous":
                 # mode-specific normalization occurs here
