@@ -254,9 +254,7 @@ class Head(nn.Module):
     def forward(self, x, return_attns=False):
         print("A", x.shape)
         x, pma_attn = self.pma(x)
-        print("B", x.shape)
         x = x.flatten(-2, -1)
-        print("C", x.shape)
         y = self.linear(x)
         if return_attns:
             return y, pma_attn
@@ -321,7 +319,9 @@ class Transformer(nn.Module):
             dec_output, dec_attn = dec_output
         # It expected size 2 of dim 3, so (0, 1, 2)
         # Meaning it should be -1
+        print("Z", dec_output.shape)
         output = dec_output.view(-1, dec_output.size(-1))
+        print("X", output.shape)
         if return_attns:
             return output, (enc_attn, dec_attn)
         return output
