@@ -65,7 +65,6 @@ class Encoder(nn.Module):
         activation=nn.ReLU,
         softmax=nn.Softmax,
     ):
-
         super().__init__()
 
         if pma_start is not None:
@@ -131,7 +130,6 @@ class Decoder(nn.Module):
         activation=nn.ReLU,
         softmax=nn.Softmax,
     ):
-
         super().__init__()
 
         if pma_start is not None:
@@ -275,7 +273,6 @@ class Transformer(nn.Module):
         softmax=nn.Softmax,
         flip=False
     ):
-
         super().__init__()
 
         self.d_model = d_model
@@ -322,6 +319,7 @@ class MLUtilitySingle(nn.Module):
         body=None,
         head=None
     ):
+        super().__init__()
         assert body, "Must provide body"
         self.adapter = adapter
         self.body = body
@@ -357,6 +355,7 @@ class MLUtilityWhole(nn.Module):
         models=None,
         objectives=None
     ):
+        super().__init__()
         self.cache = {}
 
         adapter_args = adapter_args or {}

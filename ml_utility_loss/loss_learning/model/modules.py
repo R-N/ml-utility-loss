@@ -140,7 +140,7 @@ class SimpleInducedSetAttention(nn.Module):
 
 class PoolingByMultiheadAttention(nn.Module):
     def __init__(self, num_seeds, n_head, d_model, d_qk=None, dropout=0.1, skip_small=True, softmax=nn.Softmax):
-        super(PoolingByMultiheadAttention, self).__init__()
+        super().__init__()
         self.num_seeds = num_seeds
         self.skip_small = skip_small
         self.S = nn.Parameter(torch.Tensor(1, num_seeds, d_model))

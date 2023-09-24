@@ -10,7 +10,7 @@ class EncoderLayer(nn.Module):
     ''' Compose with two layers '''
 
     def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=True, activation=nn.ReLU, softmax=nn.Softmax):
-        super(EncoderLayer, self).__init__()
+        super().__init__()
         self.slf_attn = SimpleInducedSetAttention(num_inds=num_inds, n_head=n_head, d_model=d_model, d_qk=d_qk, dropout=dropout, skip_small=skip_small, softmax=softmax)
         self.pos_ffn = DoubleFeedForward(d_model, d_inner, dropout=dropout, activation=activation)
         self.pma = None
@@ -34,7 +34,7 @@ class DecoderLayer(nn.Module):
     ''' Compose with three layers '''
 
     def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=True, activation=nn.ReLU, softmax=nn.Softmax):
-        super(DecoderLayer, self).__init__()
+        super().__init__()
         self.slf_attn = SimpleInducedSetAttention(num_inds=num_inds, n_head=n_head, d_model=d_model, d_qk=d_qk, dropout=dropout, skip_small=skip_small, softmax=softmax)
         self.enc_attn = SimpleInducedSetAttention(num_inds=num_inds, n_head=n_head, d_model=d_model, d_qk=d_qk, dropout=dropout, skip_small=skip_small, softmax=softmax)
         self.pos_ffn = DoubleFeedForward(d_model, d_inner, dropout=dropout, activation=activation)
