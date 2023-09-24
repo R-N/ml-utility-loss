@@ -25,7 +25,9 @@ def to_tensor(x, Tensor=None):
         return [to_tensor(a, Tensor) for a in x]
     if isinstance(x, dict):
         return {k: to_tensor(v, Tensor) for k, v in x.items()}
-    return Tensor(x)
+    if hasattr(x, "__iter__"):
+        return Tensor(x)
+    return x
 
 class DatasetDataset(Dataset):
 
