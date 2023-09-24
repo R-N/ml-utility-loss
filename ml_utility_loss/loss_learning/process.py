@@ -38,6 +38,8 @@ def train_epoch(
             # I have no idea what went wrong, I converted it in dataset
             # So yeah this is a workaround
             y = y.to(torch.float32)
+
+            """
             # calculate intermediate tensor for later use
             m = whole_model.adapters[model](train)
             # make prediction using intermediate tensor
@@ -51,18 +53,28 @@ def train_epoch(
                 "m": m,
                 "dbody_dadapter": dbody_dadapter
             }
+            """
+            # Scratch that, we'll use backward with respect to train
+            pred = whole_model(train, test, model)
+            loss = loss_fn(pred, y)
+            computes[model] = {
+                "loss": loss
+            }
+            # retain_graph is needed because torch will not recreate graph
+            # inputs argument makes it so that only that one is populated
+            # thus, this will populate train.grad and only that
+            loss.backward(retain_graph=True, create_graph=True, inputs=train)
+            
         
         # determine role model (adapter) by minimum loss
         role_model, min_loss = min(
             computes.items(), 
             key=lambda item: item[-1]["loss"].sum().item()
         )
-        
-        # Initiate the total loss here
-        total_loss = min_loss
 
         # Now we calculate the gradient penalty
         # We do this only for "train" input because test is supposedly the real dataset
+        """
         for model, compute_dict in computes.items():
             dbody_dadapter = compute_dict["dbody_dadapter"]
             # we only want to propagate gradient penalty to body from role model
@@ -73,12 +85,16 @@ def train_epoch(
             train = batch_dict[model][0]
             m = compute_dict["m"]
             loss = compute_dict["loss"]
+            # Ok so this doesn't work because dbody_dadapter has dimension of d_model
+            # Meanwhile dadapter_dx has dimension of input
+            # The simple chain rule works for scalar but not here 
+            # Because there are lots of transformation matrices to alter the shape
             dadapter_dx = calc_gradient(train, m)
-            print(train.shape, m.shape, loss.shape)
-            print(dbody_dadapter.shape, dadapter_dx.shape)
-            dbody_dx = calc_gradient(train, loss)
-            print(dbody_dx.shape)
             dbody_dx = dbody_dadapter * dadapter_dx
+        """
+        for model, compute in computes.items():
+            train = batch_dict[model][0]
+            dbody_dx = train.grad
             # Flatten the gradients so that each row captures one image
             dbody_dx = dbody_dx.view(len(dbody_dx), -1)
             # Calculate the magnitude of every row
@@ -92,8 +108,25 @@ def train_epoch(
             g_loss = grad_loss_fn(dbody_dx_norm, g)
             # weight the gradient penalty
             g_loss = grad_loss_mul * g_loss
-            # add gradient penalty to total loss
-            total_loss += g_loss
+            # add to compute
+            compute["g_loss"] = g_loss
+
+        # Due to the convenient calculation of second order derivative,
+        # Every g_loss backward call will populate the whole model grad
+        # But we only want g_loss from role model to populate the rest (non-adapter) of the model
+        # So first we'll call backward on non-rolemodel
+        # and zero the grads of the rest of the model
+        non_role_model_g_loss = sum([
+            compute["g_loss"] 
+            for model, compute in computes.items() 
+            if model != role_model
+        ])
+        non_role_model_g_loss.backward()
+        whole_model.non_adapter_zero_grad()
+        # Now we backward the role model
+        role_model_g_loss = computes[role_model][g_loss]
+        role_model_loss = min_loss + role_model_g_loss
+        role_model_loss.backward()
 
         # Calculate role model adapter embedding as the correct one as it has lowest error
         # dim 0 is batch, dim 1 is size, not sure which to use but size I guess
@@ -104,7 +137,7 @@ def train_epoch(
         embed_y = whole_model.adapters[role_model](embed_x).detach()
 
         # calculate embed loss to follow role model
-        for model in whole_model.models:
+        for model, compute in computes.items():
             # Role model is already fully backproped by min_loss
             if model == role_model:
                 continue
@@ -115,10 +148,20 @@ def train_epoch(
             embed_pred = whole_model.adapters[model](embed_x)
             embed_loss = adapter_loss_fn(embed_pred, embed_y)
 
-            total_loss += embed_loss
+            compute["embed_loss"] = embed_loss
+
+        # backward for embed loss
+        total_embed_loss = sum([
+            compute["embed_loss"] 
+            for model, compute in computes.items() 
+            if model != role_model
+        ])
+        total_embed_loss.backward()
 
         # Finally, backprop
-        total_loss.backward()
+        # Now we will not call backward on total loss, 
+        # But we called on every piece of loss
+        # total_loss.backward()
         optim.step()
         optim.zero_grad()
 

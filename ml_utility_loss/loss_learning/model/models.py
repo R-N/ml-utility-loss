@@ -336,6 +336,11 @@ class MLUtilitySingle(nn.Module):
         self.body = body
         self.head = head
 
+    def non_adapter_zero_grad(self):
+        self.body.zero_grad()
+        if self.head:
+            self.head.zero_grad()
+
     def forward(self, train, test, skip_train_adapter=False, return_attns=False):
         # So here we have train and test with shape (batch, size, d_input)
         if self.adapter:
@@ -412,6 +417,11 @@ class MLUtilityWhole(nn.Module):
         self.objectives = objectives or list(self.heads.keys())
         self.objectives = [x for x in self.objectives if x in self.heads]
 
+    def non_adapter_zero_grad(self):
+        self.body.zero_grad()
+        if self.heads:
+            for head in self.heads.values():
+                head.zero_grad()
         
     def __getitem__(self, model):
         head = "mlu"
