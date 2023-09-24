@@ -316,7 +316,9 @@ class Transformer(nn.Module):
         if return_attns:
             enc_output, enc_attn = enc_output
             dec_output, dec_attn = dec_output
-        output = dec_output.view(-1, dec_output.size(2))
+        # It expected size 2 of dim 3, so (0, 1, 2)
+        # Meaning it should be -1
+        output = dec_output.view(-1, dec_output.size(-1))
         if return_attns:
             return output, (enc_attn, dec_attn)
         return output
