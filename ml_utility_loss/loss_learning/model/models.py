@@ -35,8 +35,8 @@ def calc_pma_steps(
         pma_start = max(n_layers + pma_start, 0)
     pma_step_count = n_layers - pma_start
     pma_log_range = math.log(pma_high, pma_low)
-    pma_steps_1 = pma_steps - 1
-    pma_log_steps = [pma_log_range*i/pma_steps_1 for i in range(pma_step_count)]
+    pma_step_count_1 = pma_step_count - 1
+    pma_log_steps = [pma_log_range*i/pma_step_count_1 for i in range(pma_step_count)]
     pma_steps = [int(math.exp(pma_low, s)) for s in pma_log_steps]
     pma_steps = reversed(pma_steps)
     assert pma_steps[0] == pma_high and pma_steps[-1] == pma_low
