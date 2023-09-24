@@ -7,7 +7,7 @@ from .preprocessing import generate_overlap
 from ..util import Cache, stack_samples, stack_sample_dicts
 from copy import deepcopy
 
-Tensor=torch.Tensor
+Tensor=torch.FloatTensor
 
 def preprocess_sample(sample, preprocessor=None, model=None):
     if not preprocessor:
@@ -135,7 +135,7 @@ class PreprocessedDataset(Dataset):
         return sample
 
 class MultiPreprocessedDataset:
-    def __init__(self, dataset, preprocessor, max_cache=None, tensor=Tensor):
+    def __init__(self, dataset, preprocessor, max_cache=None, Tensor=Tensor):
         self.dataset = dataset
         self.preprocessor = preprocessor
         self.cache = None
