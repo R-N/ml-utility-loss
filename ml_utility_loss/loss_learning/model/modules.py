@@ -106,7 +106,7 @@ class MultiHeadAttention(nn.Module):
 
         o = self.layer_norm(o)
 
-        return q, attn
+        return o, attn
 
 
 class SimpleMultiHeadAttention(nn.Module):
