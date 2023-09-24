@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-Tensor = torch.Tensor
+Tensor = torch.FloatTensor
 
 def calc_gradient(inputs, outputs):
     gradient = torch.autograd.grad(
@@ -42,6 +42,7 @@ def train_epoch(
             pred = whole_model(m, test, model, skip_train_adapter=True)
             loss = loss_fn(pred, y)
             # calculate partial gradient for later use
+            # What the hell y is still 64 bit despite everything
             print(train.dtype, m.dtype, pred.dtype, y.dtype, loss.dtype)
             dbody_dadapter = calc_gradient(m, loss)
 
