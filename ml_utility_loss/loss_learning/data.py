@@ -15,7 +15,6 @@ def preprocess_sample(sample, preprocessor=None, model=None):
     train, test, y = sample
     train, test = preprocessor.preprocess(train, model=model), preprocessor.preprocess(test, model=model)
     
-    print(type(y))
     return train, test, y
 
 def to_dtype(x, dtype=None):
@@ -76,7 +75,6 @@ class DatasetDataset(Dataset):
         y = info["value"]
 
         sample = train, test, y
-        print(type(y))
 
         sample = to_tensor(sample, self.Tensor)
 
@@ -119,7 +117,6 @@ class OverlapDataset(Dataset):
         train, test, y = generate_overlap(df, augmenter=self.augmenter)
 
         sample = train, test, y
-        print(type(y))
 
         sample = to_tensor(sample, self.Tensor)
 
