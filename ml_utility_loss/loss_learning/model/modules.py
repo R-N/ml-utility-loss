@@ -118,6 +118,10 @@ class SimpleMultiHeadAttention(nn.Module):
 
     def forward(self, q, k, v, mask=None):
         return self.mab.forward(q, k, v, mask=mask)
+    
+def scale_inds_to_batch(I, q):
+    I = I.unsqueeze(0).repeat(q.size(0), 1, 1) if q.dim() > 2 else I
+    return I
 
 class InducedSetAttention(nn.Module):
     def __init__(self, num_inds, d_I, d_H, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0.1, skip_small=True, softmax=nn.Softmax):
@@ -138,10 +142,8 @@ class InducedSetAttention(nn.Module):
         # Ok so this is actually a problem
         # It expects batched input so I is repeated to the batch dimension
         # So it has to be handled
-        I = self.I.unsqueeze(0).repeat(q.size(0), 1, 1) if q.dim() > 2 else self.I
-        print("ISAB", I.shape, q.shape, k.shape, v.shape)
+        I = scale_inds_to_batch(self.I, q)
         H, I_attn = self.mab0(I, k, v, mask=None) #yes it's none
-        print("ISAB H", H.shape)
         O, O_attn = self.mab1(q, H, H, mask=mask)
         return O, (I_attn, O_attn)
     
@@ -174,7 +176,8 @@ class PoolingByMultiheadAttention(nn.Module):
     def forward(self, X):
         if self.skip_small and self.num_seeds > X.shape[-2]:
             return X, None
-        return self.mab(self.S.repeat(X.size(0), 1, 1), X, X)
+        S = scale_inds_to_batch(self.S, X)
+        return self.mab(S, X, X)
 
 
 class DoubleFeedForward(nn.Module):
