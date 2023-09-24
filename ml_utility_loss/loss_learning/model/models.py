@@ -345,10 +345,15 @@ class MLUtilitySingle(nn.Module):
         # The adapter is normal deep MLP so here it will still be (batch, size, d_model)
         # Transformer should take the same input, 
         # but inside it will be uhhh (batch, size, head, d_model/head)?
-        out, body_attn = self.body(train, test, return_attns=return_attns)
+        body_attn, head_attn = None, None
+        out = self.body(train, test, return_attns=return_attns)
+        if return_attns:
+            out, body_attn = out
         # Idk what it outputs but head expects (batch, size, d_model)
         if self.head:
-            out, head_attn = self.head(out, return_attns=return_attns)
+            out = self.head(out, return_attns=return_attns)
+            if return_attns:
+                out, head_attn = out
         # Head will flatten the input into (batch, size*d_model)
         # size is actually n_seeds though
         # but anyway, it will later be (batch, d_head), 
