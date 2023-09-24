@@ -35,7 +35,7 @@ def train_epoch(
             train.requires_grad_()
             # Somehow y keeps being 64 bit tensor
             # I have no idea what went wrong, I converted it in dataset
-            # So yeah this is a workaround, hope it works
+            # So yeah this is a workaround
             y = y.to(torch.float32)
             # calculate intermediate tensor for later use
             m = whole_model.adapters[model](train)
@@ -43,8 +43,6 @@ def train_epoch(
             pred = whole_model(m, test, model, skip_train_adapter=True)
             loss = loss_fn(pred, y)
             # calculate partial gradient for later use
-            # What the hell y is still 64 bit despite everything
-            print(train.dtype, m.dtype, pred.dtype, y.dtype, loss.dtype)
             dbody_dadapter = calc_gradient(m, loss)
 
             computes[model] = {
