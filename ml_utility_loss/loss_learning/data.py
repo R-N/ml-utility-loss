@@ -141,7 +141,7 @@ class PreprocessedDataset(Dataset):
             return self.cache[idx]
         
         sample = self.dataset[idx]
-        sample = preprocess_sample(sample, self.preprocessor, self.model, dtype=float)
+        sample = preprocess_sample(sample, self.preprocessor, self.model)
         sample = to_dtype(sample, self.dtype)
         sample = to_tensor(sample, self.Tensor)
 
@@ -151,7 +151,7 @@ class PreprocessedDataset(Dataset):
         return sample
 
 class MultiPreprocessedDataset:
-    def __init__(self, dataset, preprocessor, max_cache=None, Tensor=Tensor):
+    def __init__(self, dataset, preprocessor, max_cache=None, Tensor=Tensor, dtype=float):
         self.dataset = dataset
         self.preprocessor = preprocessor
         self.cache = None
