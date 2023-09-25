@@ -25,7 +25,6 @@ def calc_gradient(inputs, outputs):
     return gradient
 
 def calc_gradient_2(inputs, outputs, intermediate_grad):
-    inputs.grad = None
     inputs.requires_grad_()
     torch.autograd.backward(
         outputs, 
