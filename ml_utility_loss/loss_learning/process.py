@@ -56,7 +56,7 @@ def train_epoch(
             compute["y"] = y 
 
         whole_batch = [computes[model] for model in whole_model.models]
-        whole_batch = stack_sample_dicts(whole_batch)
+        whole_batch = stack_sample_dicts(whole_batch, stack_outer=True)
 
         # they should now be tensor of dim (models, batch, size, d_model)
         whole_m = whole_batch["m"]
