@@ -353,11 +353,24 @@ class DataPreprocessor: #preprocess all with this. save all model here
         raise ValueError(f"Unknown model: {model}")
         
         
-def generate_overlap(df, augmenter=None, drop_aug=True, aug_scale=None):
+def generate_overlap(df, size=None, test_ratio=0.2, test_candidate_mul=2, augmenter=None, drop_aug=True, aug_scale=None):
 
-    # sample 2/3 to expect 50% overlap at average
-    train = df.sample(frac=2.0/3.0)
-    test = df.sample(frac=2.0/3.0)
+    if size and len(df) > size:
+        df = df.sample(n=size)
+
+    # we first sample a test candidate of twice the ratio
+    # if set to 1.5, it will have overlap minimum of 0.5
+    # it might be desirable
+    test_candidate = df.sample(frac=test_candidate_mul*test_ratio)
+    # then we take the unselected ones as train
+    train_non_test = df[~df.index.isin(test_candidate.index)]
+    # next we actually sample test set and the remaining train set from the candidates
+    # this makes overlap score of 0 and 1 have the same chance, 
+    # if the multiplier was 2
+    test = test_candidate.sample(frac=test_ratio)
+    train_overlap = test_candidate.sample(frac=test_ratio)
+    # lastly we build the train set by concat
+    train = pd.concat([train_non_test, train_overlap], axis=0)
     
     # find overlap
     overlaps = test.index.isin(train.index)
@@ -378,8 +391,9 @@ def generate_overlap(df, augmenter=None, drop_aug=True, aug_scale=None):
     if aug is not None:
         y.loc[overlaps] = y[overlaps] - aug[overlaps]
         
-    # calculate intersection over union
-    y = y.to_numpy().sum() / len(test.index.union(train.index))
+    # calculate intersection over test size
+    # yes it's not intersection over union
+    y = y.to_numpy().sum() / len(test)
 
     if drop_aug:
         train = train.drop(["aug"], axis=1, errors="ignore")

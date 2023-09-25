@@ -119,12 +119,14 @@ class MultiSizeDatasetDataset(Dataset):
 
 class OverlapDataset(CachedDataset):
 
-    def __init__(self, dfs, size=None, augmenter=None, aug_scale=None, max_cache=None, Tensor=None):
+    def __init__(self, dfs, size=None, test_ratio=0.2, test_candidate_mul=2, augmenter=None, aug_scale=None, max_cache=None, Tensor=None):
         super().__init__(max_cache=max_cache)
         self.dfs = dfs
         self.augmenter=augmenter
         self.size = size
+        self.test_ratio = test_ratio
         self.aug_scale = aug_scale
+        self.test_candidate_mul = test_candidate_mul
             
         self.len_dfs = len(self.dfs)
         self.len = self.len_dfs
@@ -152,10 +154,15 @@ class OverlapDataset(CachedDataset):
             return self.cache[idx]
         
         df = self.dfs[idx%self.len_dfs]
-        if self.size and len(df) > self.size:
-            df = df.sample(n=self.size)
 
-        train, test, y = generate_overlap(df, augmenter=self.augmenter, aug_scale=self.aug_scale)
+        train, test, y = generate_overlap(
+            df, 
+            size=self.size, 
+            test_ratio=self.test_ratio, 
+            test_candidate_mul=self.test_candidate_mul, 
+            augmenter=self.augmenter, 
+            aug_scale=self.aug_scale
+        )
 
         sample = train, test, y
 
