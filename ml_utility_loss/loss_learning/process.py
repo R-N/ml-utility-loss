@@ -273,7 +273,6 @@ def train_epoch(
         batch_loss = role_model_loss + non_role_model_loss
         # Now we will not call backward on total loss, 
         # But we called on every piece of loss
-        # batch_loss.backward()
         if not val:
             optim.step()
             optim.zero_grad()
