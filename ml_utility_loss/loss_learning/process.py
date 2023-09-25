@@ -168,10 +168,11 @@ def train_epoch(
 
                 embed_loss = adapter_loss_fn(embed_pred, embed_y, reduction="none")
                 # We clamp embed loss because it overpowers the rest
-                embed_loss_norm = embed_loss.norm(2, dim=-1)
-                print("Z", embed_loss.shape, embed_loss_norm.shape)
-                embed_loss_norm = torch.clamp(embed_loss_norm, min=loss_clamp).detach()
-                embed_loss /= embed_loss_norm
+                if loss_clamp:
+                    embed_loss_norm = embed_loss.norm(2, dim=-1)
+                    print("Z", embed_loss.shape, embed_loss_norm.shape)
+                    embed_loss_norm = torch.clamp(embed_loss_norm, min=loss_clamp).detach()
+                    embed_loss /= embed_loss_norm
                 
                 embed_loss = reduction(embed_loss)
 
