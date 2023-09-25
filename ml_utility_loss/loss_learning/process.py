@@ -92,7 +92,7 @@ def train_epoch(
             compute = computes[model]
             # First we split the whole loss
             compute["loss"] = loss = whole_loss[i]
-            train = batch_dict[model]["train"]
+            train = batch_dict[model][0]
             # Now we calculate gradient and store it
             compute["grad"] = grad = calc_gradient(train, loss)
         
