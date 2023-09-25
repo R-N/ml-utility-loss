@@ -58,6 +58,10 @@ class DatasetDataset(Dataset):
         self.cache = Cache(max_cache) if max_cache else None
         self.Tensor = Tensor
 
+    def clear_cache(self):
+        if self.cache:
+            self.cache.clear()
+
     def __len__(self):
         return len(self.info)
 
@@ -99,6 +103,10 @@ class OverlapDataset(Dataset):
             self.len = max_cache // self.len
         self.Tensor = Tensor
 
+    def clear_cache(self):
+        if self.cache:
+            self.cache.clear()
+
     def __len__(self):
         return self.len
 
@@ -137,6 +145,10 @@ class PreprocessedDataset(Dataset):
         self.Tensor = Tensor
         self.dtype = dtype
 
+    def clear_cache(self):
+        if self.cache:
+            self.cache.clear()
+
     def __len__(self):
         return len(self.dataset)
 
@@ -167,6 +179,10 @@ class MultiPreprocessedDataset:
             self.cache = Cache(max_cache)
         self.Tensor = Tensor
         self.dtype = dtype
+
+    def clear_cache(self):
+        if self.cache:
+            self.cache.clear()
 
     @property
     def models(self):

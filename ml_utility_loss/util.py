@@ -70,6 +70,9 @@ class Cache:
         self.max_cache = max_cache
         self.cache = OrderedDict()
 
+    def clear(self):
+        self.cache.clear()
+
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
