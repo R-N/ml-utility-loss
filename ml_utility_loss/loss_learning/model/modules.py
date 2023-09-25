@@ -70,8 +70,7 @@ class MultiHeadAttention(nn.Module):
         d_qk, d_v, n_head = self.d_qk, self.d_v, self.n_head
         # IT EXPECTED A BATCHED INPUT
         # This might by why it failed
-        sz_b = q.size(0) if q.dim() > 2 else None
-        sz_b_arg = [sz_b] if sz_b else []
+        sz_b_arg = q.shape[:-2]
         len_q, len_k, len_v = q.size(-2), k.size(-2), v.size(-2)
 
         residual = q
@@ -120,7 +119,9 @@ class SimpleMultiHeadAttention(nn.Module):
         return self.mab.forward(q, k, v, mask=mask)
     
 def scale_inds_to_batch(I, q):
-    I = I.unsqueeze(0).repeat(q.size(0), 1, 1) if q.dim() > 2 else I
+    while q.dim() > I.dim():
+        I = I.unsqueeze(0)
+        I = I.repeat(q.size(-I.dim()), *[1 for _ in range(I.dim()-1)])
     return I
 
 class InducedSetAttention(nn.Module):
