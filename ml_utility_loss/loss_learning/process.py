@@ -42,60 +42,28 @@ def train_epoch(
         for model, (train, test, y) in batch_dict.items():
             # train needs to require grad for gradient penalty computation
             train.requires_grad_()
-            # calculate intermediate tensor for later use
-            m = whole_model.adapters[model](train)
-            m_test = whole_model.adapters[model](test)
             compute = computes[model]
-            compute["m"] = m
-            compute["m_test"] = m_test
+            # calculate intermediate tensor for later use
+            compute["m"] = m = whole_model.adapters[model](train)
+            compute["m_test"] = m_test = whole_model.adapters[model](test)
             # Somehow y keeps being 64 bit tensor
             # I have no idea what went wrong, I converted it in dataset
             # So yeah this is a workaround
             y = y.to(torch.float32)
-            # We'll just store these here for convenience
-            compute["y"] = y 
-
-        whole_batch = [computes[model] for model in whole_model.models]
-        whole_batch = stack_sample_dicts(whole_batch, stack_outer=True)
-
-        # they should now be tensor of dim (models, batch, size, d_model)
-        whole_m = whole_batch["m"]
-        whole_m_test = whole_batch["m_test"]
-        print("A", whole_m.shape, whole_m_test.shape)
-        # this should now be tensor of dim (models, batch)
-        whole_y = whole_batch["y"]
-
-        # make prediction using intermediate tensor
-        whole_pred = whole_model(
-            whole_m, whole_m_test, model, 
-            skip_train_adapter=True,
-            skip_test_adapter=True
-        )
-        # whole_pred should have the samee shape as whole_y
-        print("B", whole_y.shape, whole_pred.shape)
-        # none reduction to retain the batch shape
-        whole_loss = loss_fn(whole_pred, whole_y, reduction="none")
-        # it should have the same shape as y and pred
-        print("C", whole_loss.shape)
-
-        # Partial gradient chain rule doesn't work so conveniently
-        # Due to shape changes along forward pass
-        # So we'll just calculate the whole gradient 
-        # Although we only want the role model gradient 
-        # to propagate across the rest of the model
-        # Using retain_graph and create_graph on loss.backward causes memory leak
-        # We have to use autograd.grad
-        # We need train to calculate the gradient,
-        # But trains have different dims
-        # So we can't calculate them at once
-        for i, model in enumerate(whole_model.models):
-            compute = computes[model]
-            # First we split the whole loss
-            compute["loss"] = loss = whole_loss[i]
-            train = batch_dict[model][0]
-            # Now we calculate gradient and store it
+            # make prediction using intermediate tensor
+            pred = whole_model(m, test, model, skip_train_adapter=True)
+            # none reduction to retain the batch shape
+            compute["loss"] = loss = loss_fn(pred, y, reduction="none")
+            # Partial gradient chain rule doesn't work so conveniently
+            # Due to shape changes along forward pass
+            # So we'll just calculate the whole gradient 
+            # Although we only want the role model gradient 
+            # to propagate across the rest of the model
+            # Using retain_graph and create_graph on loss.backward causes memory leak
+            # We have to use autograd.grad
+            # This forward pass has to be done multiple times due to insufficient memory
             compute["grad"] = grad = calc_gradient(train, loss)
-        
+
         # determine role model (adapter) by minimum loss
         role_model, min_compute = min(
             computes.items(), 
