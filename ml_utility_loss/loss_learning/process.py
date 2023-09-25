@@ -12,8 +12,9 @@ def try_tensor_item(tensor, detach=True):
         return tensor.item()
     return tensor
 
-def calc_gradient(inputs, outputs):
-    grad_outputs = None if outputs.dim() == 0 else torch.ones_like(outputs)
+def calc_gradient(inputs, outputs, grad_outputs=None):
+    if grad_outputs is None and outputs.dim() > 0:
+        grad_outputs = torch.ones_like(outputs)
     gradient = torch.autograd.grad(
         inputs = inputs,
         outputs = outputs,
@@ -219,7 +220,7 @@ def train_epoch(
                         dbody_dadapter = dbody_dadapter.detach()
                     train = compute["train"]
                     m = compute["m"]
-                    dbody_dx = calc_gradient_2(train, m, dbody_dadapter)
+                    dbody_dx = calc_gradient(train, m, dbody_dadapter)
                 else:
                     dbody_dx = grad_compute["grad"]
                 # The gradient is of shape (batch, size, dim)
