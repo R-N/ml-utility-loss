@@ -17,6 +17,18 @@ def calc_gradient(inputs, outputs):
     )[0]
     return gradient
 
+def calc_gradient_2(inputs, outputs, intermediate_grad):
+    inputs.grad = None
+    inputs.requires_grad_()
+    torch.autograd.backward(
+        outputs, 
+        grad_tensors=intermediate_grad, 
+        inputs=inputs,
+        create_graph=True,
+        retain_graph=True,
+    )
+    return inputs.grad
+
 def train_epoch(
     whole_model, 
     train_loader, 
@@ -27,6 +39,10 @@ def train_epoch(
     adapter_loss_fn=F.mse_loss,
     reduction=torch.mean,
     val=False,
+    fixed_role_model="lct_gan",
+    forward_once=True,
+    calc_grad_m=True,
+    gradient_penalty=True
 ):
     assert optim or val, "Optimizer must be provided if val is false"
     size = len(train_loader.dataset)
@@ -37,22 +53,51 @@ def train_epoch(
         gc.collect()
         if not val:
             optim.zero_grad()
+
+
+        # have fixed role model as hyperparameter
+        # role model is selected for the adapter
+        # adapter was made to adapt the input size to d_model
+        # the only difference is the input dimension, 
+        # which is the result of a different data preparation
+        # of the same dataset
+        # essentially, adapter is there so that
+        # M = Adapter(Prep(D)) equal for the same dataset D
+        # It is only there to fix different data preparation problem
+        # the data preparation is fixed for each model
+        # there has to be one best preparation method out of all of them
+        # so it is a hyperparameter tuning problem
+        # there's not much advantage to make the selection adaptive
+        if fixed_role_model:
+            role_model = fixed_role_model
+
         # Compute prediction and loss for all adapters
         computes = {model: {} for model in whole_model.models}
         for model, (train, test, y) in batch_dict.items():
             # train needs to require grad for gradient penalty computation
             # should I zero and make it not require grad later?
+            train = train.detach()
+            train.grad = None
             train.requires_grad_()
             compute = computes[model]
             # calculate intermediate tensor for later use
             compute["m"] = m = whole_model.adapters[model](train)
             compute["m_test"] = m_test = whole_model.adapters[model](test)
+            
+            if forward_once and role_model and model != role_model:
+                continue
+            # store grad in m
+            m.requires_grad_()
             # Somehow y keeps being 64 bit tensor
             # I have no idea what went wrong, I converted it in dataset
             # So yeah this is a workaround
             y = y.to(torch.float32)
             # make prediction using intermediate tensor
-            pred = whole_model(m, test, model, skip_train_adapter=True)
+            pred = whole_model(
+                m, m_test, model, 
+                skip_train_adapter=True,
+                skip_test_adapter=True
+            )
             # none reduction to retain the batch shape
             compute["loss"] = loss = loss_fn(pred, y, reduction="none")
             # Partial gradient chain rule doesn't work so conveniently
@@ -62,91 +107,113 @@ def train_epoch(
             # to propagate across the rest of the model
             # Using retain_graph and create_graph on loss.backward causes memory leak
             # We have to use autograd.grad
-            # This forward pass has to be done multiple times due to insufficient memory
-            compute["grad"] = grad = calc_gradient(train, loss)
+            # This forward pass cannot be merged due to insufficient memory
+            if gradient_penalty:
+                if calc_grad_m:
+                    # It may be unfair to propagate gradient penalty only for role model adapter
+                    # So maybe do it only up to m
+                    compute["grad"] = calc_gradient(m, loss)
+                else:
+                    compute["grad"] = calc_gradient(train, loss)
 
-        # determine role model (adapter) by minimum loss
-        role_model, min_compute = min(
-            computes.items(), 
-            key=lambda item: item[-1]["loss"].sum().item()
-        )
+        if role_model:
+            min_compute = computes[role_model]
+        else:
+            # determine role model (adapter) by minimum loss
+            role_model, min_compute = min(
+                computes.items(), 
+                key=lambda item: reduction(item[-1]["loss"]).item()
+            )
         min_loss = reduction(min_compute["loss"])
 
-        # Calculate role model adapter embedding as the correct one as it has lowest error
-        # dim 0 is batch, dim 1 is size, not sure which to use but size I guess
-        # anyway that means -3 and -2
-        # This has to be done here
-        # So backward pass can be called together with g_loss
-        embed_y = torch.cat([
-            computes[role_model]["m"], 
-            computes[role_model]["m_test"]
-        ], dim=-2).detach()
+        total_embed_loss = 0
+        if len(computes) > 1:
+            # Calculate role model adapter embedding as the correct one as it has lowest error
+            # dim 0 is batch, dim 1 is size, not sure which to use but size I guess
+            # anyway that means -3 and -2
+            # This has to be done here
+            # So backward pass can be called together with g_loss
+            embed_y = torch.cat([
+                computes[role_model]["m"], 
+                computes[role_model]["m_test"]
+            ], dim=-2).detach()
 
-        # calculate embed loss to follow role model
-        for model, compute in computes.items():
-            # Role model is already fully backproped by min_loss
-            if model == role_model:
-                continue
+            # calculate embed loss to follow role model
+            for model, compute in computes.items():
+                # Role model is already fully backproped by min_loss
+                if model == role_model:
+                    continue
 
-            # We reuse the previous intermediate tensor
-            # Don't detach this one
-            embed_pred = torch.cat([
-                computes[model]["m"], 
-                computes[model]["m_test"]
-            ], dim=-2)
+                # We reuse the previous intermediate tensor
+                # Don't detach this one
+                embed_pred = torch.cat([
+                    computes[model]["m"], 
+                    computes[model]["m_test"]
+                ], dim=-2)
 
-            embed_loss = adapter_loss_fn(embed_pred, embed_y, reduction="none")
-            embed_loss = reduction(embed_loss)
+                embed_loss = adapter_loss_fn(embed_pred, embed_y, reduction="none")
+                embed_loss = reduction(embed_loss)
 
-            compute["embed_loss"] = embed_loss
+                compute["embed_loss"] = embed_loss
 
-        # backward for embed loss
-        total_embed_loss = sum([
-            compute["embed_loss"] 
-            for model, compute in computes.items() 
-            if model != role_model
-        ])
+            # sum embed loss
+            total_embed_loss = sum([
+                compute["embed_loss"] 
+                for model, compute in computes.items() 
+                if model != role_model
+            ])
 
+        non_role_model_g_loss = 0
         # Now we calculate the gradient penalty
         # We do this only for "train" input because test is supposedly the real dataset
-        for model, compute in computes.items():
-            # the grad at m is empty and detaching won't do anything
-            dbody_dx = compute["grad"]
-            # Flatten the gradients so that each row captures one image
-            dbody_dx = dbody_dx.view(len(dbody_dx), -1)
-            # Calculate the magnitude of every row
-            dbody_dx_norm = dbody_dx.norm(2, dim=-1)
-            # because we want to model this model as squared error, 
-            # the expected gradient g is 2*sqrt(loss)
-            g = 2 * torch.sqrt(loss.detach())
-            # gradient penalty
-            g_loss = grad_loss_fn(dbody_dx_norm, g, reduction="none")
-            g_loss = reduction(g_loss)
-            # weight the gradient penalty
-            g_loss = grad_loss_mul * g_loss
-            # add to compute
-            compute["g_loss"] = g_loss
+        if gradient_penalty:
+            for model, compute in computes.items():
+                # If forward_once is true, grad will only exist for the role model
+                if "grad" not in compute and not calc_grad_m:
+                    continue
+                # the grad at m is empty and detaching m won't do anything
+                dbody_dx = compute["grad"] if "grad" in compute else computes[role_model]["grad"]
+                if calc_grad_m: # It's not dbody/dx yet but intermediate dbody/dadapter
+                    train = batch_dict[model][0]
+                    m = compute["m"]
+                    dbody_dx = calc_gradient_2(train, m, dbody_dx)
+                # Flatten the gradients so that each row captures one image
+                dbody_dx = dbody_dx.view(*dbody_dx.shape[:-2], -1)
+                # Calculate the magnitude of every row
+                dbody_dx_norm = dbody_dx.norm(2, dim=-1)
+                # because we want to model this model as squared error, 
+                # the expected gradient g is 2*sqrt(loss)
+                g = 2 * torch.sqrt(loss.detach())
+                # gradient penalty
+                g_loss = grad_loss_fn(dbody_dx_norm, g, reduction="none")
+                g_loss = reduction(g_loss)
+                # weight the gradient penalty
+                g_loss = grad_loss_mul * g_loss
+                # add to compute
+                compute["g_loss"] = g_loss
+
+            # If forward_once, this will be 0 and the other computes won't have g_loss
+            if not forward_once:
+                non_role_model_g_loss = sum([
+                    compute["g_loss"] 
+                    for model, compute in computes.items() 
+                    if model != role_model and "g_loss" in compute
+                ])
 
         # Due to the convenient calculation of second order derivative,
         # Every g_loss backward call will populate the whole model grad
         # But we only want g_loss from role model to populate the rest (non-adapter) of the model
         # So first we'll call backward on non-rolemodel
         # and zero the grads of the rest of the model
-        non_role_model_g_loss = sum([
-            compute["g_loss"] 
-            for model, compute in computes.items() 
-            if model != role_model
-        ])
-
         total_non_role_model_loss = total_embed_loss + non_role_model_g_loss
-        if not val:
+        if not val and hasattr(total_non_role_model_loss, "backward"):
             total_non_role_model_loss.backward()
             # Zero the rest of the model
             # because we only want the role model to update it
             whole_model.non_adapter_zero_grad()
 
         # Now we backward the role model
-        role_model_g_loss = reduction(computes[role_model]["g_loss"])
+        role_model_g_loss = reduction(computes[role_model]["g_loss"]) if gradient_penalty else 0
         role_model_loss = min_loss + role_model_g_loss
         if not val:
             role_model_loss.backward()
