@@ -210,6 +210,31 @@ class Adapter(nn.Module):
     def forward(self, x):
         y = self.linear(x)
         return y
+    
+
+class AdapterAutoencoder(nn.Module):
+    def __init__(
+        self, 
+        d_input,
+        d_model, 
+        **kwargs
+    ):
+        super().__init__()
+        self.encoder = Adapter(
+            d_input,
+            d_model,
+            **kwargs
+        )
+        self.decoder = Adapter(
+            d_model,
+            d_input,
+            **kwargs
+        )
+
+    def forward(self, x):
+        z = self.encoder(x)
+        x = self.decoder(z)
+        return x
 
 class Head(nn.Module):
     def __init__(
