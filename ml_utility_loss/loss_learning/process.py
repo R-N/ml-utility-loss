@@ -209,6 +209,8 @@ def train_epoch(
                 loss = grad_compute["loss"]
                 if calc_grad_m: # It's not dbody/dx yet but intermediate dbody/dadapter
                     dbody_dadapter = grad_compute["grad"]
+                    if model != role_model:
+                        dbody_dadapter = dbody_dadapter.detach()
                     train = compute["train"]
                     m = compute["m"]
                     dbody_dx = calc_gradient_2(train, m, dbody_dadapter)
