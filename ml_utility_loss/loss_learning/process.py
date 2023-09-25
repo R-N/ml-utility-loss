@@ -176,13 +176,14 @@ def train_epoch(
                 # We treat it as a vector, having direction
                 if loss_clamp:
                     embed_loss_norm = embed_loss.norm(2, dim=-1, keepdim=True)
-                    print("Z", embed_loss.shape, embed_loss_norm.shape)
                     # We clamp min to loss clamp=1 because this will be denominator
                     # Meaning a loss magnitude of 0.5 will clamp to 1 so it will stay 0.5
                     # Meanwhile loss magnitude of 2 will not clamp so it will be 2/2=1
                     embed_loss_norm = torch.clamp(embed_loss_norm, min=loss_clamp).detach()
                     embed_loss /= embed_loss_norm
                 
+                # Again we'll take the norm because it is a vector
+                embed_loss = embed_loss.norm(2, dim=-1)
                 embed_loss = reduction(embed_loss)
 
                 compute["embed_loss"] = embed_loss
