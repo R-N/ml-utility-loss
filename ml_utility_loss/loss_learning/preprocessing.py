@@ -396,7 +396,7 @@ def generate_overlap(
             aug = pd.merge(y, train["aug"], how="left", left_index=True, right_index=True)
             aug = aug["aug"].fillna(0)
 
-    print(train.shape, test.shape, y.shape, aug.shape)
+    print(df.shape, train.shape, test.shape, y.shape, aug.shape)
 
     # reduce overlap by augmentations
     if aug is not None:
