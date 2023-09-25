@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 from collections import OrderedDict
 import torch
+from math import sqrt
+import scipy.stats as st
 
 def load_json(path, **kwargs):
     return json.loads(Path(path).read_text(), **kwargs)
@@ -90,3 +92,15 @@ class Cache:
     
 def validate_device(device="cuda"):
     return device if torch.cuda.is_available() else "cpu"
+
+def progressive_smooth(last, weight, point):
+    return last * weight + (1 - weight) * point
+
+def calculate_prediction_interval(series, alpha=0.05, n=None):
+    n = (n or len(series))
+    mean = sum(series) / max(1, n)
+    sum_err = sum([(mean - x)**2 for x in series])
+    stdev = sqrt(1 / max(1, n - 2) * sum_err)
+    mul = st.norm.ppf(1.0 - alpha) if alpha >= 0 else 2 + alpha
+    sigma = mul * stdev
+    return mean, sigma
