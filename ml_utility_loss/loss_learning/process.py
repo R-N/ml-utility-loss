@@ -5,6 +5,11 @@ from ..util import stack_samples, stack_sample_dicts
 
 Tensor = torch.FloatTensor
 
+def try_tensor_item(tensor):
+    if hasattr(tensor, "item"):
+        return tensor.item()
+    return tensor
+
 def calc_gradient(inputs, outputs):
     grad_outputs = None if outputs.dim() == 0 else torch.ones_like(outputs)
     gradient = torch.autograd.grad(
@@ -240,11 +245,11 @@ def train_epoch(
             optim.zero_grad()
 
 
-        avg_role_model_loss += role_model_loss.item()
-        avg_role_model_g_loss += role_model_g_loss.item()
-        avg_non_role_model_g_loss += non_role_model_g_loss.item()
-        avg_non_role_model_embed_loss += non_role_model_embed_loss.item()
-        avg_batch_loss += batch_loss.item()
+        avg_role_model_loss += try_tensor_item(role_model_loss)
+        avg_role_model_g_loss += try_tensor_item(role_model_g_loss)
+        avg_non_role_model_g_loss += try_tensor_item(non_role_model_g_loss)
+        avg_non_role_model_embed_loss += try_tensor_item(non_role_model_embed_loss)
+        avg_batch_loss += try_tensor_item(batch_loss)
     
         n_batch += 1
 
