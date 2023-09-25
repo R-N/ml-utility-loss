@@ -353,10 +353,19 @@ class DataPreprocessor: #preprocess all with this. save all model here
         raise ValueError(f"Unknown model: {model}")
         
         
-def generate_overlap(df, size=None, test_ratio=0.2, test_candidate_mul=2, augmenter=None, drop_aug=True, aug_scale=None):
+def generate_overlap(
+    df, 
+    size=None, 
+    test_ratio=0.2, 
+    test_candidate_mul=1.5, 
+    augmenter=None, 
+    drop_aug=True, 
+    aug_scale=None
+):
 
     if size and len(df) > size:
         df = df.sample(n=size)
+    df = df.copy()
 
     # we first sample a test candidate of twice the ratio
     # if set to 1.5, it will have overlap minimum of 0.5
@@ -386,6 +395,8 @@ def generate_overlap(df, size=None, test_ratio=0.2, test_candidate_mul=2, augmen
         if "aug" in train.columns:
             aug = pd.merge(y, train["aug"], how="left", left_index=True, right_index=True)
             aug = aug["aug"].fillna(0)
+
+    print(train.shape, test.shape, y.shape, aug.shape)
 
     # reduce overlap by augmentations
     if aug is not None:
