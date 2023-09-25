@@ -213,10 +213,11 @@ def train_epoch(
                     dbody_dx = calc_gradient_2(train, m, dbody_dadapter)
                 else:
                     dbody_dx = grad_compute["grad"]
-                # Flatten the gradients so that each row captures one image
                 print("A", dbody_dx.shape)
-                dbody_dx = dbody_dx.view(*dbody_dx.shape[:-2], -1)
-                # Calculate the magnitude of every row
+                # The gradient is of shape (batch, size, dim)
+                # Sum gradient over the size dimension
+                dbody_dx = torch.sum(dbody_dx, dim=-2)
+                # Calculate the magnitude of the gradient
                 dbody_dx_norm = dbody_dx.norm(2, dim=-1)
                 print("B", dbody_dx.shape, dbody_dx_norm.shape)
                 # because we want to model this model as squared error, 
