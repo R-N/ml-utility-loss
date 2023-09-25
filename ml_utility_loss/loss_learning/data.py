@@ -50,17 +50,21 @@ def to_tensor(x, Tensor=None):
         return Tensor(x)
     return Tensor([x]).squeeze()
 
-class DatasetDataset(Dataset):
-
-    def __init__(self, dir, file="info.csv", max_cache=None, Tensor=None):
-        self.dir = dir
-        self.info = pd.read_csv(os.path.join(dir, file)).to_dict("records")
+class CachedDataset(Dataset):
+    def __init__(self, max_cache=None):
         self.cache = Cache(max_cache) if max_cache else None
-        self.Tensor = Tensor
 
     def clear_cache(self):
         if self.cache:
             self.cache.clear()
+
+class DatasetDataset(CachedDataset):
+
+    def __init__(self, dir, file="info.csv", max_cache=None, Tensor=None):
+        super().__init__(max_cache=max_cache)
+        self.dir = dir
+        self.info = pd.read_csv(os.path.join(dir, file)).to_dict("records")
+        self.Tensor = Tensor
 
     def __len__(self):
         return len(self.info)
@@ -88,24 +92,19 @@ class DatasetDataset(Dataset):
         return sample
     
 
-class OverlapDataset(Dataset):
+class OverlapDataset(CachedDataset):
 
     def __init__(self, dfs, size=None, augmenter=None, max_cache=None, Tensor=None):
+        super().__init__(max_cache=max_cache)
         self.dfs = dfs
         self.augmenter=augmenter
         self.size = size
             
         self.len_dfs = len(self.dfs)
         self.len = self.len_dfs
-        self.cache = None
         if max_cache:
-            self.cache = Cache(max_cache)
             self.len = max_cache // self.len
         self.Tensor = Tensor
-
-    def clear_cache(self):
-        if self.cache:
-            self.cache.clear()
 
     def __len__(self):
         return self.len
@@ -133,21 +132,15 @@ class OverlapDataset(Dataset):
 
         return sample
 
-class PreprocessedDataset(Dataset):
+class PreprocessedDataset(CachedDataset):
     def __init__(self, dataset, preprocessor, model=None, max_cache=None, Tensor=Tensor, dtype=float):
+        super().__init__(max_cache=max_cache)
         self.dataset = dataset
         assert model or preprocessor.model
         self.preprocessor = preprocessor
         self.model = model
-        self.cache = None
-        if max_cache:
-            self.cache = Cache(max_cache)
         self.Tensor = Tensor
         self.dtype = dtype
-
-    def clear_cache(self):
-        if self.cache:
-            self.cache.clear()
 
     def __len__(self):
         return len(self.dataset)
@@ -170,19 +163,13 @@ class PreprocessedDataset(Dataset):
 
         return sample
 
-class MultiPreprocessedDataset:
+class MultiPreprocessedDataset(CachedDataset):
     def __init__(self, dataset, preprocessor, max_cache=None, Tensor=Tensor, dtype=float):
+        super().__init__(max_cache=max_cache)
         self.dataset = dataset
         self.preprocessor = preprocessor
-        self.cache = None
-        if max_cache:
-            self.cache = Cache(max_cache)
         self.Tensor = Tensor
         self.dtype = dtype
-
-    def clear_cache(self):
-        if self.cache:
-            self.cache.clear()
 
     @property
     def models(self):
