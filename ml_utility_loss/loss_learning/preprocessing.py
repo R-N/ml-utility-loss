@@ -357,10 +357,11 @@ def generate_overlap(
     df, 
     size=None, 
     test_ratio=0.2, 
-    test_candidate_mul=2, 
+    test_candidate_mul=1.5, 
     augmenter=None, 
     drop_aug=True, 
-    aug_scale=None
+    aug_scale=None,
+    aug_penalty_mul=0.5
 ):
 
     if size and len(df) > size:
@@ -400,7 +401,7 @@ def generate_overlap(
 
     # reduce overlap by augmentations
     if aug is not None:
-        y.loc[overlaps] = y[overlaps] - aug[overlaps]
+        y.loc[overlaps] = y[overlaps] - aug_penalty_mul * aug[overlaps]
         
     # calculate intersection over test size
     # yes it's not intersection over union

@@ -119,7 +119,7 @@ class MultiSizeDatasetDataset(Dataset):
 
 class OverlapDataset(CachedDataset):
 
-    def __init__(self, dfs, size=None, test_ratio=0.2, test_candidate_mul=2, augmenter=None, aug_scale=None, max_cache=None, Tensor=None):
+    def __init__(self, dfs, size=None, test_ratio=0.2, test_candidate_mul=1.5, augmenter=None, aug_scale=None, aug_penalty_mul=0.5, max_cache=None, Tensor=None):
         super().__init__(max_cache=max_cache)
         self.dfs = dfs
         self.augmenter=augmenter
@@ -127,6 +127,7 @@ class OverlapDataset(CachedDataset):
         self.test_ratio = test_ratio
         self.aug_scale = aug_scale
         self.test_candidate_mul = test_candidate_mul
+        self.aug_penalty_mul = aug_penalty_mul
             
         self.len_dfs = len(self.dfs)
         self.len = self.len_dfs
@@ -161,7 +162,8 @@ class OverlapDataset(CachedDataset):
             test_ratio=self.test_ratio, 
             test_candidate_mul=self.test_candidate_mul, 
             augmenter=self.augmenter, 
-            aug_scale=self.aug_scale
+            aug_scale=self.aug_scale,
+            aug_penalty_mul=self.aug_penalty_mul
         )
 
         sample = train, test, y
