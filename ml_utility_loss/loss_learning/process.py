@@ -175,6 +175,7 @@ def train_epoch(
                 # Now we clamp embed loss because it overpowers the rest
                 # We treat it as a vector, having direction
                 if loss_clamp:
+                    # We use keep_dim because we need it to stay (batch, dim) for denominator
                     embed_loss_norm = embed_loss.norm(2, dim=-1, keepdim=True)
                     # We clamp min to loss clamp=1 because this will be denominator
                     # Meaning a loss magnitude of 0.5 will clamp to 1 so it will stay 0.5
@@ -183,6 +184,7 @@ def train_epoch(
                     embed_loss /= embed_loss_norm
                 
                 # Again we'll take the norm because it is a vector
+                # But no keep_dim so it results in (batch)
                 embed_loss = embed_loss.norm(2, dim=-1)
                 embed_loss = reduction(embed_loss)
 
@@ -213,13 +215,12 @@ def train_epoch(
                     dbody_dx = calc_gradient_2(train, m, dbody_dadapter)
                 else:
                     dbody_dx = grad_compute["grad"]
-                print("A", dbody_dx.shape)
                 # The gradient is of shape (batch, size, dim)
-                # Sum gradient over the size dimension
+                # Sum gradient over the size dimension, resulting in (batch, dim)
                 dbody_dx = torch.sum(dbody_dx, dim=-2)
                 # Calculate the magnitude of the gradient
+                # No keep_dim, so this results in (batch)
                 dbody_dx_norm = dbody_dx.norm(2, dim=-1)
-                print("B", dbody_dx.shape, dbody_dx_norm.shape)
                 # because we want to model this model as squared error, 
                 # the expected gradient g is 2*sqrt(loss)
                 g = 2 * torch.sqrt(loss.detach())
@@ -229,6 +230,8 @@ def train_epoch(
                 # weight the gradient penalty
                 g_loss = grad_loss_mul * g_loss
                 # add to compute
+                # Okay so apparently for non role model, the g_loss is always 0
+                # This needs to be fixed
                 compute["g_loss"] = g_loss
 
             # If forward_once, this will be 0 and the other computes won't have g_loss
