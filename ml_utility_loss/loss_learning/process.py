@@ -19,21 +19,23 @@ def calc_gradient(inputs, outputs):
 def train_epoch(
     whole_model, 
     train_loader, 
-    optim, 
+    optim=None, 
     grad_loss_mul=1.0,
     loss_fn=F.mse_loss,
     grad_loss_fn=F.mse_loss,
     adapter_loss_fn=F.mse_loss,
-    reduction=torch.mean
+    reduction=torch.mean,
+    val=False,
 ):
+    assert optim or val, "Optimizer must be provided if val is false"
     size = len(train_loader.dataset)
-    # Set the model to training mode - important for batch normalization and dropout layers
-    # Unnecessary in this situation but added for best practices
-    whole_model.train()
+    # Set the model to eval mode for validation or train mode for training
+    whole_model.eval() if val else whole_model.train()
     total_loss = 0
     for batch, batch_dict in enumerate(train_loader):
         gc.collect()
-        optim.zero_grad()
+        if not val:
+            optim.zero_grad()
         # Compute prediction and loss for all adapters
         computes = {}
         for model, (train, test, y) in batch_dict.items():
@@ -140,12 +142,14 @@ def train_epoch(
             for model, compute in computes.items() 
             if model != role_model
         ])
-        non_role_model_g_loss.backward()
-        whole_model.non_adapter_zero_grad()
+        if not val:
+            non_role_model_g_loss.backward()
+            whole_model.non_adapter_zero_grad()
         # Now we backward the role model
         role_model_g_loss = reduction(computes[role_model]["g_loss"])
         role_model_loss = min_loss + role_model_g_loss
-        role_model_loss.backward()
+        if not val:
+            role_model_loss.backward()
 
         # Calculate role model adapter embedding as the correct one as it has lowest error
         # dim 0 is batch, dim 1 is size, not sure which to use but size I guess
@@ -176,15 +180,17 @@ def train_epoch(
             for model, compute in computes.items() 
             if model != role_model
         ])
-        total_embed_loss.backward()
+        if not val:
+            total_embed_loss.backward()
 
         # Finally, backprop
         batch_loss = role_model_loss + non_role_model_g_loss + total_embed_loss
         # Now we will not call backward on total loss, 
         # But we called on every piece of loss
         # batch_loss.backward()
-        optim.step()
-        optim.zero_grad()
+        if not val:
+            optim.step()
+            optim.zero_grad()
 
         batch_loss = batch_loss.item()
         total_loss += batch_loss
