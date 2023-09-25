@@ -41,6 +41,7 @@ def train_epoch(
         computes = {model: {} for model in whole_model.models}
         for model, (train, test, y) in batch_dict.items():
             # train needs to require grad for gradient penalty computation
+            # should I zero and make it not require grad later?
             train.requires_grad_()
             compute = computes[model]
             # calculate intermediate tensor for later use
@@ -112,11 +113,11 @@ def train_epoch(
 
         # Calculate role model adapter embedding as the correct one as it has lowest error
         # dim 0 is batch, dim 1 is size, not sure which to use but size I guess
-        # wait is that correct tho?
-        train, test, y = batch_dict[role_model]
-        embed_x = torch.cat([train, test], dim=-2)
-        # Should I have used norm too here? Or maybe sum?
-        embed_y = whole_model.adapters[role_model](embed_x).detach()
+        # anyway that means -3 and -2
+        embed_y = torch.cat([
+            computes[role_model]["m"], 
+            computes[role_model]["m_test"]
+        ], dim=-2).detach()
 
         # calculate embed loss to follow role model
         for model, compute in computes.items():
@@ -124,10 +125,13 @@ def train_epoch(
             if model == role_model:
                 continue
 
-            train, test, y = batch_dict[model]
-            embed_x = torch.cat([train, test], dim=1)
+            # We reuse the previous intermediate tensor
+            # Don't detach this one
+            embed_pred = torch.cat([
+                computes[model]["m"], 
+                computes[model]["m_test"]
+            ], dim=-2)
 
-            embed_pred = whole_model.adapters[model](embed_x)
             embed_loss = adapter_loss_fn(embed_pred, embed_y, reduction="none")
             embed_loss = reduction(embed_loss)
 
