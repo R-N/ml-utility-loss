@@ -172,11 +172,15 @@ def train_epoch(
                 if "grad" not in compute and not calc_grad_m:
                     continue
                 # the grad at m is empty and detaching m won't do anything
-                dbody_dx = compute["grad"] if "grad" in compute else computes[role_model]["grad"]
+                grad_compute = compute if "grad" in compute else computes[role_model]
+                loss = grad_compute["loss"]
                 if calc_grad_m: # It's not dbody/dx yet but intermediate dbody/dadapter
+                    dbody_dadapter = grad_compute["grad"]
                     train = batch_dict[model][0]
                     m = compute["m"]
-                    dbody_dx = calc_gradient_2(train, m, dbody_dx)
+                    dbody_dx = calc_gradient_2(train, m, dbody_dadapter)
+                else:
+                    dbody_dx = grad_compute["grad"]
                 # Flatten the gradients so that each row captures one image
                 dbody_dx = dbody_dx.view(*dbody_dx.shape[:-2], -1)
                 # Calculate the magnitude of every row
