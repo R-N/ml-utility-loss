@@ -12,24 +12,26 @@ def try_tensor_item(tensor, detach=True):
         return tensor.item()
     return tensor
 
-def calc_gradient(inputs, outputs, grad_outputs=None):
-    if grad_outputs is None and outputs.dim() > 0:
-        grad_outputs = torch.ones_like(outputs)
+def calc_gradient(inputs, outputs, outputs_grad=None):
+    if outputs_grad is None and outputs.dim() > 0:
+        outputs_grad = torch.ones_like(outputs)
     gradient = torch.autograd.grad(
         inputs = inputs,
         outputs = outputs,
-        grad_outputs=grad_outputs, 
+        grad_outputs=outputs_grad, 
         create_graph=True,
         retain_graph=True,
         is_grads_batched=False, # default
     )[0]
     return gradient
 
-def calc_gradient_2(inputs, outputs, intermediate_grad):
+def calc_gradient_2(inputs, outputs, outputs_grad=None):
+    if outputs_grad is None and outputs.dim() > 0:
+        outputs_grad = torch.ones_like(outputs)
     inputs.requires_grad_()
     torch.autograd.backward(
         outputs, 
-        grad_tensors=intermediate_grad, 
+        grad_tensors=outputs_grad, 
         inputs=inputs,
         create_graph=True,
         retain_graph=True,
