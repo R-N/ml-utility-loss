@@ -72,6 +72,41 @@ def train_epoch(
         )
         min_loss = reduction(min_compute["loss"])
 
+        # Calculate role model adapter embedding as the correct one as it has lowest error
+        # dim 0 is batch, dim 1 is size, not sure which to use but size I guess
+        # anyway that means -3 and -2
+        # This has to be done here
+        # So backward pass can be called together with g_loss
+        embed_y = torch.cat([
+            computes[role_model]["m"], 
+            computes[role_model]["m_test"]
+        ], dim=-2).detach()
+
+        # calculate embed loss to follow role model
+        for model, compute in computes.items():
+            # Role model is already fully backproped by min_loss
+            if model == role_model:
+                continue
+
+            # We reuse the previous intermediate tensor
+            # Don't detach this one
+            embed_pred = torch.cat([
+                computes[model]["m"], 
+                computes[model]["m_test"]
+            ], dim=-2)
+
+            embed_loss = adapter_loss_fn(embed_pred, embed_y, reduction="none")
+            embed_loss = reduction(embed_loss)
+
+            compute["embed_loss"] = embed_loss
+
+        # backward for embed loss
+        total_embed_loss = sum([
+            compute["embed_loss"] 
+            for model, compute in computes.items() 
+            if model != role_model
+        ])
+
         # Now we calculate the gradient penalty
         # We do this only for "train" input because test is supposedly the real dataset
         for model, compute in computes.items():
@@ -102,49 +137,20 @@ def train_epoch(
             for model, compute in computes.items() 
             if model != role_model
         ])
+
+        total_non_role_model_loss = total_embed_loss + non_role_model_g_loss
         if not val:
-            non_role_model_g_loss.backward()
+            total_non_role_model_loss.backward()
+            # Zero the rest of the model
+            # because we only want the role model to update it
             whole_model.non_adapter_zero_grad()
+
         # Now we backward the role model
         role_model_g_loss = reduction(computes[role_model]["g_loss"])
         role_model_loss = min_loss + role_model_g_loss
         if not val:
             role_model_loss.backward()
 
-        # Calculate role model adapter embedding as the correct one as it has lowest error
-        # dim 0 is batch, dim 1 is size, not sure which to use but size I guess
-        # anyway that means -3 and -2
-        embed_y = torch.cat([
-            computes[role_model]["m"], 
-            computes[role_model]["m_test"]
-        ], dim=-2).detach()
-
-        # calculate embed loss to follow role model
-        for model, compute in computes.items():
-            # Role model is already fully backproped by min_loss
-            if model == role_model:
-                continue
-
-            # We reuse the previous intermediate tensor
-            # Don't detach this one
-            embed_pred = torch.cat([
-                computes[model]["m"], 
-                computes[model]["m_test"]
-            ], dim=-2)
-
-            embed_loss = adapter_loss_fn(embed_pred, embed_y, reduction="none")
-            embed_loss = reduction(embed_loss)
-
-            compute["embed_loss"] = embed_loss
-
-        # backward for embed loss
-        total_embed_loss = sum([
-            compute["embed_loss"] 
-            for model, compute in computes.items() 
-            if model != role_model
-        ])
-        if not val:
-            total_embed_loss.backward()
 
         # Finally, backprop
         batch_loss = role_model_loss + non_role_model_g_loss + total_embed_loss
