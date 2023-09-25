@@ -167,10 +167,19 @@ def train_epoch(
                 ], dim=-2)
 
                 embed_loss = adapter_loss_fn(embed_pred, embed_y, reduction="none")
-                # We clamp embed loss because it overpowers the rest
+                # Embed loss is of shape (batch, size, dim)
+                # Average the loss over samples
+                # This has to be averaging so we won't be using the reduction parameter
+                # keep_dim=False by default so this should result in shape (batch, dim)
+                embed_loss = torch.mean(embed_loss, dim=-2)
+                # Now we clamp embed loss because it overpowers the rest
+                # We treat it as a vector, having direction
                 if loss_clamp:
-                    embed_loss_norm = embed_loss.norm(2, dim=-1)
+                    embed_loss_norm = embed_loss.norm(2, dim=-1, keepdim=True)
                     print("Z", embed_loss.shape, embed_loss_norm.shape)
+                    # We clamp min to loss clamp=1 because this will be denominator
+                    # Meaning a loss magnitude of 0.5 will clamp to 1 so it will stay 0.5
+                    # Meanwhile loss magnitude of 2 will not clamp so it will be 2/2=1
                     embed_loss_norm = torch.clamp(embed_loss_norm, min=loss_clamp).detach()
                     embed_loss /= embed_loss_norm
                 
