@@ -384,6 +384,7 @@ def generate_overlap(
     # find overlap
     overlaps = test.index.isin(train.index)
     y = pd.Series(overlaps.astype(float), index=test.index, name="overlap")
+    print("overlap A", y.sum())
 
     # augmentations
     aug = None
@@ -401,10 +402,12 @@ def generate_overlap(
     # reduce overlap by augmentations
     if aug is not None:
         y.loc[overlaps] = y[overlaps] - aug[overlaps]
+
+    print("overlap B", y.sum())
         
     # calculate intersection over test size
     # yes it's not intersection over union
-    y = y.to_numpy().sum() / len(test)
+    y = y.to_numpy().sum() / len(y)
 
     if drop_aug:
         train = train.drop(["aug"], axis=1, errors="ignore")
