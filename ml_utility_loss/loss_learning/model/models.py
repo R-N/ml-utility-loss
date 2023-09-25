@@ -7,6 +7,7 @@ import math
 from .layers import EncoderLayer, DecoderLayer
 from .modules import PoolingByMultiheadAttention, FeedForward
 from ...util import Cache
+import inspect
 
 
 __author__ = "Yu-Hsiang Huang"
@@ -221,6 +222,7 @@ class Head(nn.Module):
         d_qk=None, 
         dropout=0.1, 
         activation=nn.Sigmoid,
+        final_activation=nn.Sigmoid,
         skip_small=True,
         softmax=nn.Softmax,
     ):
@@ -249,11 +251,15 @@ class Head(nn.Module):
             *[Linear(d_hid, d_hid) for i in range(n_layers-2)],
             Linear(d_hid, 1),
         ])
+        self.final_activation = final_activation
+        if inspect.isclass(self.final_activation):
+            self.final_activation = self.final_activation()
 
     def forward(self, x, return_attns=False):
         x, pma_attn = self.pma(x)
         x = x.flatten(-2, -1)
         y = self.linear(x)
+        y = self.final_activation(y)
         y = y.squeeze(dim=-1)
         if return_attns:
             return y, pma_attn
