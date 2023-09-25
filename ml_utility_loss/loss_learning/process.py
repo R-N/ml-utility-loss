@@ -39,6 +39,7 @@ def train_epoch(
     whole_model, 
     train_loader, 
     optim=None, 
+    non_role_model_mul="avg",
     grad_loss_mul=1.0,
     loss_fn=F.mse_loss,
     grad_loss_fn=F.mse_loss,
@@ -61,6 +62,11 @@ def train_epoch(
     avg_non_role_model_g_loss = 0
     avg_non_role_model_embed_loss = 0
     n_batch = 0
+
+    non_role_model_count = len(whole_model.models) - 1
+    if non_role_model_mul in ("avg", "average", "mean"):
+        non_role_model_mul = 1.0/non_role_model_count
+
 
     for batch, batch_dict in enumerate(train_loader):
         gc.collect()
@@ -249,6 +255,7 @@ def train_epoch(
         # So first we'll call backward on non-rolemodel
         # and zero the grads of the rest of the model
         non_role_model_loss = non_role_model_embed_loss + non_role_model_g_loss
+        non_role_model_loss = non_role_model_mul * non_role_model_loss
         if not val and hasattr(non_role_model_loss, "backward"):
             non_role_model_loss.backward()
             # Zero the rest of the model
