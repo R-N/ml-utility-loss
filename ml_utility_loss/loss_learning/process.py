@@ -81,6 +81,7 @@ def train_epoch(
             train.requires_grad_()
             compute = computes[model]
             # calculate intermediate tensor for later use
+            compute["train"] = train
             compute["m"] = m = whole_model.adapters[model](train)
             compute["m_test"] = m_test = whole_model.adapters[model](test)
             
@@ -176,7 +177,7 @@ def train_epoch(
                 loss = grad_compute["loss"]
                 if calc_grad_m: # It's not dbody/dx yet but intermediate dbody/dadapter
                     dbody_dadapter = grad_compute["grad"]
-                    train = batch_dict[model][0]
+                    train = compute["train"]
                     m = compute["m"]
                     dbody_dx = calc_gradient_2(train, m, dbody_dadapter)
                 else:
