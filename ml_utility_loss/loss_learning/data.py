@@ -91,20 +91,54 @@ class DatasetDataset(CachedDataset):
 
         return sample
     
+# Yes it's not cached here
+class MultiSizeDatasetDataset(Dataset):
+    def __init__(self, size_dir_dict, size, **kwargs):
+        self.size_dir_dict = size_dir_dict
+        self.dataset_kwargrs = kwargs
+        self.set_size(size)
+
+    def set_size(self, size):
+        assert size in self.size_dir_dict
+        self.clear_cache()
+        self.dataset = DatasetDataset(
+            dir=self.size_dir_dict[size],
+            **self.dataset_kwargrs
+        )
+        self.size = size
+
+    def set_aug_scale(self, aug_scale):
+        pass
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        return self.dataset[idx]
+
 
 class OverlapDataset(CachedDataset):
 
-    def __init__(self, dfs, size=None, augmenter=None, max_cache=None, Tensor=None):
+    def __init__(self, dfs, size=None, augmenter=None, aug_scale=None, max_cache=None, Tensor=None):
         super().__init__(max_cache=max_cache)
         self.dfs = dfs
         self.augmenter=augmenter
         self.size = size
+        self.aug_scale = aug_scale
             
         self.len_dfs = len(self.dfs)
         self.len = self.len_dfs
         if max_cache:
             self.len = max_cache // self.len
         self.Tensor = Tensor
+
+    def set_size(self, size):
+        self.clear_cache()
+        self.size = size
+
+    def set_aug_scale(self, aug_scale):
+        self.clear_cache()
+        self.aug_scale = aug_scale
 
     def __len__(self):
         return self.len
@@ -121,7 +155,7 @@ class OverlapDataset(CachedDataset):
         if self.size and len(df) > self.size:
             df = df.sample(n=self.size)
 
-        train, test, y = generate_overlap(df, augmenter=self.augmenter)
+        train, test, y = generate_overlap(df, augmenter=self.augmenter, aug_scale=self.aug_scale)
 
         sample = train, test, y
 
@@ -131,19 +165,35 @@ class OverlapDataset(CachedDataset):
             self.cache[idx] = sample
 
         return sample
-
-class PreprocessedDataset(CachedDataset):
-    def __init__(self, dataset, preprocessor, model=None, max_cache=None, Tensor=Tensor, dtype=float):
+    
+class WrapperCachedDataset(CachedDataset):
+    def __init__(self, dataset, max_cache=None):
         super().__init__(max_cache=max_cache)
         self.dataset = dataset
+
+    def __len__(self):
+        return len(self.dataset)
+
+    @property
+    def size(self):
+        return self.dataset.size
+    
+    def set_size(self, size):
+        self.clear_cache()
+        return self.dataset.set_size(size)
+    
+    def set_aug_scale(self, aug_scale):
+        self.clear_cache()
+        return self.dataset.set_aug_scale(aug_scale)
+
+class PreprocessedDataset(WrapperCachedDataset):
+    def __init__(self, dataset, preprocessor, model=None, max_cache=None, Tensor=Tensor, dtype=float):
+        super().__init__(dataset=dataset, max_cache=max_cache)
         assert model or preprocessor.model
         self.preprocessor = preprocessor
         self.model = model
         self.Tensor = Tensor
         self.dtype = dtype
-
-    def __len__(self):
-        return len(self.dataset)
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
@@ -163,10 +213,9 @@ class PreprocessedDataset(CachedDataset):
 
         return sample
 
-class MultiPreprocessedDataset(CachedDataset):
+class MultiPreprocessedDataset(WrapperCachedDataset):
     def __init__(self, dataset, preprocessor, max_cache=None, Tensor=Tensor, dtype=float):
-        super().__init__(max_cache=max_cache)
-        self.dataset = dataset
+        super().__init__(dataset=dataset, max_cache=max_cache)
         self.preprocessor = preprocessor
         self.Tensor = Tensor
         self.dtype = dtype
@@ -174,9 +223,6 @@ class MultiPreprocessedDataset(CachedDataset):
     @property
     def models(self):
         return self.preprocessor.models
-
-    def __len__(self):
-        return len(self.dataset)
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):

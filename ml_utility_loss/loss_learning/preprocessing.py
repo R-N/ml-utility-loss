@@ -353,7 +353,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         raise ValueError(f"Unknown model: {model}")
         
         
-def generate_overlap(df, augmenter=None, drop_aug=True):
+def generate_overlap(df, augmenter=None, drop_aug=True, aug_scale=None):
 
     # sample 2/3 to expect 50% overlap at average
     train = df.sample(frac=2.0/3.0)
@@ -369,7 +369,7 @@ def generate_overlap(df, augmenter=None, drop_aug=True):
         aug = test["aug"]
     else:
         if "aug" not in train.columns and augmenter:
-            train = augmenter.augment(train)
+            train = augmenter.augment(train, scale=aug_scale)
         if "aug" in train.columns:
             aug = pd.merge(y, train["aug"], how="left", left_index=True, right_index=True)
             aug = aug["aug"].fillna(0)
