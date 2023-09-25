@@ -39,7 +39,7 @@ class ScaledDotProductAttention(nn.Module):
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0.1, softmax=nn.Softmax):
+    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0.1, softmax=nn.Softmax, num_inds=0):
         super().__init__()
 
         d_qk = d_qk or (d_O//n_head)
@@ -111,9 +111,15 @@ class MultiHeadAttention(nn.Module):
 class SimpleMultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_model, d_qk=None, dropout=0.1, softmax=nn.Softmax):
+    def __init__(self, n_head, d_model, d_qk=None, dropout=0.1, softmax=nn.Softmax, num_inds=0):
         super().__init__()
-        self.mab = MultiHeadAttention(n_head, d_model, d_model, d_model, d_qk=d_qk, dropout=dropout, softmax=softmax)
+        self.mab = MultiHeadAttention(
+            n_head, 
+            d_model, d_model, d_model, 
+            d_qk=d_qk, 
+            dropout=dropout, 
+            softmax=softmax
+        )
 
     def forward(self, q, k, v, mask=None):
         return self.mab.forward(q, k, v, mask=mask)
@@ -133,8 +139,20 @@ class InducedSetAttention(nn.Module):
         self.num_inds = num_inds
         self.I = nn.Parameter(Tensor(num_inds, d_I))
         nn.init.xavier_uniform_(self.I)
-        self.mab0 = MultiHeadAttention(n_head, d_I, d_KV, d_H, d_qk=d_qk, dropout=dropout, softmax=softmax)
-        self.mab1 = MultiHeadAttention(n_head, d_Q, d_H, d_O, d_qk=d_qk, dropout=dropout, softmax=softmax)
+        self.mab0 = MultiHeadAttention(
+            n_head, 
+            d_I, d_KV, d_H, 
+            d_qk=d_qk, 
+            dropout=dropout, 
+            softmax=softmax
+        )
+        self.mab1 = MultiHeadAttention(
+            n_head, 
+            d_Q, d_H, d_O, 
+            d_qk=d_qk, 
+            dropout=dropout, 
+            softmax=softmax
+        )
 
     def forward(self, q, k, v, mask=None):
         # This just uses MultiheadAttention
@@ -154,8 +172,10 @@ class SimpleInducedSetAttention(nn.Module):
     def __init__(self, num_inds, n_head, d_model, d_qk=None, dropout=0.1, skip_small=True, softmax=nn.Softmax):
         super().__init__()
         self.isab = InducedSetAttention(
-            num_inds, d_model, d_model,
-            n_head, d_model, d_model, d_model, 
+            num_inds, 
+            d_model, d_model,
+            n_head, 
+            d_model, d_model, d_model, 
             d_qk=d_qk, dropout=dropout,
             skip_small=skip_small,
             softmax=softmax
@@ -172,7 +192,13 @@ class PoolingByMultiheadAttention(nn.Module):
         self.skip_small = skip_small
         self.S = nn.Parameter(Tensor(num_seeds, d_model))
         nn.init.xavier_uniform_(self.S)
-        self.mab = SimpleMultiHeadAttention(n_head, d_model, d_qk=d_qk, dropout=dropout, softmax=softmax)
+        self.mab = SimpleMultiHeadAttention(
+            n_head, 
+            d_model, 
+            d_qk=d_qk, 
+            dropout=dropout, 
+            softmax=softmax
+        )
 
     def forward(self, X):
         if self.skip_small and self.num_seeds > X.shape[-2]:
