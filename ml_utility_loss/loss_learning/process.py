@@ -49,8 +49,7 @@ def train_epoch(
     fixed_role_model="lct_gan",
     forward_once=True,
     calc_grad_m=True,
-    gradient_penalty=True,
-    loss_clamp=1.0
+    gradient_penalty=True
 ):
     assert optim or val, "Optimizer must be provided if val is false"
     size = len(train_loader.dataset)
@@ -197,19 +196,9 @@ def train_epoch(
                 else:
                     dbody_dx = grad_compute["grad"]
                 # Flatten the gradients so that each row captures one image
-                print("A", dbody_dx.shape)
                 dbody_dx = dbody_dx.view(*dbody_dx.shape[:-2], -1)
-                print("B", dbody_dx.shape)
                 # Calculate the magnitude of every row
-                # But first we clamp the gradient
                 dbody_dx_norm = dbody_dx.norm(2, dim=-1)
-                dbody_dx_norm = torch.clamp(dbody_dx_norm, min=loss_clamp).detach()
-                dbody_dx /= dbody_dx_norm
-                # Recalculate the magnitude
-                dbody_dx_norm = dbody_dx.norm(2, dim=-1)
-
-                assert torch.max(dbody_dx_norm) == 1
-
                 # because we want to model this model as squared error, 
                 # the expected gradient g is 2*sqrt(loss)
                 g = 2 * torch.sqrt(loss.detach())
