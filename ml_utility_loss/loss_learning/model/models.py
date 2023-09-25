@@ -348,12 +348,13 @@ class MLUtilitySingle(nn.Module):
         if self.head:
             self.head.zero_grad()
 
-    def forward(self, train, test, skip_train_adapter=False, return_attns=False):
+    def forward(self, train, test, skip_train_adapter=False, skip_test_adapter=False, return_attns=False):
         # So here we have train and test with shape (batch, size, d_input)
         if self.adapter:
             if not skip_train_adapter:
                 train = self.adapter(train)
-            test = self.adapter(test)
+            if not skip_test_adapter:
+                test = self.adapter(test)
         # The adapter is normal deep MLP so here it will still be (batch, size, d_model)
         # Transformer should take the same input, 
         # but inside it will be uhhh (batch, size, head, d_model/head)?

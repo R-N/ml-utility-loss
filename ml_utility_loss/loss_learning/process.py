@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 import gc
+from ..util import stack_samples, stack_sample_dicts
 
 Tensor = torch.FloatTensor
 
@@ -37,49 +38,63 @@ def train_epoch(
         if not val:
             optim.zero_grad()
         # Compute prediction and loss for all adapters
-        computes = {}
+        computes = {model: {} for model in whole_model.models}
         for model, (train, test, y) in batch_dict.items():
+            # train needs to require grad for gradient penalty computation
             train.requires_grad_()
+            # calculate intermediate tensor for later use
+            m = whole_model.adapters[model](train)
+            m_test = whole_model.adapters[model](test)
+            compute = computes[model]
+            compute["m"] = m
+            compute["m_test"] = m_test
             # Somehow y keeps being 64 bit tensor
             # I have no idea what went wrong, I converted it in dataset
             # So yeah this is a workaround
             y = y.to(torch.float32)
+            # We'll just store these here for convenience
+            compute["y"] = y 
 
-            # calculate intermediate tensor for later use
-            m = whole_model.adapters[model](train)
-            # make prediction using intermediate tensor
-            pred = whole_model(m, test, model, skip_train_adapter=True)
-            # none reduction to retain the batch shape
-            loss = loss_fn(pred, y, reduction="none")
-            """
-            # calculate partial gradient for later use
-            dbody_dadapter = calc_gradient(m, loss)
+        whole_batch = [computes[model] for model in whole_model.models]
+        whole_batch = stack_sample_dicts(whole_batch)
 
-            computes[model] = {
-                "loss": loss,
-                "m": m,
-                "dbody_dadapter": dbody_dadapter,
-            }
-            """
-            """
-            # Scratch that, we'll use backward with respect to train
-            # retain_graph is needed because torch will not recreate graph
-            # inputs argument makes it so that only that one is populated
-            # thus, this will populate train.grad and only that
-            reduction(loss).backward(retain_graph=True, create_graph=True, inputs=train)
-            computes[model] = {
-                "loss": loss,
-                "m": m,
-            }
-            """
-            # Okay okay it causes memory leak.
-            # We have to use autograd.grad
-            grad = calc_gradient(train, loss)
-            computes[model] = {
-                "loss": loss,
-                "m": m,
-                "grad": grad,
-            }
+        # they should now be tensor of dim (models, batch, size, d_model)
+        whole_m = whole_batch["m"]
+        whole_m_test = whole_batch["m_test"]
+        print("A", whole_m.shape, whole_m_test.shape)
+        # this should now be tensor of dim (models, batch)
+        whole_y = whole_batch["y"]
+
+        # make prediction using intermediate tensor
+        whole_pred = whole_model(
+            whole_m, whole_m_test, model, 
+            skip_train_adapter=True,
+            skip_test_adapter=True
+        )
+        # whole_pred should have the samee shape as whole_y
+        print("B", whole_y.shape, whole_pred.shape)
+        # none reduction to retain the batch shape
+        whole_loss = loss_fn(whole_pred, whole_y, reduction="none")
+        # it should have the same shape as y and pred
+        print("C", whole_loss.shape)
+
+        # Partial gradient chain rule doesn't work so conveniently
+        # Due to shape changes along forward pass
+        # So we'll just calculate the whole gradient 
+        # Although we only want the role model gradient 
+        # to propagate across the rest of the model
+        # Using retain_graph and create_graph on loss.backward causes memory leak
+        # We have to use autograd.grad
+        # We need train to calculate the gradient,
+        # But trains have different dims
+        # So we can't calculate them at once
+        for i, model in enumerate(whole_model.models):
+            compute = computes[model]
+            # First we split the whole loss
+            compute["loss"] = loss = whole_loss[i]
+            train = batch_dict["train"]
+            # Now we calculate gradient and store it
+            compute["grad"] = grad = calc_gradient(train, loss)
         
         # determine role model (adapter) by minimum loss
         role_model, min_compute = min(
@@ -90,32 +105,8 @@ def train_epoch(
 
         # Now we calculate the gradient penalty
         # We do this only for "train" input because test is supposedly the real dataset
-        """
-        for model, compute_dict in computes.items():
-            dbody_dadapter = compute_dict["dbody_dadapter"]
-            # we only want to propagate gradient penalty to body from role model
-            # so everything else will be detached
-            if model != role_model:
-                dbody_dadapter = dbody_dadapter.detach()
-            # calculate gradient
-            train = batch_dict[model][0]
-            m = compute_dict["m"]
-            loss = compute_dict["loss"]
-            # Ok so this doesn't work because dbody_dadapter has dimension of d_model
-            # Meanwhile dadapter_dx has dimension of input
-            # The simple chain rule works for scalar but not here 
-            # Because there are lots of transformation matrices to alter the shape
-            dadapter_dx = calc_gradient(train, m)
-            dbody_dx = dbody_dadapter * dadapter_dx
-        """
         for model, compute in computes.items():
-            #train = batch_dict[model][0]
-            # the grad is empty
-            """
-            # Detach the gradient of m just to be sure
-            if model != role_model:
-                compute["m"].grad.detach_()
-            """
+            # the grad at m is empty and detaching won't do anything
             dbody_dx = compute["grad"]
             # Flatten the gradients so that each row captures one image
             dbody_dx = dbody_dx.view(len(dbody_dx), -1)
