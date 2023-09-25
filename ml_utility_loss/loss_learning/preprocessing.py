@@ -357,7 +357,7 @@ def generate_overlap(
     df, 
     size=None, 
     test_ratio=0.2, 
-    test_candidate_mul=1.5, 
+    test_candidate_mul=2, 
     augmenter=None, 
     drop_aug=True, 
     aug_scale=None
@@ -371,19 +371,22 @@ def generate_overlap(
     # if set to 1.5, it will have overlap minimum of 0.5
     # it might be desirable
     test_candidate = df.sample(frac=test_candidate_mul*test_ratio)
+    # we calculate n test here
+    n_test = int(round(test_ratio * len(df)))
     # then we take the unselected ones as train
     train_non_test = df[~df.index.isin(test_candidate.index)]
     # next we actually sample test set and the remaining train set from the candidates
     # this makes overlap score of 0 and 1 have the same chance, 
     # if the multiplier was 2
-    test = test_candidate.sample(frac=test_ratio)
-    train_overlap = test_candidate.sample(frac=test_ratio)
+    test = test_candidate.sample(n=n_test)
+    train_overlap = test_candidate.sample(n=n_test)
     # lastly we build the train set by concat
     train = pd.concat([train_non_test, train_overlap], axis=0)
     
     # find overlap
     overlaps = test.index.isin(train.index)
     y = pd.Series(overlaps.astype(float), index=test.index, name="overlap")
+    print(df.shape, train.shape, test.shape)
     print("overlap A", y.sum())
 
     # augmentations
@@ -397,7 +400,7 @@ def generate_overlap(
             aug = pd.merge(y, train["aug"], how="left", left_index=True, right_index=True)
             aug = aug["aug"].fillna(0)
 
-    print(df.shape, train.shape, test.shape, y.shape, aug.shape)
+    print(y.shape, aug.shape)
 
     # reduce overlap by augmentations
     if aug is not None:
