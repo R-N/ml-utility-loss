@@ -5,8 +5,10 @@ from ..util import stack_samples, stack_sample_dicts
 
 Tensor = torch.FloatTensor
 
-def try_tensor_item(tensor):
+def try_tensor_item(tensor, detach=True):
     if hasattr(tensor, "item"):
+        if detach:
+            tensor = tensor.detach()
         return tensor.item()
     return tensor
 
