@@ -448,6 +448,6 @@ class MLUtilityWhole(nn.Module):
         self.cache[idx] = single
         return single
 
-    def forward(self, train, test, model, skip_train_adapter=False):
+    def forward(self, train, test, model, skip_train_adapter=False, skip_test_adapter=False):
         single = self[model]
-        return single(train, test, skip_train_adapter=skip_train_adapter)
+        return single(train, test, skip_train_adapter=skip_train_adapter, skip_test_adapter=skip_test_adapter)
