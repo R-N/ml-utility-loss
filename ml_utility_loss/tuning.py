@@ -47,7 +47,7 @@ def sample_parameter_2(trial, k, type_0, args, kwargs=None, param_map={}):
         #type_1 = type_0[5:]
         min, max, low, high = args
         length = trial.suggest_int(f"{k}_len", min, max)
-        param [
+        param = [
             sample_int_exp_2(trial, f"{k}_{i}", low, high)
             for i in range(length)
         ]
