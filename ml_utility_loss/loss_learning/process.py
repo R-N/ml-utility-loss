@@ -408,7 +408,7 @@ def eval(
             # We reduce directly because no further need for shape
             loss = loss_fn(pred, y, reduction="none")
             loss = reduction(loss).item()
-            avg_losses["model"] += loss
+            avg_losses[model] += loss
 
         n_batch += 1
 
