@@ -176,6 +176,7 @@ def train_epoch(
     non_role_model_count = len(models) - 1
     non_role_model_avg_mul = 1.0/non_role_model_count if non_role_model_avg else 1.0
 
+    role_model = None
 
     for batch, batch_dict in enumerate(train_loader):
         gc.collect()
