@@ -277,7 +277,7 @@ class Head(nn.Module):
             Linear(d_hid, 1),
         ])
         self.final_activation = final_activation
-        print(self.final_activation)
+        print("head final", self.final_activation)
         if inspect.isclass(self.final_activation):
             self.final_activation = self.final_activation()
 
@@ -286,7 +286,7 @@ class Head(nn.Module):
         x = x.flatten(-2, -1)
         y = self.linear(x)
         y = self.final_activation(y)
-        print(torch.max(y))
+        assert torch.max(y) <= 1.0 and torch.min(y) >= 0.0
         y = y.squeeze(dim=-1)
         if return_attns:
             return y, pma_attn
