@@ -37,10 +37,11 @@ PARAM_SPACE = {
     "tf_n_head": ("int_exp_2", 2, 16), 
     "tf_activation": ("activation", ["relu", "gelu", "identity"]),
     # Transformer PMA args
-    "tf_pma": BOOLEAN,
-    "tf_pma_start": ("int", -4, -1),
-    "tf_pma_high": ("int_exp_2", 8, 512),
-    "tf_pma_low": ("int_exp_2", 1, 32),
+    "tf_pma": ("conditional", {
+        "tf_pma_start": ("int", -4, -1),
+        "tf_pma_high": ("int_exp_2", 8, 512),
+        "tf_pma_low": ("int_exp_2", 1, 32),
+    }),
     "tf_share_ffn": BOOLEAN,
     # Adapter args
     "ada_d_hid": ("int_exp_2", 8, 64), 
@@ -67,7 +68,9 @@ def objective(
     trial=None,
     **kwargs
 ):
-    
+    tf_pma = kwargs.pop("tf_pma")
+    if tf_pma:
+        kwargs.update(tf_pma)
 
     train_results = _train(
         datasets,

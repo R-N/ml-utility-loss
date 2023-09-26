@@ -26,6 +26,11 @@ def sample_parameter_2(trial, k, type_0, args, kwargs=None, param_map={}):
     kwargs = kwargs or {}
     param, param_raw = None, None
     type_1 = type_0
+    if type_0 == "conditional":
+        sample = trial.suggest_categorical(f"{k}_boolc", [True, False])
+        if sample:
+            return sample_parameters(trial, args, param_map=param_map)
+        return None, None
     if type_0.startswith("bool_"):
         sample = trial.suggest_categorical(f"{k}_bool", [True, False])
         if not sample:
