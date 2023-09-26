@@ -377,13 +377,13 @@ def train_epoch(
 
         # Now we backward the role model
         role_model_g_loss = reduction(computes[role_model]["g_loss"]) if gradient_penalty else 0
-        role_model_loss = role_model_loss + role_model_g_loss
+        role_model_total_loss = role_model_loss + role_model_g_loss
         if not val:
-            role_model_loss.backward()
+            role_model_total_loss.backward()
 
 
         # Finally, backprop
-        batch_loss = role_model_loss + non_role_model_loss
+        batch_loss = role_model_total_loss + non_role_model_loss
         # Now we will not call backward on total loss, 
         # But we called on every piece of loss
         if not val:
