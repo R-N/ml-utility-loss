@@ -45,14 +45,14 @@ PARAM_SPACE = {
     "tf_share_ffn": BOOLEAN,
     # Adapter args
     "ada_d_hid": ("int_exp_2", 8, 64), 
-    "ada_n_layers": ("int", 1, 8), 
+    "ada_n_layers": ("int", 2, 8), 
     "ada_activation": ("activation", [
         "tanh", "sigmoid", "relu", "leakyrelu", "elu", "selu", "gelu", "identity"
     ]),
     # Head args
     "head_n_seeds": ("int_exp_2", 1, 8),
     "head_d_hid": ("int", 8, 128), 
-    "head_n_layers": ("int", 1, 8), 
+    "head_n_layers": ("int", 2, 8), 
     "head_n_head": ("int_exp_2", 2, 16),
     "head_activation": ("activation", [
         "tanh", "sigmoid", "relu", "leakyrelu", "elu", "selu", "gelu", "identity"
