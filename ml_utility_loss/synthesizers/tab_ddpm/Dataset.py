@@ -29,6 +29,7 @@ class Dataset:
     task_type: TaskType
     n_classes: Optional[int]
     cols: List
+    dtypes: List
 
     @property
     def is_binclass(self) -> bool:
