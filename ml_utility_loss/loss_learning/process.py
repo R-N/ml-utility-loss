@@ -330,7 +330,8 @@ def train_epoch(
                             clamp_tensor_mag="normal",
                             return_type="mul",
                         )
-                        print("max grad mul", torch.max(grad_mul))
+                        assert torch.max(grad_mul) <= 1.0
+                        assert grad_mul.shape[:-1] == dbody_dadapter.shape[:-1]
                         # Of course, we can't have it be more than the original
                         grad_mul = torch.clamp(grad_mul, min=-loss_clamp, max=loss_clamp)
                         # grad_mul has shape of (batch, size, 1)
