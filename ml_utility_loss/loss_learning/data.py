@@ -58,6 +58,12 @@ class CachedDataset(Dataset):
         if self.cache:
             self.cache.clear()
 
+    def set_size(self, size):
+        pass
+
+    def set_aug_scale(self, aug_scale):
+        pass
+
 class DatasetDataset(CachedDataset):
 
     def __init__(self, dir, file="info.csv", max_cache=None, Tensor=None):
@@ -90,6 +96,12 @@ class DatasetDataset(CachedDataset):
             self.cache[idx] = sample
 
         return sample
+
+    def set_size(self, size):
+        pass
+
+    def set_aug_scale(self, aug_scale):
+        pass
     
 # Yes it's not cached here
 class MultiSizeDatasetDataset(Dataset):

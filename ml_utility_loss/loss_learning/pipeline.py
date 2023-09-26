@@ -141,7 +141,7 @@ def train(
     batch_size=4,
     # Training args
     epochs=1,
-    Optim=torch.optim.adam,
+    Optim=torch.optim.Adam,
     optim=None,
     models=None,
     whole_model=None,
