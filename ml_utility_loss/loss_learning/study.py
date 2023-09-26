@@ -53,7 +53,7 @@ PARAM_SPACE = {
     "head_n_seeds": ("int_exp_2", 1, 8),
     "head_d_hid": ("int", 8, 128), 
     "head_n_layers": ("int", 1, 8), 
-    "head_n_head": ("int", 2, 16),
+    "head_n_head": ("int_exp_2", 2, 16),
     "head_activation": ("activation", [
         "tanh", "sigmoid", "relu", "leakyrelu", "elu", "selu", "gelu", "identity"
     ]),
