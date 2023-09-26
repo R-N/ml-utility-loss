@@ -54,10 +54,14 @@ def train_epoch(
     forward_once=True,
     calc_grad_m=True,
     gradient_penalty=True,
-    loss_clamp=1.0
+    loss_clamp=1.0,
+    models = None
 ):
     assert optim or val, "Optimizer must be provided if val is false"
     size = len(train_loader.dataset)
+
+    models = models or whole_model.models
+
     # Set the model to eval mode for validation or train mode for training
     whole_model.eval() if val else whole_model.train()
     avg_batch_loss = 0
@@ -67,7 +71,7 @@ def train_epoch(
     avg_non_role_model_embed_loss = 0
     n_batch = 0
 
-    non_role_model_count = len(whole_model.models) - 1
+    non_role_model_count = len(models) - 1
     non_role_model_avg_mul = 1.0/non_role_model_count if non_role_model_avg else 1.0
 
 
@@ -75,7 +79,6 @@ def train_epoch(
         gc.collect()
         if not val:
             optim.zero_grad()
-
 
         # have fixed role model as hyperparameter
         # role model is selected for the adapter
@@ -94,7 +97,7 @@ def train_epoch(
             role_model = fixed_role_model
 
         # Compute prediction and loss for all adapters
-        computes = {model: {} for model in whole_model.models}
+        computes = {model: {} for model in models}
         for model, (train, test, y) in batch_dict.items():
             # train needs to require grad for gradient penalty computation
             # should I zero and make it not require grad later?
@@ -139,7 +142,7 @@ def train_epoch(
                 else:
                     compute["grad"] = calc_gradient(train, loss)
 
-        if role_model:
+        if role_model and (fixed_role_model or forward_once):
             role_model_compute = computes[role_model]
         else:
             # determine role model (adapter) by minimum loss
@@ -303,4 +306,55 @@ def train_epoch(
         "avg_batch_loss": avg_batch_loss,
     }
         
+        
+def eval(
+    whole_model, 
+    eval_loader, 
+    loss_fn=F.mse_loss,
+    reduction=torch.mean,
+    models=None,
+):
+    size = len(eval_loader.dataset)
+
+    models = models or whole_model.models
+
+    # Set the model to eval mode for validation or train mode for training
+    whole_model.eval()
+    n_batch = 0
+
+    avg_losses = {model: 0 for model in models}
+
+    for batch, batch_dict in enumerate(eval_loader):
+        gc.collect()
+        # Compute prediction and loss for all adapters
+        for model, (train, test, y) in batch_dict.items():
+            pred = whole_model(
+                train, test, model
+            )
+            # We reduce directly because no further need for shape
+            loss = loss_fn(pred, y, reduction="none")
+            loss = reduction(loss).item()
+            avg_losses["model"] += loss
+
+        n_batch += 1
+
+    avg_losses = {
+        model: (loss/n_batch) 
+        for model, loss in avg_losses.items()
+    }
+
+    # determine role model (adapter) by minimum loss
+    role_model, min_loss = min(
+        avg_losses.items(), 
+        key=lambda item: item[-1] # it's already reduced and item
+    )
+    avg_loss = sum(avg_losses.values()) / len(models)
+
+    gc.collect()
+    return {
+        "role_model": role_model, 
+        "min_loss": min_loss,
+        "avg_losses": avg_losses,
+        "avg_loss": avg_loss,
+    }
         
