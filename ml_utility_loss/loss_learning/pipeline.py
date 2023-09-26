@@ -141,6 +141,7 @@ def train(
     batch_size=4,
     # Training args
     epochs=1,
+    lr=1e-3,
     Optim=torch.optim.Adam,
     optim=None,
     models=None,
@@ -193,7 +194,10 @@ def train(
             **model_args
         )
     if not optim:
-        optim = Optim(whole_model.parameters())
+        optim = Optim(
+            whole_model.parameters(),
+            lr=lr
+        )
 
     def train_epoch_(
         train_loader,
