@@ -319,28 +319,19 @@ def train_epoch(
                 grad_mul = 1
                 if calc_grad_m: # It's not dbody/dx yet but intermediate dbody/dadapter
                     dbody_dadapter = grad_compute["grad"]
+                    m = compute["m"]
                     if model != role_model:
                         dbody_dadapter = dbody_dadapter.detach()
-                        # We can't be sure that the gradient direction is correct
-                        # So we'll just take part of it according to
-                        # The ratio of the projection between
-                        # The embeddings
-                        grad_mul = project_tensor(
-                            compute["m"],
-                            grad_compute["m"],
-                            clamp_tensor_mag="normal",
-                            return_type="mul",
-                        )
-                        assert torch.max(grad_mul) <= 1.0
-                        assert grad_mul.shape[:-1] == dbody_dadapter.shape[:-1]
-                        # Of course, we can't have it be more than the original
-                        grad_mul = torch.clamp(grad_mul, min=-loss_clamp, max=loss_clamp)
-                        # grad_mul has shape of (batch, size, 1)
-                        # dbody_dadapter has shape of (batch, size, dim)
-                        dbody_dadapter = grad_mul * dbody_dadapter
+                        # The embedding is a point, not a vector
+                        # Thus we shouldn't be using cos or dot product to decide
+                        # Their similarity
+                        # Meanwhile, gradient is where the point should move
+                        # So we add the direction of where the embedding should move
+                        # That is towards the role model embedding
+                        # Does this make sense?
+                        dbody_dadapter += grad_compute["m"] - m
                         dbody_dadapter = dbody_dadapter.detach()
                     train = compute["train"]
-                    m = compute["m"]
                     dbody_dx = calc_gradient(train, m, dbody_dadapter)
                 else:
                     dbody_dx = grad_compute["grad"]
