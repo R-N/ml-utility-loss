@@ -528,7 +528,6 @@ def dataset_from_df(
         target=target,
     ) for k, v in dfs.items()}
 
-    n_classes = 0 if task_type==TaskType.REGRESSION else len(np.unique(train_set["y"]))
     num_cols = [c for c in df.columns if c not in [*cat_features, target]]
     cols = [*num_cols, *cat_features, target]
     df = df[cols]
@@ -537,6 +536,7 @@ def dataset_from_df(
     val_set = dict(zip(DATASET_TYPES, dfs["val"])) if "val" in dfs else None
     test_set = dict(zip(DATASET_TYPES, dfs["test"])) if "test" in dfs else None
 
+    n_classes = 0 if task_type==TaskType.REGRESSION else len(np.unique(train_set["y"]))
 
     dataset = Dataset(
         train_set=train_set, 
