@@ -14,9 +14,9 @@ PARAM_SPACE = {
     "lr": ("log_float", 1e-5, 1e-3),
     "Optim": ("optimizer", ["adam", "adamw", "sgd"]),
     # Training args
-    "non_role_model_mul": ("float", 0.2, 1.0),
+    "non_role_model_mul": ("float", 0.1, 1.0),
     "non_role_model_avg": BOOLEAN,
-    "grad_loss_mul": ("float", 0.5, 1.5),
+    "grad_loss_mul": ("float", 0.1, 1.5),
     "loss_fn": ("loss", ["mse", "mae", "huber"]),
     "fixed_role_model": ("categorical", [
         None, "tvae", "lct_gan", "lct_gan_latent", "tab_ddpm_concat", "realtabformer"
@@ -30,6 +30,7 @@ PARAM_SPACE = {
     "softmax": ("softmax", ["softmax", "sparsemax", "entmax15", "relu15"]),
     "flip": BOOLEAN,
     "skip_small": BOOLEAN,
+    "loss_clamp": ("bool_log_float", 0.5, 10.0),
     # Transformer args
     "tf_num_inds": ("int_exp_2", 8, 64),
     "tf_d_inner": ("int_exp_2", 32, 128),
