@@ -305,7 +305,12 @@ class Transformer(nn.Module):
         dropout=0.1, 
         activation=nn.ReLU,
         softmax=nn.Softmax,
-        flip=False
+        flip=False,
+        pma_start=-4,
+        pma_high=512,
+        pma_low=32,
+        share_ffn=True,
+        skip_small=True,
     ):
         super().__init__()
 
@@ -318,6 +323,11 @@ class Transformer(nn.Module):
             dropout=dropout,
             activation=activation,
             softmax=softmax,
+            pma_start=pma_start,
+            pma_high=pma_high,
+            pma_low=pma_low,
+            share_ffn=share_ffn,
+            skip_small=skip_small,
         )
 
         self.decoder = Decoder(
@@ -327,6 +337,11 @@ class Transformer(nn.Module):
             dropout=dropout,
             activation=activation,
             softmax=softmax,
+            pma_start=pma_start,
+            pma_high=pma_high,
+            pma_low=pma_low,
+            share_ffn=share_ffn,
+            skip_small=skip_small,
         )
 
         for p in self.parameters():
@@ -473,6 +488,6 @@ class MLUtilityWhole(nn.Module):
         self.cache[idx] = single
         return single
 
-    def forward(self, train, test, model, skip_train_adapter=False, skip_test_adapter=False):
-        single = self[model]
+    def forward(self, train, test, model, head="mlu", skip_train_adapter=False, skip_test_adapter=False):
+        single = self[(model, head)]
         return single(train, test, skip_train_adapter=skip_train_adapter, skip_test_adapter=skip_test_adapter)

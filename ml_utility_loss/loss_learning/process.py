@@ -145,7 +145,8 @@ def train_epoch(
     gradient_penalty=True,
     loss_clamp=1.0,
     grad_clip=1.0,
-    models = None
+    models = None,
+    head="mlu"
 ):
     assert optim or val, "Optimizer must be provided if val is false"
     size = len(train_loader.dataset)
@@ -210,7 +211,8 @@ def train_epoch(
             y = y.to(torch.float32)
             # make prediction using intermediate tensor
             pred = whole_model(
-                m, m_test, model, 
+                m, m_test, 
+                model=model, head=head, 
                 skip_train_adapter=True,
                 skip_test_adapter=True
             )
