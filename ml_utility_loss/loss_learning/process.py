@@ -2,6 +2,7 @@ import torch
 import torch.nn.functional as F
 import gc
 from ..util import stack_samples, stack_sample_dicts
+from torch.nn.utils import clip_grad_norm_
 
 Tensor = torch.FloatTensor
 
@@ -38,6 +39,68 @@ def calc_gradient_2(inputs, outputs, outputs_grad=None):
     )
     return inputs.grad
 
+def clamp_tensor(tensor, loss_clamp, dim=-1, detach_mag=True):
+    # We treat it as a vector, having direction
+    # We use keep_dim because we need it to stay (batch, dim) for denominator
+    tensor_mag = tensor.norm(2, dim=dim, keepdim=True)
+    # We clamp min to loss clamp=1 because this will be denominator
+    # Meaning a loss magnitude of 0.5 will clamp to 1 so it will stay 0.5
+    # Meanwhile loss magnitude of 2 will not clamp so it will be 2/2=1
+    tensor_mag = torch.clamp(tensor_mag, min=loss_clamp)
+    tensor_mag = tensor_mag.detach() if detach_mag else tensor_mag
+    tensor /= tensor_mag
+    return tensor
+
+def normalize_tensor(tensor, dim=-1, detach_mag=True):
+    # We treat it as a vector, having direction
+    # We use keep_dim because we need it to stay (batch, dim) for denominator
+    tensor_mag = tensor.norm(2, dim=dim, keepdim=True)
+    tensor_mag = tensor_mag.detach() if detach_mag else tensor_mag
+    tensor /= tensor_mag
+    return tensor
+
+def project_tensor(
+    tensor, normal, dim=-1, 
+    detach_proj_mag=True, 
+    detach_normal_mag=True,
+    detach_mul=True,
+    detach_tensor_mag=True,
+    return_mul_only=False,
+    return_cos_only=False
+):
+    # We treat it as a vector, having direction
+    # We want to calculate projection of tensor on normal
+    # This equals |tensor|*cos(a)*normalize(normal)
+    # First we calculate the dot product
+    # this equals |tensor|*|normal|*cos(a)
+    dot = torch.tensordot(tensor, normal, dim=dim, keepdim=True)
+    # It's almost what we need, just need to get rid of |normal|
+    # So we calculate this, resulting in |tensor|*cos(a)
+    normal_mag = normal.norm(2, dim=dim, keepdim=True)
+    normal_mag = normal_mag.detach() if detach_normal_mag else normal_mag
+    proj_mag = (dot / normal_mag)
+    proj_mag = proj_mag.detach() if detach_proj_mag else proj_mag
+    # Maybe if one needs the cos
+    # We just need to get rid of |tensor|
+    if return_cos_only:
+        tensor_mag = tensor.norm(2, dim=dim, keepdim=True)
+        tensor_mag = tensor_mag.detach() if detach_tensor_mag else tensor_mag
+        cos = proj_mag / tensor_mag
+        # It's essentially a multiplier so it shares the same flag
+        cos = cos.detach() if detach_mul else cos
+        return cos
+    # Next we normalize the normal (having magnitude of 1)
+    # It's fine if the normal was already normalized
+    # normal = normalize_tensor(normal, dim=dim)
+    # It will also use the magnitude so let's just optimize this
+    # This mul is |tensor|/|normal| * cos a
+    normal_mul = proj_mag / normal_mag
+    normal_mul = normal_mul.detach() if detach_mul else normal_mul
+    if return_mul_only:
+        return normal_mul
+    proj = normal * normal_mul
+    return proj
+
 def train_epoch(
     whole_model, 
     train_loader, 
@@ -55,6 +118,7 @@ def train_epoch(
     calc_grad_m=True,
     gradient_penalty=True,
     loss_clamp=1.0,
+    grad_clip=1.0,
     models = None
 ):
     assert optim or val, "Optimizer must be provided if val is false"
@@ -184,15 +248,8 @@ def train_epoch(
                 # keep_dim=False by default so this should result in shape (batch, dim)
                 embed_loss = torch.mean(embed_loss, dim=-2)
                 # Now we clamp embed loss because it overpowers the rest
-                # We treat it as a vector, having direction
                 if loss_clamp:
-                    # We use keep_dim because we need it to stay (batch, dim) for denominator
-                    embed_loss_norm = embed_loss.norm(2, dim=-1, keepdim=True)
-                    # We clamp min to loss clamp=1 because this will be denominator
-                    # Meaning a loss magnitude of 0.5 will clamp to 1 so it will stay 0.5
-                    # Meanwhile loss magnitude of 2 will not clamp so it will be 2/2=1
-                    embed_loss_norm = torch.clamp(embed_loss_norm, min=loss_clamp).detach()
-                    embed_loss /= embed_loss_norm
+                    embed_loss = clamp_tensor(embed_loss, loss_clamp=loss_clamp)
                 
                 # Again we'll take the norm because it is a vector
                 # But no keep_dim so it results in (batch)
@@ -219,9 +276,24 @@ def train_epoch(
                 # the grad at m is empty and detaching m won't do anything
                 grad_compute = compute if "grad" in compute else role_model_compute
                 loss = grad_compute["loss"]
+                grad_mul = 1
                 if calc_grad_m: # It's not dbody/dx yet but intermediate dbody/dadapter
                     dbody_dadapter = grad_compute["grad"]
                     if model != role_model:
+                        dbody_dadapter = dbody_dadapter.detach()
+                        # We can't be sure that the gradient direction is correct
+                        # So we'll just take part of it according to
+                        # The ratio of the projection between
+                        # The embeddings
+                        grad_mul = project_tensor(
+                            compute["m"],
+                            grad_compute["m"],
+                            #return_mul_only=True,
+                            return_cos_only=True,
+                        )
+                        # Of course, we can't have it be more than the original
+                        grad_mul = torch.clamp(grad_mul, min=-loss_clamp, max=loss_clamp)
+                        dbody_dadapter = grad_mul * dbody_dadapter
                         dbody_dadapter = dbody_dadapter.detach()
                     train = compute["train"]
                     m = compute["m"]
@@ -280,6 +352,8 @@ def train_epoch(
         # Now we will not call backward on total loss, 
         # But we called on every piece of loss
         if not val:
+            if grad_clip:
+                clip_grad_norm_(whole_model.parameters(), grad_clip)
             optim.step()
             optim.zero_grad()
 
