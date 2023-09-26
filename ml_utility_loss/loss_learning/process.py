@@ -40,7 +40,9 @@ def calc_gradient_2(inputs, outputs, outputs_grad=None):
     return inputs.grad
 
 def handle_nan(tensor):
-    return torch.nan_to_num(tensor, nan=0.0, posinf=0.0, neginf=0.0)
+    if torch.isnan(tensor).any():
+        return torch.nan_to_num(tensor, nan=0.0, posinf=0.0, neginf=0.0)
+    return tensor
 
 # This operation is nondifferentiable
 def handle_zero(tensor, inplace=True):
