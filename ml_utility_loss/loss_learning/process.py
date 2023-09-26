@@ -346,6 +346,7 @@ def train_epoch(
                 g = 2 * torch.sqrt(loss.detach())
                 # gradient penalty
                 g_loss = grad_loss_fn(dbody_dx_norm, g, reduction="none")
+                g_loss = clamp_tensor(g_loss, loss_clamp=loss_clamp)
                 g_loss = reduction(g_loss)
                 # weight the gradient penalty
                 g_loss = grad_loss_mul * g_loss
