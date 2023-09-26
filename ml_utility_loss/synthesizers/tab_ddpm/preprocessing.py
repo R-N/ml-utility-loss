@@ -642,6 +642,7 @@ class DataPreprocessor:
             y=y,
         )
         self.cols = df.columns
+        self.dtypes = df.dtypes
 
     def preprocess(self, df):
         X_num, X_cat, y = self.split_features(df)
@@ -662,4 +663,5 @@ class DataPreprocessor:
             np.concatenate([X_num, X_cat, y.reshape(-1, 1)], axis=1),
             columns=self.cols
         )
+        df_postprocessed = df_postprocessed.astype(self.dtypes)
         return df_postprocessed
