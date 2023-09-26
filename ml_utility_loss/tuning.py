@@ -22,64 +22,68 @@ def sample_int_exp_2(trial, k, low, high):
     param = int(math.pow(2, trial.suggest_int(f"{k}_exp_2", low, high)))
     return param
 
+def sample_parameter_2(trial, k, type_0, args, kwargs=None, param_map={}):
+    kwargs = kwargs or {}
+    param, param_raw = None, None
+    type_1 = type_0
+    if type_0.startswith("bool_"):
+        sample = trial.suggest_categorical(f"{k}_bool", [True, False])
+        if not sample:
+            return 0, 0
+        type_1 = type_0[5:]
+        return sample_parameter_2(trial, k, type_1, args, kwargs, param_map=param_map)
+    if type_0.startswith("log_"):
+        type_1 = type_0[4:]
+        kwargs["log"] = True
+        return sample_parameter_2(trial, k, type_1, args, kwargs, param_map=param_map)
+    if type_0 == "qloguniform":
+        low, high, q = args
+        type_1 = "float"
+        param = round(math.exp(
+            trial.suggest_float(f"{k}_qloguniform", low, high)
+        ) / q) * q
+        return param, param
+    if type_0 == "list_int_exp_2":
+        #type_1 = type_0[5:]
+        min, max, low, high = args
+        length = trial.suggest_int(f"{k}_len", min, max)
+        param [
+            sample_int_exp_2(trial, f"{k}_{i}", low, high)
+            for i in range(length)
+        ]
+        param_raw = repr(param)
+        return param, param_raw
+    if type_0 == "int_exp_2":
+        low, high = args
+        param = sample_int_exp_2(trial, k, low, high)
+        type_1 = "int"
+        return param, param
+    if type_0 in {"bool", "boolean"}:
+        type_1, *args = BOOLEAN
+        return sample_parameter_2(trial, k, type_1, args, kwargs, param_map=param_map)
+
+    if type_0 in param_map:
+        type_1 = "categorical"
+
+    if type_1:
+        param = sample_parameter(trial, k, type_1, args, kwargs)
+
+    param_raw = param
+    if type_0 in param_map:
+        param = map_parameter(param, param_map[type_0])
+
+    return param, param_raw
+
 def sample_parameters(trial, param_space, param_map={}):
     param_map = {**PARAM_MAP, **param_map}
     params = {}
     params_raw = {}
     for k, v in param_space.items():
         type_0, *args = v
-        type_1 = type_0
-        kwargs = {}
-        if type_0.startswith("bool_"):
-            sample = trial.suggest_categorical(f"{k}_bool", [True, False])
-            if not sample:
-                type_1 = None
-                param = 0
-                params_raw[k] = param
-                params[k] = param
-                continue
-            type_0 = type_0[5:]
-            type_1 = type_0
-        if type_0.startswith("log_"):
-            type_1 = type_0[4:]
-            kwargs["log"] = True
-        if type_0 == "qloguniform":
-            low, high, q = args
-            type_1 = "float"
-            param = round(math.exp(
-                trial.suggest_float(f"{k}_qloguniform", low, high)
-            ) / q) * q
-            params_raw[k] = param
-            params[k] = param
-            continue
-        if type_0 == "list_int_exp_2":
-            #type_1 = type_0[5:]
-            min, max, low, high = args
-            length = trial.suggest_int(f"{k}_len", min, max)
-            params[k] = [
-                sample_int_exp_2(trial, f"{k}_{i}", low, high)
-                for i in range(length)
-            ]
-            params_raw[k] = repr(params[k])
-            continue
-        if type_0 == "int_exp_2":
-            low, high = args
-            param = sample_int_exp_2(trial, k, low, high)
-            type_1 = "int"
-            params_raw[k] = param
-            params[k] = param
-            continue
-        if type_0 in {"bool", "boolean"}:
-            type_1, *args = BOOLEAN
-        if type_0 in param_map:
-            type_1 = "categorical"
-
-        if type_1:
-            param = sample_parameter(trial, k, type_1, args, kwargs)
-        params_raw[k] = param
-        if type_0 in param_map:
-            param = map_parameter(param, param_map[type_0])
+        param, param_raw = sample_parameter_2(trial, k, type_0, args, param_map=param_map)
         params[k] = param
+        params_raw[k] = param_raw
+        
     #params["id"] = trial.number
     return params, params_raw
 
