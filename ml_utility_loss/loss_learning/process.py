@@ -73,7 +73,9 @@ def project_tensor(
     # This equals |tensor|*cos(a)*normalize(normal)
     # First we calculate the dot product
     # this equals |tensor|*|normal|*cos(a)
-    dot = torch.linalg.vecdot(tensor, normal, dim=dim, keepdim=True)
+    dot = torch.linalg.vecdot(tensor, normal, dim=dim) 
+    # it doesn't have keepdim argument so we unsqueeze
+    dot = torch.unsqueeze(dot, dim)
     # It's almost what we need, just need to get rid of |normal|
     # So we calculate this, resulting in |tensor|*cos(a)
     normal_mag = normal.norm(2, dim=dim, keepdim=True)
