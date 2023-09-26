@@ -39,6 +39,18 @@ def calc_gradient_2(inputs, outputs, outputs_grad=None):
     )
     return inputs.grad
 
+def handle_nan(tensor):
+    return torch.nan_to_num(tensor, nan=0.0, posinf=0.0, neginf=0.0)
+
+# This operation is nondifferentiable
+def handle_zero(tensor, inplace=True):
+    flag = tensor == 0
+    if flag.any():
+        if not inplace:
+            tensor = tensor.clone()
+        tensor[flag] = 1
+    return tensor
+
 def clamp_tensor(tensor, loss_clamp, dim=-1, detach_mag=True):
     # We treat it as a vector, having direction
     # We use keep_dim because we need it to stay (batch, dim) for denominator
@@ -47,16 +59,20 @@ def clamp_tensor(tensor, loss_clamp, dim=-1, detach_mag=True):
     # Meaning a loss magnitude of 0.5 will clamp to 1 so it will stay 0.5
     # Meanwhile loss magnitude of 2 will not clamp so it will be 2/2=1
     tensor_mag = torch.clamp(tensor_mag, min=loss_clamp)
+    tensor_mag = handle_zero(tensor_mag)
     tensor_mag = tensor_mag.detach() if detach_mag else tensor_mag
     tensor /= tensor_mag
+    #tensor = handle_nan(tensor)
     return tensor
 
 def normalize_tensor(tensor, dim=-1, detach_mag=True):
     # We treat it as a vector, having direction
     # We use keep_dim because we need it to stay (batch, dim) for denominator
     tensor_mag = tensor.norm(2, dim=dim, keepdim=True)
+    tensor_mag = handle_zero(tensor_mag)
     tensor_mag = tensor_mag.detach() if detach_mag else tensor_mag
     tensor /= tensor_mag
+    #tensor = handle_nan(tensor)
     return tensor
 
 def project_tensor(
@@ -80,14 +96,17 @@ def project_tensor(
     # So we calculate this, resulting in |tensor|*cos(a)
     normal_mag = normal.norm(2, dim=dim, keepdim=True)
     normal_mag = normal_mag.detach() if detach_normal_mag else normal_mag
-    proj_mag = (dot / normal_mag)
+    proj_mag = (dot / handle_zero(normal_mag))
+    normal_mag = normal_mag.detach() if detach_normal_mag else normal_mag
     proj_mag = proj_mag.detach() if detach_proj_mag else proj_mag
     # Maybe if one needs the cos
     # We just need to get rid of |tensor|
     if return_cos_only:
         tensor_mag = tensor.norm(2, dim=dim, keepdim=True)
         tensor_mag = tensor_mag.detach() if detach_tensor_mag else tensor_mag
-        cos = proj_mag / tensor_mag
+        cos = proj_mag / handle_zero(tensor_mag)
+        tensor_mag = tensor_mag.detach() if detach_tensor_mag else tensor_mag
+        #cos = handle_nan(cos)
         # It's essentially a multiplier so it shares the same flag
         cos = cos.detach() if detach_mul else cos
         return cos
@@ -96,11 +115,14 @@ def project_tensor(
     # normal = normalize_tensor(normal, dim=dim)
     # It will also use the magnitude so let's just optimize this
     # This mul is |tensor|/|normal| * cos a
-    normal_mul = proj_mag / normal_mag
+    normal_mul = proj_mag / handle_zero(normal_mag)
+    normal_mag = normal_mag.detach() if detach_normal_mag else normal_mag
+    #normal_mul = handle_nan(normal_mul)
     normal_mul = normal_mul.detach() if detach_mul else normal_mul
     if return_mul_only:
         return normal_mul
     proj = normal * normal_mul
+    #proj = handle_nan(proj)
     return proj
 
 def train_epoch(
