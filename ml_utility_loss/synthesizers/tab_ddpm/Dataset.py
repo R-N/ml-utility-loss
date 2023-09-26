@@ -29,6 +29,7 @@ class Dataset:
     task_type: TaskType
     n_classes: Optional[int]
     cols: List
+    real_cols: List
     dtypes: List
 
     @property

@@ -516,6 +516,7 @@ def dataset_from_df(
     splits=DEFAULT_SPLITS,
     seed=0
 ):
+    real_cols = df.columns
     split_names = SPLIT_NAMES[len(splits)]
     dfs = split_train(df, splits, seed=seed)
     dfs = dict(zip(split_names, dfs))
@@ -527,13 +528,15 @@ def dataset_from_df(
         target=target,
     ) for k, v in dfs.items()}
 
+    n_classes = 0 if task_type==TaskType.REGRESSION else len(np.unique(train_set["y"]))
+    num_cols = [c for c in df.columns if c not in [*cat_features, target]]
+    cols = [*num_cols, *cat_features, target]
+    df = df[cols]
+
     train_set = dict(zip(DATASET_TYPES, dfs["train"])) if "train" in dfs else None
     val_set = dict(zip(DATASET_TYPES, dfs["val"])) if "val" in dfs else None
     test_set = dict(zip(DATASET_TYPES, dfs["test"])) if "test" in dfs else None
 
-    n_classes = 0 if task_type==TaskType.REGRESSION else len(np.unique(train_set["y"]))
-    num_cols = [c for c in df.columns if c not in [*cat_features, target]]
-    cols = [*num_cols, *cat_features, target]
 
     dataset = Dataset(
         train_set=train_set, 
@@ -543,6 +546,7 @@ def dataset_from_df(
         task_type=task_type, 
         n_classes=n_classes,
         cols=cols,
+        real_cols=real_cols,
         dtypes=df.dtypes
     )
     
@@ -642,10 +646,13 @@ class DataPreprocessor:
             X_cat=X_cat,
             y=y,
         )
-        self.cols = df.columns
+        self.num_features = [c for c in df.columns if c not in [*self.cat_features, self.target]]
+        self.cols = [*self.num_features, *self.cat_features, self.target]
+        self.real_cols = df.columns
         self.dtypes = df.dtypes
 
     def preprocess(self, df):
+        df = df[self.cols]
         X_num, X_cat, y = self.split_features(df)
         X_num, X_cat, y = self.transformer.transform(
             X_num, X_cat, y,
@@ -674,5 +681,6 @@ class DataPreprocessor:
             np.concatenate([X_num, X_cat, y.reshape(-1, 1)], axis=1),
             columns=self.cols
         )
+        df_postprocessed = df_postprocessed[self.real_cols]
         df_postprocessed = df_postprocessed.astype(self.dtypes)
         return df_postprocessed
