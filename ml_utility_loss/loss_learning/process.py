@@ -287,6 +287,7 @@ def train_epoch(
                         # So we'll just take part of it according to
                         # The ratio of the projection between
                         # The embeddings
+                        # Is it necessary to mean first?
                         grad_mul = project_tensor(
                             compute["m"],
                             grad_compute["m"],
@@ -295,7 +296,7 @@ def train_epoch(
                         )
                         # Of course, we can't have it be more than the original
                         grad_mul = torch.clamp(grad_mul, min=-loss_clamp, max=loss_clamp)
-                        print(grad_mul.shape)
+                        print(grad_mul.shape, dbody_dadapter.shape)
                         dbody_dadapter = grad_mul * dbody_dadapter
                         dbody_dadapter = dbody_dadapter.detach()
                     train = compute["train"]
