@@ -13,7 +13,7 @@ PARAM_SPACE = {
     "cat_encoding": ("categorical", ["ordinal", 'one-hot']),
     #rtdl_params
     "dropout": ("float", 0.0, 0.2),
-    "n_layers": ("int_exp_2", 2, 6),
+    "n_layers": ("int", 2, 6),
     "d_layers_0": ("int_exp_2", 128, 2048),
     "d_layers_i": ("int_exp_2", 128, 2048),
     "d_layers_n": ("int_exp_2", 128, 2048),
