@@ -153,6 +153,7 @@ def train(
     diffusion.is_regression = dataset.is_regression
     diffusion.num_numerical_features_2 = num_numerical_features + int(dataset.is_regression and not model_params["is_y_cond"])
     diffusion.cols = dataset.cols
+    diffusion.dtypes = dataset.dtypes
 
     trainer = Trainer(
         diffusion,
@@ -214,6 +215,7 @@ def sample(
         np.concatenate([X_num, X_cat, y_gen.reshape(-1, 1)], axis=1),
         columns=diffusion.cols
     )
+    df = df.astype(diffusion.dtypes)
 
     return df
     

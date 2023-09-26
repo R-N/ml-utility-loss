@@ -543,6 +543,7 @@ def dataset_from_df(
         task_type=task_type, 
         n_classes=n_classes,
         cols=cols,
+        dtypes=df.dtypes
     )
     
     return dataset
@@ -659,6 +660,16 @@ class DataPreprocessor:
             ),
             y
         )
+        return self.build_df(X_num, X_cat, y)
+
+    def postprocess_0(self, X_gen, y):
+        X_num, X_cat, y = self.transformer.inverse_transform(
+            X_gen,
+            y
+        )
+        return self.build_df(X_num, X_cat, y)
+
+    def build_df(self, X_num, X_cat, y):
         df_postprocessed = pd.DataFrame(
             np.concatenate([X_num, X_cat, y.reshape(-1, 1)], axis=1),
             columns=self.cols
