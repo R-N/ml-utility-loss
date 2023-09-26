@@ -227,6 +227,7 @@ def train(
         train_loss = train_epoch_(train_loader)
         val_loss = train_epoch_(val_loader, val=True)
 
+        print("Epoch", i)
         print("Train loss", train_loss)
         print("Val loss", val_loss)
 
