@@ -9,7 +9,7 @@ from .model.models import Transformer, MLUtilityWhole
 from torch.utils.data import DataLoader
 from .data import collate_fn
 import torch
-from .process import train_epoch, eval
+from .process import train_epoch, eval as _eval
 from torch import nn
 import torch.nn.functional as F
 
@@ -231,7 +231,10 @@ def train(
         print("Train loss", train_loss)
         print("Val loss", val_loss)
 
-    eval_loss = eval(whole_model, val_loader)
+    eval_loss = eval(
+        test_set, whole_model,
+        batch_size=batch_size
+    )
 
     return {
         "whole_model": whole_model,
@@ -241,3 +244,21 @@ def train(
         "val_loss": val_loss,
         "eval_loss": eval_loss
     }
+
+
+def eval(
+    # Dataset args
+    dataset,
+    whole_model,
+    batch_size=4,
+):
+    loader = DataLoader(
+        dataset, 
+        batch_size=batch_size, 
+        shuffle=True, 
+        collate_fn=collate_fn
+    )
+
+    eval_loss = _eval(whole_model, loader)
+
+    return eval_loss

@@ -2,6 +2,9 @@
 import torch
 import catboost.metrics
 import sklearn.metrics
+from entmax import sparsemax, entmax15, Sparsemax, Entmax15
+from alpharelu import relu15, ReLU15
+import torch.nn.functional as F
 
 SKLEARN_METRICS = {
     "F1": sklearn.metrics.f1_score,
@@ -18,7 +21,9 @@ CATBOOST_METRICS = {
 }
 CATBOOST_METRICS["Huber"] = catboost.metrics.Huber(delta=2)
 LOSSES = {
-    "mse": torch.nn.MSELoss(reduction="none"),
+    "mse": F.mse_loss,
+    "mae": F.l1_loss,
+    "huber": F.huber_loss,
 }
 OPTIMS = {
     "adam": torch.optim.Adam,
@@ -33,12 +38,19 @@ ACTIVATIONS = {
     "leakyrelu": torch.nn.LeakyReLU,
     "elu": torch.nn.ELU,
     "selu": torch.nn.SELU,
-    #"gelu": torch.nn.GELU,
+    "gelu": torch.nn.GELU,
 }
 BOOLEAN = ("categorical", [True, False])
+SOFTMAXES = {
+    "softmax": F.softmax,
+    "sparsemax": sparsemax,
+    "entmax15": entmax15,
+    "relu15": relu15
+}
 PARAM_MAP = {
     "loss": LOSSES,
     "optimizer": OPTIMS,
     "activation": ACTIVATIONS,
-    "catboost_metrics": CATBOOST_METRICS
+    "catboost_metrics": CATBOOST_METRICS,
+    "softmax": SOFTMAXES
 }

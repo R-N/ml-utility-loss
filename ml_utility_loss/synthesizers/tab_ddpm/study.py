@@ -41,7 +41,7 @@ def objective(
         task_type=task,
         target=target,
         cat_features=cat_features,
-
+        **kwargs,
     )
     # Create synthetic data
     synth = _sample(
