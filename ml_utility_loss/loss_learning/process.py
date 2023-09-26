@@ -83,8 +83,8 @@ def project_tensor(
     detach_normal_mag=True,
     detach_mul=True,
     detach_tensor_mag=True,
-    return_mul_only=False,
-    return_cos_only=False
+    clamp_tensor_mag=None,
+    return_type="proj"
 ):
     # We treat it as a vector, having direction
     # We want to calculate projection of tensor on normal
@@ -103,9 +103,9 @@ def project_tensor(
     proj_mag = proj_mag.detach() if detach_proj_mag else proj_mag
     # Maybe if one needs the cos
     # We just need to get rid of |tensor|
-    if return_cos_only:
-        tensor_mag = tensor.norm(2, dim=dim, keepdim=True)
-        tensor_mag = tensor_mag.detach() if detach_tensor_mag else tensor_mag
+    tensor_mag = tensor.norm(2, dim=dim, keepdim=True)
+    tensor_mag = tensor_mag.detach() if detach_tensor_mag else tensor_mag
+    if return_type == "cos":
         cos = proj_mag / handle_zero(tensor_mag)
         tensor_mag = tensor_mag.detach() if detach_tensor_mag else tensor_mag
         #cos = handle_nan(cos)
@@ -117,11 +117,22 @@ def project_tensor(
     # normal = normalize_tensor(normal, dim=dim)
     # It will also use the magnitude so let's just optimize this
     # This mul is |tensor|/|normal| * cos a
+    if clamp_tensor_mag:
+        if clamp_tensor_mag == "normal":
+            clamp_tensor_mag = torch.abs(normal_mag)
+        tensor_mag_abs = torch.abs(tensor_mag)
+        tensor_mag_clamped = torch.where(
+            tensor_mag_abs > clamp_tensor_mag, 
+            clamp_tensor_mag, 
+            tensor_mag_abs
+        )
+        proj_mag *= tensor_mag_clamped / handle_zero(tensor_mag_abs)
+        proj_mag = proj_mag.detach() if detach_proj_mag else proj_mag
     normal_mul = proj_mag / handle_zero(normal_mag)
     normal_mag = normal_mag.detach() if detach_normal_mag else normal_mag
     #normal_mul = handle_nan(normal_mul)
     normal_mul = normal_mul.detach() if detach_mul else normal_mul
-    if return_mul_only:
+    if return_type == "mul":
         return normal_mul
     proj = normal * normal_mul
     #proj = handle_nan(proj)
@@ -316,9 +327,10 @@ def train_epoch(
                         grad_mul = project_tensor(
                             compute["m"],
                             grad_compute["m"],
-                            #return_mul_only=True,
-                            return_cos_only=True,
+                            clamp_tensor_mag="normal",
+                            return_type="mul",
                         )
+                        print("max grad mul", torch.max(grad_mul))
                         # Of course, we can't have it be more than the original
                         grad_mul = torch.clamp(grad_mul, min=-loss_clamp, max=loss_clamp)
                         # grad_mul has shape of (batch, size, 1)
