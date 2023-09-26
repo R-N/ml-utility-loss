@@ -13,7 +13,10 @@ PARAM_SPACE = {
     "cat_encoding": ("categorical", ["ordinal", 'one-hot']),
     #rtdl_params
     "dropout": ("float", 0.0, 0.2),
-    "d_layers": ("list_int_exp_2", 2, 6, 128, 2048),
+    "n_layers": ("int_exp_2", 2, 6),
+    "d_layers_0": ("int_exp_2", 128, 2048),
+    "d_layers_i": ("int_exp_2", 128, 2048),
+    "d_layers_n": ("int_exp_2", 128, 2048),
     "steps": ("log_int", 100, 1000),
 }
 
@@ -31,6 +34,19 @@ def objective(
     **kwargs
 ):
     train, test = datasets
+
+    n_layers = kwargs.pop("n_layers")
+    d_layers_0 = kwargs.pop("d_layers_0")
+    d_layers_i = kwargs.pop("d_layers_i")
+    d_layers_n = kwargs.pop("d_layers_n")
+
+    d_layers = [
+        d_layers_0,
+        *[d_layers_i for _ in range(n_layers-2)],
+        d_layers_n,
+    ]
+
+    kwargs["d_layers"] = d_layers
 
     rtdl_params = filter_dict(kwargs, RTDL_PARAMS)
     kwargs = {k: v for k, v in kwargs.items() if k not in rtdl_params}
