@@ -376,7 +376,7 @@ def train_epoch(
             whole_model.non_adapter_zero_grad()
 
         # Now we backward the role model
-        role_model_g_loss = reduction(computes[role_model]["g_loss"]) if gradient_penalty else 0
+        role_model_g_loss = reduction(role_model_compute["g_loss"]) if gradient_penalty else 0
         role_model_total_loss = role_model_loss + role_model_g_loss
         if not val:
             role_model_total_loss.backward()
