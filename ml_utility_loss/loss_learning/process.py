@@ -337,6 +337,10 @@ def train_epoch(
                         m_grad = m.grad
                         if not m_grad:
                             m_grad = calc_gradient(m, compute["embed_loss"])
+                        # Zero out the grad of m because later we'll
+                        # call backward on embed loss
+                        # If this isn't done, it may get doubled
+                        m.grad = None
                         dbody_dadapter += m_grad
                         dbody_dadapter = dbody_dadapter.detach()
                     train = compute["train"]
