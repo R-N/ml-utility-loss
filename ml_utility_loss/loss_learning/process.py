@@ -210,13 +210,15 @@ def train_epoch(
             compute = computes[model]
             # calculate intermediate tensor for later use
             compute["train"] = train
-            compute["m"] = m = whole_model.adapters[model](train)
-            compute["m_test"] = m_test = whole_model.adapters[model](test)
-            
-            if forward_once and role_model and model != role_model:
-                continue
+            m = whole_model.adapters[model](train)
             # store grad in m
             m.requires_grad_()
+            compute["m"] = m
+
+            compute["m_test"] = m_test = whole_model.adapters[model](test)
+
+            if forward_once and role_model and model != role_model:
+                continue
             # Somehow y keeps being 64 bit tensor
             # I have no idea what went wrong, I converted it in dataset
             # So yeah this is a workaround
@@ -276,8 +278,10 @@ def train_epoch(
 
                 # We reuse the previous intermediate tensor
                 # Don't detach this one
+                m = compute["m"]
+                m.requires_grad_()
                 embed_pred = torch.cat([
-                    compute["m"], 
+                    m, 
                     compute["m_test"]
                 ], dim=-2)
 
@@ -328,8 +332,9 @@ def train_epoch(
                         # Meanwhile, gradient is where the point should move
                         # So we add the direction of where the embedding should move
                         # That is towards the role model embedding
+                        # Using the gradient of embedding loss at m
                         # Does this make sense?
-                        dbody_dadapter += grad_compute["m"] - m
+                        dbody_dadapter += m.grad
                         dbody_dadapter = dbody_dadapter.detach()
                     train = compute["train"]
                     dbody_dx = calc_gradient(train, m, dbody_dadapter)
