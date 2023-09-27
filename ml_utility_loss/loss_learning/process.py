@@ -334,7 +334,10 @@ def train_epoch(
                         # That is towards the role model embedding
                         # Using the gradient of embedding loss at m
                         # Does this make sense?
-                        dbody_dadapter += m.grad
+                        m_grad = m.grad
+                        if not m_grad:
+                            m_grad = calc_gradient(m, compute["embed_loss"])
+                        dbody_dadapter += m_grad
                         dbody_dadapter = dbody_dadapter.detach()
                     train = compute["train"]
                     dbody_dx = calc_gradient(train, m, dbody_dadapter)
