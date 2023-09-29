@@ -138,7 +138,7 @@ class MultiSizeDatasetDataset(Dataset):
 
 class OverlapDataset(BaseDataset):
 
-    def __init__(self, dfs, size=None, test_ratio=0.2, test_candidate_mul=1.5, augmenter=None, aug_scale=None, aug_penalty_mul=0.5, max_cache=None, Tensor=None, mode="shuffle"):
+    def __init__(self, dfs, size=None, test_ratio=0.2, test_candidate_mul=1.5, augmenter=None, aug_scale=None, aug_penalty_mul=0.5, max_cache=None, Tensor=None, mode="shuffle", metric=None):
         super().__init__(max_cache=max_cache)
         self.dfs = dfs
         self.augmenter=augmenter
@@ -149,6 +149,7 @@ class OverlapDataset(BaseDataset):
         self.aug_penalty_mul = aug_penalty_mul
         assert mode in ("shuffle", "sort")
         self.mode = mode
+        self.metric = metric
             
         self.len_dfs = len(self.dfs)
         self.len = self.len_dfs
@@ -184,7 +185,8 @@ class OverlapDataset(BaseDataset):
             test_candidate_mul=self.test_candidate_mul, 
             augmenter=self.augmenter, 
             aug_scale=self.aug_scale,
-            aug_penalty_mul=self.aug_penalty_mul
+            aug_penalty_mul=self.aug_penalty_mul,
+            metric=self.metric
         )
 
         if self.mode == "shuffle":
