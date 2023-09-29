@@ -123,18 +123,22 @@ def objective(
 ):
     train, test = datasets
 
-    try:
-        model = CatBoostModel(
-            task=task,
-            checkpoint_dir=checkpoint_dir,
-            **model_params
-        )
-        model.fit(train, test)
-    except CatBoostError:
-        raise TrialPruned()
-    value = model.eval(test)
-    if checkpoint_dir:
-        model.save_model()
-    if trial:
-        trial.report(value, model.epoch)
-    return value
+    while True:
+        try:
+            try:
+                model = CatBoostModel(
+                    task=task,
+                    checkpoint_dir=checkpoint_dir,
+                    **model_params
+                )
+                model.fit(train, test)
+            except CatBoostError:
+                raise TrialPruned()
+            value = model.eval(test)
+            if checkpoint_dir:
+                model.save_model()
+            if trial:
+                trial.report(value, model.epoch)
+            return value
+        except PermissionError:
+            pass

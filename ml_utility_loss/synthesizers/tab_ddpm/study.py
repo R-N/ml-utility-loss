@@ -76,6 +76,6 @@ def objective(
         )
     except RuntimeError:
         raise TrialPruned()
-    #except CatBoostError:
-    #    raise TrialPruned()
+    except CatBoostError:
+        raise TrialPruned()
     return value
