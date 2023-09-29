@@ -2,13 +2,15 @@ from .modules import Encoder, Decoder
 import torch
 from torch.nn import Module
 
+DEFAULT_DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
 class TVAEModel(Module):
     def __init__(self, 
         data_dim, 
         embedding_dim=128,
         compress_dims=(128, 128),
         decompress_dims=(128, 128),
-        device="cpu"
+        device=DEFAULT_DEVICE
     ):
         super(TVAEModel, self).__init__()
         self.data_dim = data_dim
