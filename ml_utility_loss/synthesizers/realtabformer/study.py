@@ -31,7 +31,7 @@ REALTABFORMER_PARAM_SPACE = {
     "evaluation_strategy": ("categorical", ["steps", "epoch"]),
     "gradient_accumulation_steps": ("int_exp_2", 1, 8),
     "optim": ("categorical", ['adamw_hf', 'adamw_torch', 'adafactor', 'sgd', 'adagrad']),
-    "num_bootstrap": ("int", 10, 500),
+    "num_bootstrap": ("log_int", 1, 500),
 }
 
 PARAM_SPACE = {
