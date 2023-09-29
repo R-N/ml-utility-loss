@@ -396,17 +396,15 @@ def generate_overlap(
 
     # augmentations
     # done no matter the metric
-    aug = None
-    if "aug" in test.columns:
-        aug = test["aug"]
-    else:
-        if "aug" not in train.columns and augmenter:
-            train = augmenter.augment(train, scale=aug_scale)
-        if "aug" in train.columns:
-            aug = pd.merge(y, train["aug"], how="left", left_index=True, right_index=True)
-            aug = aug["aug"].fillna(0)
+    if "aug" not in train.columns and augmenter:
+        train = augmenter.augment(train, scale=aug_scale)
 
     if metric is None:
+        if "aug" in test.columns:
+            aug = test["aug"]
+        elif "aug" in train.columns:
+            aug = pd.merge(y, train["aug"], how="left", left_index=True, right_index=True)
+            aug = aug["aug"].fillna(0)
         # reduce overlap by augmentations
         if aug is not None:
             y.loc[overlaps] = y[overlaps] - aug_penalty_mul * aug[overlaps]
