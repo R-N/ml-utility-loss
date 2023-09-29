@@ -110,7 +110,7 @@ def shuffle_df(df):
     return df.sample(frac=1)
 
 def sort_df(df, cols=None, ascending=True):
-    cols = cols or df.columns
+    cols = cols or list(df.columns)
     return df.sort_values(by=cols, ascending=ascending)
 
 def shuffle_tensor(t, dim=-2):
