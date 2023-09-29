@@ -31,6 +31,7 @@ REALTABFORMER_PARAM_SPACE = {
     "evaluation_strategy": ("categorical", ["steps", "epoch"]),
     "gradient_accumulation_steps": ("int_exp_2", 1, 8),
     "optim": ("categorical", ['adamw_hf', 'adamw_torch', 'adafactor', 'sgd', 'adagrad']),
+    "num_bootstrap": ("int", 10, 500),
 }
 
 PARAM_SPACE = {
@@ -66,7 +67,6 @@ def objective(
     rtf_model.experiment_id = str(trial.number)
     rtf_model.fit(
         train,
-        num_bootstrap=1
     )
 
     synth = rtf_model.sample(n_samples=len(train))
