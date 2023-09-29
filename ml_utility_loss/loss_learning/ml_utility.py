@@ -102,6 +102,7 @@ class CatBoostModel:
 def create_pool(df, target, cat_features):
     X = df.drop(target, axis=1)
     y = df[target]
+    cat_features = [x for x in cat_features if x != target]
 
     return Pool(
         X,
