@@ -55,6 +55,8 @@ def objective(
 ):
     train, test = datasets
 
+    num_bootstrap = kwargs.pop("num_bootstrap")
+
     gpt2_params = filter_dict(kwargs, GPT2_PARAMS)
     realtabformer_params = filter_dict(kwargs, REALTABFORMER_PARAMS)
 
@@ -67,6 +69,7 @@ def objective(
     rtf_model.experiment_id = str(trial.number)
     rtf_model.fit(
         train,
+        num_bootstrap=num_bootstrap
     )
 
     synth = rtf_model.sample(n_samples=len(train))
