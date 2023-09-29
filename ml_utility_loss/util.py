@@ -104,3 +104,15 @@ def calculate_prediction_interval(series, alpha=0.05, n=None):
     mul = st.norm.ppf(1.0 - alpha) if alpha >= 0 else 2 + alpha
     sigma = mul * stdev
     return mean, sigma
+
+
+def shuffle_df(df):
+    return df.sample(frac=1)
+
+def sort_df(df, cols=None, ascending=True):
+    cols = cols or df.columns
+    return df.sort_values(by=cols, ascending=ascending)
+
+def shuffle_tensor(t, dim=-2):
+    indices = torch.randperm(t.size(dim))
+    return torch.take_along_dim(t, indices, dim=dim)

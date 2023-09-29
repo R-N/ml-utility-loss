@@ -5,6 +5,7 @@ from ..synthesizers.realtabformer.wrapper import REaLTabFormer
 from ..synthesizers.realtabformer.data_utils import make_dataset_2, map_input_ids
 from ..synthesizers.lct_gan.pipeline import create_ae
 from ml_utility_loss.synthesizers.tab_ddpm.preprocessing import DatasetTransformer, split_features, DataPreprocessor as TabDDPMDataPreprocessor
+from sklearn.metrics import pairwise_distances #metric='minkowski'
 
 DEFAULT_CAT_RATES = {
     "swap_values": 0.5/3.0,
@@ -352,6 +353,9 @@ class DataPreprocessor: #preprocess all with this. save all model here
             raise ValueError(f"Invalid argument type for tab_ddpm preprocessor: {type(x)}")
         raise ValueError(f"Unknown model: {model}")
         
+
+def sample_distance(a, b=None):
+    return pairwise_distances(a, b, metric='minkowski')
         
 def generate_overlap(
     df, 
@@ -361,7 +365,8 @@ def generate_overlap(
     augmenter=None, 
     drop_aug=True, 
     aug_scale=None,
-    aug_penalty_mul=0.5
+    aug_penalty_mul=0.5,
+    metric=None
 ):
 
     if size and len(df) > size:
@@ -384,11 +389,13 @@ def generate_overlap(
     # lastly we build the train set by concat
     train = pd.concat([train_non_test, train_overlap], axis=0)
     
-    # find overlap
-    overlaps = test.index.isin(train.index)
-    y = pd.Series(overlaps.astype(float), index=test.index, name="overlap")
+    if metric is None:
+        # find overlap
+        overlaps = test.index.isin(train.index)
+        y = pd.Series(overlaps.astype(float), index=test.index, name="overlap")
 
     # augmentations
+    # done no matter the metric
     aug = None
     if "aug" in test.columns:
         aug = test["aug"]
@@ -399,13 +406,22 @@ def generate_overlap(
             aug = pd.merge(y, train["aug"], how="left", left_index=True, right_index=True)
             aug = aug["aug"].fillna(0)
 
-    # reduce overlap by augmentations
-    if aug is not None:
-        y.loc[overlaps] = y[overlaps] - aug_penalty_mul * aug[overlaps]
+    if metric is None:
+        # reduce overlap by augmentations
+        if aug is not None:
+            y.loc[overlaps] = y[overlaps] - aug_penalty_mul * aug[overlaps]
+        y = y.to_numpy()
+    elif metric:
+        # this will result in np array of shape (n_test, n_train)
+        # not passing metric. will use default minkowski
+        y = sample_distance(test, train)
+        y = np.min(y, axis=1)
+        y = 1 - (1/y)
+
         
     # calculate intersection over test size
     # yes it's not intersection over union
-    y = y.to_numpy().sum() / len(y)
+    y = y.sum() / len(y)
 
     if drop_aug:
         train = train.drop(["aug"], axis=1, errors="ignore")

@@ -4,7 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 import glob
 import pandas as pd
 from .preprocessing import generate_overlap
-from ..util import Cache, stack_samples, stack_sample_dicts
+from ..util import Cache, stack_samples, stack_sample_dicts, sort_df, shuffle_df
 from copy import deepcopy
 
 Tensor=torch.FloatTensor
@@ -50,7 +50,7 @@ def to_tensor(x, Tensor=None):
         return Tensor(x)
     return Tensor([x]).squeeze()
 
-class CachedDataset(Dataset):
+class BaseDataset(Dataset):
     def __init__(self, max_cache=None):
         self.cache = Cache(max_cache) if max_cache else None
 
@@ -64,13 +64,15 @@ class CachedDataset(Dataset):
     def set_aug_scale(self, aug_scale):
         pass
 
-class DatasetDataset(CachedDataset):
+class DatasetDataset(BaseDataset):
 
-    def __init__(self, dir, file="info.csv", max_cache=None, Tensor=None):
+    def __init__(self, dir, file="info.csv", max_cache=None, Tensor=None, mode="shuffle"):
         super().__init__(max_cache=max_cache)
         self.dir = dir
         self.info = pd.read_csv(os.path.join(dir, file)).to_dict("records")
         self.Tensor = Tensor
+        assert mode in ("shuffle", "sort")
+        self.mode = mode
 
     def __len__(self):
         return len(self.info)
@@ -87,6 +89,11 @@ class DatasetDataset(CachedDataset):
         train = pd.read_csv(os.path.join(self.dir, info["train"]))
         test = pd.read_csv(os.path.join(self.dir, info["test"]))
         y = info["value"]
+
+        if self.mode == "shuffle":
+            train, test = shuffle_df(train), shuffle_df(test)
+        elif self.mode == "sort":
+            train, test = sort_df(train), sort_df(test)
 
         sample = train, test, y
 
@@ -129,9 +136,9 @@ class MultiSizeDatasetDataset(Dataset):
         return self.dataset[idx]
 
 
-class OverlapDataset(CachedDataset):
+class OverlapDataset(BaseDataset):
 
-    def __init__(self, dfs, size=None, test_ratio=0.2, test_candidate_mul=1.5, augmenter=None, aug_scale=None, aug_penalty_mul=0.5, max_cache=None, Tensor=None):
+    def __init__(self, dfs, size=None, test_ratio=0.2, test_candidate_mul=1.5, augmenter=None, aug_scale=None, aug_penalty_mul=0.5, max_cache=None, Tensor=None, mode="shuffle"):
         super().__init__(max_cache=max_cache)
         self.dfs = dfs
         self.augmenter=augmenter
@@ -140,6 +147,8 @@ class OverlapDataset(CachedDataset):
         self.aug_scale = aug_scale
         self.test_candidate_mul = test_candidate_mul
         self.aug_penalty_mul = aug_penalty_mul
+        assert mode in ("shuffle", "sort")
+        self.mode = mode
             
         self.len_dfs = len(self.dfs)
         self.len = self.len_dfs
@@ -178,6 +187,11 @@ class OverlapDataset(CachedDataset):
             aug_penalty_mul=self.aug_penalty_mul
         )
 
+        if self.mode == "shuffle":
+            train, test = shuffle_df(train), shuffle_df(test)
+        elif self.mode == "sort":
+            train, test = sort_df(train), sort_df(test)
+
         sample = train, test, y
 
         sample = to_tensor(sample, self.Tensor)
@@ -187,7 +201,7 @@ class OverlapDataset(CachedDataset):
 
         return sample
     
-class WrapperCachedDataset(CachedDataset):
+class WrapperDataset(BaseDataset):
     def __init__(self, dataset, max_cache=None):
         super().__init__(max_cache=max_cache)
         self.dataset = dataset
@@ -207,7 +221,7 @@ class WrapperCachedDataset(CachedDataset):
         self.clear_cache()
         return self.dataset.set_aug_scale(aug_scale)
 
-class PreprocessedDataset(WrapperCachedDataset):
+class PreprocessedDataset(WrapperDataset):
     def __init__(self, dataset, preprocessor, model=None, max_cache=None, Tensor=Tensor, dtype=float):
         super().__init__(dataset=dataset, max_cache=max_cache)
         assert model or preprocessor.model
@@ -234,7 +248,7 @@ class PreprocessedDataset(WrapperCachedDataset):
 
         return sample
 
-class MultiPreprocessedDataset(WrapperCachedDataset):
+class MultiPreprocessedDataset(WrapperDataset):
     def __init__(self, dataset, preprocessor, max_cache=None, Tensor=Tensor, dtype=float):
         super().__init__(dataset=dataset, max_cache=max_cache)
         self.preprocessor = preprocessor
