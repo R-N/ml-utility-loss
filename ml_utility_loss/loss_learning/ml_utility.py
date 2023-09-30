@@ -130,6 +130,9 @@ def objective(
 ):
     train, test = datasets
 
+    if "subsample" in model_params and (not model_params.pop("subsample_bool", True) or model_params["bootstrap_type"] == "Bayesian"):
+        model_params.pop("subsample")
+
     while True:
         try:
             try:
