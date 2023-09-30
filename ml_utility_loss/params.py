@@ -13,10 +13,10 @@ SKLEARN_METRICS = {
 CATBOOST_METRICS = {
     s: getattr(catboost.metrics, s)()
     for s in [
-        "R2", "F1",
+        "R2", "F1", "TotalF1",
         "Logloss", "CrossEntropy",
         "MultiClass", "MultiClassOneVsAll",
-        "MAE", "RMSE"
+        "MAE", "RMSE",
     ]
 }
 CATBOOST_METRICS["Huber"] = catboost.metrics.Huber(delta=2)
