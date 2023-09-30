@@ -9,7 +9,7 @@ import torch.nn.functional as F
 SKLEARN_METRICS = {
     "F1": sklearn.metrics.f1_score,
     "R2": sklearn.metrics.r2_score,
-    "TotalF1": sklearn.metrics.f1_score,
+    "TotalF1": lambda y_true, y_pred: sklearn.metrics.f1_score(y_true, y_pred, average="macro"),
 }
 CATBOOST_METRICS = {
     s: getattr(catboost.metrics, s)()
@@ -20,6 +20,7 @@ CATBOOST_METRICS = {
         "MAE", "RMSE",
     ]
 }
+CATBOOST_METRICS["TotalF1"] = catboost.metrics.TotalF1(average="Macro")
 CATBOOST_METRICS["Huber"] = catboost.metrics.Huber(delta=2)
 LOSSES = {
     "mse": F.mse_loss,
