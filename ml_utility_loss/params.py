@@ -8,7 +8,8 @@ import torch.nn.functional as F
 
 SKLEARN_METRICS = {
     "F1": sklearn.metrics.f1_score,
-    "R2": sklearn.metrics.r2_score
+    "R2": sklearn.metrics.r2_score,
+    "TotalF1": sklearn.metrics.f1_score,
 }
 CATBOOST_METRICS = {
     s: getattr(catboost.metrics, s)()
