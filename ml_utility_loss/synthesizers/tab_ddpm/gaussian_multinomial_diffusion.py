@@ -17,6 +17,7 @@ eps = 1e-8
 
 from .util import FoundNANsError, extract, mean_flat, default, sum_except_batch, ohe_to_categories
 
+DEFAULT_DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else "cpu")
 
 def log_1_min_a(a):
     return torch.log(1 - a.exp() + 1e-40)
@@ -146,7 +147,7 @@ class GaussianMultinomialDiffusion(torch.nn.Module):
             multinomial_loss_type='vb_stochastic',
             parametrization='x0',
             scheduler='cosine',
-            device=torch.device('cpu')
+            device=DEFAULT_DEVICE
         ):
 
         super().__init__()
