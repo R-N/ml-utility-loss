@@ -167,7 +167,7 @@ class GaussianMultinomialDiffusion(torch.nn.Module):
         offsets = np.cumsum(self.num_classes)
         for i in range(1, len(offsets)):
             self.slices_for_classes.append(np.arange(offsets[i - 1], offsets[i]))
-        self.offsets = torch.from_numpy(np.append([0], offsets)).to(device)
+        self.offsets = torch.from_numpy(np.append([0], offsets)).long().to(device)
 
         self._denoise_fn = denoise_fn
         self.gaussian_loss_type = gaussian_loss_type
