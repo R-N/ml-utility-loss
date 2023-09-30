@@ -44,7 +44,12 @@ class CatBoostModel:
     ):
         self.task = task
         self.Model = CatBoostRegressor if task == "regression" else CatBoostClassifier
-        self.metric = "R2" if task == "regression" else "F1"
+        if task == "regression":
+            self.metric = "R2"
+        elif task == "binclass":
+            self.metric = "F1"
+        elif task == "multiclass":
+            self.metric = "TotalF1"
         if loss_function is None:
             loss_function = PARAM_SPACE_2[task]["loss_function"][1][0]
         self.od_wait = od_wait
