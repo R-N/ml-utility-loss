@@ -149,7 +149,7 @@ class GaussianMultinomialDiffusion(torch.nn.Module):
             device=torch.device('cpu')
         ):
 
-        super(GaussianMultinomialDiffusion, self).__init__()
+        super().__init__()
         assert multinomial_loss_type in ('vb_stochastic', 'vb_all')
         assert parametrization in ('x0', 'direct')
 
