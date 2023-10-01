@@ -9,6 +9,8 @@ import torch.nn.functional as F
 def total_f1(y_true, y_pred):
     # ValueError: Mix of label input types
     try:
+        if y_true.shape != y_pred.shape:
+            y_pred = y_pred.reshape(y_true.shape)
         return sklearn.metrics.f1_score(y_true, y_pred, average="macro")
     except ValueError:
         print(y_true.dtype, y_pred.dtype)
