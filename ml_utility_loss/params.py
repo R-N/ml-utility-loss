@@ -7,7 +7,7 @@ from alpharelu import relu15, ReLU15
 import torch.nn.functional as F
 
 def total_f1(y_true, y_pred):
-    print(y_true.dtypes, y_pred.dtypes)
+    print(y_true.dtype, y_pred.dtype)
     return sklearn.metrics.f1_score(y_true, y_pred, average="macro")
 
 SKLEARN_METRICS = {
