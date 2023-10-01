@@ -141,6 +141,7 @@ class DataTransformer(object):
         self._column_raw_dtypes = raw_data.infer_objects().dtypes
         self._column_transform_info_list = []
         for column_name in raw_data.columns:
+            column_name = str(column_name)
             if column_name in discrete_columns:
                 column_transform_info = self._fit_discrete(raw_data[[column_name]])
             else:
