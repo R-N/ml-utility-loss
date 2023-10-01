@@ -207,9 +207,8 @@ class LatentGAN:
             fake = self.generator(z).cpu().detach().numpy()
             data.append(fake)
 
-        print("Sampled data length")
-        print(len(data))
         data = np.concatenate(data[0:n])
+        print("Sampled data length", len(data))
 
         if self.scaler:
             data = self.scaler.inverse_transform(data)
