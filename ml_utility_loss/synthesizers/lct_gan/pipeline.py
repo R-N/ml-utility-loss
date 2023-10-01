@@ -12,7 +12,7 @@ def create_gan(
     epochs=1,
     n_critic=2,
     batch_size=512,
-    sample=1,
+    sample=None,
 ):
 
     # EVALUATING AUTO-ENCODER

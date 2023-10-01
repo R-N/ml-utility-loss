@@ -7,7 +7,7 @@ from alpharelu import relu15, ReLU15
 import torch.nn.functional as F
 
 def total_f1(y_true, y_pred):
-    # ValueError: Mix of label input types
+    # ValueError: Mix of label input types (string and number)
     try:
         if y_true.shape != y_pred.shape:
             y_pred = y_pred.reshape(y_true.shape)
