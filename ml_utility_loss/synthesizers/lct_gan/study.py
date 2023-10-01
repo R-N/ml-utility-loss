@@ -64,15 +64,15 @@ def objective(
 
     print(synth)
 
-    #try:
-    value = eval_ml_utility(
-        (synth, test),
-        task,
-        target=target,
-        cat_features=cat_features,
-        **ml_utility_params
-    )
-    #except CatBoostError:
-    #    raise TrialPruned()
+    try:
+        value = eval_ml_utility(
+            (synth, test),
+            task,
+            target=target,
+            cat_features=cat_features,
+            **ml_utility_params
+        )
+    except CatBoostError:
+        raise TrialPruned()
 
     return value
