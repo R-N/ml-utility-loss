@@ -517,6 +517,7 @@ def dataset_from_df(
     splits=DEFAULT_SPLITS,
     seed=0
 ):
+    cat_features = [x for x in cat_features if x != target]
     real_cols = df.columns
     split_names = SPLIT_NAMES[len(splits)]
     dfs = split_train(df, splits, seed=seed)
