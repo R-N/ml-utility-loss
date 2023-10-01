@@ -95,9 +95,10 @@ class DataTransformer(object):
                 A ``ColumnTransformInfo`` object.
         """
         gm = fit_continuous(data)
+        name = str(gm.column_name)
 
         return ColumnTransformInfo(
-            column_name=gm.column_name, column_type='continuous', transform=gm,
+            column_name=name, column_type='continuous', transform=gm,
             output_info=[SpanInfo(1, 'tanh'), SpanInfo(gm.num_components, 'softmax')],
             output_dimensions=gm.output_dimensions)
 
@@ -113,9 +114,10 @@ class DataTransformer(object):
                 A ``ColumnTransformInfo`` object.
         """
         ohe = fit_discrete(data)
+        name = str(ohe.column_name)
 
         return ColumnTransformInfo(
-            column_name=ohe.column_name, column_type='discrete', transform=ohe,
+            column_name=name, column_type='discrete', transform=ohe,
             output_info=[SpanInfo(ohe.num_categories, 'softmax')],
             output_dimensions=ohe.output_dimensions)
 
@@ -166,7 +168,7 @@ class DataTransformer(object):
         """
         column_data_list = []
         for column_transform_info in column_transform_info_list:
-            column_name = column_transform_info.column_name
+            column_name = str(column_transform_info.column_name)
             data = raw_data[[column_name]]
             if column_transform_info.column_type == 'continuous':
                 column_data_list.append(self._transform_continuous(column_transform_info, data))
@@ -182,8 +184,12 @@ class DataTransformer(object):
         """
         processes = []
         for column_transform_info in column_transform_info_list:
-            column_name = column_transform_info.column_name
-            data = raw_data[[column_name]]
+            try:
+                column_name = str(column_transform_info.column_name)
+                data = raw_data[[column_name]]
+            except KeyError:
+                print("KeyError", column_name, raw_data.columns)
+                raise
             process = None
             if column_transform_info.column_type == 'continuous':
                 process = delayed(self._transform_continuous)(column_transform_info, data)
@@ -255,6 +261,7 @@ class DataTransformer(object):
 
     def convert_column_name_value_to_id(self, column_name, value):
         """Get the ids of the given `column_name`."""
+        column_name = str(column_name)
         discrete_counter = 0
         column_id = 0
         for column_transform_info in self._column_transform_info_list:
