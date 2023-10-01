@@ -6,10 +6,14 @@ from entmax import sparsemax, entmax15, Sparsemax, Entmax15
 from alpharelu import relu15, ReLU15
 import torch.nn.functional as F
 
+def total_f1(y_true, y_pred):
+    print(y_true.dtypes, y_pred.dtypes)
+    return sklearn.metrics.f1_score(y_true, y_pred, average="macro")
+
 SKLEARN_METRICS = {
     "F1": sklearn.metrics.f1_score,
     "R2": sklearn.metrics.r2_score,
-    "TotalF1": lambda y_true, y_pred: sklearn.metrics.f1_score(y_true, y_pred, average="macro"),
+    "TotalF1": total_f1,
 }
 CATBOOST_METRICS = {
     s: getattr(catboost.metrics, s)()
