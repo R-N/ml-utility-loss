@@ -461,6 +461,7 @@ def split_features(
     target,
     cat_features=[],
 ):
+    cat_features = [x for x in cat_features if x != target]
     X_cat = None
     y = df[target].to_numpy()
     y_type = float if task_type == TaskType.REGRESSION else str
@@ -618,6 +619,7 @@ class DataPreprocessor:
     ):
         self.task_type = task_type
         self.target = target
+        cat_features = [x for x in cat_features if x != target]
         self.cat_features = cat_features
         self.transformer = DatasetTransformer(
             task_type=task_type,
