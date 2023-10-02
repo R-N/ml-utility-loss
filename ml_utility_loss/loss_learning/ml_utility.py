@@ -12,9 +12,9 @@ PARAM_SPACE = {
     "bootstrap_type": ("categorical", ["Bayesian", "Bernoulli", "MVS"]),
     'l2_leaf_reg': ('qloguniform', 0, 2, 1),
     'lr': ('log_float', 1e-5, 1e-1),
-    "subsample_bool": ("conditional", {
-        "subsample": ("float", 0.05, 1.0),
-    }),
+    #"subsample_bool": ("conditional", {
+    "subsample": ("float", 0.05, 1.0),
+    #}),
     "min_data_in_leaf": ("log_int", 1, 100),
     'max_ctr_complexity': ("int", 0, 8),
 }
