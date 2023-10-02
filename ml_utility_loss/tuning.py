@@ -145,15 +145,18 @@ def create_objective(
 
 def make_objective_random(
     objective,
+    loader=None,
     ratio=0.2,
     val=False,
 ):
     def f(df, *args, **kwargs):
-        datasets = train, test = split_df_ratio(
+        datasets = split_df_ratio(
             df, 
             ratio=ratio,
             val=val
         )
+        if loader:
+            datasets = [loader(d) for d in datasets]
         return objective(
             datasets,
             *args,
@@ -163,6 +166,7 @@ def make_objective_random(
 
 def make_objective_kfold(
     objective,
+    loader=None,
     ratio=0.2,
     val=False
 ):
@@ -174,6 +178,8 @@ def make_objective_kfold(
             val=val
         )
         for datasets in splits:
+            if loader:
+                datasets = [loader(d) for d in datasets]
             value = objective(
                 datasets,
                 *args,
