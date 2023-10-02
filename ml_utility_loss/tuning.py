@@ -170,7 +170,7 @@ def make_objective_kfold(
     loader=None,
     ratio=0.2,
     val=False,
-    seed=None
+    seed=42
 ):
     def f(df, *args, **kwargs):
         values = []
