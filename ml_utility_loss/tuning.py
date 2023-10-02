@@ -189,5 +189,6 @@ def make_objective_kfold(
             )
             values.append(value)
         avg_value = sum(values) / len(values)
+        print(avg_value, values)
         return avg_value
     return f
