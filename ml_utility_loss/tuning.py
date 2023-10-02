@@ -1,6 +1,6 @@
 import math
 import os
-from .util import mkdir
+from .util import mkdir, split_df, split_df_2, split_df_ratio, split_df_kfold
 import json
 from .params import PARAM_MAP, BOOLEAN
 
@@ -141,4 +141,45 @@ def create_objective(
             **kwargs,
             trial=trial,
         )
+    return f
+
+def make_objective_random(
+    objective,
+    ratio=0.2,
+    val=False,
+):
+    def f(df, *args, **kwargs):
+        datasets = train, test = split_df_ratio(
+            df, 
+            ratio=ratio,
+            val=val
+        )
+        return objective(
+            datasets,
+            *args,
+            **kwargs
+        )
+    return f
+
+def make_objective_kfold(
+    objective,
+    ratio=0.2,
+    val=False
+):
+    def f(df, *args, **kwargs):
+        values = []
+        splits = split_df_kfold(
+            df, 
+            ratio=ratio,
+            val=val
+        )
+        for datasets in splits:
+            value = objective(
+                datasets,
+                *args,
+                **kwargs
+            )
+            values.append(value)
+        avg_value = sum(values) / len(values)
+        return avg_value
     return f

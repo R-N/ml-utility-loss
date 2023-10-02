@@ -24,28 +24,61 @@ def filter_dict_2(dict, keys):
     return {keys[k]: v for k, v in dict.items() if k in keys}
 
 def split_df(df, points):
-    return np.split(
+    splits = np.split(
         df.sample(frac=1), 
         [int(x*len(df)) for x in points]
     )
+    return splits
+
+def split_df_2(df, points, test=-1, val=None):
+    splits = split_df(df, points)
+
+    test_df = splits[test]
+    val_df = splits[val] if val else None
+    train_dfs = [s for s in splits if s is not test_df and s is not val_df]
+    train_df = pd.concat(train_dfs)
+
+    if val:
+        return train_df, val_df, test_df
+    return train_df, test_df
+
+def split_df_ratio(df, ratio=0.2, val=False, i=0):
+    count = int(1.0/ratio)
+    splits = [k*ratio for k in range(1, count)]
+    splits = split_df(df, splits)
+    test_index = count - 1 + i
+    val_index = (test_index-1)%count if val else None
+
+    test_df = splits[test_index]
+    val_df = splits[val_index] if val else None
+    train_dfs = [s for s in splits if s is not test_df and s is not val_df]
+    train_df = pd.concat(train_dfs)
+
+    if val:
+        return train_df, val_df, test_df
+    return train_df, test_df
 
 def split_df_kfold(df, ratio=0.2, val=False, filter_i=None):
     result = []
     count = int(1.0/ratio)
-    splits = [i*ratio for i in range(1, count)]
+    splits = [k*ratio for k in range(1, count)]
     splits = split_df(df, splits)
 
     for i in range(count):
         if filter_i and i not in filter_i:
             continue
-        j = count - 1 + i
-        test_df = splits[j%count]
-        val_df = None
-        if val:
-            val_df = splits[(j-1)%count]
+        test_index = count - 1 + i
+        val_index = (test_index-1)%count if val else None
+
+        test_df = splits[test_index]
+        val_df = splits[val_index] if val else None
         train_dfs = [s for s in splits if s is not test_df and s is not val_df]
         train_df = pd.concat(train_dfs)
-        result.append((train_df, val_df, test_df))
+
+        if val:
+            result.append((train_df, val_df, test_df))
+        else:
+            result.append((train_df, test_df))
 
     return result
 
