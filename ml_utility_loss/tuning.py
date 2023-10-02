@@ -153,7 +153,7 @@ def make_objective_random(
         datasets = split_df_ratio(
             df, 
             ratio=ratio,
-            val=val
+            val=val,
         )
         if loader:
             datasets = [loader(d) for d in datasets]
@@ -168,14 +168,16 @@ def make_objective_kfold(
     objective,
     loader=None,
     ratio=0.2,
-    val=False
+    val=False,
+    seed=None
 ):
     def f(df, *args, **kwargs):
         values = []
         splits = split_df_kfold(
             df, 
             ratio=ratio,
-            val=val
+            val=val,
+            seed=seed,
         )
         for datasets in splits:
             if loader:
