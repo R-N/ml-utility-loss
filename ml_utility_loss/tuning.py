@@ -111,7 +111,8 @@ def map_parameters(params_raw, param_map={}):
 def create_objective(
     objective, sampler=sample_parameters, 
     objective_kwargs={}, sampler_kwargs={}, 
-    checkpoint_dir="checkpoints", log_dir="logs",
+    checkpoint_dir=None, 
+    log_dir="logs",
     study_dir="studies",
 ):
     objective_kwargs = dict(objective_kwargs)
