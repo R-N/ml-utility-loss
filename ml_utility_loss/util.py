@@ -67,8 +67,8 @@ def split_df_kfold(df, ratio=0.2, val=False, filter_i=None, seed=None):
     for i in range(count):
         if filter_i and i not in filter_i:
             continue
-        test_index = count - 1 + i
-        val_index = (test_index-1)%count if val else None
+        test_index = (count - 1 + i)%count
+        val_index = (test_index - 1)%count if val else None
 
         test_df = splits[test_index]
         val_df = splits[val_index] if val else None
