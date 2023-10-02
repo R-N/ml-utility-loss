@@ -62,7 +62,6 @@ def split_df_kfold(df, ratio=0.2, val=False, filter_i=None, seed=None):
     result = []
     count = int(1.0/ratio)
     splits = [k*ratio for k in range(1, count)]
-    print(splits)
     splits = split_df(df, splits, seed=seed)
 
     for i in range(count):
