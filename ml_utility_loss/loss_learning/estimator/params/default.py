@@ -22,7 +22,7 @@ PARAM_SPACE = {
     # Common model args
     "d_model": ("int_exp_2", 8, 128), 
     "dropout": ("float", 0.0, 0.2), 
-    "softmax": ("softmax", ["softmax", "sparsemax", "entmax15", "relu15"]),
+    "softmax": ("softmax", ["softmax", "relu15"]),
     "flip": BOOLEAN,
     "skip_small": BOOLEAN,
     "loss_clamp": ("bool_log_float", 0.5, 10.0),
