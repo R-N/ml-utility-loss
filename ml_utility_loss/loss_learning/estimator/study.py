@@ -23,4 +23,7 @@ def objective(
     whole_model = train_results["whole_model"]
     eval_loss = train_results["eval_loss"]
 
+    for k in ["train_loss", "val_loss", "eval_loss"]:
+        print(k, train_results[k])
+
     return eval_loss["avg_loss"]
