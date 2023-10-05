@@ -1,6 +1,5 @@
 from .wrapper import TVAE
 
-
 def main(
     real_data,
     discrete_columns,

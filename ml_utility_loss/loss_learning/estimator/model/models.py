@@ -6,7 +6,6 @@ from alpharelu import relu15, ReLU15
 import math
 from .layers import EncoderLayer, DecoderLayer
 from .modules import PoolingByMultiheadAttention, FeedForward
-from ...util import Cache
 import inspect
 
 

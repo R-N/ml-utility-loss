@@ -1,34 +1,9 @@
-from catboost import CatBoostClassifier, CatBoostRegressor, Pool, CatBoostError
-from ..params import CATBOOST_METRICS, SKLEARN_METRICS
-from ..util import mkdir
+from catboost import CatBoostClassifier, CatBoostRegressor
+from ...params import CATBOOST_METRICS, SKLEARN_METRICS
+from ...util import mkdir
+from .params.default import PARAM_SPACE_2
 import os
-from optuna.exceptions import TrialPruned
 
-PARAM_SPACE = {
-    "epochs": ("log_int", 100, 2000),
-    "colsample_bylevel": ("log_float", 0.05, 1.0),
-    "depth": ("int", 1, 10),
-    "boosting_type": ("categorical", ["Ordered", "Plain"]),
-    "bootstrap_type": ("categorical", ["Bayesian", "Bernoulli", "MVS"]),
-    'l2_leaf_reg': ('qloguniform', 0, 2, 1),
-    'lr': ('log_float', 1e-5, 1e-1),
-    #"subsample_bool": ("conditional", {
-    "subsample": ("float", 0.05, 1.0),
-    #}),
-    "min_data_in_leaf": ("log_int", 1, 100),
-    'max_ctr_complexity': ("int", 0, 8),
-}
-PARAM_SPACE_2 = {
-    "binclass": {
-        "loss_function": ("categorical", ["CrossEntropy", "Logloss"]),
-    },
-    "multiclass": {
-        "loss_function": ("categorical", ["MultiClass", "MultiClassOneVsAll"]),
-    },
-    "regression": {
-        "loss_function": ("categorical", ["RMSE", "Huber", "MAE"]),
-    }
-}
 
 class CatBoostModel:
     def __init__(
@@ -106,50 +81,3 @@ class CatBoostModel:
         assert self.checkpoint_dir
         self.model.save_model(os.path.join(self.checkpoint_dir, file_name))
 
-def create_pool(df, target, cat_features):
-    X = df.drop(target, axis=1)
-    y = df[target]
-    cat_features = [x for x in cat_features if x != target]
-
-    return Pool(
-        X,
-        label=y,
-        cat_features=cat_features
-    )
-
-def create_pool_2(df, info):
-    return create_pool(df, info["target"], info["cat_features"])
-
-def objective(
-    datasets,
-    task,
-    checkpoint_dir=None,
-    log_dir=None,
-    trial=None,
-    **model_params
-):
-    train, test = datasets
-
-    subsample_bool = model_params.pop("subsample_bool", True)
-    if "subsample" in model_params and (not subsample_bool or model_params["bootstrap_type"] == "Bayesian"):
-        model_params.pop("subsample")
-
-    while True:
-        try:
-            try:
-                model = CatBoostModel(
-                    task=task,
-                    checkpoint_dir=checkpoint_dir,
-                    **model_params
-                )
-                model.fit(train, test)
-            except CatBoostError:
-                raise TrialPruned()
-            value = model.eval(test)
-            if checkpoint_dir:
-                model.save_model()
-            if trial:
-                trial.report(value, model.epoch)
-            return value
-        except PermissionError:
-            pass

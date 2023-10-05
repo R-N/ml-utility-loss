@@ -1,6 +1,5 @@
 from copy import deepcopy
 import torch
-import os
 import numpy as np
 import delu as zero
 from .preprocessing import transform_dataset, prepare_fast_dataloader

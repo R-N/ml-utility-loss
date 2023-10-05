@@ -1,10 +1,8 @@
 import pandas as pd
-from catboost import Pool
 import json
 from .preprocessing import DataAugmenter
 import os
 from ..util import mkdir, filter_dict
-from .ml_utility import CatBoostModel, create_pool
 from .model.models import Transformer, MLUtilityWhole
 from torch.utils.data import DataLoader
 from .data import collate_fn
@@ -37,35 +35,6 @@ def augment_2(dataset_name, save_dir, n=1, dataset_dir="datasets"):
         info = json.load(f)
     augment(df, info, save_dir=os.path.join(save_dir, dataset_name), n=n, test=0.2)
 
-def eval_ml_utility(
-    datasets,
-    task,
-    checkpoint_dir=None,
-    target=None,
-    cat_features=[],
-    **model_params
-):
-    while True:
-        try:
-            train, test = datasets
-
-            model = CatBoostModel(
-                task=task,
-                checkpoint_dir=checkpoint_dir,
-                **model_params
-            )
-
-            if not isinstance(train, Pool):
-                train = create_pool(train, target=target, cat_features=cat_features)
-            if not isinstance(test, Pool):
-                test = create_pool(test, target=target, cat_features=cat_features)
-
-            model.fit(train, test)
-
-            value = model.eval(test)
-            return value
-        except PermissionError:
-            pass
 
 def create_model(
     adapters,

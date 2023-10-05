@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
-from ..synthesizers.tvae.preprocessing import DataTransformer as TVAEDataTransformer
-from ..synthesizers.realtabformer.wrapper import REaLTabFormer
-from ..synthesizers.realtabformer.data_utils import make_dataset_2, map_input_ids
-from ..synthesizers.lct_gan.pipeline import create_ae
+from ...synthesizers.tvae.preprocessing import DataTransformer as TVAEDataTransformer
+from ...synthesizers.realtabformer.wrapper import REaLTabFormer
+from ...synthesizers.realtabformer.data_utils import make_dataset_2, map_input_ids
+from ...synthesizers.lct_gan.pipeline import create_ae
 from ml_utility_loss.synthesizers.tab_ddpm.preprocessing import DatasetTransformer, split_features, DataPreprocessor as TabDDPMDataPreprocessor
 from sklearn.metrics import pairwise_distances #metric='minkowski'
 

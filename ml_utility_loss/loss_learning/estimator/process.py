@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 import gc
-from ..util import stack_samples, stack_sample_dicts
+from ...util import stack_samples, stack_sample_dicts
 from torch.nn.utils import clip_grad_norm_
 
 Tensor = torch.FloatTensor
