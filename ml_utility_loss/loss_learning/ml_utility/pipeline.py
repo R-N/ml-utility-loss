@@ -1,5 +1,6 @@
 from .wrapper import CatBoostModel
 from .preprocessing import create_pool
+from catboost import Pool
 
 def eval_ml_utility(
     datasets,
