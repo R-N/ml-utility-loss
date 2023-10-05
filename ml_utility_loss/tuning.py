@@ -23,6 +23,8 @@ def sample_int_exp_2(trial, k, low, high):
     return param
 
 def sample_parameter_2(trial, k, type_0, args, kwargs=None, param_map={}):
+    if not isinstance(args, list) and not isinstance(args, tuple):
+        return args
     kwargs = kwargs or {}
     param, param_raw = None, None
     type_1 = type_0
