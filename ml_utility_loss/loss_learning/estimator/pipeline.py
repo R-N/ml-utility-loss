@@ -132,6 +132,8 @@ def train(
     loss_clamp=1.0,
     grad_clip=1.0,
     head="mlu",
+    verbose=True,
+    epoch_callback=None,
     **model_args
 ):
     if len(datasets) == 3:
@@ -200,9 +202,16 @@ def train(
         train_loss = train_epoch_(train_loader)
         val_loss = train_epoch_(val_loader, val=True)
 
-        print("Epoch", i)
-        print("Train loss", train_loss)
-        print("Val loss", val_loss)
+        if verbose:
+            print("Epoch", i)
+            print("Train loss", train_loss)
+            print("Val loss", val_loss)
+        if epoch_callback:
+            epoch_callback(
+                epoch=i,
+                train_loss=train_loss,
+                val_loss=val_loss,
+            )
 
     eval_loss = eval(
         test_set, whole_model,

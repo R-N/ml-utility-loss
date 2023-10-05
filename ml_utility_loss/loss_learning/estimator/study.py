@@ -15,6 +15,8 @@ def objective(
     train_results = _train(
         datasets,
         preprocessor,
+        verbose=False,
+        epoch_callback=None, # for now
         **kwargs
     )
 
