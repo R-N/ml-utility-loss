@@ -229,8 +229,10 @@ def train_epoch(
             compute["y"] = y
 
         # We calculate average m of non role models to do one forward pass for all of them
+        avg_compute = {}
+        computes_1 = computes
         if forward_once and role_model and avg_non_role_model_m:
-            compute = {}
+            compute = avg_compute
             compute["y"] = computes[role_model]["y"]
             non_role_model_computes = [v for k, v in computes.items() if k != role_model]
             m_s = [c["m"] for c in non_role_model_computes]
@@ -239,9 +241,9 @@ def train_epoch(
             m_test = torch.mean(torch.stack(m_test_s), dim=0)
             compute["m"] = m
             compute["m_test"] = m_test
-            computes["avg_non_role_model"] = compute
+            computes_1 = {**computes, "avg_non_role_model": compute}
 
-        for model, compute in computes.items():
+        for model, compute in computes_1.items():
             if forward_once and role_model and model not in (role_model, "avg_non_role_model"):
                 continue
             # make prediction using intermediate tensor
@@ -347,12 +349,15 @@ def train_epoch(
                 # If forward_once is true, grad will only exist for the role model
                 if "grad" not in compute and not calc_grad_m and not avg_non_role_model_m:
                     continue
+                # This doesn't stand on its own
+                if model == "avg_non_role_model":
+                    continue
                 # the grad at m is empty and detaching m won't do anything
                 if "grad" in compute:
                     grad_compute = compute
                 elif avg_non_role_model_m:
                     # We use the gradient of averaged m
-                    grad_compute = computes["avg_non_role_model"]
+                    grad_compute = avg_compute
                 else:
                     grad_compute = role_model_compute
                 loss = grad_compute["loss"]
