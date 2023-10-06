@@ -409,7 +409,10 @@ def train_epoch(
 
                     assert not torch.isnan(dbody_dadapter).any(), f"{model} dbody_dadapter has nan"
                     train = compute["train"]
-                    dbody_dx = calc_gradient(train, m, dbody_dadapter)
+                    try:
+                        dbody_dx = calc_gradient(train, m, dbody_dadapter)
+                    except RuntimeError:
+                        print(f"Modelb: {model}")
                 else:
                     dbody_dx = grad_compute["grad"]
                 assert not torch.isnan(dbody_dx).any(), f"{model} dbody_dx has nan"
