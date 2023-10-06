@@ -265,6 +265,7 @@ def train_epoch(
 
             assert not torch.isnan(pred).any(), f"{model} prediction has nan"
             # none reduction to retain the batch shape
+            y = compute["y"]
             compute["loss"] = loss = loss_fn(pred, y, reduction="none")
             assert not torch.isnan(loss).any(), f"{model} main loss has nan"
             # Partial gradient chain rule doesn't work so conveniently
