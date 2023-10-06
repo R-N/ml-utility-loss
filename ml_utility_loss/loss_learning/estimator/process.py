@@ -289,6 +289,7 @@ def train_epoch(
                         compute["grad"] = grad = calc_gradient(train, loss)
                 except RuntimeError:
                     print(f"Model: {(model, model_1)}")
+                    raise
                 assert not torch.isnan(grad).any(), f"{model} grad has nan"
 
         if role_model and (fixed_role_model or forward_once):
@@ -413,6 +414,7 @@ def train_epoch(
                         dbody_dx = calc_gradient(train, m, dbody_dadapter)
                     except RuntimeError:
                         print(f"Modelb: {model}")
+                        raise
                 else:
                     dbody_dx = grad_compute["grad"]
                 assert not torch.isnan(dbody_dx).any(), f"{model} dbody_dx has nan"
