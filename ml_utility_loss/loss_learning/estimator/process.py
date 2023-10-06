@@ -252,6 +252,8 @@ def train_epoch(
             model_1 = model
             if model == "avg_non_role_model":
                 model_1 = None
+            m = compute["m"]
+            m_test = compute["m_test"]
             pred = whole_model(
                 m, m_test, 
                 model=model_1, 
