@@ -238,9 +238,9 @@ def train_epoch(
             compute["y"] = computes[model_2]["y"]
             non_role_model_computes = [v for k, v in computes.items() if k != role_model]
             m_s = [c["m"] for c in non_role_model_computes]
-            m_s.requires_grad_()
             m_test_s = [c["m_test"] for c in non_role_model_computes]
             m = torch.mean(torch.stack(m_s), dim=0)
+            m.requires_grad_()
             m_test = torch.mean(torch.stack(m_test_s), dim=0)
             compute["m"] = m
             compute["m_test"] = m_test
