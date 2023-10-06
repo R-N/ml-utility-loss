@@ -47,7 +47,7 @@ class MultiHeadAttention(nn.Module):
         self.d_Q = d_Q
         self.d_K = self.d_V = self.d_KV = d_KV
         self.d_k = self.d_q = self.d_qk = d_qk
-        assert d_O % n_head == 0
+        assert d_O % n_head == 0, f"Invalid attention dim and n_head: {(d_O, n_head)}"
         d_v = d_O // n_head
         self.d_v = d_v
         self.d_H = n_head * d_qk
