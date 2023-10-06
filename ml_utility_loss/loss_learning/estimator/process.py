@@ -63,7 +63,7 @@ def clamp_tensor(tensor, loss_clamp, dim=-1, detach_mag=True):
     tensor_mag = torch.clamp(tensor_mag, min=loss_clamp)
     tensor_mag = handle_zero(tensor_mag)
     tensor_mag = tensor_mag.detach() if detach_mag else tensor_mag
-    tensor /= tensor_mag
+    tensor = tensor / tensor_mag
     #tensor = handle_nan(tensor)
     return tensor
 
@@ -73,7 +73,7 @@ def normalize_tensor(tensor, dim=-1, detach_mag=True):
     tensor_mag = tensor.norm(2, dim=dim, keepdim=True)
     tensor_mag = handle_zero(tensor_mag)
     tensor_mag = tensor_mag.detach() if detach_mag else tensor_mag
-    tensor /= tensor_mag
+    tensor = tensor / tensor_mag
     #tensor = handle_nan(tensor)
     return tensor
 
@@ -126,7 +126,7 @@ def project_tensor(
             clamp_tensor_mag, 
             tensor_mag_abs
         )
-        proj_mag *= tensor_mag_clamped / handle_zero(tensor_mag_abs)
+        proj_mag = proj_mag * tensor_mag_clamped / handle_zero(tensor_mag_abs)
         proj_mag = proj_mag.detach() if detach_proj_mag else proj_mag
     normal_mul = proj_mag / handle_zero(normal_mag)
     normal_mag = normal_mag.detach() if detach_normal_mag else normal_mag
@@ -399,7 +399,7 @@ def train_epoch(
                             # call backward on embed loss
                             # If this isn't done, it may get doubled
                             m.grad = None
-                            dbody_dadapter += m_grad
+                            dbody_dadapter = dbody_dadapter + m_grad
                             dbody_dadapter = dbody_dadapter.detach()
 
                     assert not torch.isnan(dbody_dadapter).any(), f"{model} dbody_dadapter has nan"
