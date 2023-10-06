@@ -438,8 +438,8 @@ def train_epoch(
         # But we only want g_loss from role model to populate the rest (non-adapter) of the model
         # So first we'll call backward on non-rolemodel
         # and zero the grads of the rest of the model
-        assert not torch.isnan(non_role_model_embed_loss).any(), f"non_role_model_embed_loss has nan"
-        assert not torch.isnan(non_role_model_g_loss).any(), f"non_role_model_g_loss has nan"
+        assert isinstance(non_role_model_embed_loss, int) or not torch.isnan(non_role_model_embed_loss).any(), f"non_role_model_embed_loss has nan"
+        assert isinstance(non_role_model_g_loss, int) or not torch.isnan(non_role_model_g_loss).any(), f"non_role_model_g_loss has nan"
         non_role_model_loss = non_role_model_embed_loss + non_role_model_g_loss
         non_role_model_loss = (non_role_model_mul * non_role_model_avg_mul) * non_role_model_loss
         if not val and hasattr(non_role_model_loss, "backward"):
@@ -450,8 +450,8 @@ def train_epoch(
 
         # Now we backward the role model
         role_model_g_loss = reduction(role_model_compute["g_loss"]) if gradient_penalty else 0
-        assert not torch.isnan(role_model_g_loss).any(), f"role_model_g_loss has nan"
-        assert not torch.isnan(role_model_loss).any(), f"role_model_loss has nan"
+        assert isinstance(role_model_g_loss, int) or not torch.isnan(role_model_g_loss).any(), f"role_model_g_loss has nan"
+        assert isinstance(role_model_loss, int) or not torch.isnan(role_model_loss).any(), f"role_model_loss has nan"
         role_model_total_loss = role_model_loss + role_model_g_loss
         if not val:
             role_model_total_loss.backward()
