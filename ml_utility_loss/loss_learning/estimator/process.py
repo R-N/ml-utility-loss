@@ -245,9 +245,12 @@ def train_epoch(
             if forward_once and role_model and model not in (role_model, "avg_non_role_model"):
                 continue
             # make prediction using intermediate tensor
+            model_1 = model
+            if model == "avg_non_role_model":
+                model_1 = role_model
             pred = whole_model(
                 m, m_test, 
-                model=model, head=head, 
+                model=model_1, head=head, 
                 skip_train_adapter=True,
                 skip_test_adapter=True
             )
