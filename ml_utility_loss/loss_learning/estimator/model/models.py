@@ -36,7 +36,7 @@ def calc_pma_steps(
     pma_step_count = n_layers - pma_start
     if pma_step_count == 0:
         return [0 for  i in range(n_layers)]
-    assert pma_low > 0, f"pma_low isn't positive: {pma_low}"
+    assert pma_low > 1, f"pma_low must not be 0 or 1: {pma_low}"
     pma_log_range = math.log(pma_high/pma_low, pma_low)
     pma_step_count_1 = max(pma_step_count - 1, 1)
     pma_log_steps = [pma_log_range*i/pma_step_count_1 for i in range(pma_step_count)]
