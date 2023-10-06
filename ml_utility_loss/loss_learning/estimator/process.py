@@ -159,7 +159,8 @@ def train_epoch(
     loss_clamp=1.0,
     grad_clip=1.0,
     models = None,
-    head="mlu"
+    head="mlu",
+    eps=1e-6
 ):
     assert optim or val, "Optimizer must be provided if val is false"
     torch.autograd.set_detect_anomaly(True)
@@ -343,6 +344,7 @@ def train_epoch(
                 
                 # Again we'll take the norm because it is a vector
                 # But no keep_dim so it results in (batch)
+                embed_loss = embed_loss + eps
                 embed_loss = embed_loss.norm(2, dim=-1)
                 embed_loss = reduction(embed_loss)
 
@@ -423,6 +425,7 @@ def train_epoch(
                 dbody_dx = torch.sum(dbody_dx, dim=-2)
                 # Calculate the magnitude of the gradient
                 # No keep_dim, so this results in (batch)
+                dbody_dx = dbody_dx + eps
                 dbody_dx_norm = dbody_dx.norm(2, dim=-1)
                 # because we want to model this model as squared error, 
                 # the expected gradient g is 2*sqrt(loss)
