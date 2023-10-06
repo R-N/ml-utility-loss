@@ -216,6 +216,9 @@ def train_epoch(
             compute["m"] = m
 
             compute["m_test"] = m_test = whole_model.adapters[model](test)
+            
+            assert not torch.isnan(m).any(), f"{model} m has nan"
+            assert not torch.isnan(m_test).any(), f"{model} m_test has nan"
 
             if forward_once and role_model and model != role_model:
                 continue
@@ -230,8 +233,11 @@ def train_epoch(
                 skip_train_adapter=True,
                 skip_test_adapter=True
             )
+
+            assert not torch.isnan(pred).any(), f"{model} prediction has nan"
             # none reduction to retain the batch shape
             compute["loss"] = loss = loss_fn(pred, y, reduction="none")
+            assert not torch.isnan(loss).any(), f"{model} main loss has nan"
             # Partial gradient chain rule doesn't work so conveniently
             # Due to shape changes along forward pass
             # So we'll just calculate the whole gradient 
@@ -244,9 +250,10 @@ def train_epoch(
                 if calc_grad_m:
                     # It may be unfair to propagate gradient penalty only for role model adapter
                     # So maybe do it only up to m
-                    compute["grad"] = calc_gradient(m, loss)
+                    compute["grad"] = grad = calc_gradient(m, loss)
                 else:
-                    compute["grad"] = calc_gradient(train, loss)
+                    compute["grad"] = grad = calc_gradient(train, loss)
+                assert not torch.isnan(grad).any(), f"{model} grad has nan"
 
         if role_model and (fixed_role_model or forward_once):
             role_model_compute = computes[role_model]
@@ -300,6 +307,8 @@ def train_epoch(
                 embed_loss = embed_loss.norm(2, dim=-1)
                 embed_loss = reduction(embed_loss)
 
+                assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan"
+
                 compute["embed_loss"] = embed_loss
 
             # sum embed loss
@@ -343,10 +352,13 @@ def train_epoch(
                         m.grad = None
                         dbody_dadapter += m_grad
                         dbody_dadapter = dbody_dadapter.detach()
+
+                    assert not torch.isnan(dbody_dadapter).any(), f"{model} dbody_dadapter has nan"
                     train = compute["train"]
                     dbody_dx = calc_gradient(train, m, dbody_dadapter)
                 else:
                     dbody_dx = grad_compute["grad"]
+                assert not torch.isnan(dbody_dx).any(), f"{model} dbody_dx has nan"
                 # The gradient is of shape (batch, size, dim)
                 # Sum gradient over the size dimension, resulting in (batch, dim)
                 dbody_dx = torch.sum(dbody_dx, dim=-2)
@@ -367,6 +379,7 @@ def train_epoch(
                 # Okay so apparently for non role model, the g_loss is always 0
                 # This needs to be fixed
                 compute["g_loss"] = g_loss
+                assert not torch.isnan(g_loss).any(), f"{model} g_loss has nan"
 
             # If forward_once, this will be 0 and the other computes won't have g_loss
             if not forward_once or calc_grad_m:
@@ -381,6 +394,8 @@ def train_epoch(
         # But we only want g_loss from role model to populate the rest (non-adapter) of the model
         # So first we'll call backward on non-rolemodel
         # and zero the grads of the rest of the model
+        assert not torch.isnan(non_role_model_embed_loss).any(), f"non_role_model_embed_loss has nan"
+        assert not torch.isnan(non_role_model_g_loss).any(), f"non_role_model_g_loss has nan"
         non_role_model_loss = non_role_model_embed_loss + non_role_model_g_loss
         non_role_model_loss = (non_role_model_mul * non_role_model_avg_mul) * non_role_model_loss
         if not val and hasattr(non_role_model_loss, "backward"):
@@ -390,6 +405,8 @@ def train_epoch(
             whole_model.non_adapter_zero_grad()
 
         # Now we backward the role model
+        assert not torch.isnan(role_model_g_loss).any(), f"role_model_g_loss has nan"
+        assert not torch.isnan(role_model_total_loss).any(), f"role_model_total_loss has nan"
         role_model_g_loss = reduction(role_model_compute["g_loss"]) if gradient_penalty else 0
         role_model_total_loss = role_model_loss + role_model_g_loss
         if not val:
