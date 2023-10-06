@@ -251,7 +251,7 @@ def train_epoch(
             # make prediction using intermediate tensor
             model_1 = model
             if model == "avg_non_role_model":
-                model_1 = model_2
+                model_1 = None
             pred = whole_model(
                 m, m_test, 
                 model=model_1, 
