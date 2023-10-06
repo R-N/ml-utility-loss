@@ -46,7 +46,7 @@ PARAM_SPACE = {
     "tf_pma": ("conditional", {
         "tf_pma_start": ("int", -4, -1),
         "tf_pma_high": ("int_exp_2", 8, 512),
-        "tf_pma_low": ("int_exp_2", 1, 32),
+        "tf_pma_low": ("int_exp_2", 2, 32),
     }),
     "tf_share_ffn": BOOLEAN,
     # Adapter args
