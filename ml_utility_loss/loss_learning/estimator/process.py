@@ -281,6 +281,7 @@ def train_epoch(
                     # So maybe do it only up to m
                     compute["grad"] = grad = calc_gradient(m, loss)
                 else:
+                    train = compute["train"]
                     compute["grad"] = grad = calc_gradient(train, loss)
                 assert not torch.isnan(grad).any(), f"{model} grad has nan"
 
