@@ -21,7 +21,7 @@ PARAM_SPACE = {
         "tab_ddpm_concat", 
         "realtabformer"
     ]),
-    "gradient_penalty_mode": ("categorical", [
+    "gradient_penalty_mode": ("gradient_penalty_mode", [
         "NONE",
         "ALL",
         "ONCE",
