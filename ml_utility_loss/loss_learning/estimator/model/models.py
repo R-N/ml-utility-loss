@@ -488,7 +488,7 @@ class MLUtilityWhole(nn.Module):
             return self.cache[idx]
 
         single = MLUtilitySingle(
-            adapter=self.adapters[model],
+            adapter=self.adapters[model] if model else None,
             body=self.body,
             head=self.heads[head]
         )
