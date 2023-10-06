@@ -10,6 +10,7 @@ import torch
 from .process import train_epoch, eval as _eval
 from torch import nn
 import torch.nn.functional as F
+from enum import Enum
 
 def augment(df, info, save_dir, n=1, test=0.2):
     mkdir(save_dir)
@@ -105,6 +106,59 @@ def create_model(
     )
     return whole_model
 
+class GradientPenaltyMode:
+    NONE = {
+        "gradient_penalty": False,
+        "forward_once": False,
+        "calc_grad_m": False,
+        "avg_non_role_model_m": False,
+        "inverse_avg_non_role_model_m": False,
+    }
+    ALL = {
+        "gradient_penalty": True,
+        "forward_once": False,
+        "calc_grad_m": False,
+        "avg_non_role_model_m": False,
+        "inverse_avg_non_role_model_m": False,
+    }
+    ONCE = {
+        "gradient_penalty": True,
+        "forward_once": True,
+        "calc_grad_m": False,
+        "avg_non_role_model_m": False,
+        "inverse_avg_non_role_model_m": False,
+    }
+    ESTIMATE = {
+        "gradient_penalty": True,
+        "forward_once": True,
+        "calc_grad_m": True,
+        "avg_non_role_model_m": False,
+        "inverse_avg_non_role_model_m": False,
+    }
+    AVERAGE_NO_MUL = {
+        "gradient_penalty": True,
+        "forward_once": True,
+        "calc_grad_m": True,
+        "avg_non_role_model_m": True,
+        "inverse_avg_non_role_model_m": False,
+    }
+    AVERAGE_MUL = {
+        "gradient_penalty": True,
+        "forward_once": True,
+        "calc_grad_m": True,
+        "avg_non_role_model_m": True,
+        "inverse_avg_non_role_model_m": True,
+    }
+    DICT = {
+        "NONE": NONE,
+        "ALL": ALL,
+        "ONCE": ONCE,
+        "ESTIMATE": ESTIMATE,
+        "AVERAGE_NO_MUL": AVERAGE_NO_MUL,
+        "AVERAGE_MUL": AVERAGE_MUL
+    }
+    
+
 def train(
     # Dataset args
     datasets,
@@ -126,9 +180,7 @@ def train(
     grad_loss_mul=1.0,
     loss_fn=F.mse_loss,
     fixed_role_model="lct_gan",
-    forward_once=True,
-    calc_grad_m=True,
-    gradient_penalty=True,
+    gradient_penalty_mode=GradientPenaltyMode.AVERAGE_MUL,
     loss_clamp=1.0,
     grad_clip=1.0,
     head="mlu",
@@ -190,12 +242,10 @@ def train(
             grad_loss_fn=loss_fn,
             adapter_loss_fn=loss_fn,
             fixed_role_model=fixed_role_model,
-            forward_once=forward_once,
-            calc_grad_m=calc_grad_m,
-            gradient_penalty=gradient_penalty,
             loss_clamp=loss_clamp,
             grad_clip=grad_clip,
             head=head,
+            **gradient_penalty_mode,
         )
     
     for i in range(i, i+epochs):

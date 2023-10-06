@@ -14,11 +14,21 @@ PARAM_SPACE = {
     "grad_loss_mul": ("float", 0.1, 1.5),
     "loss_fn": ("loss", ["mse", "mae", "huber"]),
     "fixed_role_model": ("categorical", [
-        None, "tvae", "lct_gan", "lct_gan_latent", "tab_ddpm_concat", "realtabformer"
+        None, 
+        "tvae", 
+        "lct_gan", 
+        "lct_gan_latent", 
+        "tab_ddpm_concat", 
+        "realtabformer"
     ]),
-    "forward_once": BOOLEAN,
-    "calc_grad_m": BOOLEAN,
-    "gradient_penalty": BOOLEAN,
+    "gradient_penalty_mode": ("categorical", [
+        "NONE",
+        "ALL",
+        "ONCE",
+        "ESTIMATE",
+        "AVERAGE_NO_MUL",
+        "AVERAGE_MUL"
+    ]),
     # Common model args
     "d_model": ("int_exp_2", 8, 128), 
     "dropout": ("float", 0.0, 0.2), 
@@ -43,7 +53,10 @@ PARAM_SPACE = {
     "ada_d_hid": ("int_exp_2", 8, 64), 
     "ada_n_layers": ("int", 2, 8), 
     "ada_activation": ("activation", [
-        "tanh", "sigmoid", "relu", "leakyrelu", "elu", "selu", "gelu", "identity"
+        "tanh", "sigmoid", 
+        "relu", "leakyrelu", 
+        "elu", "selu", "gelu", 
+        "identity"
     ]),
     # Head args
     "head_n_seeds": ("int_exp_2", 1, 8),
@@ -51,6 +64,9 @@ PARAM_SPACE = {
     "head_n_layers": ("int", 2, 8), 
     "head_n_head": ("int_exp_2", 2, 16),
     "head_activation": ("activation", [
-        "tanh", "sigmoid", "relu", "leakyrelu", "elu", "selu", "gelu", "identity"
+        "tanh", "sigmoid", 
+        "relu", "leakyrelu", 
+        "elu", "selu", "gelu", 
+        "identity"
     ]),
 }

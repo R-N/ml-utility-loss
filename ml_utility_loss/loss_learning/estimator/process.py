@@ -153,6 +153,8 @@ def train_epoch(
     fixed_role_model="lct_gan",
     forward_once=True,
     calc_grad_m=True,
+    avg_non_role_model_m=True,
+    inverse_avg_non_role_model_m=True,
     gradient_penalty=True,
     loss_clamp=1.0,
     grad_clip=1.0,
@@ -220,12 +222,28 @@ def train_epoch(
             assert not torch.isnan(m).any(), f"{model} m has nan"
             assert not torch.isnan(m_test).any(), f"{model} m_test has nan"
 
-            if forward_once and role_model and model != role_model:
-                continue
             # Somehow y keeps being 64 bit tensor
             # I have no idea what went wrong, I converted it in dataset
             # So yeah this is a workaround
             y = y.to(torch.float32)
+            compute["y"] = y
+
+        # We calculate average m of non role models to do one forward pass for all of them
+        if forward_once and role_model and avg_non_role_model_m:
+            compute = {}
+            compute["y"] = computes[role_model]["y"]
+            non_role_model_computes = {k: v for k, v in computes.items() if k != role_model}
+            m_s = [c["m"] for c in non_role_model_computes]
+            m_test_s = [c["m_test"] for c in non_role_model_computes]
+            m = torch.mean(torch.stack(m_s), dim=0)
+            m_test = torch.mean(torch.stack(m_test_s), dim=0)
+            compute["m"] = m
+            compute["m_test"] = m_test
+            computes["avg_non_role_model"] = compute
+
+        for model, compute in computes.items():
+            if forward_once and role_model and model not in (role_model, "avg_non_role_model"):
+                continue
             # make prediction using intermediate tensor
             pred = whole_model(
                 m, m_test, 
@@ -324,34 +342,47 @@ def train_epoch(
         if gradient_penalty:
             for model, compute in computes.items():
                 # If forward_once is true, grad will only exist for the role model
-                if "grad" not in compute and not calc_grad_m:
+                if "grad" not in compute and not calc_grad_m and not avg_non_role_model_m:
                     continue
                 # the grad at m is empty and detaching m won't do anything
-                grad_compute = compute if "grad" in compute else role_model_compute
+                if "grad" in compute:
+                    grad_compute = compute
+                elif avg_non_role_model_m:
+                    # We use the gradient of averaged m
+                    grad_compute = computes["avg_non_role_model"]
+                else:
+                    grad_compute = role_model_compute
                 loss = grad_compute["loss"]
-                grad_mul = 1
                 if calc_grad_m: # It's not dbody/dx yet but intermediate dbody/dadapter
                     dbody_dadapter = grad_compute["grad"]
                     m = compute["m"]
                     if model != role_model:
                         dbody_dadapter = dbody_dadapter.detach()
-                        # The embedding is a point, not a vector
-                        # Thus we shouldn't be using cos or dot product to decide
-                        # Their similarity
-                        # Meanwhile, gradient is where the point should move
-                        # So we add the direction of where the embedding should move
-                        # That is towards the role model embedding
-                        # Using the gradient of embedding loss at m
-                        # Does this make sense?
-                        m_grad = m.grad
-                        if not m_grad:
-                            m_grad = calc_gradient(m, compute["embed_loss"])
-                        # Zero out the grad of m because later we'll
-                        # call backward on embed loss
-                        # If this isn't done, it may get doubled
-                        m.grad = None
-                        dbody_dadapter += m_grad
-                        dbody_dadapter = dbody_dadapter.detach()
+                        if avg_non_role_model_m:
+                            # We calculate the actual gradient at m from the average
+                            dbody_dadapter = calc_gradient(m, grad_compute["m"], dbody_dadapter)
+                            if inverse_avg_non_role_model_m:
+                                # Since it was an average, we multiply it by the model count
+                                dbody_dadapter = non_role_model_count * dbody_dadapter
+                            dbody_dadapter = dbody_dadapter.detach()
+                        else:
+                            # The embedding is a point, not a vector
+                            # Thus we shouldn't be using cos or dot product to decide
+                            # Their similarity
+                            # Meanwhile, gradient is where the point should move
+                            # So we add the direction of where the embedding should move
+                            # That is towards the role model embedding
+                            # Using the gradient of embedding loss at m
+                            # Does this make sense?
+                            m_grad = m.grad
+                            if not m_grad:
+                                m_grad = calc_gradient(m, compute["embed_loss"])
+                            # Zero out the grad of m because later we'll
+                            # call backward on embed loss
+                            # If this isn't done, it may get doubled
+                            m.grad = None
+                            dbody_dadapter += m_grad
+                            dbody_dadapter = dbody_dadapter.detach()
 
                     assert not torch.isnan(dbody_dadapter).any(), f"{model} dbody_dadapter has nan"
                     train = compute["train"]

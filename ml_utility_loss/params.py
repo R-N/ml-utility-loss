@@ -5,6 +5,7 @@ import sklearn.metrics
 from entmax import sparsemax, entmax15, Sparsemax, Entmax15
 from alpharelu import relu15, ReLU15
 import torch.nn.functional as F
+from .loss_learning.estimator.pipeline import GradientPenaltyMode
 
 def total_f1(y_true, y_pred):
     # ValueError: Mix of label input types (string and number)
@@ -63,10 +64,12 @@ SOFTMAXES = {
     "entmax15": entmax15,
     "relu15": relu15
 }
+GRADIENT_PENALTY_MODES = GradientPenaltyMode.DICT
 PARAM_MAP = {
     "loss": LOSSES,
     "optimizer": OPTIMS,
     "activation": ACTIVATIONS,
     "catboost_metrics": CATBOOST_METRICS,
-    "softmax": SOFTMAXES
+    "softmax": SOFTMAXES,
+    "gradient_penalty_mode": GRADIENT_PENALTY_MODES,
 }
