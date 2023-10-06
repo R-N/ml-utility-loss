@@ -206,15 +206,16 @@ def train_epoch(
         for model, (train, test, y) in batch_dict.items():
             # train needs to require grad for gradient penalty computation
             # should I zero and make it not require grad later?
+            train = train.clone()
             train = train.detach()
             train.grad = None
-            train.requires_grad_()
+            #train.requires_grad_()
             compute = computes[model]
             # calculate intermediate tensor for later use
             compute["train"] = train
             m = whole_model.adapters[model](train)
             # store grad in m
-            m.requires_grad_()
+            #m.requires_grad_()
             compute["m"] = m
 
             compute["m_test"] = m_test = whole_model.adapters[model](test)
@@ -240,7 +241,7 @@ def train_epoch(
             m_s = [c["m"] for c in non_role_model_computes]
             m_test_s = [c["m_test"] for c in non_role_model_computes]
             m = torch.mean(torch.stack(m_s), dim=0)
-            m.requires_grad_()
+            #m.requires_grad_()
             m_test = torch.mean(torch.stack(m_test_s), dim=0)
             compute["m"] = m
             compute["m_test"] = m_test
@@ -319,7 +320,7 @@ def train_epoch(
                 # We reuse the previous intermediate tensor
                 # Don't detach this one
                 m = compute["m"]
-                m.requires_grad_()
+                #m.requires_grad_()
                 embed_pred = torch.cat([
                     m, 
                     compute["m_test"]
