@@ -253,7 +253,6 @@ class Head(nn.Module):
         dropout=0.1, 
         activation=nn.Sigmoid,
         final_activation=nn.Sigmoid,
-        skip_small=True,
         softmax=nn.Softmax,
     ):
         super().__init__()
@@ -263,7 +262,8 @@ class Head(nn.Module):
             n_head, 
             d_model, 
             d_qk=d_qk, 
-            dropout=dropout, skip_small=skip_small,
+            dropout=dropout, 
+            skip_small=False,
             softmax=softmax,
         )
         def Linear(

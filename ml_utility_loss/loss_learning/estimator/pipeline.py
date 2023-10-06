@@ -100,7 +100,7 @@ def create_model(
             "n_head": head_n_head,  
             "dropout": dropout, 
             "activation": head_activation,
-            "skip_small": skip_small,
+            #"skip_small": skip_small,
             "softmax": softmax,
         }
     )
