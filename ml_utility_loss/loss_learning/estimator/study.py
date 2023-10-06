@@ -7,6 +7,7 @@ def objective(
     checkpoint_dir=None,
     log_dir=None,
     trial=None,
+    verbose=False,
     **kwargs
 ):
     tf_pma = kwargs.pop("tf_pma")
@@ -17,7 +18,7 @@ def objective(
         train_results = _train(
             datasets,
             preprocessor,
-            verbose=False,
+            verbose=verbose,
             epoch_callback=None, # for now
             **kwargs
         )
