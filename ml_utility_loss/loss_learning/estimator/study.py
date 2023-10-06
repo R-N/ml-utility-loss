@@ -23,7 +23,7 @@ def objective(
         )
     except AssertionError as ex:
         msg = str(ex)
-        if "Invalid attention dim and n_head" in ex:
+        if "Invalid attention dim and n_head" in msg:
             print(f"AssertionError: {msg}")
             raise TrialPruned()
         raise
