@@ -232,7 +232,7 @@ def train_epoch(
         if forward_once and role_model and avg_non_role_model_m:
             compute = {}
             compute["y"] = computes[role_model]["y"]
-            non_role_model_computes = {k: v for k, v in computes.items() if k != role_model}
+            non_role_model_computes = [v for k, v in computes.items() if k != role_model]
             m_s = [c["m"] for c in non_role_model_computes]
             m_test_s = [c["m_test"] for c in non_role_model_computes]
             m = torch.mean(torch.stack(m_s), dim=0)
