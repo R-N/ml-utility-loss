@@ -41,7 +41,10 @@ def calc_pma_steps(
     pma_log_steps = [pma_log_range*i/pma_step_count_1 for i in range(pma_step_count)]
     pma_steps = [int(round(math.pow(pma_low, 1+s))) for s in pma_log_steps]
     pma_steps = list(reversed(pma_steps))
-    assert pma_steps[0] == pma_high and pma_steps[-1] == pma_low, f"{pma_high} - {pma_steps} - {pma_low}"
+    if pma_step_count == 1:
+        assert pma_steps[-1] == pma_low, f"{pma_high} - {pma_steps} - {pma_low}"
+    else:
+        assert pma_steps[0] == pma_high and pma_steps[-1] == pma_low, f"{pma_high} - {pma_steps} - {pma_low}"
     assert len(pma_steps) == pma_step_count
     pma_steps = [*[0 for  i in range(pma_start)], *pma_steps]
     assert len(pma_steps) == n_layers
