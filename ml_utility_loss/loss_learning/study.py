@@ -73,11 +73,21 @@ def objective(
     if tf_pma:
         kwargs.update(tf_pma)
 
-    train_results = _train(
-        datasets,
-        preprocessor,
-        **kwargs
-    )
+    try:
+        train_results = _train(
+            datasets,
+            preprocessor,
+            **kwargs
+        )
+    except AssertionError as ex:
+        msg = str(ex)
+        if "Invalid attention dim and n_head" in msg:
+            print(f"AssertionError: {msg}")
+            raise TrialPruned()
+        if "has nan" in msg:
+            print(f"AssertionError: {msg}")
+            raise TrialPruned()
+        raise
 
     whole_model = train_results["whole_model"]
     eval_loss = train_results["eval_loss"]

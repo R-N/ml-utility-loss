@@ -30,17 +30,23 @@ def calc_pma_steps(
     pma_high=512,
     pma_low=32,
 ):
-    if pma_start is None:
+    if pma_start is None or n_layers == 0:
         return [0 for  i in range(n_layers)]
     if pma_start < 0:
         pma_start = max(n_layers + pma_start, 0)
     pma_step_count = n_layers - pma_start
+    if pma_step_count == 0:
+        return [0 for  i in range(n_layers)]
+    assert pma_low > 1, f"pma_low must not be 0 or 1: {pma_low}"
     pma_log_range = math.log(pma_high/pma_low, pma_low)
-    pma_step_count_1 = pma_step_count - 1
+    pma_step_count_1 = max(pma_step_count - 1, 1)
     pma_log_steps = [pma_log_range*i/pma_step_count_1 for i in range(pma_step_count)]
     pma_steps = [int(round(math.pow(pma_low, 1+s))) for s in pma_log_steps]
     pma_steps = list(reversed(pma_steps))
-    assert pma_steps[0] == pma_high and pma_steps[-1] == pma_low, f"{pma_high} - {pma_steps} - {pma_low}"
+    if pma_step_count == 1:
+        assert pma_steps[-1] == pma_low, f"{pma_high} - {pma_steps} - {pma_low}"
+    else:
+        assert pma_steps[0] == pma_high and pma_steps[-1] == pma_low, f"{pma_high} - {pma_steps} - {pma_low}"
     assert len(pma_steps) == pma_step_count
     pma_steps = [*[0 for  i in range(pma_start)], *pma_steps]
     assert len(pma_steps) == n_layers

@@ -84,6 +84,9 @@ def sample_parameters(trial, param_space, param_map={}):
     params = {}
     params_raw = {}
     for k, v in param_space.items():
+        if not isinstance(v, list) and not isinstance(v, tuple):
+            params[k] = params_raw[k] = v
+            continue
         type_0, *args = v
         param, param_raw = sample_parameter_2(trial, k, type_0, args, param_map=param_map)
         params[k] = param
