@@ -162,6 +162,7 @@ def train_epoch(
     head="mlu"
 ):
     assert optim or val, "Optimizer must be provided if val is false"
+    torch.autograd.set_detect_anomaly(True)
     size = len(train_loader.dataset)
 
     models = models or whole_model.models
