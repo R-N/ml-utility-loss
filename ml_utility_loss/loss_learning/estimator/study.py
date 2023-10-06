@@ -26,6 +26,9 @@ def objective(
         if "Invalid attention dim and n_head" in msg:
             print(f"AssertionError: {msg}")
             raise TrialPruned()
+        if "has nan" in msg:
+            print(f"AssertionError: {msg}")
+            raise TrialPruned()
         raise
 
     whole_model = train_results["whole_model"]
