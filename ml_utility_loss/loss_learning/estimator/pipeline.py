@@ -42,6 +42,8 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
     mkdir(save_dir)
     if size:
         size = min(size, len(df))
+    else:
+        size = len(df)
     target = info["target"]
     task = info["task"]
     cat_features = info["cat_features"]
