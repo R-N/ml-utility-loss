@@ -284,17 +284,13 @@ def train_epoch(
             # We have to use autograd.grad
             # This forward pass cannot be merged due to insufficient memory
             if gradient_penalty:
-                try:
-                    if calc_grad_m:
-                        # It may be unfair to propagate gradient penalty only for role model adapter
-                        # So maybe do it only up to m
-                        compute["grad"] = grad = calc_gradient(m, loss)
-                    else:
-                        train = compute["train"]
-                        compute["grad"] = grad = calc_gradient(train, loss)
-                except RuntimeError:
-                    print(f"Model: {(model, model_1)}")
-                    raise
+                if calc_grad_m:
+                    # It may be unfair to propagate gradient penalty only for role model adapter
+                    # So maybe do it only up to m
+                    compute["grad"] = grad = calc_gradient(m, loss)
+                else:
+                    train = compute["train"]
+                    compute["grad"] = grad = calc_gradient(train, loss)
                 assert not torch.isnan(grad).any(), f"{model} grad has nan"
 
         if role_model and (fixed_role_model or forward_once):
@@ -411,11 +407,7 @@ def train_epoch(
 
                     assert not torch.isnan(dbody_dadapter).any(), f"{model} dbody_dadapter has nan"
                     train = compute["train"]
-                    try:
-                        dbody_dx = calc_gradient(train, m, dbody_dadapter)
-                    except RuntimeError:
-                        print(f"Modelb: {model}")
-                        raise
+                    dbody_dx = calc_gradient(train, m, dbody_dadapter)
                 else:
                     dbody_dx = grad_compute["grad"]
                 assert not torch.isnan(dbody_dx).any(), f"{model} dbody_dx has nan"
