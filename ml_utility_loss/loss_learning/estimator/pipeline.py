@@ -49,11 +49,13 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
     if not info_out:
         try:
             info_out = pd.read_csv(info_path)
+            print(f"Loaded info_out {len(info_out)} {info_out.last_valid_index()}")
         except FileNotFoundError:
             info_out = pd.DataFrame()
     if len(info_out):
         last_index = info_out.last_valid_index()
-        i = int(last_index.split("_")[0])
+        i = int(last_index.split("_")[0]) + 1
+        print(f"Set i to {i}")
     for i in range(i, n):
         splits = split_df_kfold(
             df, 
