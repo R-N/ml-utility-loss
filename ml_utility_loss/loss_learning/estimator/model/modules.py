@@ -101,7 +101,7 @@ class MultiHeadAttention(nn.Module):
             residual = o
 
         o = self.dropout(self.fc(o))
-        o += residual
+        o = o + residual
 
         o = self.layer_norm(o)
 
@@ -228,7 +228,7 @@ class DoubleFeedForward(nn.Module):
         x = self.activation(x)
         x = self.w_2(x)
         x = self.dropout(x)
-        x += residual
+        x = x + residual
 
         x = self.layer_norm(x)
 
@@ -255,7 +255,7 @@ class FeedForward(nn.Module):
         x = self.dropout(x)
 
         if self.residual:
-            x += residual
+            x = x + residual
 
         if self.layer_norm:
             x = self.layer_norm(x)
