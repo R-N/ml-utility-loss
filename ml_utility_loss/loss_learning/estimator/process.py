@@ -210,7 +210,7 @@ def train_epoch(
             # should I zero and make it not require grad later?
             train = train.clone()
             train = train.detach()
-            train.grad = None
+            # train.grad = None
             train.requires_grad_()
             compute = computes[model]
             # calculate intermediate tensor for later use
@@ -400,13 +400,8 @@ def train_epoch(
                             # That is towards the role model embedding
                             # Using the gradient of embedding loss at m
                             # Does this make sense?
-                            m_grad = m.grad
-                            if not m_grad:
-                                m_grad = calc_gradient(m, compute["embed_loss"])
-                            # Zero out the grad of m because later we'll
-                            # call backward on embed loss
-                            # If this isn't done, it may get doubled
-                            m.grad = None
+                            assert not hasattr(m, "grad") or m.grad is None or m.grad == 0, "m has grad"
+                            m_grad = calc_gradient(m, compute["embed_loss"])
                             dbody_dadapter = dbody_dadapter + m_grad
                             dbody_dadapter = dbody_dadapter.detach()
 
@@ -464,7 +459,7 @@ def train_epoch(
             non_role_model_loss.backward()
             # Zero the rest of the model
             # because we only want the role model to update it
-            whole_model.non_adapter_zero_grad()
+            # whole_model.non_adapter_zero_grad()
 
         # Now we backward the role model
         role_model_g_loss = reduction(role_model_compute["g_loss"]) if gradient_penalty else 0
