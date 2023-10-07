@@ -18,6 +18,7 @@ def objective(
     checkpoint_dir=None,
     log_dir=None,
     trial=None,
+    diff=True,
     **kwargs
 ):
     train, test = datasets
@@ -41,8 +42,6 @@ def objective(
         **gan_kwargs
     )
 
-    print(synth)
-
     try:
         synth_value = eval_ml_utility(
             (synth, test),
@@ -51,14 +50,17 @@ def objective(
             cat_features=cat_features,
             **ml_utility_params
         )
-        real_value = eval_ml_utility(
-            (train, test),
-            task,
-            target=target,
-            cat_features=cat_features,
-            **ml_utility_params
-        )
-        value=abs(synth_value-real_value)
+        if diff:
+            real_value = eval_ml_utility(
+                (train, test),
+                task,
+                target=target,
+                cat_features=cat_features,
+                **ml_utility_params
+            )
+            value=abs(synth_value-real_value)
+        else:
+            value = synth_value
     except CatBoostError:
         raise TrialPruned()
 
