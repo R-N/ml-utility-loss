@@ -98,11 +98,11 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
     return info_out
 
 
-def augment_2(dataset_name, save_dir, dataset_dir="datasets", *args, **kwargs):
+def augment_2(dataset_name, save_dir, dataset_dir="datasets", **kwargs):
     df = pd.read_csv(os.path.join(dataset_dir, f"{dataset_name}.csv"))
     with open(os.path.join(dataset_dir, f"{dataset_name}.json")) as f:
         info = json.load(f)
-    augment_kfold(df, info, save_dir=os.path.join(save_dir, dataset_name))
+    augment_kfold(df, info, save_dir=os.path.join(save_dir, dataset_name), **kwargs)
 
 
 def create_model(
