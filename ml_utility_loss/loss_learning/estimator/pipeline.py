@@ -97,10 +97,10 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
             obj["synth_value"] = aug_value
             obj["real_value"] = real_value
 
-            df_aug.to_csv(os.path.join(save_dir, obj["synth"]))
-            df_train.to_csv(os.path.join(save_dir, obj["train"]))
-            df_val.to_csv(os.path.join(save_dir, obj["val"]))
-            df_test.to_csv(os.path.join(save_dir, obj["test"]))
+            df_aug.to_csv(os.path.join(save_dir, obj["synth"]), index=False)
+            df_train.to_csv(os.path.join(save_dir, obj["train"]), index=False)
+            df_val.to_csv(os.path.join(save_dir, obj["val"]), index=False)
+            df_test.to_csv(os.path.join(save_dir, obj["test"]), index=False)
 
             objs.append(obj)
             indices.append(index)
