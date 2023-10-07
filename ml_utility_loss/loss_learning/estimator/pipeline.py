@@ -13,6 +13,7 @@ from .process import train_epoch, eval as _eval
 from torch import nn
 import torch.nn.functional as F
 import math
+import warnings
 
 def augment(df, info, save_dir, n=1, test=0.2):
     mkdir(save_dir)
@@ -65,6 +66,15 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
         i = int(last_index.split("_")[0]) + 1
         print(f"Set i to {i}")
     for i in range(i, n):
+        """
+        while True:
+            with warnings.catch_warnings():
+                warnings.filterwarnings('error')
+                try:
+                    break
+                except Warning:
+                    continue
+        """
         df_1 = df
         if size:
             df_1 = df.sample(n=size)
