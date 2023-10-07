@@ -66,8 +66,10 @@ class BaseDataset(Dataset):
 
 class DatasetDataset(BaseDataset):
 
-    def __init__(self, dir, file="info.csv", max_cache=None, Tensor=None, mode="shuffle", train="synth", test="test", value="synth_value"):
+    def __init__(self, dir, file="info.csv", max_cache=None, Tensor=None, mode="shuffle", train="synth", test="test", value="synth_value", subdir="all"):
         super().__init__(max_cache=max_cache)
+        if subdir:
+            dir = os.path.join(dir, subdir)
         self.dir = dir
         self.info = pd.read_csv(os.path.join(dir, file)).to_dict("records")
         self.Tensor = Tensor
@@ -113,18 +115,18 @@ class DatasetDataset(BaseDataset):
     def set_aug_scale(self, aug_scale):
         pass
     
-# Yes it's not cached here
-class MultiSizeDatasetDataset(Dataset):
-    def __init__(self, size_dir_dict, size, **kwargs):
-        self.size_dir_dict = size_dir_dict
+class MultiSizeDatasetDataset(BaseDataset):
+    def __init__(self, dir, size, all="all", **kwargs):
+        self.dir = dir
         self.dataset_kwargrs = kwargs
         self.set_size(size)
+        self.all = all
 
     def set_size(self, size):
-        assert size in self.size_dir_dict
         self.clear_cache()
         self.dataset = DatasetDataset(
-            dir=self.size_dir_dict[size],
+            dir=self.dir,
+            subdir=str(size) if size else str(self.all),
             **self.dataset_kwargrs
         )
         self.size = size
