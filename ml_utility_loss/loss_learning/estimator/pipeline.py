@@ -36,7 +36,7 @@ DATASET_TYPES_NO_VAL = ["synth", "train", "test"]
 DATASET_TYPES_VAL = ["synth", "train", "val", "test"]
 DATASET_INFO_COLS = [*DATASET_TYPES_VAL, "synth_value", "real_value"]
 
-def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv"):
+def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv", i=0):
     mkdir(save_dir)
     target = info["target"]
     task = info["task"]
@@ -45,8 +45,16 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
         cat_features=cat_features
     )
     aug.fit(df)
-    info_out = info_out or pd.DataFrame()
-    for i in range(n):
+    info_path = os.path.join(save_dir, save_info)
+    if not info_out:
+        try:
+            info_out = pd.read_csv(info_path)
+        except FileNotFoundError:
+            info_out = pd.DataFrame()
+    if len(info_out):
+        last_index = info_out.last_valid_index()
+        i = int(last_index.split("_")[0])
+    for i in range(i, n):
         splits = split_df_kfold(
             df, 
             ratio=test,
@@ -97,7 +105,7 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
         df_i = pd.DataFrame(objs, index=indices)
         info_out = pd.concat([info_out, df_i], axis=0)
         info_out[~info_out.index.duplicated(keep='last')]
-        info_out.to_csv(os.path.join(save_dir, save_info))
+        info_out.to_csv(info_path)
     return info_out
 
 
