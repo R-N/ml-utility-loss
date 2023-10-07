@@ -38,7 +38,8 @@ DATASET_INFO_COLS = [*DATASET_TYPES_VAL, "synth_value", "real_value"]
 
 def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv", i=0, size=None, augmenter=None):
     if not size:
-        size = len(df)
+        #size = len(df)
+        save_dir = os.path.join(save_dir, "all")
     if size:
         save_dir = os.path.join(save_dir, str(size))
     mkdir(save_dir)
