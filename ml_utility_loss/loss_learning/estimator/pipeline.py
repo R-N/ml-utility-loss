@@ -2,7 +2,8 @@ import pandas as pd
 import json
 from .preprocessing import DataAugmenter
 import os
-from ...util import mkdir, filter_dict
+from ...util import mkdir, filter_dict, split_df_kfold
+from ..ml_utility.pipeline import eval_ml_utility
 from .model.models import Transformer, MLUtilityWhole
 from torch.utils.data import DataLoader
 from .data import collate_fn
@@ -30,11 +31,77 @@ def augment(df, info, save_dir, n=1, test=0.2):
         if test:
             df_test.to_csv(os.path.join(save_dir, f"{i}_test.csv"))
 
-def augment_2(dataset_name, save_dir, n=1, dataset_dir="datasets"):
+DATASET_TYPES_NO_VAL = ["synth", "train", "test"]
+DATASET_TYPES_VAL = ["synth", "train", "val", "test"]
+DATASET_INFO_COLS = [*DATASET_TYPES_VAL, "synth_value", "real_value"]
+
+def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv"):
+    mkdir(save_dir)
+    target = info["target"]
+    task = info["task"]
+    cat_features = info["cat_features"]
+    aug = DataAugmenter(
+        cat_features=cat_features
+    )
+    aug.fit(df)
+    info_out = info_out or pd.DataFrame()
+    for i in range(n):
+        splits = split_df_kfold(
+            df, 
+            ratio=test,
+            val=val,
+        )
+        objs = []
+        indices = []
+        for j, datasets in enumerate(splits):
+            df_val = None
+            if val:
+                df_train, df_val, df_test = datasets
+            else:
+                df_train, df_test = datasets
+                df_val = df_test
+            df_aug = aug.augment(df_train)
+
+            index = f"{i}_{j}"
+            dataset_types = DATASET_TYPES_VAL
+            obj = {t: f"{index}_{t}.csv" for t in dataset_types}
+            #obj["index"] = index
+
+            aug_value = eval_ml_utility(
+                (df_aug, df_val),
+                task,
+                target=target,
+                cat_features=cat_features,
+                **ml_utility_params
+            )
+            real_value = eval_ml_utility(
+                (df_train, df_val),
+                task,
+                target=target,
+                cat_features=cat_features,
+                **ml_utility_params
+            )
+            obj["synth_value"] = aug_value
+            obj["real_value"] = real_value
+
+            df_aug.to_csv(os.path.join(save_dir, obj["synth"]))
+            df_train.to_csv(os.path.join(save_dir, obj["train"]))
+            df_val.to_csv(os.path.join(save_dir, obj["val"]))
+            df_test.to_csv(os.path.join(save_dir, obj["test"]))
+
+            objs.append(obj)
+            indices.append(index)
+        df_i = pd.DataFrame(objs, index=indices)
+        info_out = pd.concat([info_out, df_i])
+        info_out.to_csv(os.path.join(save_dir, save_info))
+    return info_out
+
+
+def augment_2(dataset_name, save_dir, dataset_dir="datasets", *args, **kwargs):
     df = pd.read_csv(os.path.join(dataset_dir, f"{dataset_name}.csv"))
     with open(os.path.join(dataset_dir, f"{dataset_name}.json")) as f:
         info = json.load(f)
-    augment(df, info, save_dir=os.path.join(save_dir, dataset_name), n=n, test=0.2)
+    augment_kfold(df, info, save_dir=os.path.join(save_dir, dataset_name))
 
 
 def create_model(

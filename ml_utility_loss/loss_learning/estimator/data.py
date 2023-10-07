@@ -66,13 +66,15 @@ class BaseDataset(Dataset):
 
 class DatasetDataset(BaseDataset):
 
-    def __init__(self, dir, file="info.csv", max_cache=None, Tensor=None, mode="shuffle"):
+    def __init__(self, dir, file="info.csv", max_cache=None, Tensor=None, mode="shuffle", train="synth", test="test", value="synth_value"):
         super().__init__(max_cache=max_cache)
         self.dir = dir
         self.info = pd.read_csv(os.path.join(dir, file)).to_dict("records")
         self.Tensor = Tensor
+        self.train = train
+        self.test = test
+        self.value = value
         assert mode in ("shuffle", "sort")
-        self.mode = mode
 
     def __len__(self):
         return len(self.info)
@@ -86,9 +88,9 @@ class DatasetDataset(BaseDataset):
             return self.cache[idx]
 
         info = self.info[idx]
-        train = pd.read_csv(os.path.join(self.dir, info["train"]))
-        test = pd.read_csv(os.path.join(self.dir, info["test"]))
-        y = info["value"]
+        train = pd.read_csv(os.path.join(self.dir, info[self.train]))
+        test = pd.read_csv(os.path.join(self.dir, info[self.test]))
+        y = info[self.value]
 
         if self.mode == "shuffle":
             train, test = shuffle_df(train), shuffle_df(test)
