@@ -26,7 +26,7 @@ def augment(df, info, save_dir, n=1, test=0.2):
             df_test = df.sample(frac=test)
             df_train = df_train[~df_train.index.isin(df_test.index)]
         df_aug = aug.augment(df_train)
-
+        df_aug.drop("aug", axis=1, inplace=True)
         df_aug.to_csv(os.path.join(save_dir, f"{i}_aug.csv"))
         df_train.to_csv(os.path.join(save_dir, f"{i}_train.csv"))
         if test:
