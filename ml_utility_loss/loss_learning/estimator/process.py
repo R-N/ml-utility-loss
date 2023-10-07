@@ -98,7 +98,7 @@ def project_tensor(
     # So we calculate this, resulting in |tensor|*cos(a)
     normal_mag = normal.norm(2, dim=dim, keepdim=True)
     normal_mag = normal_mag.detach() if detach_normal_mag else normal_mag
-    proj_mag = (dot / handle_zero(normal_mag))
+    proj_mag = (dot / handle_zero(normal_mag).detach())
     normal_mag = normal_mag.detach() if detach_normal_mag else normal_mag
     proj_mag = proj_mag.detach() if detach_proj_mag else proj_mag
     # Maybe if one needs the cos
@@ -106,7 +106,7 @@ def project_tensor(
     tensor_mag = tensor.norm(2, dim=dim, keepdim=True)
     tensor_mag = tensor_mag.detach() if detach_tensor_mag else tensor_mag
     if return_type == "cos":
-        cos = proj_mag / handle_zero(tensor_mag)
+        cos = proj_mag / handle_zero(tensor_mag).detach()
         tensor_mag = tensor_mag.detach() if detach_tensor_mag else tensor_mag
         #cos = handle_nan(cos)
         # It's essentially a multiplier so it shares the same flag
@@ -126,9 +126,9 @@ def project_tensor(
             clamp_tensor_mag, 
             tensor_mag_abs
         )
-        proj_mag = proj_mag * tensor_mag_clamped / handle_zero(tensor_mag_abs)
+        proj_mag = proj_mag * tensor_mag_clamped / handle_zero(tensor_mag_abs).detach()
         proj_mag = proj_mag.detach() if detach_proj_mag else proj_mag
-    normal_mul = proj_mag / handle_zero(normal_mag)
+    normal_mul = proj_mag / handle_zero(normal_mag).detach()
     normal_mag = normal_mag.detach() if detach_normal_mag else normal_mag
     #normal_mul = handle_nan(normal_mul)
     normal_mul = normal_mul.detach() if detach_mul else normal_mul
