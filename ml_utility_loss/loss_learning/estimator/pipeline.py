@@ -81,8 +81,10 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
             df_aug = aug.augment(df_train)
 
             index = f"{i}_{j}"
+            save_dir_1 = os.path.join(save_dir, index)
+            mkdir(save_dir_1)
             dataset_types = DATASET_TYPES_VAL
-            obj = {t: f"{index}_{t}.csv" for t in dataset_types}
+            obj = {t: os.path.join(index, f"{t}.csv") for t in dataset_types}
             #obj["index"] = index
             df_aug.drop("aug", axis=1, inplace=True)
             
@@ -104,10 +106,10 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
             obj["synth_value"] = aug_value
             obj["real_value"] = real_value
 
-            df_aug.to_csv(os.path.join(save_dir, obj["synth"]), index=False)
-            df_train.to_csv(os.path.join(save_dir, obj["train"]), index=False)
-            df_val.to_csv(os.path.join(save_dir, obj["val"]), index=False)
-            df_test.to_csv(os.path.join(save_dir, obj["test"]), index=False)
+            df_aug.to_csv(os.path.join(save_dir_1, obj["synth"]), index=False)
+            df_train.to_csv(os.path.join(save_dir_1, obj["train"]), index=False)
+            df_val.to_csv(os.path.join(save_dir_1, obj["val"]), index=False)
+            df_test.to_csv(os.path.join(save_dir_1, obj["test"]), index=False)
 
             objs.append(obj)
             indices.append(index)
