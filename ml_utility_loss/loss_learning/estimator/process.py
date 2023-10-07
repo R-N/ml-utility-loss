@@ -26,6 +26,7 @@ def calc_gradient(inputs, outputs, outputs_grad=None):
     )[0]
     return gradient
 
+"""
 def calc_gradient_2(inputs, outputs, outputs_grad=None):
     if outputs_grad is None and outputs.dim() > 0:
         outputs_grad = torch.ones_like(outputs)
@@ -43,6 +44,7 @@ def handle_nan(tensor):
     if torch.isnan(tensor).any():
         return torch.nan_to_num(tensor, nan=0.0, posinf=0.0, neginf=0.0)
     return tensor
+"""
 
 # This operation is nondifferentiable
 def handle_zero(tensor, inplace=True):
@@ -67,6 +69,7 @@ def clamp_tensor(tensor, loss_clamp, dim=-1, detach_mag=True):
     #tensor = handle_nan(tensor)
     return tensor
 
+"""
 def normalize_tensor(tensor, dim=-1, detach_mag=True):
     # We treat it as a vector, having direction
     # We use keep_dim because we need it to stay (batch, dim) for denominator
@@ -137,6 +140,7 @@ def project_tensor(
     proj = normal * normal_mul
     #proj = handle_nan(proj)
     return proj
+"""
 
 def train_epoch(
     whole_model, 
