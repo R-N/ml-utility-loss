@@ -75,6 +75,7 @@ class DatasetDataset(BaseDataset):
         self.test = test
         self.value = value
         assert mode in ("shuffle", "sort")
+        self.mode = mode
 
     def __len__(self):
         return len(self.info)
