@@ -455,8 +455,8 @@ def train_epoch(
         assert isinstance(non_role_model_g_loss, int) or not torch.isnan(non_role_model_g_loss).any(), f"non_role_model_g_loss has nan"
         non_role_model_loss = non_role_model_embed_loss + non_role_model_g_loss
         non_role_model_loss = (non_role_model_mul * non_role_model_avg_mul) * non_role_model_loss
-        if not val and hasattr(non_role_model_loss, "backward"):
-            non_role_model_loss.backward()
+        #if not val and hasattr(non_role_model_loss, "backward"):
+        #    non_role_model_loss.backward()
             # Zero the rest of the model
             # because we only want the role model to update it
             # whole_model.non_adapter_zero_grad()
@@ -466,12 +466,14 @@ def train_epoch(
         assert isinstance(role_model_g_loss, int) or not torch.isnan(role_model_g_loss).any(), f"role_model_g_loss has nan"
         assert isinstance(role_model_loss, int) or not torch.isnan(role_model_loss).any(), f"role_model_loss has nan"
         role_model_total_loss = role_model_loss + role_model_g_loss
-        if not val:
-            role_model_total_loss.backward()
-
-
+        #if not val:
+        #    role_model_total_loss.backward()
         # Finally, backprop
         batch_loss = role_model_total_loss + non_role_model_loss
+        if not val:
+            batch_loss.backward()
+
+
         # Now we will not call backward on total loss, 
         # But we called on every piece of loss
         if not val:
