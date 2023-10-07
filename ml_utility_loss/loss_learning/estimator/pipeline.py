@@ -36,7 +36,7 @@ DATASET_TYPES_NO_VAL = ["synth", "train", "test"]
 DATASET_TYPES_VAL = ["synth", "train", "val", "test"]
 DATASET_INFO_COLS = [*DATASET_TYPES_VAL, "synth_value", "real_value"]
 
-def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv", i=0, size=None):
+def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv", i=0, size=None, augmenter=None):
     if size:
         save_dir = os.path.join(save_dir, str(size))
     mkdir(save_dir)
@@ -47,10 +47,11 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
     target = info["target"]
     task = info["task"]
     cat_features = info["cat_features"]
-    aug = DataAugmenter(
-        cat_features=cat_features
-    )
-    aug.fit(df)
+    if not augmenter:
+        augmenter = DataAugmenter(
+            cat_features=cat_features
+        )
+        augmenter.fit(df)
     info_path = os.path.join(save_dir, save_info)
     if not info_out:
         try:
@@ -80,7 +81,7 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
             else:
                 df_train, df_test = datasets
                 df_val = df_test
-            df_aug = aug.augment(df_train)
+            df_aug = augmenter.augment(df_train)
 
             index = f"{i}_{j}"
             save_dir_1 = os.path.join(save_dir, index)
@@ -126,7 +127,12 @@ def augment_2(dataset_name, save_dir, dataset_dir="datasets", **kwargs):
     df = pd.read_csv(os.path.join(dataset_dir, f"{dataset_name}.csv"))
     with open(os.path.join(dataset_dir, f"{dataset_name}.json")) as f:
         info = json.load(f)
-    augment_kfold(df, info, save_dir=os.path.join(save_dir, dataset_name), **kwargs)
+    cat_features = info["cat_features"]
+    augmenter = DataAugmenter(
+        cat_features=cat_features
+    )
+    augmenter.fit(df)
+    augment_kfold(df, info, save_dir=os.path.join(save_dir, dataset_name), augmenter=augmenter, **kwargs)
 
 
 def create_model(
