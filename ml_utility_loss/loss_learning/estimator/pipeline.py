@@ -95,7 +95,8 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
             objs.append(obj)
             indices.append(index)
         df_i = pd.DataFrame(objs, index=indices)
-        info_out = pd.concat([info_out, df_i])
+        info_out = pd.concat([info_out, df_i], axis=0)
+        info_out[~info_out.index.duplicated(keep='last')]
         info_out.to_csv(os.path.join(save_dir, save_info))
     return info_out
 
