@@ -58,11 +58,12 @@ def split_df_ratio(df, ratio=0.2, val=False, i=0, seed=None):
         return train_df, val_df, test_df
     return train_df, test_df
 
-def split_df_kfold(df, ratio=0.2, val=False, filter_i=None, seed=None):
+def split_df_kfold(df, ratio=0.2, val=False, filter_i=None, seed=None, return_3=False):
     result = []
     count = int(1.0/ratio)
     splits = [k*ratio for k in range(1, count)]
     splits = split_df(df, splits, seed=seed)
+    n = min([len(s) for s in splits])
 
     for i in range(count):
         if filter_i and i not in filter_i:
@@ -70,12 +71,21 @@ def split_df_kfold(df, ratio=0.2, val=False, filter_i=None, seed=None):
         test_index = (count - 1 + i)%count
         val_index = (test_index - 1)%count if val else None
 
-        test_df = splits[test_index]
-        val_df = splits[val_index] if val else None
-        train_dfs = [s for s in splits if s is not test_df and s is not val_df]
-        train_df = pd.concat(train_dfs)
+        leftovers = []
 
+        test_df = splits[test_index]
+        leftovers.append(test_df[n:])
+        test_df = test_df[:n]
+
+        val_df = test_df
         if val:
+            val_df = splits[val_index]
+            leftovers.append(val_df[n:])
+            val_df = val_df[:n]
+        train_dfs = [s for s in splits if s is not test_df and s is not val_df]
+        train_df = pd.concat(train_dfs + leftovers)
+
+        if val or return_3:
             result.append((train_df, val_df, test_df))
         else:
             result.append((train_df, test_df))
