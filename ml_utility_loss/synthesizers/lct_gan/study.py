@@ -18,7 +18,7 @@ def objective(
     checkpoint_dir=None,
     log_dir=None,
     trial=None,
-    diff=True,
+    diff=False,
     **kwargs
 ):
     train, test = datasets
