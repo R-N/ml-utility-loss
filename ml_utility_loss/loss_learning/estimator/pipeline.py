@@ -48,7 +48,7 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
     info_path = os.path.join(save_dir, save_info)
     if not info_out:
         try:
-            info_out = pd.read_csv(info_path)
+            info_out = pd.read_csv(info_path, index_col=0)
             print(f"Loaded info_out {len(info_out)} {info_out.last_valid_index()}")
         except FileNotFoundError:
             info_out = pd.DataFrame()
