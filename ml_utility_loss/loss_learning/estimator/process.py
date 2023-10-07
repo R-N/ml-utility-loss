@@ -167,7 +167,7 @@ def train_epoch(
     eps=1e-6
 ):
     assert optim or val, "Optimizer must be provided if val is false"
-    torch.autograd.set_detect_anomaly(True)
+    #torch.autograd.set_detect_anomaly(True)
     size = len(train_loader.dataset)
 
     models = models or whole_model.models
@@ -472,14 +472,12 @@ def train_epoch(
         role_model_total_loss = role_model_loss + role_model_g_loss
         #if not val:
         #    role_model_total_loss.backward()
+
         # Finally, backprop
         batch_loss = role_model_total_loss + non_role_model_loss
         if not val:
             batch_loss.backward()
 
-
-        # Now we will not call backward on total loss, 
-        # But we called on every piece of loss
         if not val:
             if grad_clip:
                 clip_grad_norm_(whole_model.parameters(), grad_clip)
