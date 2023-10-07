@@ -47,7 +47,7 @@ def handle_nan(tensor):
 """
 
 # This operation is nondifferentiable
-def handle_zero(tensor, inplace=True):
+def handle_zero(tensor, inplace=False):
     flag = tensor == 0
     if flag.any():
         if not inplace:
