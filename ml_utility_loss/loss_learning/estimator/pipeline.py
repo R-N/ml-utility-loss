@@ -67,7 +67,7 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
             dataset_types = DATASET_TYPES_VAL
             obj = {t: f"{index}_{t}.csv" for t in dataset_types}
             #obj["index"] = index
-
+            df_aug.drop("aug", axis=1, inplace=True)
             print(df_aug.columns, df_train.columns, df_val.columns)
 
             aug_value = eval_ml_utility(
