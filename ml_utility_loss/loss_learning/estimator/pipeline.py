@@ -36,7 +36,7 @@ DATASET_TYPES_NO_VAL = ["synth", "train", "test"]
 DATASET_TYPES_VAL = ["synth", "train", "val", "test"]
 DATASET_INFO_COLS = [*DATASET_TYPES_VAL, "synth_value", "real_value"]
 
-def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv", i=0):
+def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv", i=0, size=None):
     mkdir(save_dir)
     target = info["target"]
     task = info["task"]
@@ -56,9 +56,12 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
         last_index = info_out.last_valid_index()
         i = int(last_index.split("_")[0]) + 1
         print(f"Set i to {i}")
+    if size:
+        size = min(size, len(df))
     for i in range(i, n):
+        df_1 = df.sample(n=size) if size else df
         splits = split_df_kfold(
-            df, 
+            df_1, 
             ratio=test,
             val=val,
         )
