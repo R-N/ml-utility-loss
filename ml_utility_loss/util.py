@@ -64,6 +64,7 @@ def split_df_kfold(df, ratio=0.2, val=False, filter_i=None, seed=None, return_3=
     splits = [k*ratio for k in range(1, count)]
     splits = split_df(df, splits, seed=seed)
     n = min([len(s) for s in splits])
+    n_train = len(df) - ((2 if val else 1) * n)
 
     for i in range(count):
         if filter_i and i not in filter_i:
@@ -84,6 +85,10 @@ def split_df_kfold(df, ratio=0.2, val=False, filter_i=None, seed=None, return_3=
         test_df = test_df[:n]
         val_df = val_df[:n]
         train_df = pd.concat(train_dfs + leftovers)
+
+        assert len(test_df) == n, f"Invalid test length {len(test_df)} should be {n}"
+        assert len(val_df) == n, f"Invalid val length {len(val_df)} should be {n}"
+        assert len(train_df) == n_train, f"Invalid train length {len(train_df)} should be {n_train}"
 
         if val or return_3:
             result.append((train_df, val_df, test_df))
