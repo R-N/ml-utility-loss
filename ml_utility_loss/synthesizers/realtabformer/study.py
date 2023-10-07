@@ -40,13 +40,21 @@ def objective(
     synth = rtf_model.sample(n_samples=len(train))
 
     try:
-        value = eval_ml_utility(
+        synth_value = eval_ml_utility(
             (synth, test),
             task,
             target=target,
             cat_features=cat_features,
             **ml_utility_params
         )
+        real_value = eval_ml_utility(
+            (train, test),
+            task,
+            target=target,
+            cat_features=cat_features,
+            **ml_utility_params
+        )
+        value=abs(synth_value-real_value)
     except CatBoostError:
         raise TrialPruned()
 
