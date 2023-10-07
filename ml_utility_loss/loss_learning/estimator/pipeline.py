@@ -4,6 +4,7 @@ from .preprocessing import DataAugmenter
 import os
 from ...util import mkdir, filter_dict, split_df_kfold
 from ..ml_utility.pipeline import eval_ml_utility
+from ...params import GradientPenaltyMode
 from .model.models import Transformer, MLUtilityWhole
 from torch.utils.data import DataLoader
 from .data import collate_fn
@@ -173,57 +174,6 @@ def create_model(
     )
     return whole_model
 
-class GradientPenaltyMode:
-    NONE = {
-        "gradient_penalty": False,
-        "forward_once": False,
-        "calc_grad_m": False,
-        "avg_non_role_model_m": False,
-        "inverse_avg_non_role_model_m": False,
-    }
-    ALL = {
-        "gradient_penalty": True,
-        "forward_once": False,
-        "calc_grad_m": False,
-        "avg_non_role_model_m": False,
-        "inverse_avg_non_role_model_m": False,
-    }
-    ONCE = {
-        "gradient_penalty": True,
-        "forward_once": True,
-        "calc_grad_m": False,
-        "avg_non_role_model_m": False,
-        "inverse_avg_non_role_model_m": False,
-    }
-    ESTIMATE = {
-        "gradient_penalty": True,
-        "forward_once": True,
-        "calc_grad_m": True,
-        "avg_non_role_model_m": False,
-        "inverse_avg_non_role_model_m": False,
-    }
-    AVERAGE_NO_MUL = {
-        "gradient_penalty": True,
-        "forward_once": True,
-        "calc_grad_m": True,
-        "avg_non_role_model_m": True,
-        "inverse_avg_non_role_model_m": False,
-    }
-    AVERAGE_MUL = {
-        "gradient_penalty": True,
-        "forward_once": True,
-        "calc_grad_m": True,
-        "avg_non_role_model_m": True,
-        "inverse_avg_non_role_model_m": True,
-    }
-    DICT = {
-        "NONE": NONE,
-        "ALL": ALL,
-        "ONCE": ONCE,
-        "ESTIMATE": ESTIMATE,
-        "AVERAGE_NO_MUL": AVERAGE_NO_MUL,
-        "AVERAGE_MUL": AVERAGE_MUL
-    }
     
 
 def train(

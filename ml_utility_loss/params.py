@@ -5,7 +5,59 @@ import sklearn.metrics
 from entmax import sparsemax, entmax15, Sparsemax, Entmax15
 from alpharelu import relu15, ReLU15
 import torch.nn.functional as F
-from .loss_learning.estimator.pipeline import GradientPenaltyMode
+
+
+class GradientPenaltyMode:
+    NONE = {
+        "gradient_penalty": False,
+        "forward_once": False,
+        "calc_grad_m": False,
+        "avg_non_role_model_m": False,
+        "inverse_avg_non_role_model_m": False,
+    }
+    ALL = {
+        "gradient_penalty": True,
+        "forward_once": False,
+        "calc_grad_m": False,
+        "avg_non_role_model_m": False,
+        "inverse_avg_non_role_model_m": False,
+    }
+    ONCE = {
+        "gradient_penalty": True,
+        "forward_once": True,
+        "calc_grad_m": False,
+        "avg_non_role_model_m": False,
+        "inverse_avg_non_role_model_m": False,
+    }
+    ESTIMATE = {
+        "gradient_penalty": True,
+        "forward_once": True,
+        "calc_grad_m": True,
+        "avg_non_role_model_m": False,
+        "inverse_avg_non_role_model_m": False,
+    }
+    AVERAGE_NO_MUL = {
+        "gradient_penalty": True,
+        "forward_once": True,
+        "calc_grad_m": True,
+        "avg_non_role_model_m": True,
+        "inverse_avg_non_role_model_m": False,
+    }
+    AVERAGE_MUL = {
+        "gradient_penalty": True,
+        "forward_once": True,
+        "calc_grad_m": True,
+        "avg_non_role_model_m": True,
+        "inverse_avg_non_role_model_m": True,
+    }
+    DICT = {
+        "NONE": NONE,
+        "ALL": ALL,
+        "ONCE": ONCE,
+        "ESTIMATE": ESTIMATE,
+        "AVERAGE_NO_MUL": AVERAGE_NO_MUL,
+        "AVERAGE_MUL": AVERAGE_MUL
+    }
 
 def total_f1(y_true, y_pred):
     # ValueError: Mix of label input types (string and number)
