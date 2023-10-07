@@ -37,13 +37,13 @@ DATASET_TYPES_VAL = ["synth", "train", "val", "test"]
 DATASET_INFO_COLS = [*DATASET_TYPES_VAL, "synth_value", "real_value"]
 
 def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv", i=0, size=None, augmenter=None):
+    if not size:
+        size = len(df)
     if size:
         save_dir = os.path.join(save_dir, str(size))
     mkdir(save_dir)
     if size:
         size = min(size, len(df))
-    else:
-        size = len(df)
     target = info["target"]
     task = info["task"]
     cat_features = info["cat_features"]
