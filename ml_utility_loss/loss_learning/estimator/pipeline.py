@@ -12,7 +12,7 @@ import torch
 from .process import train_epoch, eval as _eval
 from torch import nn
 import torch.nn.functional as F
-from enum import Enum
+import math
 
 def augment(df, info, save_dir, n=1, test=0.2):
     mkdir(save_dir)
@@ -122,8 +122,11 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
         info_out.to_csv(info_path)
     return info_out
 
+def generate_sizes(n, low=32, exp=2):
+    steps = math.ceil(math.log(n/low, exp) + 1)
+    return [low*(exp**i) for i in range(steps)]
 
-def augment_2(dataset_name, save_dir, dataset_dir="datasets", augmenter=None, sizes=None, **kwargs):
+def augment_2(dataset_name, save_dir, dataset_dir="datasets", augmenter=None, sizes=None, size_low=32, size_exp=2, **kwargs):
     df = pd.read_csv(os.path.join(dataset_dir, f"{dataset_name}.csv"))
     with open(os.path.join(dataset_dir, f"{dataset_name}.json")) as f:
         info = json.load(f)
@@ -133,6 +136,8 @@ def augment_2(dataset_name, save_dir, dataset_dir="datasets", augmenter=None, si
             cat_features=cat_features
         )
         augmenter.fit(df)
+    if sizes == True:
+        sizes = generate_sizes(len(df), low=size_low, exp=size_exp)
     if sizes:
         for size in sizes:
             augment_kfold(
