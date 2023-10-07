@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 import gc
-from ..util import stack_samples, stack_sample_dicts
+from ...util import stack_samples, stack_sample_dicts
 from torch.nn.utils import clip_grad_norm_
 
 Tensor = torch.FloatTensor
@@ -26,6 +26,7 @@ def calc_gradient(inputs, outputs, outputs_grad=None):
     )[0]
     return gradient
 
+"""
 def calc_gradient_2(inputs, outputs, outputs_grad=None):
     if outputs_grad is None and outputs.dim() > 0:
         outputs_grad = torch.ones_like(outputs)
@@ -43,9 +44,10 @@ def handle_nan(tensor):
     if torch.isnan(tensor).any():
         return torch.nan_to_num(tensor, nan=0.0, posinf=0.0, neginf=0.0)
     return tensor
+"""
 
 # This operation is nondifferentiable
-def handle_zero(tensor, inplace=True):
+def handle_zero(tensor, inplace=False):
     flag = tensor == 0
     if flag.any():
         if not inplace:
@@ -63,17 +65,18 @@ def clamp_tensor(tensor, loss_clamp, dim=-1, detach_mag=True):
     tensor_mag = torch.clamp(tensor_mag, min=loss_clamp)
     tensor_mag = handle_zero(tensor_mag)
     tensor_mag = tensor_mag.detach() if detach_mag else tensor_mag
-    tensor /= tensor_mag
+    tensor = tensor / tensor_mag
     #tensor = handle_nan(tensor)
     return tensor
 
+"""
 def normalize_tensor(tensor, dim=-1, detach_mag=True):
     # We treat it as a vector, having direction
     # We use keep_dim because we need it to stay (batch, dim) for denominator
     tensor_mag = tensor.norm(2, dim=dim, keepdim=True)
     tensor_mag = handle_zero(tensor_mag)
     tensor_mag = tensor_mag.detach() if detach_mag else tensor_mag
-    tensor /= tensor_mag
+    tensor = tensor / tensor_mag
     #tensor = handle_nan(tensor)
     return tensor
 
@@ -98,7 +101,7 @@ def project_tensor(
     # So we calculate this, resulting in |tensor|*cos(a)
     normal_mag = normal.norm(2, dim=dim, keepdim=True)
     normal_mag = normal_mag.detach() if detach_normal_mag else normal_mag
-    proj_mag = (dot / handle_zero(normal_mag))
+    proj_mag = (dot / handle_zero(normal_mag).detach())
     normal_mag = normal_mag.detach() if detach_normal_mag else normal_mag
     proj_mag = proj_mag.detach() if detach_proj_mag else proj_mag
     # Maybe if one needs the cos
@@ -106,7 +109,7 @@ def project_tensor(
     tensor_mag = tensor.norm(2, dim=dim, keepdim=True)
     tensor_mag = tensor_mag.detach() if detach_tensor_mag else tensor_mag
     if return_type == "cos":
-        cos = proj_mag / handle_zero(tensor_mag)
+        cos = proj_mag / handle_zero(tensor_mag).detach()
         tensor_mag = tensor_mag.detach() if detach_tensor_mag else tensor_mag
         #cos = handle_nan(cos)
         # It's essentially a multiplier so it shares the same flag
@@ -126,9 +129,9 @@ def project_tensor(
             clamp_tensor_mag, 
             tensor_mag_abs
         )
-        proj_mag *= tensor_mag_clamped / handle_zero(tensor_mag_abs)
+        proj_mag = proj_mag * tensor_mag_clamped / handle_zero(tensor_mag_abs).detach()
         proj_mag = proj_mag.detach() if detach_proj_mag else proj_mag
-    normal_mul = proj_mag / handle_zero(normal_mag)
+    normal_mul = proj_mag / handle_zero(normal_mag).detach()
     normal_mag = normal_mag.detach() if detach_normal_mag else normal_mag
     #normal_mul = handle_nan(normal_mul)
     normal_mul = normal_mul.detach() if detach_mul else normal_mul
@@ -137,6 +140,7 @@ def project_tensor(
     proj = normal * normal_mul
     #proj = handle_nan(proj)
     return proj
+"""
 
 def train_epoch(
     whole_model, 
@@ -153,13 +157,17 @@ def train_epoch(
     fixed_role_model="lct_gan",
     forward_once=True,
     calc_grad_m=True,
+    avg_non_role_model_m=True,
+    inverse_avg_non_role_model_m=True,
     gradient_penalty=True,
     loss_clamp=1.0,
     grad_clip=1.0,
     models = None,
-    head="mlu"
+    head="mlu",
+    eps=1e-6
 ):
     assert optim or val, "Optimizer must be provided if val is false"
+    #torch.autograd.set_detect_anomaly(True)
     size = len(train_loader.dataset)
 
     models = models or whole_model.models
@@ -204,8 +212,9 @@ def train_epoch(
         for model, (train, test, y) in batch_dict.items():
             # train needs to require grad for gradient penalty computation
             # should I zero and make it not require grad later?
+            train = train.clone()
             train = train.detach()
-            train.grad = None
+            # train.grad = None
             train.requires_grad_()
             compute = computes[model]
             # calculate intermediate tensor for later use
@@ -216,22 +225,56 @@ def train_epoch(
             compute["m"] = m
 
             compute["m_test"] = m_test = whole_model.adapters[model](test)
+            
+            assert not torch.isnan(m).any(), f"{model} m has nan"
+            assert not torch.isnan(m_test).any(), f"{model} m_test has nan"
 
-            if forward_once and role_model and model != role_model:
-                continue
             # Somehow y keeps being 64 bit tensor
             # I have no idea what went wrong, I converted it in dataset
             # So yeah this is a workaround
             y = y.to(torch.float32)
+            compute["y"] = y
+
+        model_2 = [m for m in models if m != role_model][0]
+
+        # We calculate average m of non role models to do one forward pass for all of them
+        avg_compute = {}
+        computes_1 = computes
+        if forward_once and role_model and avg_non_role_model_m:
+            compute = avg_compute
+            compute["y"] = computes[model_2]["y"]
+            non_role_model_computes = [v for k, v in computes.items() if k != role_model]
+            m_s = [c["m"] for c in non_role_model_computes]
+            m_test_s = [c["m_test"] for c in non_role_model_computes]
+            m = torch.mean(torch.stack(m_s), dim=0)
+            m.requires_grad_()
+            m_test = torch.mean(torch.stack(m_test_s), dim=0)
+            compute["m"] = m
+            compute["m_test"] = m_test
+            computes_1 = {**computes, "avg_non_role_model": compute}
+
+        for model, compute in computes_1.items():
+            if forward_once and role_model and model not in (role_model, "avg_non_role_model"):
+                continue
             # make prediction using intermediate tensor
+            model_1 = model
+            if model == "avg_non_role_model":
+                model_1 = None
+            m = compute["m"]
+            m_test = compute["m_test"]
             pred = whole_model(
                 m, m_test, 
-                model=model, head=head, 
+                model=model_1, 
+                head=head, 
                 skip_train_adapter=True,
                 skip_test_adapter=True
             )
+
+            assert not torch.isnan(pred).any(), f"{model} prediction has nan"
             # none reduction to retain the batch shape
+            y = compute["y"]
             compute["loss"] = loss = loss_fn(pred, y, reduction="none")
+            assert not torch.isnan(loss).any(), f"{model} main loss has nan"
             # Partial gradient chain rule doesn't work so conveniently
             # Due to shape changes along forward pass
             # So we'll just calculate the whole gradient 
@@ -244,9 +287,11 @@ def train_epoch(
                 if calc_grad_m:
                     # It may be unfair to propagate gradient penalty only for role model adapter
                     # So maybe do it only up to m
-                    compute["grad"] = calc_gradient(m, loss)
+                    compute["grad"] = grad = calc_gradient(m, loss)
                 else:
-                    compute["grad"] = calc_gradient(train, loss)
+                    train = compute["train"]
+                    compute["grad"] = grad = calc_gradient(train, loss)
+                assert not torch.isnan(grad).any(), f"{model} grad has nan"
 
         if role_model and (fixed_role_model or forward_once):
             role_model_compute = computes[role_model]
@@ -256,6 +301,8 @@ def train_epoch(
                 computes.items(), 
                 key=lambda item: reduction(item[-1]["loss"]).item()
             )
+            model_2 = [m for m in models if m != role_model][0]
+
         role_model_loss = reduction(role_model_compute["loss"])
 
         non_role_model_embed_loss = 0
@@ -279,7 +326,7 @@ def train_epoch(
                 # We reuse the previous intermediate tensor
                 # Don't detach this one
                 m = compute["m"]
-                m.requires_grad_()
+                #m.requires_grad_()
                 embed_pred = torch.cat([
                     m, 
                     compute["m_test"]
@@ -297,8 +344,11 @@ def train_epoch(
                 
                 # Again we'll take the norm because it is a vector
                 # But no keep_dim so it results in (batch)
+                embed_loss = embed_loss + eps
                 embed_loss = embed_loss.norm(2, dim=-1)
                 embed_loss = reduction(embed_loss)
+
+                assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan"
 
                 compute["embed_loss"] = embed_loss
 
@@ -315,43 +365,58 @@ def train_epoch(
         if gradient_penalty:
             for model, compute in computes.items():
                 # If forward_once is true, grad will only exist for the role model
-                if "grad" not in compute and not calc_grad_m:
+                if "grad" not in compute and not calc_grad_m and not avg_non_role_model_m:
+                    continue
+                # This doesn't stand on its own
+                if model == "avg_non_role_model":
                     continue
                 # the grad at m is empty and detaching m won't do anything
-                grad_compute = compute if "grad" in compute else role_model_compute
+                if "grad" in compute:
+                    grad_compute = compute
+                elif avg_non_role_model_m:
+                    # We use the gradient of averaged m
+                    grad_compute = avg_compute
+                else:
+                    grad_compute = role_model_compute
                 loss = grad_compute["loss"]
-                grad_mul = 1
                 if calc_grad_m: # It's not dbody/dx yet but intermediate dbody/dadapter
                     dbody_dadapter = grad_compute["grad"]
                     m = compute["m"]
                     if model != role_model:
                         dbody_dadapter = dbody_dadapter.detach()
-                        # The embedding is a point, not a vector
-                        # Thus we shouldn't be using cos or dot product to decide
-                        # Their similarity
-                        # Meanwhile, gradient is where the point should move
-                        # So we add the direction of where the embedding should move
-                        # That is towards the role model embedding
-                        # Using the gradient of embedding loss at m
-                        # Does this make sense?
-                        m_grad = m.grad
-                        if not m_grad:
+                        if avg_non_role_model_m:
+                            # We calculate the actual gradient at m from the average
+                            dbody_dadapter = calc_gradient(m, grad_compute["m"], dbody_dadapter)
+                            if inverse_avg_non_role_model_m:
+                                # Since it was an average, we multiply it by the model count
+                                dbody_dadapter = non_role_model_count * dbody_dadapter
+                            dbody_dadapter = dbody_dadapter.detach()
+                        else:
+                            # The embedding is a point, not a vector
+                            # Thus we shouldn't be using cos or dot product to decide
+                            # Their similarity
+                            # Meanwhile, gradient is where the point should move
+                            # So we add the direction of where the embedding should move
+                            # That is towards the role model embedding
+                            # Using the gradient of embedding loss at m
+                            # Does this make sense?
+                            assert not hasattr(m, "grad") or m.grad is None or m.grad == 0, "m has grad"
                             m_grad = calc_gradient(m, compute["embed_loss"])
-                        # Zero out the grad of m because later we'll
-                        # call backward on embed loss
-                        # If this isn't done, it may get doubled
-                        m.grad = None
-                        dbody_dadapter += m_grad
-                        dbody_dadapter = dbody_dadapter.detach()
+                            dbody_dadapter = dbody_dadapter + m_grad
+                            dbody_dadapter = dbody_dadapter.detach()
+
+                    assert not torch.isnan(dbody_dadapter).any(), f"{model} dbody_dadapter has nan"
                     train = compute["train"]
                     dbody_dx = calc_gradient(train, m, dbody_dadapter)
                 else:
                     dbody_dx = grad_compute["grad"]
+                assert not torch.isnan(dbody_dx).any(), f"{model} dbody_dx has nan"
                 # The gradient is of shape (batch, size, dim)
                 # Sum gradient over the size dimension, resulting in (batch, dim)
                 dbody_dx = torch.sum(dbody_dx, dim=-2)
                 # Calculate the magnitude of the gradient
                 # No keep_dim, so this results in (batch)
+                dbody_dx = dbody_dx + eps
                 dbody_dx_norm = dbody_dx.norm(2, dim=-1)
                 # because we want to model this model as squared error, 
                 # the expected gradient g is 2*sqrt(loss)
@@ -367,6 +432,7 @@ def train_epoch(
                 # Okay so apparently for non role model, the g_loss is always 0
                 # This needs to be fixed
                 compute["g_loss"] = g_loss
+                assert not torch.isnan(g_loss).any(), f"{model} g_loss has nan"
 
             # If forward_once, this will be 0 and the other computes won't have g_loss
             if not forward_once or calc_grad_m:
@@ -381,25 +447,29 @@ def train_epoch(
         # But we only want g_loss from role model to populate the rest (non-adapter) of the model
         # So first we'll call backward on non-rolemodel
         # and zero the grads of the rest of the model
+        assert isinstance(non_role_model_embed_loss, int) or not torch.isnan(non_role_model_embed_loss).any(), f"non_role_model_embed_loss has nan"
+        assert isinstance(non_role_model_g_loss, int) or not torch.isnan(non_role_model_g_loss).any(), f"non_role_model_g_loss has nan"
         non_role_model_loss = non_role_model_embed_loss + non_role_model_g_loss
         non_role_model_loss = (non_role_model_mul * non_role_model_avg_mul) * non_role_model_loss
-        if not val and hasattr(non_role_model_loss, "backward"):
-            non_role_model_loss.backward()
+        #if not val and hasattr(non_role_model_loss, "backward"):
+        #    non_role_model_loss.backward()
             # Zero the rest of the model
             # because we only want the role model to update it
-            whole_model.non_adapter_zero_grad()
+            # whole_model.non_adapter_zero_grad()
 
         # Now we backward the role model
         role_model_g_loss = reduction(role_model_compute["g_loss"]) if gradient_penalty else 0
+        assert isinstance(role_model_g_loss, int) or not torch.isnan(role_model_g_loss).any(), f"role_model_g_loss has nan"
+        assert isinstance(role_model_loss, int) or not torch.isnan(role_model_loss).any(), f"role_model_loss has nan"
         role_model_total_loss = role_model_loss + role_model_g_loss
-        if not val:
-            role_model_total_loss.backward()
-
+        #if not val:
+        #    role_model_total_loss.backward()
 
         # Finally, backprop
         batch_loss = role_model_total_loss + non_role_model_loss
-        # Now we will not call backward on total loss, 
-        # But we called on every piece of loss
+        if not val:
+            batch_loss.backward()
+
         if not val:
             if grad_clip:
                 clip_grad_norm_(whole_model.parameters(), grad_clip)

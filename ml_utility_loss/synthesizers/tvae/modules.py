@@ -1,6 +1,5 @@
 
 from torch.nn import Linear, Module, Parameter, ReLU, Sequential
-from torch.nn.functional import cross_entropy
 import torch
 
 

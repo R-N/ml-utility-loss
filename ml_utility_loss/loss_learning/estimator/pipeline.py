@@ -1,10 +1,8 @@
 import pandas as pd
-from catboost import Pool
 import json
 from .preprocessing import DataAugmenter
 import os
-from ..util import mkdir, filter_dict
-from .ml_utility import CatBoostModel, create_pool
+from ...util import mkdir, filter_dict
 from .model.models import Transformer, MLUtilityWhole
 from torch.utils.data import DataLoader
 from .data import collate_fn
@@ -12,6 +10,7 @@ import torch
 from .process import train_epoch, eval as _eval
 from torch import nn
 import torch.nn.functional as F
+from enum import Enum
 
 def augment(df, info, save_dir, n=1, test=0.2):
     mkdir(save_dir)
@@ -37,35 +36,6 @@ def augment_2(dataset_name, save_dir, n=1, dataset_dir="datasets"):
         info = json.load(f)
     augment(df, info, save_dir=os.path.join(save_dir, dataset_name), n=n, test=0.2)
 
-def eval_ml_utility(
-    datasets,
-    task,
-    checkpoint_dir=None,
-    target=None,
-    cat_features=[],
-    **model_params
-):
-    while True:
-        try:
-            train, test = datasets
-
-            model = CatBoostModel(
-                task=task,
-                checkpoint_dir=checkpoint_dir,
-                **model_params
-            )
-
-            if not isinstance(train, Pool):
-                train = create_pool(train, target=target, cat_features=cat_features)
-            if not isinstance(test, Pool):
-                test = create_pool(test, target=target, cat_features=cat_features)
-
-            model.fit(train, test)
-
-            value = model.eval(test)
-            return value
-        except PermissionError:
-            pass
 
 def create_model(
     adapters,
@@ -130,11 +100,64 @@ def create_model(
             "n_head": head_n_head,  
             "dropout": dropout, 
             "activation": head_activation,
-            "skip_small": skip_small,
+            #"skip_small": skip_small,
             "softmax": softmax,
         }
     )
     return whole_model
+
+class GradientPenaltyMode:
+    NONE = {
+        "gradient_penalty": False,
+        "forward_once": False,
+        "calc_grad_m": False,
+        "avg_non_role_model_m": False,
+        "inverse_avg_non_role_model_m": False,
+    }
+    ALL = {
+        "gradient_penalty": True,
+        "forward_once": False,
+        "calc_grad_m": False,
+        "avg_non_role_model_m": False,
+        "inverse_avg_non_role_model_m": False,
+    }
+    ONCE = {
+        "gradient_penalty": True,
+        "forward_once": True,
+        "calc_grad_m": False,
+        "avg_non_role_model_m": False,
+        "inverse_avg_non_role_model_m": False,
+    }
+    ESTIMATE = {
+        "gradient_penalty": True,
+        "forward_once": True,
+        "calc_grad_m": True,
+        "avg_non_role_model_m": False,
+        "inverse_avg_non_role_model_m": False,
+    }
+    AVERAGE_NO_MUL = {
+        "gradient_penalty": True,
+        "forward_once": True,
+        "calc_grad_m": True,
+        "avg_non_role_model_m": True,
+        "inverse_avg_non_role_model_m": False,
+    }
+    AVERAGE_MUL = {
+        "gradient_penalty": True,
+        "forward_once": True,
+        "calc_grad_m": True,
+        "avg_non_role_model_m": True,
+        "inverse_avg_non_role_model_m": True,
+    }
+    DICT = {
+        "NONE": NONE,
+        "ALL": ALL,
+        "ONCE": ONCE,
+        "ESTIMATE": ESTIMATE,
+        "AVERAGE_NO_MUL": AVERAGE_NO_MUL,
+        "AVERAGE_MUL": AVERAGE_MUL
+    }
+    
 
 def train(
     # Dataset args
@@ -157,12 +180,12 @@ def train(
     grad_loss_mul=1.0,
     loss_fn=F.mse_loss,
     fixed_role_model="lct_gan",
-    forward_once=True,
-    calc_grad_m=True,
-    gradient_penalty=True,
+    gradient_penalty_mode=GradientPenaltyMode.AVERAGE_MUL,
     loss_clamp=1.0,
     grad_clip=1.0,
     head="mlu",
+    verbose=True,
+    epoch_callback=None,
     **model_args
 ):
     if len(datasets) == 3:
@@ -219,21 +242,26 @@ def train(
             grad_loss_fn=loss_fn,
             adapter_loss_fn=loss_fn,
             fixed_role_model=fixed_role_model,
-            forward_once=forward_once,
-            calc_grad_m=calc_grad_m,
-            gradient_penalty=gradient_penalty,
             loss_clamp=loss_clamp,
             grad_clip=grad_clip,
             head=head,
+            **gradient_penalty_mode,
         )
     
     for i in range(i, i+epochs):
         train_loss = train_epoch_(train_loader)
         val_loss = train_epoch_(val_loader, val=True)
 
-        print("Epoch", i)
-        print("Train loss", train_loss)
-        print("Val loss", val_loss)
+        if verbose:
+            print("Epoch", i)
+            print("Train loss", train_loss)
+            print("Val loss", val_loss)
+        if epoch_callback:
+            epoch_callback(
+                epoch=i,
+                train_loss=train_loss,
+                val_loss=val_loss,
+            )
 
     eval_loss = eval(
         test_set, whole_model,

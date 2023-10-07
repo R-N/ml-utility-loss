@@ -1,9 +1,4 @@
-from .pipeline import eval_ml_utility
-from catboost import CatBoostError
-from optuna.exceptions import TrialPruned
-from ..util import filter_dict
-from .pipeline import train as _train, eval as _eval
-from ..params import BOOLEAN
+from ....params import BOOLEAN
 
 PARAM_SPACE = {
     # Dataset args
@@ -19,18 +14,28 @@ PARAM_SPACE = {
     "grad_loss_mul": ("float", 0.1, 1.5),
     "loss_fn": ("loss", ["mse", "mae", "huber"]),
     "fixed_role_model": ("categorical", [
-        None, "tvae", "lct_gan", "lct_gan_latent", "tab_ddpm_concat", "realtabformer"
+        None, 
+        "tvae", 
+        "lct_gan", 
+        "lct_gan_latent", 
+        "tab_ddpm_concat", 
+        "realtabformer"
     ]),
-    "forward_once": BOOLEAN,
-    "calc_grad_m": BOOLEAN,
-    "gradient_penalty": BOOLEAN,
+    "gradient_penalty_mode": ("gradient_penalty_mode", [
+        "NONE",
+        "ALL",
+        "ONCE",
+        "ESTIMATE",
+        "AVERAGE_NO_MUL",
+        "AVERAGE_MUL"
+    ]),
     # Common model args
     "d_model": ("int_exp_2", 8, 128), 
     "dropout": ("float", 0.0, 0.2), 
     "softmax": ("softmax", ["softmax", "relu15"]),
     "flip": BOOLEAN,
     "skip_small": BOOLEAN,
-    "loss_clamp": ("bool_log_float", 0.5, 10.0),
+    "loss_clamp": ("log_float", 0.5, 10.0),
     # Transformer args
     "tf_num_inds": ("int_exp_2", 8, 64),
     "tf_d_inner": ("int_exp_2", 32, 128),
@@ -48,7 +53,10 @@ PARAM_SPACE = {
     "ada_d_hid": ("int_exp_2", 8, 64), 
     "ada_n_layers": ("int", 2, 8), 
     "ada_activation": ("activation", [
-        "tanh", "sigmoid", "relu", "leakyrelu", "elu", "selu", "gelu", "identity"
+        "tanh", "sigmoid", 
+        "relu", "leakyrelu", 
+        "elu", "selu", "gelu", 
+        "identity"
     ]),
     # Head args
     "head_n_seeds": ("int_exp_2", 1, 8),
@@ -56,40 +64,9 @@ PARAM_SPACE = {
     "head_n_layers": ("int", 2, 8), 
     "head_n_head": ("int_exp_2", 2, 16),
     "head_activation": ("activation", [
-        "tanh", "sigmoid", "relu", "leakyrelu", "elu", "selu", "gelu", "identity"
+        "tanh", "sigmoid", 
+        "relu", "leakyrelu", 
+        "elu", "selu", "gelu", 
+        "identity"
     ]),
 }
-
-
-def objective(
-    datasets,
-    preprocessor,
-    checkpoint_dir=None,
-    log_dir=None,
-    trial=None,
-    **kwargs
-):
-    tf_pma = kwargs.pop("tf_pma")
-    if tf_pma:
-        kwargs.update(tf_pma)
-
-    try:
-        train_results = _train(
-            datasets,
-            preprocessor,
-            **kwargs
-        )
-    except AssertionError as ex:
-        msg = str(ex)
-        if "Invalid attention dim and n_head" in msg:
-            print(f"AssertionError: {msg}")
-            raise TrialPruned()
-        if "has nan" in msg:
-            print(f"AssertionError: {msg}")
-            raise TrialPruned()
-        raise
-
-    whole_model = train_results["whole_model"]
-    eval_loss = train_results["eval_loss"]
-
-    return eval_loss["avg_loss"]

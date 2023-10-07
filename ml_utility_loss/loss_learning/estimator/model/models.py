@@ -6,7 +6,6 @@ from alpharelu import relu15, ReLU15
 import math
 from .layers import EncoderLayer, DecoderLayer
 from .modules import PoolingByMultiheadAttention, FeedForward
-from ...util import Cache
 import inspect
 
 
@@ -254,7 +253,6 @@ class Head(nn.Module):
         dropout=0.1, 
         activation=nn.Sigmoid,
         final_activation=nn.Sigmoid,
-        skip_small=True,
         softmax=nn.Softmax,
     ):
         super().__init__()
@@ -264,7 +262,8 @@ class Head(nn.Module):
             n_head, 
             d_model, 
             d_qk=d_qk, 
-            dropout=dropout, skip_small=skip_small,
+            dropout=dropout, 
+            skip_small=False,
             softmax=softmax,
         )
         def Linear(
@@ -292,7 +291,9 @@ class Head(nn.Module):
         x = x.flatten(-2, -1)
         y = self.linear(x)
         y = self.final_activation(y)
-        assert torch.max(y) <= 1.0 and torch.min(y) >= 0.0
+        if not torch.isnan(y).any():
+            y_max, y_min = torch.max(y), torch.min(y)
+            assert y_max <= 1.0 and y_min >= 0.0, f"Invalid sigmoid range: {(y_min, y_max)}"
         y = y.squeeze(dim=-1)
         if return_attns:
             return y, pma_attn
@@ -488,7 +489,7 @@ class MLUtilityWhole(nn.Module):
             return self.cache[idx]
 
         single = MLUtilitySingle(
-            adapter=self.adapters[model],
+            adapter=self.adapters[model] if model else None,
             body=self.body,
             head=self.heads[head]
         )
