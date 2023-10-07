@@ -75,14 +75,14 @@ def split_df_kfold(df, ratio=0.2, val=False, filter_i=None, seed=None, return_3=
 
         test_df = splits[test_index]
         leftovers.append(test_df[n:])
-        test_df = test_df[:n]
 
         val_df = test_df
         if val:
             val_df = splits[val_index]
             leftovers.append(val_df[n:])
-            val_df = val_df[:n]
         train_dfs = [s for s in splits if s is not test_df and s is not val_df]
+        test_df = test_df[:n]
+        val_df = val_df[:n]
         train_df = pd.concat(train_dfs + leftovers)
 
         if val or return_3:
