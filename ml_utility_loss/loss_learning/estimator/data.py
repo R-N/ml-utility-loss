@@ -116,8 +116,8 @@ class DatasetDataset(BaseDataset):
         pass
     
 class MultiSizeDatasetDataset(BaseDataset):
-    def __init__(self, dir, size, all="all", **kwargs):
-        super().__init__(max_cache=None)
+    def __init__(self, dir, size, all="all", dataset_cache=2, **kwargs):
+        super().__init__(max_cache=dataset_cache)
         self.dir = dir
         self.dataset_kwargrs = kwargs
         self.set_size(size)
@@ -125,11 +125,15 @@ class MultiSizeDatasetDataset(BaseDataset):
 
     def set_size(self, size):
         self.clear_cache()
-        self.dataset = DatasetDataset(
-            dir=self.dir,
-            subdir=str(size) if size else str(self.all),
-            **self.dataset_kwargrs
-        )
+        if size in self.cache:
+            self.dataset = self.cache[size]
+        else:
+            self.dataset = DatasetDataset(
+                dir=self.dir,
+                subdir=str(size) if size else str(self.all),
+                **self.dataset_kwargrs
+            )
+            self.cache[size] = self.dataset
         self.size = size
 
     def set_aug_scale(self, aug_scale):
