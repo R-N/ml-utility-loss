@@ -674,7 +674,7 @@ class REaLTabFormer:
 
         return trainer
     
-    def preprocess(self, df):
+    def fit_preprocess(self, df):
         self._extract_column_info(df)
         df, self.col_transform_data = process_data(
             df,
@@ -694,6 +694,16 @@ class REaLTabFormer:
             ix: self.vocab["column_token_ids"][col]
             for ix, col in enumerate(self.processed_columns)
         }
+
+    
+    def preprocess(self, df):
+        df, *_ = process_data(
+            df,
+            numeric_max_len=self.numeric_max_len,
+            numeric_precision=self.numeric_precision,
+            numeric_nparts=self.numeric_nparts,
+            target_col=self.target_col,
+        )
 
         return df
     

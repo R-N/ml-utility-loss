@@ -251,6 +251,8 @@ class DataPreprocessor: #preprocess all with this. save all model here
     def fit(self, train):
         if "tvae" in self.models:
             self.tvae_transformer.fit(train, self.cat_features)
+        if "realtabformer" in self.models:
+            self.rtf_model.fit_preprocess(train)
         if "lct_gan" in self.models or "lct_gan_latent" in self.models:
             if not self.lct_ae:
                 self.lct_ae, recon = create_ae(
@@ -262,7 +264,6 @@ class DataPreprocessor: #preprocess all with this. save all model here
                     epochs = 1,
                     batch_size=1,
                 )
-
         if "tab_ddpm" in self.models or "tab_ddpm_concat" in self.models:
             self.tab_ddpm_preprocessor.fit(train)
 
