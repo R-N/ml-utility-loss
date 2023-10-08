@@ -352,7 +352,7 @@ def tokenize_numeric_col(series: pd.Series, nparts=2, col_zfill=2, has_negative=
     tr.columns = encode_partition_numeric_col(col, tr, col_zfill)
 
     if col == "3___NUMERIC___children":
-        print("tr", tr.sort_values(tr.columns[::-1], ascending=False).head())
+        print("tr", tr.sort_values(list(tr.columns[::-1]), ascending=False).head())
 
     return tr
 
@@ -542,7 +542,7 @@ def process_data(
         _cols = ["3___NUMERIC___children_00", "3___NUMERIC___children_01"]
     else:
         _cols = ["3___NUMERIC___children_00"]
-    #print("processed_df B", processed_df[_cols].sort_values(list(reversed(_cols)), ascending=False).head())
+    #print("processed_df B", processed_df[_cols].sort_values(list(_cols[::-1])), ascending=False).head())
 
     # NOTE: The categorical data should be the last to be processed!
     categorical_cols = df.columns.difference(numeric_cols).difference(datetime_cols)
