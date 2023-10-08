@@ -525,6 +525,7 @@ def process_data(
             ],
             axis=1,
         )
+    print(processed_df.head())
 
     # Get the different sets of column types
     cat_cols = processed_df.columns[
@@ -542,7 +543,6 @@ def process_data(
         # Reorder columns to the original order
         df = processed_df[sorted(processed_df.columns)]
 
-    print(df.head())
 
     for c in df.columns:
         # Add the column name as part of the value.
