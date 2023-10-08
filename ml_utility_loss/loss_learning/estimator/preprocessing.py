@@ -281,7 +281,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
                 self.embedding_sizes[model] = x.shape[-1]
             return x
         if model == "realtabformer":
-            preprocessed = self.rtf_model.preprocess(df)
+            preprocessed = self.rtf_model.preprocess(df, fit=False)
             ids = self.rtf_model.map_input_ids(preprocessed)
             #dataset = self.rtf_model.make_dataset(df)
             #dataset = self.rtf_model.make_dataset(preprocessed, False)

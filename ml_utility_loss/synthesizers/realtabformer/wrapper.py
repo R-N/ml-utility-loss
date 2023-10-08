@@ -696,7 +696,9 @@ class REaLTabFormer:
         }
 
     
-    def preprocess(self, df):
+    def preprocess(self, df, fit=True):
+        if fit:
+            self.fit_preprocess(df)
         df, *_ = process_data(
             df,
             numeric_max_len=self.numeric_max_len,
@@ -716,10 +718,9 @@ class REaLTabFormer:
         self.tabular_max_length = len(df["input_ids"].iloc[0])
         return df
     
-    def make_dataset(self, df, preprocess=True, map_ids=True, two=True):
+    def make_dataset(self, df, preprocess=True, fit_preprocess=True, map_ids=True, two=True):
         if preprocess:
-            self.fit_preprocess(df)
-            df = self.preprocess(df)
+            df = self.preprocess(df, fit=fit_preprocess)
         # Load the dataframe into a HuggingFace Dataset
         f = make_dataset_2 if two else make_dataset
         dataset = f(
