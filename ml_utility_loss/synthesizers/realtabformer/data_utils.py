@@ -216,7 +216,7 @@ def process_numeric_data(
                 zfill += 1
             transform_data["zfill"] = int(zfill)
 
-        if "children" in series.name:
+        if "charges" in series.name:
             print("min B", series.astype(int).min())
             print("zfill", zfill)
         series = series.str.zfill(zfill)
@@ -366,7 +366,7 @@ def tokenize_numeric_col(series: pd.Series, nparts=2, col_zfill=2, has_negative=
 
     tr.columns = encode_partition_numeric_col(col, tr, col_zfill)
 
-    if col == "3___NUMERIC___children":
+    if col == "6___NUMERIC___charges":
         print("tr", tr.sort_values(list(tr.columns[::-1]), ascending=False).head())
 
     return tr
@@ -533,8 +533,8 @@ def process_data(
 
     processed_df = pd.concat([pd.DataFrame()] + processed_series, axis=1)
     #print("processed_df A", processed_df.head())
-    print("min A", processed_df["3___NUMERIC___children"].astype(int).min())
-    #print("processed_df A", processed_df[["3___NUMERIC___children"]].sort_values("3___NUMERIC___children", ascending=False).head())
+    print("min A", processed_df["6___NUMERIC___charges"].astype(float).min())
+    print("processed_df A", processed_df[["6___NUMERIC___charges"]].sort_values("6___NUMERIC___charges", ascending=True).head())
 
     if not processed_df.empty:
         # Tokenize the processed numeric and datetime data.
@@ -552,12 +552,10 @@ def process_data(
             axis=1,
         )
     #print("processed_df B", processed_df.head())
-    if "3___NUMERIC___children_01" in processed_df.columns:
-        print("max B", processed_df["3___NUMERIC___children_01"].sort_values(ascending=False).iloc[0])
-        _cols = ["3___NUMERIC___children_00", "3___NUMERIC___children_01"]
-    else:
-        _cols = ["3___NUMERIC___children_00"]
-    #print("processed_df B", processed_df[_cols].sort_values(list(_cols[::-1])), ascending=False).head())
+    if "6___NUMERIC___charges_10" in processed_df.columns:
+        print("max B", processed_df["6___NUMERIC___charges_10"].sort_values(ascending=False).iloc[0])
+    _cols = [x for x in processed_df.columns if "6___NUMERIC___charges" in x]
+    print("processed_df B", processed_df[_cols].sort_values(list(_cols[::-1]), ascending=False).head())
 
     # NOTE: The categorical data should be the last to be processed!
     categorical_cols = df.columns.difference(numeric_cols).difference(datetime_cols)
