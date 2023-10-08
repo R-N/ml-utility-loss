@@ -87,7 +87,7 @@ class DatasetDataset(BaseDataset):
 
     @property
     def index(self):
-        return self.info_all.index
+        return pd.Series(self.info_all.index)
 
     def __len__(self):
         return len(self.info)
