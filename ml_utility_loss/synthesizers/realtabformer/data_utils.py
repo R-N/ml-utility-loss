@@ -198,7 +198,7 @@ def process_numeric_data(
     if is_transform:
         has_negative = transform_data["has_negative"]
     else:
-        transform_data["has_negative"] = series_has_negative
+        transform_data["has_negative"] = bool(series_has_negative)
 
     if mx_sig <= 0:
         # The data has no decimal point.
