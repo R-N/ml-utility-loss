@@ -687,7 +687,7 @@ class REaLTabFormer:
         self.vocab = self._generate_vocab(df)
         print("vocab", self.vocab)
         self.processed_columns = df.columns.to_list()
-        print("processed_columns", self.processed_columns)
+        print("processed_columns", len(self.processed_columns), self.processed_columns)
         self.tabular_col_size = df.shape[0]
         print("tabular_col_size", self.tabular_col_size)
 
