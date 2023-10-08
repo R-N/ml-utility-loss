@@ -500,7 +500,7 @@ def process_data(
 
     processed_df = pd.concat([pd.DataFrame()] + processed_series, axis=1)
     #print("processed_df A", processed_df.head())
-    print("max", processed_df["3___NUMERIC___children"].astype(int).max())
+    print("max A", processed_df["3___NUMERIC___children"].astype(int).max())
     print("processed_df A", processed_df[[x for x in processed_df.columns if "children" in x]].head())
 
     if not processed_df.empty:
@@ -513,7 +513,8 @@ def process_data(
             axis=1,
         )
     #print("processed_df B", processed_df.head())
-    print("max", processed_df["3___NUMERIC___children_01"].astype(int).max())
+    if "3___NUMERIC___children_01" in processed_df.columns:
+        print("max B", processed_df["3___NUMERIC___children_01"].astype(int).max())
     print("processed_df B", processed_df[[x for x in processed_df.columns if "children" in x]].head())
 
     # NOTE: The categorical data should be the last to be processed!
