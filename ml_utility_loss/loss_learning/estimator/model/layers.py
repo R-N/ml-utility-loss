@@ -10,7 +10,7 @@ __author__ = "Yu-Hsiang Huang"
 class EncoderLayer(nn.Module):
     ''' Compose with two layers '''
 
-    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=True, activation=nn.ReLU, softmax=nn.Softmax):
+    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=True, activation=nn.ReLU, softmax=nn.Softmax, device=DEFAULT_DEVICE):
         super().__init__()
         Attention = SimpleInducedSetAttention if num_inds else SimpleMultiHeadAttention
         self.slf_attn = Attention(
@@ -20,13 +20,15 @@ class EncoderLayer(nn.Module):
             d_qk=d_qk, 
             dropout=dropout, 
             skip_small=skip_small, 
-            softmax=softmax
+            softmax=softmax,
+            device=device,
         )
         self.pos_ffn = DoubleFeedForward(
             d_model, 
             d_inner, 
             dropout=dropout, 
-            activation=activation
+            activation=activation,
+            device=device,
         )
         self.pma = None
         if pma:
@@ -37,7 +39,8 @@ class EncoderLayer(nn.Module):
                 d_qk=d_qk, 
                 dropout=dropout, 
                 skip_small=skip_small, 
-                softmax=softmax
+                softmax=softmax,
+                device=device,
             )
             self.pos_ffn_pma = self.pos_ffn
             if not share_ffn: 
@@ -45,8 +48,12 @@ class EncoderLayer(nn.Module):
                     d_model, 
                     d_inner, 
                     dropout=dropout, 
-                    activation=activation
+                    activation=activation,
+                    device=device,
                 )
+
+        self.device = device
+        self.to(device)
 
     def forward(self, enc_input, slf_attn_mask=None):
         # Here we should still have inputs of shape (batch, size, d_model)
@@ -67,7 +74,7 @@ class EncoderLayer(nn.Module):
 class DecoderLayer(nn.Module):
     ''' Compose with three layers '''
 
-    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=True, activation=nn.ReLU, softmax=nn.Softmax):
+    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=True, activation=nn.ReLU, softmax=nn.Softmax, device=DEFAULT_DEVICE):
         super().__init__()
         Attention = SimpleInducedSetAttention if num_inds else SimpleMultiHeadAttention
         self.slf_attn = Attention(
@@ -77,7 +84,8 @@ class DecoderLayer(nn.Module):
             d_qk=d_qk, 
             dropout=dropout, 
             skip_small=skip_small, 
-            softmax=softmax
+            softmax=softmax,
+            device=device,
         )
         self.enc_attn = Attention(
             num_inds=num_inds, 
@@ -86,13 +94,15 @@ class DecoderLayer(nn.Module):
             d_qk=d_qk, 
             dropout=dropout, 
             skip_small=skip_small, 
-            softmax=softmax
+            softmax=softmax,
+            device=device,
         )
         self.pos_ffn = DoubleFeedForward(
             d_model, 
             d_inner, 
             dropout=dropout, 
-            activation=activation
+            activation=activation,
+            device=device,
         )
         self.pma = None
         if pma:
@@ -103,7 +113,8 @@ class DecoderLayer(nn.Module):
                 d_qk=d_qk, 
                 dropout=dropout, 
                 skip_small=skip_small, 
-                softmax=softmax
+                softmax=softmax,
+                device=device,
             )
             self.pos_ffn_pma = self.pos_ffn
             if not share_ffn: 
@@ -111,8 +122,12 @@ class DecoderLayer(nn.Module):
                     d_model, 
                     d_inner, 
                     dropout=dropout, 
-                    activation=activation
+                    activation=activation,
+                    device=device,
                 )
+
+        self.device = device
+        self.to(device)
 
     def forward(
         self, 

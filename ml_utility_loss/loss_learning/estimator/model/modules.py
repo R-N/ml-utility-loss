@@ -13,7 +13,7 @@ __author__ = "Yu-Hsiang Huang"
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
 
-    def __init__(self, temperature, attn_dropout=0.1, softmax=nn.Softmax):
+    def __init__(self, temperature, attn_dropout=0.1, softmax=nn.Softmax, device=DEFAULT_DEVICE):
         super().__init__()
         self.temperature = temperature
         self.dropout = nn.Dropout(attn_dropout)
@@ -22,6 +22,9 @@ class ScaledDotProductAttention(nn.Module):
         if inspect.isclass(self.softmax):
             self.softmax = self.softmax(**self.softmax_args)
             self.softmax_args = {}
+
+        self.device = device
+        self.to(device)
 
     def forward(self, q, k, v, mask=None):
 
@@ -40,7 +43,7 @@ class ScaledDotProductAttention(nn.Module):
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0.1, softmax=nn.Softmax, num_inds=0):
+    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0.1, softmax=nn.Softmax, device=DEFAULT_DEVICE):
         super().__init__()
 
         d_qk = d_qk or (d_O//n_head)
@@ -59,10 +62,13 @@ class MultiHeadAttention(nn.Module):
         self.w_vs = nn.Linear(self.d_KV, self.d_O, bias=False)
         self.fc = nn.Linear(self.d_O, self.d_O, bias=False)
 
-        self.attention = ScaledDotProductAttention(temperature=d_qk ** 0.5, softmax=softmax)
+        self.attention = ScaledDotProductAttention(temperature=d_qk ** 0.5, softmax=softmax, device=device)
 
         self.dropout = nn.Dropout(dropout)
         self.layer_norm = nn.LayerNorm(self.d_O, eps=1e-6)
+
+        self.device = device
+        self.to(device)
 
 
     def forward(self, q, k, v, mask=None):
@@ -112,15 +118,19 @@ class MultiHeadAttention(nn.Module):
 class SimpleMultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_model, d_qk=None, dropout=0.1, softmax=nn.Softmax, num_inds=0):
+    def __init__(self, n_head, d_model, d_qk=None, dropout=0.1, softmax=nn.Softmax, device=DEFAULT_DEVICE):
         super().__init__()
         self.mab = MultiHeadAttention(
             n_head, 
             d_model, d_model, d_model, 
             d_qk=d_qk, 
             dropout=dropout, 
-            softmax=softmax
+            softmax=softmax,
+            device=device,
         )
+
+        self.device = device
+        self.to(device)
 
     def forward(self, q, k, v, mask=None):
         return self.mab.forward(q, k, v, mask=mask)
@@ -132,7 +142,7 @@ def scale_inds_to_batch(I, q):
     return I
 
 class InducedSetAttention(nn.Module):
-    def __init__(self, num_inds, d_I, d_H, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0.1, skip_small=True, softmax=nn.Softmax):
+    def __init__(self, num_inds, d_I, d_H, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0.1, skip_small=True, softmax=nn.Softmax, device=DEFAULT_DEVICE):
         super(InducedSetAttention, self).__init__()
         self.skip_small = skip_small
         self.d_I = d_I
@@ -145,15 +155,20 @@ class InducedSetAttention(nn.Module):
             d_I, d_KV, d_H, 
             d_qk=d_qk, 
             dropout=dropout, 
-            softmax=softmax
+            softmax=softmax,
+            device=device,
         )
         self.mab1 = MultiHeadAttention(
             n_head, 
             d_Q, d_H, d_O, 
             d_qk=d_qk, 
             dropout=dropout, 
-            softmax=softmax
+            softmax=softmax,
+            device=device,
         )
+
+        self.device = device
+        self.to(device)
 
     def forward(self, q, k, v, mask=None):
         # This just uses MultiheadAttention
@@ -170,7 +185,7 @@ class InducedSetAttention(nn.Module):
 class SimpleInducedSetAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, num_inds, n_head, d_model, d_qk=None, dropout=0.1, skip_small=True, softmax=nn.Softmax):
+    def __init__(self, num_inds, n_head, d_model, d_qk=None, dropout=0.1, skip_small=True, softmax=nn.Softmax, device=DEFAULT_DEVICE):
         super().__init__()
         self.isab = InducedSetAttention(
             num_inds, 
@@ -179,15 +194,19 @@ class SimpleInducedSetAttention(nn.Module):
             d_model, d_model, d_model, 
             d_qk=d_qk, dropout=dropout,
             skip_small=skip_small,
-            softmax=softmax
+            softmax=softmax,
+            device=device,
         )
+
+        self.device = device
+        self.to(device)
 
     def forward(self, q, k, v, mask=None):
         # This is just a wrapper for InducedSetAttention
         return self.isab.forward(q, k, v, mask=mask)
 
 class PoolingByMultiheadAttention(nn.Module):
-    def __init__(self, num_seeds, n_head, d_model, d_qk=None, dropout=0.1, skip_small=True, softmax=nn.Softmax):
+    def __init__(self, num_seeds, n_head, d_model, d_qk=None, dropout=0.1, skip_small=True, softmax=nn.Softmax, device=DEFAULT_DEVICE):
         super().__init__()
         self.num_seeds = num_seeds
         self.skip_small = skip_small
@@ -198,8 +217,12 @@ class PoolingByMultiheadAttention(nn.Module):
             d_model, 
             d_qk=d_qk, 
             dropout=dropout, 
-            softmax=softmax
+            softmax=softmax,
+            device=device,
         )
+
+        self.device = device
+        self.to(device)
 
     def forward(self, X):
         if self.skip_small and self.num_seeds > X.shape[-2]:
@@ -211,7 +234,7 @@ class PoolingByMultiheadAttention(nn.Module):
 class DoubleFeedForward(nn.Module):
     ''' A two-feed-forward-layer module '''
 
-    def __init__(self, d_in, d_hid, dropout=0.1, activation=nn.ReLU):
+    def __init__(self, d_in, d_hid, dropout=0.1, activation=nn.ReLU, device=DEFAULT_DEVICE):
         super().__init__()
         self.w_1 = nn.Linear(d_in, d_hid) # position-wise
         self.w_2 = nn.Linear(d_hid, d_in) # position-wise
@@ -220,6 +243,9 @@ class DoubleFeedForward(nn.Module):
             self.activation = self.activation()
         self.layer_norm = nn.LayerNorm(d_in, eps=1e-6)
         self.dropout = nn.Dropout(dropout)
+
+        self.device = device
+        self.to(device)
 
     def forward(self, x):
 
@@ -237,7 +263,7 @@ class DoubleFeedForward(nn.Module):
 
 class FeedForward(nn.Module):
 
-    def __init__(self, d_in, d_out, activation=nn.Sigmoid, dropout=0.1, layer_norm=False, residual=True):
+    def __init__(self, d_in, d_out, activation=nn.Sigmoid, dropout=0.1, layer_norm=False, residual=True, device=DEFAULT_DEVICE):
         super().__init__()
         self.w = nn.Linear(d_in, d_out) # position-wise
         self.residual = residual and d_in == d_out
@@ -246,6 +272,9 @@ class FeedForward(nn.Module):
             self.activation = self.activation()
         self.dropout = nn.Dropout(dropout)
         self.layer_norm = nn.LayerNorm(d_in, eps=1e-6) if layer_norm else None
+
+        self.device = device
+        self.to(device)
 
     def forward(self, x):
 

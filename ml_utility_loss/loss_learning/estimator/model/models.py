@@ -98,6 +98,7 @@ class Encoder(nn.Module):
                 skip_small=skip_small,
                 activation=activation,
                 softmax=softmax,
+                device=device,
             ) for i in range(n_layers)
         ])
         self.d_model = d_model
@@ -154,6 +155,7 @@ class Decoder(nn.Module):
                 pma_start=pma_start,
                 pma_high=pma_high,
                 pma_low=pma_low,
+                device=device,
             )
         else:
             pma_steps = [0 for  i in range(n_layers)]
@@ -171,6 +173,7 @@ class Decoder(nn.Module):
                 skip_small=skip_small,
                 softmax=softmax,
                 activation=activation,
+                device=device,
             ) for i in range(n_layers)
         ])
         self.d_model = d_model
@@ -219,6 +222,7 @@ class Adapter(nn.Module):
                 d_output,
                 activation=activation,
                 dropout=dropout,
+                device=device,
             )
         self.linear = nn.Sequential(*[
             Linear(d_input, d_hid),
@@ -232,7 +236,6 @@ class Adapter(nn.Module):
         #print("Adapter.check_cuda", check_cuda(self))
 
     def forward(self, x):
-        print("check_cuda a", check_cuda(self), check_cuda(self.linear), x.is_cuda)
         y = self.linear(x)
         return y
     
@@ -295,6 +298,7 @@ class Head(nn.Module):
             dropout=dropout, 
             skip_small=False,
             softmax=softmax,
+            device=device,
         )
         def Linear(
             d_input,
@@ -305,6 +309,7 @@ class Head(nn.Module):
                 d_output,
                 activation=activation,
                 dropout=dropout,
+                device=device,
             )
         self.linear = nn.Sequential(*[
             Linear(n_seeds*d_model, d_hid),
@@ -324,7 +329,7 @@ class Head(nn.Module):
     def forward(self, x, return_attns=False):
         x, pma_attn = self.pma(x)
         x = x.flatten(-2, -1)
-        print("check_cuda b", check_cuda(self), check_cuda(self.linear), x.is_cuda)
+        print("check_cuda", check_cuda(self), check_cuda(self.linear), x.is_cuda)
         y = self.linear(x)
         y = self.final_activation(y)
         if not torch.isnan(y).any():
@@ -374,6 +379,7 @@ class Transformer(nn.Module):
             pma_low=pma_low,
             share_ffn=share_ffn,
             skip_small=skip_small,
+            device=device,
         )
 
         self.decoder = Decoder(
@@ -388,6 +394,7 @@ class Transformer(nn.Module):
             pma_low=pma_low,
             share_ffn=share_ffn,
             skip_small=skip_small,
+            device=device,
         )
 
         for p in self.parameters():
@@ -505,7 +512,8 @@ class MLUtilityWhole(nn.Module):
         self.adapters = {
             model: Adapter(
                 **adapter_args,
-                d_input=d_input
+                d_input=d_input,
+                device=device,
             )
             for model, d_input in adapters.items()
         }
@@ -513,7 +521,8 @@ class MLUtilityWhole(nn.Module):
         self.body = body
         self.heads = {
             head: Head(
-                **head_args
+                device=device,
+                **head_args,
             )
             for head in heads
         }
