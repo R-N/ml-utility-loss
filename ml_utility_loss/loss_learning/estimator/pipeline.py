@@ -278,6 +278,11 @@ def train(
     if optim:
         assert whole_model
 
+    if size_scheduler:
+        batch_size = size_scheduler.get_batch_size()
+        dataset_size = size_scheduler.get_size()
+        aug_scale = size_scheduler.get_aug()
+
     def prepare_loader(dataset, val=False, dataset_size=dataset_size, aug_scale=aug_scale, batch_size=batch_size, size_scheduler=None):
         if size_scheduler:
             dataset_size=size_scheduler.get_size()
@@ -332,6 +337,7 @@ def train(
             head=head,
             **gradient_penalty_mode,
         )
+        
     
     for i in range(i, i+epochs):
         train_loss = train_epoch_(train_loader)
@@ -356,7 +362,7 @@ def train(
     test_set.set_aug_scale(0)
     eval_loss = eval(
         test_set, whole_model,
-        batch_size=batch_size
+        batch_size=size_scheduler.get_batch_size()
     )
 
     return {
