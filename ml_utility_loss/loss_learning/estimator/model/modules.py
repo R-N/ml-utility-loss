@@ -251,7 +251,7 @@ class FeedForward(nn.Module):
 
         residual = x
 
-        print("check_cuda", check_cuda(self), check_cuda(self.w), x.is_cuda)
+        #print("check_cuda", check_cuda(self), check_cuda(self.w), x.is_cuda)
         x = self.w(x)
         x = self.activation(x)
         x = self.dropout(x)

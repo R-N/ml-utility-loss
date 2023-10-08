@@ -232,6 +232,7 @@ class Adapter(nn.Module):
         #print("Adapter.check_cuda", check_cuda(self))
 
     def forward(self, x):
+        print("check_cuda a", check_cuda(self), check_cuda(self.linear), x.is_cuda)
         y = self.linear(x)
         return y
     
@@ -323,6 +324,7 @@ class Head(nn.Module):
     def forward(self, x, return_attns=False):
         x, pma_attn = self.pma(x)
         x = x.flatten(-2, -1)
+        print("check_cuda b", check_cuda(self), check_cuda(self.linear), x.is_cuda)
         y = self.linear(x)
         y = self.final_activation(y)
         if not torch.isnan(y).any():
