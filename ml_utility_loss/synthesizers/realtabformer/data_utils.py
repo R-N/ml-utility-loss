@@ -477,7 +477,7 @@ def process_data(
             col_transform_data[c] = transform_data
         series.name = col_name
         processed_series.append(series)
-        print(series.head())
+        #print(series.head())
 
     # Process datetime data
     datetime_cols = df.select_dtypes(include="datetime").columns
@@ -498,7 +498,7 @@ def process_data(
         processed_series.append(series)
 
     processed_df = pd.concat([pd.DataFrame()] + processed_series, axis=1)
-    print(processed_df.head())
+    print("processed_df A", processed_df.head())
 
     if not processed_df.empty:
         # Combine the processed numeric and datetime data.
@@ -527,7 +527,7 @@ def process_data(
             ],
             axis=1,
         )
-    #print(processed_df.head())
+    print("processed_df B", processed_df.head())
 
     # Get the different sets of column types
     cat_cols = processed_df.columns[
@@ -545,7 +545,7 @@ def process_data(
         # Reorder columns to the original order
         df = processed_df[sorted(processed_df.columns)]
 
-    #print(df.head())
+    print("df B", df.head())
 
 
     for c in df.columns:
