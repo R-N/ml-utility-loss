@@ -77,3 +77,20 @@ PARAM_SPACE_2 = {
     "batch_size_low": ("int_exp_2", 2, 8),
     "batch_size_high": ("int_exp_2", 16, 128),
 }
+
+def update_param_space(param_space, dataset_sizes):
+    param_space = {
+        **param_space,
+        "dataset_size": ("int_exp_2", dataset_sizes[0], dataset_sizes[-1]),
+    }
+    return param_space
+    
+def update_param_space_2(param_space, dataset_sizes):
+    param_space = {
+        **param_space,
+        "dataset_size_low": (*param_space["dataset_size_low"][:-1], dataset_sizes[-2]),
+        "dataset_size_high": (*param_space["dataset_size_high"][:-1], dataset_sizes[-1]),
+    }
+    param_space.pop("dataset_size", None)
+    param_space.pop("batch_size", None)
+    return
