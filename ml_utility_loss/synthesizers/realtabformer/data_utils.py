@@ -514,7 +514,7 @@ def process_data(
         )
     #print("processed_df B", processed_df.head())
     if "3___NUMERIC___children_01" in processed_df.columns:
-        print("max B", processed_df["3___NUMERIC___children_01"].sort_values(ascending=False)[0])
+        print("max B", processed_df["3___NUMERIC___children_01"].sort_values(ascending=False).iloc[0])
     print("processed_df B", processed_df[[x for x in processed_df.columns if "children" in x]].head())
 
     # NOTE: The categorical data should be the last to be processed!
