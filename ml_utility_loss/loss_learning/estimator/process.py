@@ -526,6 +526,11 @@ def eval(
         gc.collect()
         # Compute prediction and loss for all adapters
         for model, (train, test, y) in batch_dict.items():
+
+            train = train.to(whole_model.device)
+            test = test.to(whole_model.device)
+            y = y.to(whole_model.device)
+
             pred = whole_model(
                 train, test, model
             )
