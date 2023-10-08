@@ -241,6 +241,8 @@ def process_numeric_data(
         series.str.contains("-", regex=False)
     ].str.replace("-", "", regex=False)
 
+    print(series)
+
     return series, transform_data
 
 
