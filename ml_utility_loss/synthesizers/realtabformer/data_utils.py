@@ -216,9 +216,11 @@ def process_numeric_data(
                 zfill += 1
             transform_data["zfill"] = int(zfill)
 
+        """
         if "charges" in series.name:
             print("min B", series.astype(int).min())
             print("zfill", zfill)
+        """
         series = series.str.zfill(zfill)
     else:
         # Make sure that we don't exessively truncate the data.
@@ -366,8 +368,10 @@ def tokenize_numeric_col(series: pd.Series, nparts=2, col_zfill=2, has_negative=
 
     tr.columns = encode_partition_numeric_col(col, tr, col_zfill)
 
+    """
     if col == "6___NUMERIC___charges":
         print("tr", tr.sort_values(list(tr.columns[::-1]), ascending=False).head())
+    """
 
     return tr
 
@@ -511,7 +515,6 @@ def process_data(
             col_transform_data[c] = transform_data
         series.name = col_name
         processed_series.append(series)
-        #print(series.head())
 
     # Process datetime data
     datetime_cols = df.select_dtypes(include="datetime").columns
@@ -532,9 +535,11 @@ def process_data(
         processed_series.append(series)
 
     processed_df = pd.concat([pd.DataFrame()] + processed_series, axis=1)
+    """
     #print("processed_df A", processed_df.head())
     print("min A", processed_df["6___NUMERIC___charges"].astype(float).min())
     print("processed_df A", processed_df[["6___NUMERIC___charges"]].sort_values("6___NUMERIC___charges", ascending=True).head())
+    """
 
     if not processed_df.empty:
         # Tokenize the processed numeric and datetime data.
@@ -551,11 +556,13 @@ def process_data(
             ],
             axis=1,
         )
+    """
     #print("processed_df B", processed_df.head())
     if "6___NUMERIC___charges_10" in processed_df.columns:
         print("max B", processed_df["6___NUMERIC___charges_10"].sort_values(ascending=False).iloc[0])
     _cols = [x for x in processed_df.columns if "6___NUMERIC___charges" in x]
     print("processed_df B", processed_df[_cols].sort_values(list(_cols[::-1]), ascending=False).head())
+    """
 
     # NOTE: The categorical data should be the last to be processed!
     categorical_cols = df.columns.difference(numeric_cols).difference(datetime_cols)
@@ -574,8 +581,6 @@ def process_data(
             ],
             axis=1,
         )
-    #print("processed_df C", processed_df.head())
-    #print("processed_df C", processed_df[[x for x in processed_df.columns if "children" in x]].head())
 
     # Get the different sets of column types
     cat_cols = processed_df.columns[
@@ -592,10 +597,6 @@ def process_data(
     else:
         # Reorder columns to the original order
         df = processed_df[sorted(processed_df.columns)]
-
-    #print("df B", df.head())
-    #print("df B", df[[x for x in df.columns if "children" in x]].head())
-
 
     for c in df.columns:
         # Add the column name as part of the value.
