@@ -509,6 +509,7 @@ def process_data(
             ],
             axis=1,
         )
+    print("processed_df B", processed_df.head())
 
     # NOTE: The categorical data should be the last to be processed!
     categorical_cols = df.columns.difference(numeric_cols).difference(datetime_cols)
@@ -527,7 +528,7 @@ def process_data(
             ],
             axis=1,
         )
-    print("processed_df B", processed_df.head())
+    #print("processed_df C", processed_df.head())
 
     # Get the different sets of column types
     cat_cols = processed_df.columns[
@@ -545,7 +546,7 @@ def process_data(
         # Reorder columns to the original order
         df = processed_df[sorted(processed_df.columns)]
 
-    print("df B", df.head())
+    #print("df B", df.head())
 
 
     for c in df.columns:
