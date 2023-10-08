@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from entmax import sparsemax, entmax15, Sparsemax, Entmax15
 from alpharelu import relu15, ReLU15
 import inspect
+from ....util import DEFAULT_DEVICE
 
 Tensor = torch.Tensor
 

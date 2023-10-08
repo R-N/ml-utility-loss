@@ -214,6 +214,11 @@ def train_epoch(
             # should I zero and make it not require grad later?
             train = train.clone()
             train = train.detach()
+
+            train = train.to(whole_model.device)
+            test = test.to(whole_model.device)
+            y = y.to(whole_model.device)
+
             # train.grad = None
             train.requires_grad_()
             compute = computes[model]

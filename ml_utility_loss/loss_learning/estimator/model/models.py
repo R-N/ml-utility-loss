@@ -7,6 +7,7 @@ import math
 from .layers import EncoderLayer, DecoderLayer
 from .modules import PoolingByMultiheadAttention, FeedForward
 import inspect
+from ....util import DEFAULT_DEVICE
 
 
 __author__ = "Yu-Hsiang Huang"
@@ -70,6 +71,7 @@ class Encoder(nn.Module):
         skip_small=True,
         activation=nn.ReLU,
         softmax=nn.Softmax,
+        device=DEFAULT_DEVICE,
     ):
         super().__init__()
 
@@ -99,6 +101,9 @@ class Encoder(nn.Module):
             ) for i in range(n_layers)
         ])
         self.d_model = d_model
+
+        self.device = device
+        self.to(device)
 
     def forward(self, src_seq, src_mask=None, return_attns=False):
         # Here we should still have inputs of shape (batch, size, d_model)
@@ -137,6 +142,7 @@ class Decoder(nn.Module):
         skip_small=True,
         activation=nn.ReLU,
         softmax=nn.Softmax,
+        device=DEFAULT_DEVICE,
     ):
         super().__init__()
 
@@ -167,6 +173,9 @@ class Decoder(nn.Module):
         ])
         self.d_model = d_model
 
+        self.device = device
+        self.to(device)
+
     def forward(self, trg_seq, enc_output, src_mask=None, trg_mask=None, return_attns=False):
         # Here we should still have inputs of shape (batch, size, d_model)
         # The actual head splitting should occur within each layer
@@ -193,6 +202,7 @@ class Adapter(nn.Module):
         n_layers=2, 
         dropout=0.1, 
         activation=nn.ReLU,
+        device=DEFAULT_DEVICE,
     ):
         super().__init__()
         assert n_layers >= 2
@@ -212,6 +222,9 @@ class Adapter(nn.Module):
             Linear(d_hid, d_model),
         ])
 
+        self.device = device
+        self.to(device)
+
     def forward(self, x):
         y = self.linear(x)
         return y
@@ -222,19 +235,26 @@ class AdapterAutoencoder(nn.Module):
         self, 
         d_input,
         d_model, 
+        device=DEFAULT_DEVICE,
         **kwargs
     ):
         super().__init__()
         self.encoder = Adapter(
             d_input,
             d_model,
+            device=device,
             **kwargs
         )
         self.decoder = Adapter(
             d_model,
             d_input,
+            device=device,
             **kwargs
         )
+
+        self.device = device
+        self.to(device)
+        
 
     def forward(self, x):
         z = self.encoder(x)
@@ -254,6 +274,7 @@ class Head(nn.Module):
         activation=nn.Sigmoid,
         final_activation=nn.Sigmoid,
         softmax=nn.Softmax,
+        device=DEFAULT_DEVICE,
     ):
         super().__init__()
         assert n_layers >= 2
@@ -282,9 +303,12 @@ class Head(nn.Module):
             Linear(d_hid, 1),
         ])
         self.final_activation = final_activation
-        print("head final", self.final_activation)
+        #print("head final", self.final_activation)
         if inspect.isclass(self.final_activation):
             self.final_activation = self.final_activation()
+
+        self.device = device
+        self.to(device)
 
     def forward(self, x, return_attns=False):
         x, pma_attn = self.pma(x)
@@ -320,6 +344,7 @@ class Transformer(nn.Module):
         pma_low=32,
         share_ffn=True,
         skip_small=True,
+        device=DEFAULT_DEVICE,
     ):
         super().__init__()
 
@@ -359,6 +384,9 @@ class Transformer(nn.Module):
 
         self.flip = flip
 
+        self.device = device
+        self.to(device)
+
 
     def forward(self, src_seq, trg_seq, return_attns=False):
 
@@ -384,13 +412,17 @@ class MLUtilitySingle(nn.Module):
         self,
         adapter=None,
         body=None,
-        head=None
+        head=None,
+        device=DEFAULT_DEVICE,
     ):
         super().__init__()
         assert body, "Must provide body"
         self.adapter = adapter
         self.body = body
         self.head = head
+
+        self.device = device
+        self.to(device)
 
     def non_adapter_zero_grad(self):
         self.body.zero_grad()
@@ -442,7 +474,8 @@ class MLUtilityWhole(nn.Module):
         adapter_args=None,
         head_args=None,
         models=None,
-        objectives=None
+        objectives=None,
+        device=DEFAULT_DEVICE,
     ):
         super().__init__()
         self.cache = {}
@@ -473,6 +506,9 @@ class MLUtilityWhole(nn.Module):
         self.models = [x for x in self.models if x in self.adapters]
         self.objectives = objectives or list(self.heads.keys())
         self.objectives = [x for x in self.objectives if x in self.heads]
+
+        self.device = device
+        self.to(device)
 
     def non_adapter_zero_grad(self):
         self.body.zero_grad()

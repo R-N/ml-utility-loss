@@ -175,3 +175,5 @@ def sort_df(df, cols=None, ascending=True):
 def shuffle_tensor(t, dim=-2):
     indices = torch.randperm(t.size(dim))
     return torch.take_along_dim(t, indices, dim=dim)
+
+DEFAULT_DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else "cpu")
