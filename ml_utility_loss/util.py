@@ -177,3 +177,6 @@ def shuffle_tensor(t, dim=-2):
     return torch.take_along_dim(t, indices, dim=dim)
 
 DEFAULT_DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else "cpu")
+
+def check_cuda(model):
+    return next(model.parameters()).is_cuda

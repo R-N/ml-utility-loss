@@ -7,7 +7,7 @@ import math
 from .layers import EncoderLayer, DecoderLayer
 from .modules import PoolingByMultiheadAttention, FeedForward
 import inspect
-from ....util import DEFAULT_DEVICE
+from ....util import DEFAULT_DEVICE, Cache, check_cuda
 
 
 __author__ = "Yu-Hsiang Huang"
@@ -105,6 +105,8 @@ class Encoder(nn.Module):
         self.device = device
         self.to(device)
 
+        print("Encoder.check_cuda", check_cuda(self))
+
     def forward(self, src_seq, src_mask=None, return_attns=False):
         # Here we should still have inputs of shape (batch, size, d_model)
         # The actual head splitting should occur within each layer
@@ -176,6 +178,8 @@ class Decoder(nn.Module):
         self.device = device
         self.to(device)
 
+        print("Decoder.check_cuda", check_cuda(self))
+
     def forward(self, trg_seq, enc_output, src_mask=None, trg_mask=None, return_attns=False):
         # Here we should still have inputs of shape (batch, size, d_model)
         # The actual head splitting should occur within each layer
@@ -225,6 +229,8 @@ class Adapter(nn.Module):
         self.device = device
         self.to(device)
 
+        print("Adapter.check_cuda", check_cuda(self))
+
     def forward(self, x):
         y = self.linear(x)
         return y
@@ -254,6 +260,8 @@ class AdapterAutoencoder(nn.Module):
 
         self.device = device
         self.to(device)
+
+        print("AdapterAutoencoder.check_cuda", check_cuda(self))
         
 
     def forward(self, x):
@@ -309,6 +317,8 @@ class Head(nn.Module):
 
         self.device = device
         self.to(device)
+
+        print("Head.check_cuda", check_cuda(self))
 
     def forward(self, x, return_attns=False):
         x, pma_attn = self.pma(x)
@@ -387,6 +397,8 @@ class Transformer(nn.Module):
         self.device = device
         self.to(device)
 
+        print("Transformer.check_cuda", check_cuda(self))
+
 
     def forward(self, src_seq, trg_seq, return_attns=False):
 
@@ -423,6 +435,8 @@ class MLUtilitySingle(nn.Module):
 
         self.device = device
         self.to(device)
+
+        print("MLUtilitySingle.check_cuda", check_cuda(self))
 
     def non_adapter_zero_grad(self):
         self.body.zero_grad()
@@ -478,7 +492,7 @@ class MLUtilityWhole(nn.Module):
         device=DEFAULT_DEVICE,
     ):
         super().__init__()
-        self.cache = {}
+        self.cache = Cache()
 
         adapter_args = adapter_args or {}
         head_args = head_args or {}
@@ -509,6 +523,8 @@ class MLUtilityWhole(nn.Module):
 
         self.device = device
         self.to(device)
+
+        print("MLUtilityWhole.check_cuda", check_cuda(self))
 
     def non_adapter_zero_grad(self):
         self.body.zero_grad()
