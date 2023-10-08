@@ -163,7 +163,7 @@ class SubDataset(WrapperDataset):
         return self.index_
 
     def __len__(self):
-        return len(self.indexes)
+        return len(self.index_)
 
     def __getitem__(self, idx):
         return self.dataset[self.index[idx]]
