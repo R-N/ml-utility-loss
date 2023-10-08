@@ -93,4 +93,4 @@ def update_param_space_2(param_space, dataset_sizes):
     }
     param_space.pop("dataset_size", None)
     param_space.pop("batch_size", None)
-    return
+    return param_space
