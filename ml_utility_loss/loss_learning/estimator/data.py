@@ -120,8 +120,8 @@ class MultiSizeDatasetDataset(BaseDataset):
         super().__init__(max_cache=dataset_cache)
         self.dir = dir
         self.dataset_kwargrs = kwargs
-        self.set_size(size)
         self.all = all
+        self.set_size(size)
 
     def set_size(self, size):
         self.clear_cache()
