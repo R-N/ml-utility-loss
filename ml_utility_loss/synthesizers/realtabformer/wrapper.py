@@ -718,6 +718,7 @@ class REaLTabFormer:
     
     def make_dataset(self, df, preprocess=True, map_ids=True, two=True):
         if preprocess:
+            self.fit_preprocess(df)
             df = self.preprocess(df)
         # Load the dataframe into a HuggingFace Dataset
         f = make_dataset_2 if two else make_dataset
