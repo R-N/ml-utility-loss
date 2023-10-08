@@ -550,7 +550,7 @@ def process_data(
                     processed_df[col], 
                     nparts=numeric_nparts, 
                     has_negative=col_transform_data[
-                        col.rsplit("_", maxsplit=1)[-1]
+                        col.rsplit("__", maxsplit=1)[-1]
                     ]["has_negative"]
                 ) for col in processed_df.columns
             ],
