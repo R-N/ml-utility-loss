@@ -48,11 +48,22 @@ def split_df_ratio(df, ratio=0.2, val=False, i=0, seed=None):
     splits = split_df(df, splits, seed=seed)
     test_index = count - 1 + i
     val_index = (test_index-1)%count if val else None
+    n = min([len(s) for s in splits])
+
+    leftovers = []
 
     test_df = splits[test_index]
-    val_df = splits[val_index] if val else None
+    leftovers.append(test_df[n:])
+
+    val_df = test_df
+    if val:
+        val_df = splits[val_index]
+        leftovers.append(val_df[n:])
+
     train_dfs = [s for s in splits if s is not test_df and s is not val_df]
-    train_df = pd.concat(train_dfs)
+    test_df = test_df[:n]
+    val_df = val_df[:n]
+    train_df = pd.concat(train_dfs + leftovers)
 
     if val:
         return train_df, val_df, test_df

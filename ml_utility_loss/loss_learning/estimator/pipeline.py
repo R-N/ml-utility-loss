@@ -277,19 +277,19 @@ def train(
     if optim:
         assert whole_model
 
-    def prepare_loader(dataset):
-        dataset.set_size(dataset_size)
-        dataset.set_aug_scale(aug_scale)
+    def prepare_loader(dataset, val=False):
+        dataset.set_size(None if val else dataset_size)
+        dataset.set_aug_scale(0 if val else aug_scale)
         loader = DataLoader(
             dataset, 
             batch_size=batch_size, 
-            shuffle=True, 
+            shuffle=not val, 
             collate_fn=collate_fn
         )
         return loader
     
-    train_loader = prepare_loader(train_set)
-    val_loader = prepare_loader(val_set)
+    train_loader = prepare_loader(train_set, val=False)
+    val_loader = prepare_loader(val_set, val=True)
 
     adapters = preprocessor.embedding_sizes
     models = models or list(adapters.keys())
@@ -343,6 +343,8 @@ def train(
                 val_loss=val_loss,
             )
 
+    test_set.set_size(None)
+    test_set.set_aug_scale(0)
     eval_loss = eval(
         test_set, whole_model,
         batch_size=batch_size

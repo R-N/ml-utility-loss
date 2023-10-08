@@ -2,7 +2,7 @@ from ....params import BOOLEAN
 
 PARAM_SPACE = {
     # Dataset args
-    "dataset_size": ("int_exp_2", 32, 1024),
+    "dataset_size": ("int_exp_2", 32, 2048),
     "batch_size": ("int_exp_2", 1, 8),
     # Training args
     "epochs": ("int", 100, 1000),

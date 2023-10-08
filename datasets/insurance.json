@@ -15,5 +15,6 @@
         "children"
     ],
     "target": "charges",
-    "num_class": 0
+    "num_class": 0,
+    "sizes": [32, 64, 128, 256, 512, 1024, 2048]
 }

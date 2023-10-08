@@ -6,6 +6,7 @@ import pandas as pd
 from .preprocessing import generate_overlap
 from ...util import Cache, stack_samples, stack_sample_dicts, sort_df, shuffle_df
 from copy import deepcopy
+import numpy as np
 
 Tensor=torch.FloatTensor
 
@@ -54,6 +55,10 @@ class BaseDataset(Dataset):
     def __init__(self, max_cache=None):
         self.cache = Cache(max_cache) if max_cache else None
 
+    @property
+    def index(self):
+        return list(range(len(self)))
+
     def clear_cache(self):
         if self.cache:
             self.cache.clear()
@@ -71,13 +76,18 @@ class DatasetDataset(BaseDataset):
         if subdir:
             dir = os.path.join(dir, subdir)
         self.dir = dir
-        self.info = pd.read_csv(os.path.join(dir, file)).to_dict("records")
+        self.info_all = pd.read_csv(os.path.join(dir, file)).to_dict("records")
+        self.info = self.info.copy()
         self.Tensor = Tensor
         self.train = train
         self.test = test
         self.value = value
         assert mode in ("shuffle", "sort")
         self.mode = mode
+
+    @property
+    def index(self):
+        return self.info.index
 
     def __len__(self):
         return len(self.info)
@@ -115,15 +125,65 @@ class DatasetDataset(BaseDataset):
     def set_aug_scale(self, aug_scale):
         pass
     
+class WrapperDataset(BaseDataset):
+    def __init__(self, dataset, max_cache=None):
+        super().__init__(max_cache=max_cache)
+        self.dataset = dataset
+
+    @property
+    def index(self):
+        return self.dataset.index
+
+    def __len__(self):
+        return len(self.dataset)
+    
+    def __getitem__(self, idx):
+        return self.dataset[idx]
+
+    @property
+    def size(self):
+        return self.dataset.size
+    
+    def set_size(self, size):
+        self.clear_cache()
+        return self.dataset.set_size(size)
+    
+    def set_aug_scale(self, aug_scale):
+        self.clear_cache()
+        return self.dataset.set_aug_scale(aug_scale)
+
+class SubDataset(WrapperDataset):
+    def __init__(self, dataset, index, max_cache=None):
+        super().__init__(dataset=dataset, max_cache=max_cache)
+        if isinstance(index, pd.Series) or isinstance(index, pd.Index):
+            index = index.to_numpy()
+        if not isinstance(index, np.ndarray):
+            index = np.array(index)
+        index = index.astype(int)
+        self.index = index
+
+    def __len__(self):
+        return len(self.indexes)
+
+    def __getitem__(self, idx):
+        return self.dataset[self.index[idx]]
+    
 class MultiSizeDatasetDataset(BaseDataset):
     def __init__(self, dir, size=None, all="all", dataset_cache=2, **kwargs):
         super().__init__(max_cache=dataset_cache)
         self.dir = dir
-        self.dataset_kwargrs = kwargs
+        self.dataset_kwargs = kwargs
         self.all = all
+        self.aug_scale = 0
         self.set_size(size)
 
+    @property
+    def index(self):
+        return self.dataset.index
+
     def set_size(self, size):
+        if size == self.size:
+            return
         self.clear_cache()
         if size in self.cache:
             self.dataset = self.cache[size]
@@ -131,13 +191,17 @@ class MultiSizeDatasetDataset(BaseDataset):
             self.dataset = DatasetDataset(
                 dir=self.dir,
                 subdir=str(size) if size else str(self.all),
-                **self.dataset_kwargrs
+                **self.dataset_kwargs
             )
+            self.dataset.set_aug_scale(self.aug_scale)
             self.cache[size] = self.dataset
         self.size = size
 
     def set_aug_scale(self, aug_scale):
-        pass
+        if aug_scale == self.aug_scale:
+            return
+        self.aug_scale = aug_scale
+        self.dataset.set_aug_scale(self.aug_scale)
 
     def __len__(self):
         return len(self.dataset)
@@ -212,26 +276,6 @@ class OverlapDataset(BaseDataset):
             self.cache[idx] = sample
 
         return sample
-    
-class WrapperDataset(BaseDataset):
-    def __init__(self, dataset, max_cache=None):
-        super().__init__(max_cache=max_cache)
-        self.dataset = dataset
-
-    def __len__(self):
-        return len(self.dataset)
-
-    @property
-    def size(self):
-        return self.dataset.size
-    
-    def set_size(self, size):
-        self.clear_cache()
-        return self.dataset.set_size(size)
-    
-    def set_aug_scale(self, aug_scale):
-        self.clear_cache()
-        return self.dataset.set_aug_scale(aug_scale)
 
 class PreprocessedDataset(WrapperDataset):
     def __init__(self, dataset, preprocessor, model=None, max_cache=None, Tensor=Tensor, dtype=float):
