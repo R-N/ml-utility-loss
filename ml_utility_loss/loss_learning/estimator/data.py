@@ -78,13 +78,16 @@ class DatasetDataset(BaseDataset):
         self.dir = dir
         self.info_all = pd.read_csv(os.path.join(dir, file))
         self.info = self.info_all.to_dict("records")
-        self.index = self.info_all.index
         self.Tensor = Tensor
         self.train = train
         self.test = test
         self.value = value
         assert mode in ("shuffle", "sort")
         self.mode = mode
+
+    @property
+    def index(self):
+        return self.info_all.index
 
     def __len__(self):
         return len(self.info)
