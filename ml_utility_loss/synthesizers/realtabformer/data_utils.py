@@ -529,7 +529,9 @@ def process_data(
                 tokenize_numeric_col(
                     processed_df[col], 
                     nparts=numeric_nparts, 
-                    has_negative=col_transform_data[col]["has_negative"]
+                    has_negative=col_transform_data[
+                        col.rsplit("_", maxsplit=1)[-1]
+                    ]["has_negative"]
                 ) for col in processed_df.columns
             ],
             axis=1,
