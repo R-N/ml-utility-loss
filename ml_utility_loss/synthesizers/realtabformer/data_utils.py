@@ -340,9 +340,11 @@ def tokenize_numeric_col(series: pd.Series, nparts=2, col_zfill=2, has_negative=
     if not series_has_negative and has_negative:
         mx += 1
     """
+    """
     # Preprocesses current series as if it has negative even if it doesn't
     if not series_has_negative:
         mx += 1
+    """
 
     tr = pd.concat([series.str[i : i + nparts] for i in range(0, mx, nparts)], axis=1)
 
