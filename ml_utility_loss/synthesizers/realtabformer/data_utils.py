@@ -242,7 +242,7 @@ def process_numeric_data(
     series.loc[negative_flag] = "-" + series.loc[
         negative_flag
     ].str.replace("-", "", regex=False)
-    series.loc[~negative_flag] = " " + series.loc[~negative_flag]
+    #series.loc[~negative_flag] = " " + series.loc[~negative_flag]
 
     return series, transform_data
 
@@ -507,6 +507,7 @@ def process_data(
 
     if not processed_df.empty:
         # Tokenize the processed numeric and datetime data.
+        print("numeric_nparts", numeric_nparts)
         processed_df = pd.concat(
             [
                 tokenize_numeric_col(processed_df[col], nparts=numeric_nparts)
