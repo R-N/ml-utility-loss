@@ -501,7 +501,7 @@ def process_data(
     print("processed_df A", processed_df.head())
 
     if not processed_df.empty:
-        # Combine the processed numeric and datetime data.
+        # Tokenize the processed numeric and datetime data.
         processed_df = pd.concat(
             [
                 tokenize_numeric_col(processed_df[col], nparts=numeric_nparts)
