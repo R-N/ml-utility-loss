@@ -518,7 +518,7 @@ def process_data(
 
     processed_df = pd.concat([pd.DataFrame()] + processed_series, axis=1)
     #print("processed_df A", processed_df.head())
-    print("min A", processed_df["6___NUMERIC___charges"].astype(int).min())
+    print("min A", processed_df["6___NUMERIC___charges"].astype(float).min())
     print("processed_df A", processed_df[["6___NUMERIC___charges"]].sort_values("6___NUMERIC___charges", ascending=False).head())
 
     if not processed_df.empty:
