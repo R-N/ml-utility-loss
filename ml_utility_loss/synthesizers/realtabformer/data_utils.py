@@ -501,7 +501,7 @@ def process_data(
     processed_df = pd.concat([pd.DataFrame()] + processed_series, axis=1)
     #print("processed_df A", processed_df.head())
     print("max A", processed_df["3___NUMERIC___children"].astype(int).max())
-    print("processed_df A", processed_df[[x for x in processed_df.columns if "children" in x]].head())
+    print("processed_df A", processed_df[["3___NUMERIC___children"]].sort_values("3___NUMERIC___children", ascending=False).head())
 
     if not processed_df.empty:
         # Tokenize the processed numeric and datetime data.
@@ -515,7 +515,10 @@ def process_data(
     #print("processed_df B", processed_df.head())
     if "3___NUMERIC___children_01" in processed_df.columns:
         print("max B", processed_df["3___NUMERIC___children_01"].sort_values(ascending=False).iloc[0])
-    print("processed_df B", processed_df[[x for x in processed_df.columns if "children" in x]].head())
+        _cols = ["3___NUMERIC___children_00", "3___NUMERIC___children_01"]
+    else:
+        _cols = ["3___NUMERIC___children_00"]
+    print("processed_df B", processed_df[_cols].sort_values(reversed(_cols), ascending=False).head())
 
     # NOTE: The categorical data should be the last to be processed!
     categorical_cols = df.columns.difference(numeric_cols).difference(datetime_cols)
