@@ -193,7 +193,8 @@ class MultiSizeDatasetDataset(BaseDataset):
                 **self.dataset_kwargs
             )
             self.dataset.set_aug_scale(self.aug_scale)
-            self.cache[size] = self.dataset
+            if self.cache:
+                self.cache[size] = self.dataset
         self.size = size
 
     def set_aug_scale(self, aug_scale):
