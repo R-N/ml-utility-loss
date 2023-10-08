@@ -705,6 +705,7 @@ class REaLTabFormer:
             numeric_precision=self.numeric_precision,
             numeric_nparts=self.numeric_nparts,
             target_col=self.target_col,
+            col_transform_data=self.col_transform_data,
         )
 
         return df
