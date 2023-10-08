@@ -492,7 +492,7 @@ class MLUtilityWhole(nn.Module):
         device=DEFAULT_DEVICE,
     ):
         super().__init__()
-        self.cache = Cache()
+        self.cache = {}
 
         adapter_args = adapter_args or {}
         head_args = head_args or {}
