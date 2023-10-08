@@ -116,7 +116,7 @@ class DatasetDataset(BaseDataset):
         pass
     
 class MultiSizeDatasetDataset(BaseDataset):
-    def __init__(self, dir, size, all="all", dataset_cache=2, **kwargs):
+    def __init__(self, dir, size=None, all="all", dataset_cache=2, **kwargs):
         super().__init__(max_cache=dataset_cache)
         self.dir = dir
         self.dataset_kwargrs = kwargs
