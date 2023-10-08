@@ -47,6 +47,7 @@ def objective_2(
     dataset_size_high=2048,
     batch_size_low=4,
     batch_size_high=64,
+    verbose=False,
     **kwargs
 ):
     assert dataset_size_low <= dataset_size_high
@@ -55,7 +56,8 @@ def objective_2(
         min_size=dataset_size_low,
         max_size=dataset_size_high,
         min_batch_size=batch_size_low,
-        max_batch_size=batch_size_high
+        max_batch_size=batch_size_high,
+        verbose=verbose,
     )
     kwargs["dataset_size"] = size_scheduler.get_size()
     kwargs["batch_size"] = size_scheduler.get_batch_size()
