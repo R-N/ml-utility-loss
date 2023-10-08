@@ -156,7 +156,11 @@ class SubDataset(WrapperDataset):
         if not isinstance(index, np.ndarray):
             index = np.array(index)
         index = index.astype(int)
-        self.index = index
+        self.index_ = index
+
+    @property
+    def index(self):
+        return self.index_
 
     def __len__(self):
         return len(self.indexes)
