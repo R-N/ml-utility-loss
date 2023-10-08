@@ -169,7 +169,7 @@ class SubDataset(WrapperDataset):
         return self.dataset[self.index[idx]]
     
 class MultiSizeDatasetDataset(BaseDataset):
-    def __init__(self, dir, size=None, all="all", dataset_cache=2, **kwargs):
+    def __init__(self, dir, size=None, all="all", dataset_cache=None, **kwargs):
         super().__init__(max_cache=dataset_cache)
         self.dir = dir
         self.dataset_kwargs = kwargs

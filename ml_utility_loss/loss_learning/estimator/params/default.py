@@ -70,3 +70,10 @@ PARAM_SPACE = {
         "identity"
     ]),
 }
+
+PARAM_SPACE_2 = {
+    "dataset_size_low": ("int_exp_2", 32, 2048),
+    "dataset_size_high": ("int_exp_2", 256, 4096),
+    "batch_size_low": ("int_exp_2", 2, 8),
+    "batch_size_high": ("int_exp_2", 16, 128),
+}

@@ -1,5 +1,6 @@
 from .pipeline import train as _train
 from optuna.exceptions import TrialPruned
+from ...scheduler import PretrainingScheduler
 
 def objective(
     datasets,
@@ -39,3 +40,23 @@ def objective(
         print(k, train_results[k])
 
     return eval_loss["avg_loss"]
+
+def objective_2(
+    *args,
+    dataset_size_low=32,
+    dataset_size_high=2048,
+    batch_size_low=4,
+    batch_size_high=64,
+    **kwargs
+):
+    assert dataset_size_low <= dataset_size_high
+    assert batch_size_low <= batch_size_high
+    size_scheduler = PretrainingScheduler(
+        min_size=dataset_size_low,
+        max_size=dataset_size_high,
+        min_batch_size=batch_size_low,
+        max_batch_size=batch_size_high
+    )
+    kwargs["dataset_size"] = size_scheduler.get_size()
+    kwargs["batch_size"] = size_scheduler.get_batch_size()
+    return objective(*args, size_scheduler=size_scheduler, **kwargs)

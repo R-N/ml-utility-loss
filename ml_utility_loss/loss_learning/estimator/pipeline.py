@@ -266,6 +266,7 @@ def train(
     head="mlu",
     verbose=True,
     epoch_callback=None,
+    size_scheduler=None,
     **model_args
 ):
     if len(datasets) == 3:
@@ -277,7 +278,11 @@ def train(
     if optim:
         assert whole_model
 
-    def prepare_loader(dataset, val=False):
+    def prepare_loader(dataset, val=False, dataset_size=dataset_size, aug_scale=aug_scale, batch_size=batch_size, size_scheduler=None):
+        if size_scheduler:
+            dataset_size=size_scheduler.get_size()
+            aug_scale=size_scheduler.get_aug()
+            batch_size=size_scheduler.get_batch_size()
         dataset.set_size(None if val else dataset_size)
         dataset.set_aug_scale(0 if val else aug_scale)
         loader = DataLoader(
@@ -288,8 +293,8 @@ def train(
         )
         return loader
     
-    train_loader = prepare_loader(train_set, val=False)
-    val_loader = prepare_loader(val_set, val=True)
+    train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
+    val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
 
     adapters = preprocessor.embedding_sizes
     models = models or list(adapters.keys())
@@ -331,6 +336,10 @@ def train(
     for i in range(i, i+epochs):
         train_loss = train_epoch_(train_loader)
         val_loss = train_epoch_(val_loader, val=True)
+
+        if size_scheduler and size_scheduler.step(i):
+            train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
+            val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
 
         if verbose:
             print("Epoch", i)
