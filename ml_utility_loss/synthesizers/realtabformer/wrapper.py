@@ -683,9 +683,9 @@ class REaLTabFormer:
             numeric_nparts=self.numeric_nparts,
             target_col=self.target_col,
         )
-        print("col_transform_data", self.col_transform_data)
+        #print("col_transform_data", self.col_transform_data)
         self.vocab = self._generate_vocab(df)
-        print("vocab", self.vocab)
+        #print("vocab", self.vocab)
         self.processed_columns = df.columns.to_list()
         print("processed_columns", len(self.processed_columns), self.processed_columns)
         self.tabular_col_size = df.shape[0]
@@ -698,7 +698,7 @@ class REaLTabFormer:
             ix: self.vocab["column_token_ids"][col]
             for ix, col in enumerate(self.processed_columns)
         }
-        print("col_idx_ids", self.col_idx_ids)
+        #print("col_idx_ids", self.col_idx_ids)
 
     
     def preprocess(self, df, fit=True):
