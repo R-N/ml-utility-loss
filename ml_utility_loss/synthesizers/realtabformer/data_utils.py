@@ -334,7 +334,7 @@ def tokenize_numeric_col(series: pd.Series, nparts=2, col_zfill=2):
     tr = pd.concat([series.str[i : i + nparts] for i in range(0, mx, nparts)], axis=1)
 
     if col == "3___NUMERIC___children":
-        print("tr", tr.head())
+        print("tr", tr.sort_values([1, 0], ascending=False).head())
 
     # Replace values with NUMERIC_NA_TOKEN
     tr.loc[nan_obs] = NUMERIC_NA_TOKEN * nparts
