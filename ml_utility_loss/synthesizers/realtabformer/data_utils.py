@@ -238,9 +238,11 @@ def process_numeric_data(
         series = series.str.ljust(ljust, "0")
 
     # If a number has a negative sign, make sure that it is placed properly.
-    series.loc[series.str.contains("-", regex=False)] = "-" + series.loc[
-        series.str.contains("-", regex=False)
+    negative_flag = series.str.contains("-", regex=False)
+    series.loc[negative_flag] = "-" + series.loc[
+        negative_flag
     ].str.replace("-", "", regex=False)
+    series.loc[~negative_flag] = " " + series.loc[~negative_flag]
 
     return series, transform_data
 
@@ -500,7 +502,7 @@ def process_data(
 
     processed_df = pd.concat([pd.DataFrame()] + processed_series, axis=1)
     #print("processed_df A", processed_df.head())
-    print("max A", processed_df["3___NUMERIC___children"].astype(int).max())
+    print("min A", processed_df["3___NUMERIC___children"].astype(int).min())
     print("processed_df A", processed_df[["3___NUMERIC___children"]].sort_values("3___NUMERIC___children", ascending=False).head())
 
     if not processed_df.empty:
