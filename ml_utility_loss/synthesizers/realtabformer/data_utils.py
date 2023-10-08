@@ -193,12 +193,12 @@ def process_numeric_data(
         transform_data["mx_sig"] = int(mx_sig)
 
     negative_flag = series.str.contains("-", regex=False)
+    has_negative = series_has_negative = negative_flag.any()
     # Check for negative sign
     if is_transform:
         has_negative = transform_data["has_negative"]
     else:
-        has_negative = negative_flag.any()
-        transform_data["has_negative"] = has_negative
+        transform_data["has_negative"] = series_has_negative
 
     if mx_sig <= 0:
         # The data has no decimal point.
@@ -211,6 +211,9 @@ def process_numeric_data(
             zfill = transform_data["zfill"]
         else:
             zfill = series.map(len).max()
+            # Ensure the fill can reach the negative sign
+            if not series_has_negative:
+                zfill += 1
             transform_data["zfill"] = int(zfill)
 
         if "children" in series.name:
