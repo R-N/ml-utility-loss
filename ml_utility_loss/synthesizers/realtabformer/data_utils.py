@@ -214,6 +214,7 @@ def process_numeric_data(
             transform_data["zfill"] = int(zfill)
 
         if "children" in series.name:
+            print("min B", series.astype(int).min())
             print("zfill", zfill)
         series = series.str.zfill(zfill)
     else:
