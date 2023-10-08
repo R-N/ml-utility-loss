@@ -182,7 +182,8 @@ def process_numeric_data(
         # the precision and not increase the precision.
         # So, we strip the right trailing zeros because the formatting
         # pads the series to the numeric_precision even when not needed.
-        series = series.map(lambda x: f"{x:.{numeric_precision}f}").str.rstrip("0")
+        # Actually no rstripping the precision will make it inconsistent
+        series = series.map(lambda x: f"{x:.{numeric_precision}f}").str
 
     # Get the most significant digit
     if is_transform:
