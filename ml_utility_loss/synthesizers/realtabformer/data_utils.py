@@ -499,7 +499,8 @@ def process_data(
         processed_series.append(series)
 
     processed_df = pd.concat([pd.DataFrame()] + processed_series, axis=1)
-    print("processed_df A", processed_df.head())
+    #print("processed_df A", processed_df.head())
+    print("processed_df A", processed_df[[x for x in processed_df.columns if "children" in x]].head())
 
     if not processed_df.empty:
         # Tokenize the processed numeric and datetime data.
@@ -511,6 +512,7 @@ def process_data(
             axis=1,
         )
     #print("processed_df B", processed_df.head())
+    print("processed_df B", processed_df[[x for x in processed_df.columns if "children" in x]].head())
 
     # NOTE: The categorical data should be the last to be processed!
     categorical_cols = df.columns.difference(numeric_cols).difference(datetime_cols)
@@ -530,6 +532,7 @@ def process_data(
             axis=1,
         )
     #print("processed_df C", processed_df.head())
+    #print("processed_df C", processed_df[[x for x in processed_df.columns if "children" in x]].head())
 
     # Get the different sets of column types
     cat_cols = processed_df.columns[
@@ -547,7 +550,8 @@ def process_data(
         # Reorder columns to the original order
         df = processed_df[sorted(processed_df.columns)]
 
-    print("df B", df.head())
+    #print("df B", df.head())
+    #print("df B", df[[x for x in df.columns if "children" in x]].head())
 
 
     for c in df.columns:
