@@ -85,10 +85,6 @@ class DatasetDataset(BaseDataset):
         assert mode in ("shuffle", "sort")
         self.mode = mode
 
-    @property
-    def index(self):
-        return pd.Series(self.info_all.index)
-
     def __len__(self):
         return len(self.info)
 
