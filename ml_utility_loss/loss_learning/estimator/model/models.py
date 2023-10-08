@@ -155,7 +155,6 @@ class Decoder(nn.Module):
                 pma_start=pma_start,
                 pma_high=pma_high,
                 pma_low=pma_low,
-                device=device,
             )
         else:
             pma_steps = [0 for  i in range(n_layers)]
