@@ -708,6 +708,8 @@ class REaLTabFormer:
             col_transform_data=self.col_transform_data,
         )
 
+        print(df.columns)
+
         return df
     
     def map_input_ids(self, df):
