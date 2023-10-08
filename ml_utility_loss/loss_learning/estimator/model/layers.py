@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 from .modules import SimpleInducedSetAttention, DoubleFeedForward, PoolingByMultiheadAttention, SimpleMultiHeadAttention
-from ....util import DEFAULT_DEVICE
+from ....util import DEFAULT_DEVICE, cuda_check
 
 __author__ = "Yu-Hsiang Huang"
 

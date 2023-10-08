@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from entmax import sparsemax, entmax15, Sparsemax, Entmax15
 from alpharelu import relu15, ReLU15
 import inspect
-from ....util import DEFAULT_DEVICE
+from ....util import DEFAULT_DEVICE, cuda_check
 
 Tensor = torch.Tensor
 
@@ -251,6 +251,7 @@ class FeedForward(nn.Module):
 
         residual = x
 
+        print("cuda_check", cuda_check(self), cuda_check(self.w), x.is_cuda)
         x = self.w(x)
         x = self.activation(x)
         x = self.dropout(x)
