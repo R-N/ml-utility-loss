@@ -182,9 +182,8 @@ class MultiSizeDatasetDataset(BaseDataset):
         return self.dataset.index
 
     def set_size(self, size):
-        if size == self.size:
+        if hasattr(self, "size") and size == self.size:
             return
-        self.clear_cache()
         if size in self.cache:
             self.dataset = self.cache[size]
         else:
