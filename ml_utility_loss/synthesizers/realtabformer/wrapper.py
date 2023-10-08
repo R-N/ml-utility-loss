@@ -683,7 +683,7 @@ class REaLTabFormer:
             numeric_nparts=self.numeric_nparts,
             target_col=self.target_col,
         )
-        #print("col_transform_data", self.col_transform_data)
+        print("col_transform_data", self.col_transform_data)
         self.vocab = self._generate_vocab(df)
         #print("vocab", self.vocab)
         self.processed_columns = df.columns.to_list()
@@ -704,7 +704,7 @@ class REaLTabFormer:
     def preprocess(self, df, fit=True):
         if fit:
             self.fit_preprocess(df)
-        df, *_ = process_data(
+        df, col_transform_data = process_data(
             df,
             numeric_max_len=self.numeric_max_len,
             numeric_precision=self.numeric_precision,
@@ -712,8 +712,10 @@ class REaLTabFormer:
             target_col=self.target_col,
             col_transform_data=self.col_transform_data,
         )
+        print("col_transform_data", col_transform_data)
 
-        print(len(df.columns), df.columns)
+        processed_columns = df.columns.to_list()
+        print(len(processed_columns), processed_columns)
 
         return df
     
