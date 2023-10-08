@@ -333,6 +333,9 @@ def tokenize_numeric_col(series: pd.Series, nparts=2, col_zfill=2):
 
     tr = pd.concat([series.str[i : i + nparts] for i in range(0, mx, nparts)], axis=1)
 
+    if col == "3___NUMERIC___children":
+        print("tr", tr.head())
+
     # Replace values with NUMERIC_NA_TOKEN
     tr.loc[nan_obs] = NUMERIC_NA_TOKEN * nparts
 
@@ -503,7 +506,7 @@ def process_data(
     processed_df = pd.concat([pd.DataFrame()] + processed_series, axis=1)
     #print("processed_df A", processed_df.head())
     print("min A", processed_df["3___NUMERIC___children"].astype(int).min())
-    print("processed_df A", processed_df[["3___NUMERIC___children"]].sort_values("3___NUMERIC___children", ascending=False).head())
+    #print("processed_df A", processed_df[["3___NUMERIC___children"]].sort_values("3___NUMERIC___children", ascending=False).head())
 
     if not processed_df.empty:
         # Tokenize the processed numeric and datetime data.
@@ -521,7 +524,7 @@ def process_data(
         _cols = ["3___NUMERIC___children_00", "3___NUMERIC___children_01"]
     else:
         _cols = ["3___NUMERIC___children_00"]
-    print("processed_df B", processed_df[_cols].sort_values(list(reversed(_cols)), ascending=False).head())
+    #print("processed_df B", processed_df[_cols].sort_values(list(reversed(_cols)), ascending=False).head())
 
     # NOTE: The categorical data should be the last to be processed!
     categorical_cols = df.columns.difference(numeric_cols).difference(datetime_cols)
