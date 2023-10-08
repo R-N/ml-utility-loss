@@ -27,10 +27,10 @@ def objective(
         msg = str(ex)
         if "Invalid attention dim and n_head" in msg:
             print(f"AssertionError: {msg}")
-            raise TrialPruned()
+            raise TrialPruned(msg)
         if "has nan" in msg:
             print(f"AssertionError: {msg}")
-            raise TrialPruned()
+            raise TrialPruned(msg)
         raise
 
     whole_model = train_results["whole_model"]
@@ -50,8 +50,15 @@ def objective_2(
     verbose=False,
     **kwargs
 ):
-    assert dataset_size_low <= dataset_size_high
-    assert batch_size_low <= batch_size_high
+    try:
+        assert dataset_size_low <= dataset_size_high, "dataset size low must be lower than high"
+        assert batch_size_low <= batch_size_high, "batch size low must be lower than high"
+    except AssertionError as ex:
+        msg = str(ex)
+        if "low must be lower than high" in msg:
+            print(f"AssertionError: {msg}")
+            raise TrialPruned(msg)
+        raise
     size_scheduler = PretrainingScheduler(
         min_size=dataset_size_low,
         max_size=dataset_size_high,
