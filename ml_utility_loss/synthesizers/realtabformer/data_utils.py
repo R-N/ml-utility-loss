@@ -242,6 +242,8 @@ def process_numeric_data(
     series.loc[negative_flag] = "-" + series.loc[
         negative_flag
     ].str.replace("-", "", regex=False)
+    # Remember if a series has negative
+    transform_data["has_negative"] = negative_flag.any()
     #series.loc[~negative_flag] = " " + series.loc[~negative_flag]
 
     return series, transform_data
@@ -314,7 +316,7 @@ def decode_partition_numeric_col(partition_col):
     return "_".join(partition_col.split("_")[:-1])
 
 
-def tokenize_numeric_col(series: pd.Series, nparts=2, col_zfill=2):
+def tokenize_numeric_col(series: pd.Series, nparts=2, col_zfill=2, has_negative=False):
     # After normalizing the numeric values, we then segment
     # them based on a fixed partition size (nparts).
     col = series.name
@@ -330,6 +332,17 @@ def tokenize_numeric_col(series: pd.Series, nparts=2, col_zfill=2):
             f"Partition size {nparts} is greater than the value length {max_len}. Consider reducing the number of partitions..."
         )
     mx = series.map(len).max()
+
+    series_has_negative = series.str.contains("-", regex=False).any()
+    """
+    # If preprocessor learned that training series has negative,
+    # Preprocesses current series as if it does even if it doesn't
+    if not series_has_negative and has_negative:
+        mx += 1
+    """
+    # Preprocesses current series as if it has negative even if it doesn't
+    if not series_has_negative:
+        mx += 1
 
     tr = pd.concat([series.str[i : i + nparts] for i in range(0, mx, nparts)], axis=1)
 
@@ -513,8 +526,11 @@ def process_data(
         print("numeric_nparts", numeric_nparts)
         processed_df = pd.concat(
             [
-                tokenize_numeric_col(processed_df[col], nparts=numeric_nparts)
-                for col in processed_df.columns
+                tokenize_numeric_col(
+                    processed_df[col], 
+                    nparts=numeric_nparts, 
+                    has_negative=col_transform_data[col]["has_negative"]
+                ) for col in processed_df.columns
             ],
             axis=1,
         )
