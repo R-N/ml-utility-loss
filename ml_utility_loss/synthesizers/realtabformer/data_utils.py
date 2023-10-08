@@ -499,7 +499,7 @@ def process_data(
         processed_series.append(series)
 
     processed_df = pd.concat([pd.DataFrame()] + processed_series, axis=1)
-    #print("processed_df A", processed_df.head())
+    print("processed_df A", processed_df.head())
 
     if not processed_df.empty:
         # Tokenize the processed numeric and datetime data.
@@ -510,7 +510,7 @@ def process_data(
             ],
             axis=1,
         )
-    #print("processed_df B", processed_df.head())
+    print("processed_df B", processed_df.head())
 
     # NOTE: The categorical data should be the last to be processed!
     categorical_cols = df.columns.difference(numeric_cols).difference(datetime_cols)
