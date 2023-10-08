@@ -543,6 +543,8 @@ def process_data(
         # Reorder columns to the original order
         df = processed_df[sorted(processed_df.columns)]
 
+    print(df.head())
+
 
     for c in df.columns:
         # Add the column name as part of the value.
