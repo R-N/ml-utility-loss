@@ -77,7 +77,7 @@ class DatasetDataset(BaseDataset):
             dir = os.path.join(dir, subdir)
         self.dir = dir
         self.info_all = pd.read_csv(os.path.join(dir, file)).to_dict("records")
-        self.info = self.info.copy()
+        self.info = self.info_all.copy()
         self.Tensor = Tensor
         self.train = train
         self.test = test
