@@ -518,7 +518,7 @@ def process_data(
         _cols = ["3___NUMERIC___children_00", "3___NUMERIC___children_01"]
     else:
         _cols = ["3___NUMERIC___children_00"]
-    print("processed_df B", processed_df[_cols].sort_values(reversed(_cols), ascending=False).head())
+    print("processed_df B", processed_df[_cols].sort_values(list(reversed(_cols)), ascending=False).head())
 
     # NOTE: The categorical data should be the last to be processed!
     categorical_cols = df.columns.difference(numeric_cols).difference(datetime_cols)
