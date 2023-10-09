@@ -1,0 +1,17 @@
+{
+    "epochs": 182,
+    "batch_size": 1024,
+    "embedding_size": 32,
+    "categorical_columns": [
+        "sex",
+        "source"
+    ],
+    "mixed_columns": [],
+    "log_columns": [
+        "leucocyte",
+        "thrombocyte"
+    ],
+    "integer_columns": [
+        "age"
+    ]
+}

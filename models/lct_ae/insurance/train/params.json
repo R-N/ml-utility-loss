@@ -1,0 +1,19 @@
+{
+    "epochs": 267,
+    "batch_size": 128,
+    "embedding_size": 32,
+    "categorical_columns": [
+        "sex",
+        "smoker",
+        "region"
+    ],
+    "mixed_columns": [],
+    "log_columns": [
+        "children",
+        "charges"
+    ],
+    "integer_columns": [
+        "age",
+        "children"
+    ]
+}

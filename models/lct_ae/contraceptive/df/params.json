@@ -1,0 +1,23 @@
+{
+    "epochs": 211,
+    "batch_size": 128,
+    "embedding_size": 16,
+    "categorical_columns": [
+        "islam",
+        "working",
+        "husband_occupation",
+        "media_exposure",
+        "contraceptive"
+    ],
+    "mixed_columns": [],
+    "log_columns": [
+        "n_children"
+    ],
+    "integer_columns": [
+        "age",
+        "education",
+        "partner_education",
+        "n_children",
+        "living_standard"
+    ]
+}
