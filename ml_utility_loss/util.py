@@ -23,14 +23,14 @@ def filter_dict(dict, keys):
 def filter_dict_2(dict, keys):
     return {keys[k]: v for k, v in dict.items() if k in keys}
 
-def split_df(df, points, seed=None):
+def split_df(df, points, seed=42):
     splits = np.split(
         df.sample(frac=1, random_state=seed), 
         [int(x*len(df)) for x in points]
     )
     return splits
 
-def split_df_2(df, points, test=-1, val=None, seed=None):
+def split_df_2(df, points, test=-1, val=None, seed=42, return_3=False):
     splits = split_df(df, points, seed=seed)
 
     test_df = splits[test]
@@ -38,11 +38,11 @@ def split_df_2(df, points, test=-1, val=None, seed=None):
     train_dfs = [s for s in splits if s is not test_df and s is not val_df]
     train_df = pd.concat(train_dfs)
 
-    if val:
+    if val or return_3:
         return train_df, val_df, test_df
     return train_df, test_df
 
-def split_df_ratio(df, ratio=0.2, val=False, i=0, seed=None):
+def split_df_ratio(df, ratio=0.2, val=False, i=0, seed=42, return_3=False):
     count = int(1.0/ratio)
     splits = [k*ratio for k in range(1, count)]
     splits = split_df(df, splits, seed=seed)
@@ -65,11 +65,11 @@ def split_df_ratio(df, ratio=0.2, val=False, i=0, seed=None):
     val_df = val_df[:n]
     train_df = pd.concat(train_dfs + leftovers)
 
-    if val:
+    if val or return_3:
         return train_df, val_df, test_df
     return train_df, test_df
 
-def split_df_kfold(df, ratio=0.2, val=False, filter_i=None, seed=None, return_3=False):
+def split_df_kfold(df, ratio=0.2, val=False, filter_i=None, seed=42, return_3=False):
     result = []
     count = int(1.0/ratio)
     splits = [k*ratio for k in range(1, count)]

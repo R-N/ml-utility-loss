@@ -4,7 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 import glob
 import pandas as pd
 from .preprocessing import generate_overlap
-from ...util import Cache, stack_samples, stack_sample_dicts, sort_df, shuffle_df
+from ...util import Cache, stack_samples, stack_sample_dicts, sort_df, shuffle_df, split_df_ratio, split_df_kfold
 from copy import deepcopy
 import numpy as np
 
@@ -68,6 +68,18 @@ class BaseDataset(Dataset):
 
     def set_aug_scale(self, aug_scale):
         pass
+
+    def split_ratio(self, **kwargs):
+        index = pd.Series(self.index)
+        datasets = split_df_ratio(index, **kwargs)
+        datasets = [SubDataset(self, i) for i in datasets]
+        return datasets
+
+    def split_kfold(self, **kwargs):
+        index = pd.Series(self.index)
+        splits = split_df_kfold(index, **kwargs)
+        splits = [[SubDataset(self, i) for i in datasets] for datasets in splits]
+        return splits
 
 class DatasetDataset(BaseDataset):
 
