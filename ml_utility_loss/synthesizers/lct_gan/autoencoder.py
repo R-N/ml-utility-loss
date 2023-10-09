@@ -34,6 +34,7 @@ class LatentTAE:
         integer_columns=[],
         mixed_columns={}, #dict(col: 0)
         batch_size=512,
+        lr=1e-3, 
     ):
 
         self.__name__ = 'AutoEncoder'
@@ -46,6 +47,7 @@ class LatentTAE:
         self.batch_size=batch_size
         self.train_data = None
         self.loss = None
+        self.lr = lr
         self.data_preprocessor = DataPreprocessor(
             categorical_columns=self.categorical_columns,
             log_columns=self.log_columns,
@@ -201,7 +203,7 @@ class AutoEncoder(object):
 
         self.model = AENetwork(input_dim=col_size_d, **self.kwargs)
         self.model.to(self.device)
-        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
 
         self.model.train()
         train_loss = 0

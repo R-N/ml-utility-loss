@@ -12,6 +12,7 @@ def create_gan(
     epochs=1,
     n_critic=2,
     batch_size=512,
+    lr=0.0002,
     sample=None,
 ):
 
@@ -30,6 +31,7 @@ def create_gan(
         batch_size=batch_size, 
         n_critic=n_critic, 
         decoder=ae,
+        lr=lr,
         scaler=sscaler
     )
 
@@ -52,6 +54,7 @@ def create_ae(
     epochs=1,
     batch_size=512,
     embedding_size=64,
+    lr=1e-3,
 ):
     ae = LatentTAE(
         batch_size=batch_size,
@@ -60,6 +63,7 @@ def create_ae(
         log_columns=log_columns,
         integer_columns=integer_columns,
         mixed_columns=mixed_columns, #dict(col: 0)
+        lr=lr,
     )
     ae.fit_preprocessor(df)
     preprocessed = ae.preprocess(df)
