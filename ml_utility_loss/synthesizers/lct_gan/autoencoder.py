@@ -38,6 +38,7 @@ class LatentTAE:
     ):
 
         self.__name__ = 'AutoEncoder'
+        self.lr = lr
         self.ae = AutoEncoder(embedding_size=embedding_size)
         self.embedding_size = embedding_size
         self.categorical_columns = categorical_columns
@@ -47,7 +48,6 @@ class LatentTAE:
         self.batch_size=batch_size
         self.train_data = None
         self.loss = None
-        self.lr = lr
         self.data_preprocessor = DataPreprocessor(
             categorical_columns=self.categorical_columns,
             log_columns=self.log_columns,
@@ -77,7 +77,8 @@ class LatentTAE:
             data_dim, 
             data_info, 
             epochs=n_epochs, 
-            batch_size=self.batch_size
+            batch_size=self.batch_size,
+            lr=self.lr
         )
         self.loss = self.ae.loss
         ##### TEST #####
@@ -193,7 +194,7 @@ class AutoEncoder(object):
     def decode(self, z):
         return self.model.decode(z)
 
-    def train(self, data, output_dim: int, output_info, epochs, batch_size):
+    def train(self, data, output_dim: int, output_info, epochs, batch_size, lr=1e-3):
 
         data_sampler = Sampler(data, output_info)
         cond_generator = Condvec(data, output_info)
@@ -203,7 +204,7 @@ class AutoEncoder(object):
 
         self.model = AENetwork(input_dim=col_size_d, **self.kwargs)
         self.model.to(self.device)
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
 
         self.model.train()
         train_loss = 0
