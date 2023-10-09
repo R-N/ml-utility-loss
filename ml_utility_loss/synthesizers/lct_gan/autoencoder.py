@@ -55,6 +55,12 @@ class LatentTAE:
             integer_columns=self.integer_columns
         )
 
+    def state_dict(self):
+        return self.ae.state_dict()
+    
+    def load_state_dict(self, state_dict):
+        return self.ae.load_state_dict(state_dict)
+
     def fit_preprocessor(self, raw_df):
         self.data_preprocessor.fit(raw_df)
 
@@ -238,3 +244,9 @@ class AutoEncoder(object):
 
         #print(last_loss)
         self.loss = last_loss
+
+    def state_dict(self):
+        return self.model.state_dict()
+    
+    def load_state_dict(self, state_dict):
+        return self.model.load_state_dict(state_dict)
