@@ -16,6 +16,7 @@ class PretrainingScheduler:
         eps=1e-8, 
         verbose=False,
     ):
+
         self.min_size = min_size
         self.max_size = max_size
         self.cur_size = min_size
@@ -55,7 +56,7 @@ class PretrainingScheduler:
         self.aug_counter = 0
         self.cooldown_counter = 0
         self.num_bad_epochs = 0
-        self.id_done = False
+        self.is_done = False
 
     def step(self, metrics, epoch=None):
         # convert `metrics` to float, in case it's a zero-dim Tensor
