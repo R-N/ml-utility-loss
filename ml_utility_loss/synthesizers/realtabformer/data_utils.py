@@ -535,8 +535,8 @@ def process_data(
         processed_series.append(series)
 
     processed_df = pd.concat([pd.DataFrame()] + processed_series, axis=1)
-    """
     #print("processed_df A", processed_df.head())
+    """
     print("min A", processed_df["6___NUMERIC___charges"].astype(float).min())
     print("processed_df A", processed_df[["6___NUMERIC___charges"]].sort_values("6___NUMERIC___charges", ascending=True).head())
     """
@@ -555,8 +555,8 @@ def process_data(
             ],
             axis=1,
         )
-    """
     #print("processed_df B", processed_df.head())
+    """
     if "6___NUMERIC___charges_10" in processed_df.columns:
         print("max B", processed_df["6___NUMERIC___charges_10"].sort_values(ascending=False).iloc[0])
     _cols = [x for x in processed_df.columns if "6___NUMERIC___charges" in x]
@@ -600,6 +600,8 @@ def process_data(
     for c in df.columns:
         # Add the column name as part of the value.
         df[c] = encode_column_values(df[c])
+
+    print(df.columns)
 
     return df, col_transform_data
 
