@@ -7,6 +7,7 @@ from .preprocessing import generate_overlap
 from ...util import Cache, stack_samples, stack_sample_dicts, sort_df, shuffle_df, split_df_ratio, split_df_kfold
 from copy import deepcopy
 import numpy as np
+import gc
 
 Tensor=torch.FloatTensor
 
@@ -53,6 +54,12 @@ def to_tensor(x, Tensor=None):
 
 class BaseDataset(Dataset):
     def __init__(self, max_cache=None):
+        self.create_cache(max_cache)
+
+    def create_cache(self, max_cache):
+        if hasattr(self, "max_cache") and self.max_cache == max_cache:
+            return
+        self.max_cache = max_cache
         self.cache = Cache(max_cache) if max_cache else None
 
     @property
@@ -62,6 +69,7 @@ class BaseDataset(Dataset):
     def clear_cache(self):
         if self.cache:
             self.cache.clear()
+            gc.collect()
 
     def set_size(self, size):
         pass
@@ -208,6 +216,7 @@ class MultiSizeDatasetDataset(BaseDataset):
             if self.cache:
                 self.cache[size] = self.dataset
         self.size = size
+        gc.collect()
 
     def set_aug_scale(self, aug_scale):
         if aug_scale == self.aug_scale:
