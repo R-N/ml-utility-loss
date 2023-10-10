@@ -30,7 +30,7 @@ setup(
         "matplotlib>=3.5.2",
         "numpy>=1.25.0",
         "optuna>=2.10.1",
-        "pandas>=1.4.2",
+        "pandas==1.5.3",
         "pyarrow>=6.0.0",
         "rdt>=1.3.0",
         "rtdl>=0.0.9",
