@@ -1,0 +1,13 @@
+age,sex,bmi,children,smoker,region,charges
+29,female,27.94,1,yes,southeast,19107.7796
+33,female,33.5,0,yes,southwest,37079.372
+59,female,32.395,3,no,northeast,14590.63205
+28,male,31.68,0,yes,southeast,34672.1472
+47,male,25.41,1,yes,southeast,21978.6769
+49,female,29.925,0,no,northwest,8988.15875
+49,male,32.3,3,no,northwest,10269.46
+31,female,38.095,1,yes,northeast,58571.07448
+33,male,35.75,1,yes,southeast,38282.7495
+55,male,37.3,0,no,southwest,20630.28351
+20,male,30.685,0,yes,northeast,33475.81715
+38,female,28.0,3,no,southwest,7151.092
