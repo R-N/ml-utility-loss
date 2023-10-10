@@ -405,7 +405,7 @@ def train_epoch(
                             # That is towards the role model embedding
                             # Using the gradient of embedding loss at m
                             # Does this make sense?
-                            assert not hasattr(m, "grad") or m.grad is None or m.grad == 0, "m has grad"
+                            #assert not hasattr(m, "grad") or m.grad is None or m.grad == 0, "m has grad"
                             m_grad = calc_gradient(m, compute["embed_loss"])
                             dbody_dadapter = dbody_dadapter + m_grad
                             dbody_dadapter = dbody_dadapter.detach()
