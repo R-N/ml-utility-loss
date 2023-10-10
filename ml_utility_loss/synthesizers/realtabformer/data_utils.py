@@ -617,7 +617,7 @@ def process_data(
         # Add the column name as part of the value.
         df[c] = encode_column_values(df[c])
 
-    print(df.columns)
+    #print(df.columns)
 
     return df, col_transform_data
 
