@@ -35,7 +35,7 @@ setup(
         "rdt>=1.3.0",
         "rtdl>=0.0.9",
         "shapely>=1.8.5.post1",
-        "scikit-learn>=1.2.0",
+        "scikit-learn==1.2.2",
         "scipy>=1.8.0",
         "seaborn>=0.11.2",
         "skorch",
