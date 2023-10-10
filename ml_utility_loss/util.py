@@ -6,6 +6,7 @@ from collections import OrderedDict
 import torch
 from math import sqrt
 import scipy.stats as st
+import os
 
 def load_json(path, **kwargs):
     return json.loads(Path(path).read_text(), **kwargs)
@@ -180,3 +181,10 @@ DEFAULT_DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else "cpu")
 
 def check_cuda(model):
     return next(model.parameters()).is_cuda
+
+def fix_path(path):
+    path = path.split("/")
+    path = [pi for p in path for pi in p.split("\\") if p]
+    path = [p for p in path if p]
+    path = os.path.join(*path)
+    return path

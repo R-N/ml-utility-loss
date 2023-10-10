@@ -4,7 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 import glob
 import pandas as pd
 from .preprocessing import generate_overlap
-from ...util import Cache, stack_samples, stack_sample_dicts, sort_df, shuffle_df, split_df_ratio, split_df_kfold
+from ...util import Cache, stack_samples, stack_sample_dicts, sort_df, shuffle_df, split_df_ratio, split_df_kfold, fix_path
 from copy import deepcopy
 import numpy as np
 import gc
@@ -117,8 +117,8 @@ class DatasetDataset(BaseDataset):
             return self.cache[idx]
 
         info = self.info[idx]
-        train = pd.read_csv(os.path.join(self.dir, info[self.train]))
-        test = pd.read_csv(os.path.join(self.dir, info[self.test]))
+        train = pd.read_csv(os.path.join(self.dir, fix_path(info[self.train])))
+        test = pd.read_csv(os.path.join(self.dir, fix_path(info[self.test])))
         y = info[self.value]
 
         if self.mode == "shuffle":
