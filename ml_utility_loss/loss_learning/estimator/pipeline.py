@@ -63,7 +63,7 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
             info_out = pd.DataFrame()
     if len(info_out):
         last_index = info_out.last_valid_index()
-        i = int(last_index.split("_")[0]) + 1
+        i = int(last_index.split("_")[0])
         print(f"Set i to {i}")
     for i in range(i, n):
         """
