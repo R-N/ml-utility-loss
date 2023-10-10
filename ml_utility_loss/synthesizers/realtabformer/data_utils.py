@@ -253,6 +253,22 @@ def process_numeric_data(
             transform_data["ljust"] = int(ljust)
 
         series = series.str.ljust(ljust, "0")
+        
+        if is_transform:
+            zfill = transform_data["zfill"]
+        else:
+            zfill = series.map(len).max()
+            # Ensure the fill can reach the negative sign
+            if not series_has_negative:
+                zfill += 1
+            transform_data["zfill"] = int(zfill)
+
+        #"""
+        if "leucocyte" in series.name:
+            print("min B", series.astype(float).min())
+            print("zfill", zfill)
+        #"""
+        series = series.str.zfill(zfill)
 
     # If a number has a negative sign, make sure that it is placed properly.
     series.loc[negative_flag] = "-" + series.loc[
