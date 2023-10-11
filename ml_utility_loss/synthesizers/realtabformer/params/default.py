@@ -16,7 +16,7 @@ GPT2_PARAM_SPACE = {
     "scale_attn_by_inverse_layer_idx": BOOLEAN,
 }
 REALTABFORMER_PARAM_SPACE = {
-    "epochs": ("log_int", 100, 1000),
+    "epochs": ("log_int", 2, 100),
     "batch_size": ("int_exp_2", 4, 32),
     "mask_rate": ("float", 0.0, 0.2),
     "numeric_nparts": ("int", 1, 2),
