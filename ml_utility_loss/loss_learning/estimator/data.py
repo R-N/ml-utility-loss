@@ -77,10 +77,10 @@ class BaseDataset(Dataset):
     def set_aug_scale(self, aug_scale):
         pass
 
-    def slice(self, start=0, end=None, step=1):
+    def slice(self, start=0, stop=None, step=1):
         index = pd.Series(self.index)
-        end = end or (len(index)-1)
-        sample = index[start:end:step]
+        stop = stop or (len(index)-1)
+        sample = index[start:stop:step]
         dataset = SubDataset(self, sample)
         return dataset
 
