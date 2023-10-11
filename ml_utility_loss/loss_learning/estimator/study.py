@@ -48,6 +48,7 @@ def objective_2(
     batch_size_low=4,
     batch_size_high=64,
     verbose=False,
+    patience=5,
     **kwargs
 ):
     try:
@@ -64,6 +65,7 @@ def objective_2(
         max_size=dataset_size_high,
         min_batch_size=batch_size_low,
         max_batch_size=batch_size_high,
+        patience=patience,
         verbose=verbose,
     )
     kwargs["dataset_size"] = size_scheduler.get_size()
