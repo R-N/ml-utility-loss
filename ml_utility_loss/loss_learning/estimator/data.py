@@ -77,6 +77,12 @@ class BaseDataset(Dataset):
     def set_aug_scale(self, aug_scale):
         pass
 
+    def sample(self, **kwargs):
+        index = pd.Series(self.index)
+        sample = index.sample(**kwargs)
+        dataset = SubDataset(self, sample)
+        return dataset
+
     def split_ratio(self, **kwargs):
         index = pd.Series(self.index)
         datasets = split_df_ratio(index, **kwargs)
