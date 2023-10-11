@@ -77,6 +77,12 @@ class BaseDataset(Dataset):
     def set_aug_scale(self, aug_scale):
         pass
 
+    def slice(self, slice):
+        index = pd.Series(self.index)
+        sample = index[slice]
+        dataset = SubDataset(self, sample)
+        return dataset
+
     def sample(self, **kwargs):
         index = pd.Series(self.index)
         sample = index.sample(**kwargs)
