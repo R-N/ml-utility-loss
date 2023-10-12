@@ -93,10 +93,10 @@ class PretrainingScheduler:
         updated = False
 
         old_size = self.cur_size
-        self.cur_size = min(self.max_size, self.cur_size * self.size_factor)
+        self.cur_size = min(self.max_size, int(self.cur_size * self.size_factor))
 
         old_batch_size = self.cur_batch_size
-        self.cur_batch_size = max(self.min_batch_size, self.cur_batch_size * self.batch_size_factor)
+        self.cur_batch_size = max(self.min_batch_size, int(self.cur_batch_size * self.batch_size_factor))
 
         if old_size < self.cur_size:
             updated = True
