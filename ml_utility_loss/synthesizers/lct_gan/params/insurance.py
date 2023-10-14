@@ -20,6 +20,7 @@ DEFAULT = {
     "gan_batch_size": 1024, # 10,
 }
 
+#0.1592409991496112
 BEST = {
     "ae_epochs": 267, 
     "ae_batch_size": 128, # 7, 

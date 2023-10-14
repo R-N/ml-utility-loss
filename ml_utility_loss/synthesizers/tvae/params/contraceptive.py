@@ -23,7 +23,7 @@ DEFAULT = {
     "epochs": 700, 
     "loss_factor": 1.8
 }
-
+# 0.5639733135656042
 BEST = {
     "embedding_dim": 128, 
     "compress_dims": 64, 

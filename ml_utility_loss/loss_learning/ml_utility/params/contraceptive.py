@@ -28,6 +28,7 @@ DEFAULT = {
     "loss_function": "MultiClass"
 }
 
+#0.5697730193812228
 BEST = {
     "epochs": 204,
     "colsample_bylevel": 0.5602197328703657,

@@ -27,6 +27,8 @@ DEFAULT = {
     "max_ctr_complexity": 5,
     "loss_function": "CrossEntropy",
 }
+
+#0.6920888659031907
 BEST = {
     "epochs": 547,
     "colsample_bylevel": 0.7801231579926485,

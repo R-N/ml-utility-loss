@@ -14,7 +14,7 @@ PARAM_SPACE = {
     "d_layers_n": ("int_exp_2", 512, 2048),
     "steps": ("log_int", 12000, 80000),
 }
-
+# 0.15026231181383698
 DEFAULT = {
     "lr": 0.00015, 
     "weight_decay": 9.5e-05, 

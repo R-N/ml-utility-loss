@@ -27,6 +27,7 @@ DEFAULT = {
     "loss_function": "RMSE"
 }
 
+#0.8612787044800057
 BEST = {
     "epochs": 1946,
     "colsample_bylevel": 0.41900797948568924,
