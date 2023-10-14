@@ -47,7 +47,7 @@ def split_df_ratio(df, ratio=0.2, val=False, i=0, seed=42, return_3=False):
     count = int(1.0/ratio)
     splits = [k*ratio for k in range(1, count)]
     splits = split_df(df, splits, seed=seed)
-    test_index = count - 1 + i
+    test_index = (count - 1 + i)%count
     val_index = (test_index-1)%count if val else None
     n = min([len(s) for s in splits])
 
