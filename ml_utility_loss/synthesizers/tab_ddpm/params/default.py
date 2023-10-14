@@ -4,7 +4,7 @@ PARAM_SPACE = {
     "weight_decay": ("log_float", 1e-5, 1e-3),
     "batch_size": ("int_exp_2", 256, 2048),
     "num_timesteps": ("int", 100, 1000, 100),
-    "gaussian_loss_type": ("categorical", ['mse', 'kl']),
+    "gaussian_loss_type": 'mse',
     "cat_encoding": ("categorical", ["ordinal", 'one-hot']),
     #rtdl_params
     "dropout": ("float", 0.0, 0.2),
