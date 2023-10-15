@@ -93,6 +93,7 @@ LOSSES = {
     "mse": F.mse_loss,
     "mae": F.l1_loss,
     "kl": F.kl_div,
+    "kl_div": F.kl_div,
     "huber": F.huber_loss,
 }
 OPTIMS = {
