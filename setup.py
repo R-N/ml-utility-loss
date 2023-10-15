@@ -21,7 +21,7 @@ setup(
         "catboost>=1.0.3",
         "category-encoders>=2.3.0",
         "datasets>=2.6.1",
-        "delu",
+        "delu==0.0.18",
         "dython~=0.6.4.post1",
         "icecream>=2.1.2",
         "imbalanced-learn>=0.7.0",
