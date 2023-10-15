@@ -193,13 +193,18 @@ types_ = {
     "float": float,
     "int": int,
     "str": str,
-    "dict": dict
+    "dict": dict,
+    "list": list,
 }
 
 def clean_types(model_params):
     return {k: types_[str(type(v))](v) for k, v in model_params.items()}
 
+def clean_types_list(model_params):
+    return [types_[str(type(v))](v) for v in model_params]
+
 types_["dict"] = clean_types
+types_["list"] = clean_types_list
 
 types_ = {
     **types_,
