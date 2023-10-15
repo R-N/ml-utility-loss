@@ -367,7 +367,8 @@ def train(
     test_set.set_aug_scale(0)
     eval_loss = eval(
         test_set, whole_model,
-        batch_size=size_scheduler.get_batch_size()
+        batch_size=size_scheduler.get_batch_size(),
+        dataloader_worker=dataloader_worker
     )
 
     return {
@@ -385,12 +386,14 @@ def eval(
     dataset,
     whole_model,
     batch_size=4,
+    dataloader_worker=1,
 ):
     loader = DataLoader(
         dataset, 
         batch_size=batch_size, 
         shuffle=True, 
-        collate_fn=collate_fn
+        collate_fn=collate_fn,
+        num_workers=dataloader_worker
     )
 
     eval_loss = _eval(whole_model, loader)
