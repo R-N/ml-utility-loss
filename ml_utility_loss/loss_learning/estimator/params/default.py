@@ -76,7 +76,7 @@ PARAM_SPACE_2 = {
     "dataset_size_high": ("int_exp_2", 256, 4096),
     "batch_size_low": ("int_exp_2", 2, 4),
     "batch_size_high": ("int_exp_2", 4, 16),
-    "patience": ("log_int", 2, 5)
+    "patience": ("log_int", 2, 10)
 }
 
 def update_param_space(param_space, dataset_sizes):
