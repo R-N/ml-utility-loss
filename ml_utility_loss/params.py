@@ -92,6 +92,7 @@ CATBOOST_METRICS["Huber"] = catboost.metrics.Huber(delta=2)
 LOSSES = {
     "mse": F.mse_loss,
     "mae": F.l1_loss,
+    "kl": F.kl_div,
     "huber": F.huber_loss,
 }
 OPTIMS = {
