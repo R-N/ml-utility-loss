@@ -270,6 +270,7 @@ def train(
     verbose=True,
     epoch_callback=None,
     size_scheduler=None,
+    dataloader_worker=1,
     **model_args
 ):
     if len(datasets) == 3:
@@ -297,7 +298,8 @@ def train(
             dataset, 
             batch_size=batch_size, 
             shuffle=not val, 
-            collate_fn=collate_fn
+            collate_fn=collate_fn,
+            num_workers=dataloader_worker
         )
         return loader
     
