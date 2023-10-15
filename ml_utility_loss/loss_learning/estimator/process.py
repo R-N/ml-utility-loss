@@ -58,19 +58,19 @@ def handle_zero(tensor, inplace=False):
 def clamp_tensor(tensor, loss_clamp, dim=-1, detach_mag=True):
     # We treat it as a vector, having direction
     # We use keep_dim because we need it to stay (batch, dim) for denominator
-    assert not torch.isnan(tensor).any(), f"tensor has nan 0 {tensor}"
+    #assert not torch.isnan(tensor).any(), f"tensor has nan 0 {tensor}"
     tensor_mag = tensor.norm(2, dim=dim, keepdim=True)
-    assert not torch.isnan(tensor_mag).any(), f"tensor_mag has nan 1"
+    #assert not torch.isnan(tensor_mag).any(), f"tensor_mag has nan 1"
     # We clamp min to loss clamp=1 because this will be denominator
     # Meaning a loss magnitude of 0.5 will clamp to 1 so it will stay 0.5
     # Meanwhile loss magnitude of 2 will not clamp so it will be 2/2=1
     tensor_mag = torch.clamp(tensor_mag, min=loss_clamp)
-    assert not torch.isnan(tensor_mag).any(), f"tensor_mag has nan 2"
+    #assert not torch.isnan(tensor_mag).any(), f"tensor_mag has nan 2"
     tensor_mag = handle_zero(tensor_mag)
-    assert not torch.isnan(tensor_mag).any(), f"tensor_mag has nan 3"
+    #assert not torch.isnan(tensor_mag).any(), f"tensor_mag has nan 3"
     tensor_mag = tensor_mag.detach() if detach_mag else tensor_mag
     tensor = tensor / tensor_mag
-    assert not torch.isnan(tensor).any(), f"tensor has nan 4, {tensor_mag} {tensor}"
+    #assert not torch.isnan(tensor).any(), f"tensor has nan 4, {tensor_mag} {tensor}"
     #tensor = handle_nan(tensor)
     return tensor
 
@@ -351,8 +351,9 @@ def train_epoch(
                 assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan 1"
                 # Now we clamp embed loss because it overpowers the rest
                 if loss_clamp:
+                    embed_loss_0 = embed_loss
                     embed_loss = clamp_tensor(embed_loss, loss_clamp=loss_clamp)
-                    assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan 2"
+                    assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan 2 {embed_loss_0} {embed_pred} {embed_y}"
                 
                 # Again we'll take the norm because it is a vector
                 # But no keep_dim so it results in (batch)
