@@ -129,7 +129,6 @@ class DatasetDataset(BaseDataset):
         if hasattr(idx, "__iter__"):
             return stack_samples([self[id] for id in idx])
         if self.cache and idx in self.cache:
-            print("CACHE HIT")
             return self.cache[idx]
 
         info = self.info[idx]
