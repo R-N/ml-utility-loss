@@ -347,6 +347,7 @@ def train_epoch(
                 # This has to be averaging so we won't be using the reduction parameter
                 # keep_dim=False by default so this should result in shape (batch, dim)
                 embed_loss = torch.mean(embed_loss, dim=-2)
+                assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan 1a"
                 # Now we clamp embed loss because it overpowers the rest
                 if loss_clamp:
                     embed_loss = clamp_tensor(embed_loss, loss_clamp=loss_clamp)
