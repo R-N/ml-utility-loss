@@ -59,6 +59,8 @@ class BaseDataset(Dataset):
     def create_cache(self, max_cache):
         if hasattr(self, "max_cache") and self.max_cache == max_cache:
             return
+        if max_cache == True:
+            max_cache = torch.inf
         self.max_cache = max_cache
         self.cache = Cache(max_cache) if max_cache else None
 
