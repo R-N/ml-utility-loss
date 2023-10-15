@@ -58,6 +58,7 @@ def handle_zero(tensor, inplace=False):
 def clamp_tensor(tensor, loss_clamp, dim=-1, detach_mag=True):
     # We treat it as a vector, having direction
     # We use keep_dim because we need it to stay (batch, dim) for denominator
+    assert not torch.isnan(tensor).any(), f"tensor has nan 0 {tensor}"
     tensor_mag = tensor.norm(2, dim=dim, keepdim=True)
     assert not torch.isnan(tensor_mag).any(), f"tensor_mag has nan 1"
     # We clamp min to loss clamp=1 because this will be denominator
@@ -69,7 +70,7 @@ def clamp_tensor(tensor, loss_clamp, dim=-1, detach_mag=True):
     assert not torch.isnan(tensor_mag).any(), f"tensor_mag has nan 3"
     tensor_mag = tensor_mag.detach() if detach_mag else tensor_mag
     tensor = tensor / tensor_mag
-    assert not torch.isnan(tensor).any(), f"tensor has nan 4"
+    assert not torch.isnan(tensor).any(), f"tensor has nan 4, {tensor_mag} {tensor}"
     #tensor = handle_nan(tensor)
     return tensor
 
