@@ -28,3 +28,5 @@ BEST = {
 
 # I mean it was just one trial lol
 BEST = {}
+
+#BEST["epochs"] = min(BEST["epochs"], 100)

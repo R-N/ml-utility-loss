@@ -25,3 +25,4 @@ BEST = {
     "optim": "adamw_hf", 
     "num_bootstrap": 73
 }
+#BEST["epochs"] = min(BEST["epochs"], 100)
