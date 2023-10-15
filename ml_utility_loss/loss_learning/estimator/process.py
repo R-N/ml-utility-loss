@@ -59,13 +59,17 @@ def clamp_tensor(tensor, loss_clamp, dim=-1, detach_mag=True):
     # We treat it as a vector, having direction
     # We use keep_dim because we need it to stay (batch, dim) for denominator
     tensor_mag = tensor.norm(2, dim=dim, keepdim=True)
+    assert not torch.isnan(tensor_mag).any(), f"tensor_mag has nan 1"
     # We clamp min to loss clamp=1 because this will be denominator
     # Meaning a loss magnitude of 0.5 will clamp to 1 so it will stay 0.5
     # Meanwhile loss magnitude of 2 will not clamp so it will be 2/2=1
     tensor_mag = torch.clamp(tensor_mag, min=loss_clamp)
+    assert not torch.isnan(tensor_mag).any(), f"tensor_mag has nan 2"
     tensor_mag = handle_zero(tensor_mag)
+    assert not torch.isnan(tensor_mag).any(), f"tensor_mag has nan 3"
     tensor_mag = tensor_mag.detach() if detach_mag else tensor_mag
     tensor = tensor / tensor_mag
+    assert not torch.isnan(tensor).any(), f"tensor has nan 4"
     #tensor = handle_nan(tensor)
     return tensor
 
@@ -331,27 +335,23 @@ def train_epoch(
                 # We reuse the previous intermediate tensor
                 # Don't detach this one
                 m = compute["m"]
-                assert not torch.isnan(m).any(), f"{model} m has nan"
-                assert not torch.isnan(compute["m_test"]).any(), f"{model} m_test has nan"
                 #m.requires_grad_()
                 embed_pred = torch.cat([
                     m, 
                     compute["m_test"]
                 ], dim=-2)
-                assert not torch.isnan(embed_pred).any(), f"{model} embed_pred has nan"
 
                 embed_loss = adapter_loss_fn(embed_pred, embed_y, reduction="none")
-                assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan 0"
                 # Embed loss is of shape (batch, size, dim)
                 # Average the loss over samples
                 # This has to be averaging so we won't be using the reduction parameter
                 # keep_dim=False by default so this should result in shape (batch, dim)
                 embed_loss = torch.mean(embed_loss, dim=-2)
-                assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan 1a"
+                assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan 1"
                 # Now we clamp embed loss because it overpowers the rest
                 if loss_clamp:
                     embed_loss = clamp_tensor(embed_loss, loss_clamp=loss_clamp)
-                    assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan 1"
+                    assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan 2"
                 
                 # Again we'll take the norm because it is a vector
                 # But no keep_dim so it results in (batch)
@@ -434,6 +434,7 @@ def train_epoch(
                 g = 2 * torch.sqrt(loss.detach())
                 # gradient penalty
                 g_loss = grad_loss_fn(dbody_dx_norm, g, reduction="none")
+                g_loss = g_loss + eps
                 if loss_clamp:
                     g_loss = clamp_tensor(g_loss, loss_clamp=loss_clamp)
                 g_loss = reduction(g_loss)
