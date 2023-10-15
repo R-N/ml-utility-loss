@@ -14,7 +14,7 @@ PARAM_SPACE = {
     "grad_loss_mul": ("float", 0.1, 1.5),
     "loss_fn": ("loss", ["mse", "mae", "huber"]),
     "grad_loss_fn": ("loss", ["mse", "mae", "huber"]),
-    "adapter_loss_fn": ("loss", ["mae", "kl"]),
+    "adapter_loss_fn": ("loss", ["mae", "kl_div"]),
     "fixed_role_model": ("categorical", [
         None, 
         "tvae", 
