@@ -55,7 +55,7 @@ def objective_2(
     try:
         assert dataset_size_low <= dataset_size_high, "dataset size low must be lower than high"
         assert batch_size_low <= batch_size_high, "batch size low must be lower than high"
-        size_len = int(math.log(dataset_size_high//dataset_size_low, 2))
+        size_len = int(math.log(dataset_size_high//dataset_size_low, 2)+1)
         epochs = kwargs["epochs"]
         m = epochs / (patience*size_len)
         assert m <= 3, f"patience too low for dataset size steps:  {epochs} / ({patience}*{size_len}) <= 3"
