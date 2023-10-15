@@ -188,3 +188,20 @@ def fix_path(path):
     path = [p for p in path if p]
     path = os.path.join(*path)
     return path
+
+types_ = {
+    "float": float,
+    "int": int,
+    "str": str,
+    "dict": dict
+}
+
+def clean_types(model_params):
+    return {k: types_[str(type(v))](v) for k, v in model_params.items()}
+
+types_["dict"] = clean_types
+
+types_ = {
+    **types_,
+    **{f"<class '{k}'>": v for k, v in types_.items()}
+}
