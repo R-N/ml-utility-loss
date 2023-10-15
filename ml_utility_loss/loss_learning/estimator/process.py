@@ -331,13 +331,17 @@ def train_epoch(
                 # We reuse the previous intermediate tensor
                 # Don't detach this one
                 m = compute["m"]
+                assert not torch.isnan(m).any(), f"{model} m has nan"
+                assert not torch.isnan(compute["m_test"]).any(), f"{model} m_test has nan"
                 #m.requires_grad_()
                 embed_pred = torch.cat([
                     m, 
                     compute["m_test"]
                 ], dim=-2)
+                assert not torch.isnan(embed_pred).any(), f"{model} embed_pred has nan"
 
                 embed_loss = adapter_loss_fn(embed_pred, embed_y, reduction="none")
+                assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan 0"
                 # Embed loss is of shape (batch, size, dim)
                 # Average the loss over samples
                 # This has to be averaging so we won't be using the reduction parameter
@@ -346,6 +350,7 @@ def train_epoch(
                 # Now we clamp embed loss because it overpowers the rest
                 if loss_clamp:
                     embed_loss = clamp_tensor(embed_loss, loss_clamp=loss_clamp)
+                    assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan 1"
                 
                 # Again we'll take the norm because it is a vector
                 # But no keep_dim so it results in (batch)
