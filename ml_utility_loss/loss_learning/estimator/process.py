@@ -184,7 +184,7 @@ def train_epoch(
     avg_role_model_g_loss = 0
     avg_non_role_model_g_loss = 0
     avg_non_role_model_embed_loss = 0
-    n_batch = 0
+    n_size = 0
 
     non_role_model_count = len(models) - 1
     non_role_model_avg_mul = 1.0/non_role_model_count if non_role_model_avg else 1.0
@@ -195,6 +195,8 @@ def train_epoch(
         gc.collect()
         if not val:
             optim.zero_grad()
+
+        batch_size = 1
 
         # have fixed role model as hyperparameter
         # role model is selected for the adapter
@@ -219,6 +221,8 @@ def train_epoch(
             # should I zero and make it not require grad later?
             train = train.clone()
             train = train.detach()
+
+            batch_size = y.shape[0] if y.dim() > 0 else 1
 
             train = train.to(whole_model.device)
             test = test.to(whole_model.device)
@@ -497,13 +501,13 @@ def train_epoch(
         avg_non_role_model_embed_loss += try_tensor_item(non_role_model_embed_loss)
         avg_batch_loss += try_tensor_item(batch_loss)
     
-        n_batch += 1
+        n_size += 1 if reduction == torch.mean else batch_size
 
-    avg_role_model_loss /= n_batch
-    avg_role_model_g_loss /= n_batch
-    avg_non_role_model_g_loss /= n_batch
-    avg_non_role_model_embed_loss /= n_batch
-    avg_batch_loss /= n_batch
+    avg_role_model_loss /= n_size
+    avg_role_model_g_loss /= n_size
+    avg_non_role_model_g_loss /= n_size
+    avg_non_role_model_embed_loss /= n_size
+    avg_batch_loss /= n_size
     gc.collect()
     return {
         "avg_role_model_loss": avg_role_model_loss, 
@@ -518,7 +522,7 @@ def eval(
     whole_model, 
     eval_loader, 
     loss_fn=F.mse_loss,
-    reduction=torch.mean,
+    reduction=torch.sum,
     models=None,
 ):
     size = len(eval_loader.dataset)
@@ -527,14 +531,16 @@ def eval(
 
     # Set the model to eval mode for validation or train mode for training
     whole_model.eval()
-    n_batch = 0
+    n_size = 0
 
     avg_losses = {model: 0 for model in models}
 
     for batch, batch_dict in enumerate(eval_loader):
         gc.collect()
+        batch_size = 1
         # Compute prediction and loss for all adapters
         for model, (train, test, y) in batch_dict.items():
+            batch_size = y.shape[0] if y.dim() > 0 else 1
 
             train = train.to(whole_model.device)
             test = test.to(whole_model.device)
@@ -548,10 +554,10 @@ def eval(
             loss = reduction(loss).item()
             avg_losses[model] += loss
 
-        n_batch += 1
+        n_size += 1 if reduction == torch.mean else batch_size
 
     avg_losses = {
-        model: (loss/n_batch) 
+        model: (loss/n_size) 
         for model, loss in avg_losses.items()
     }
 

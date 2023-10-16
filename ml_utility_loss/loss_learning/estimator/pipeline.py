@@ -399,6 +399,7 @@ def eval(
     whole_model,
     batch_size=4,
     dataloader_worker=1,
+    **kwargs
 ):
     loader = DataLoader(
         dataset, 
@@ -408,6 +409,6 @@ def eval(
         num_workers=dataloader_worker
     )
 
-    eval_loss = _eval(whole_model, loader)
+    eval_loss = _eval(whole_model, loader, **kwargs)
 
     return eval_loss
