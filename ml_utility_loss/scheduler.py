@@ -1,6 +1,7 @@
 from torch.optim.lr_scheduler import OneCycleLR as _OneCycleLR, ReduceLROnPlateau as _ReduceLROnPlateau
 import optuna
 from torch import inf
+from copy import deepcopy
 
 class PretrainingScheduler:
     """
@@ -14,6 +15,7 @@ class PretrainingScheduler:
         mode='min', patience=10, cooldown=0,
         threshold=1e-4, threshold_mode='rel', 
         eps=1e-8, 
+        model=None,
         verbose=False,
     ):
 
@@ -46,6 +48,8 @@ class PretrainingScheduler:
         self.mode_worse = None  # the worse value for the chosen mode
         self.eps = eps
         self.last_epoch = 0
+        self.model = model
+        self.best_model = None
         self._init_is_better(mode=mode, threshold=threshold,
                              threshold_mode=threshold_mode)
         self._reset()
@@ -53,6 +57,7 @@ class PretrainingScheduler:
     def _reset(self):
         """Resets counters."""
         self.best = self.mode_worse
+        self.best_model = None
         self.aug_counter = 0
         self.cooldown_counter = 0
         self.num_bad_epochs = 0
@@ -67,6 +72,9 @@ class PretrainingScheduler:
 
         if self.is_better(current, self.best):
             self.best = current
+            if self.model:
+                del self.best_model
+                self.best_model = deepcopy(self.model.state_dict())
             self.num_bad_epochs = 0
         else:
             self.num_bad_epochs += 1
@@ -92,6 +100,12 @@ class PretrainingScheduler:
         epoch_str = ("%.2f" if isinstance(epoch, float) else "%.5d") % epoch
         updated = False
 
+        if (self.check_done()):
+            if self.model:
+                self.model.load_state_dict(self.best_model)
+            print(f"Epoch {epoch_str}: done.")
+            return False
+
         old_size = self.cur_size
         self.cur_size = min(self.max_size, int(self.cur_size * self.size_factor))
 
@@ -101,11 +115,11 @@ class PretrainingScheduler:
         if old_size < self.cur_size:
             updated = True
             if self.verbose:
-                print('Epoch {}: increase size to {:.4e}.'.format(epoch_str, self.cur_size))
+                print(f"Epoch {epoch_str}: increase size to {self.cur_size}.")
         if old_batch_size < self.cur_batch_size:
             updated = True
             if self.verbose:
-                print('Epoch {}: increase batch size to {:.4e}.'.format(epoch_str, self.cur_batch_size))
+                print(f"Epoch {epoch_str}: increase batch size to {self.cur_batch_size}.")
 
         self.cooldown_counter = self.cooldown
         self.num_bad_epochs = 0
@@ -114,7 +128,6 @@ class PretrainingScheduler:
             self.aug_counter += 1
             if self.aug_counter >= self.aug_inc:
                 updated = updated or self._increase_aug(epoch=epoch)
-        self.check_done()
         return updated
 
     def _increase_aug(self, epoch=None):
@@ -172,7 +185,7 @@ class PretrainingScheduler:
         self._init_is_better(mode=self.mode, threshold=self.threshold, threshold_mode=self.threshold_mode)
 
     def check_done(self):
-        if self.cur_size >= self.max_size and self.cur_batch_size <= self.min_batch_size and self.cur_aug >= self.max_aug:
+        if self.cur_size >= self.max_size and self.cur_batch_size <= self.min_batch_size and self.cur_aug >= self.max_aug and self.num_bad_epochs > self.patience:
             self.is_done = True
         return self.is_done
 

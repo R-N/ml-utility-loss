@@ -348,7 +348,8 @@ def train(
         train_loss = train_epoch_(train_loader)
         val_loss = train_epoch_(val_loader, val=True)
 
-        if size_scheduler and size_scheduler.step(i):
+        value = val_loss["avg_batch_loss"]
+        if size_scheduler and size_scheduler.step(value, i):
             train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
             val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
 
@@ -362,6 +363,9 @@ def train(
                 train_loss=train_loss,
                 val_loss=val_loss,
             )
+
+        if size_scheduler and size_scheduler.is_done:
+            break
 
     test_set.set_size(None)
     test_set.set_aug_scale(0)
