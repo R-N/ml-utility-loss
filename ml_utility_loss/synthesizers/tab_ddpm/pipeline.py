@@ -4,6 +4,8 @@ import os
 from .process import train as _train, sample as _sample
 from .preprocessing import dataset_from_df
 import torch
+from ...util import filter_dict
+from .params.default import RTDL_PARAMS
 
 DEFAULT_DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else "cpu")
     
@@ -46,6 +48,9 @@ def train(
     cat_features=[], 
     num_numerical_features = 6,
     device=DEFAULT_DEVICE,
+    checkpoint_dir=None,
+    log_dir=None,
+    trial=None,
     **kwargs
 ):
     kwargs = {**DEFAULT_MODEL_PARAMS, **kwargs}
@@ -77,3 +82,48 @@ def sample(
         disbalance=disbalance,
         seed=seed
     )
+
+def train_2(
+    datasets,
+    task,
+    target,
+    cat_features=[],
+    checkpoint_dir=None,
+    log_dir=None,
+    trial=None,
+    **kwargs
+):
+    _train = train
+    if isinstance(datasets, tuple):
+        train, test, *_ = datasets
+    else:
+        train = datasets
+
+    n_layers = kwargs.pop("n_layers")
+    d_layers_0 = kwargs.pop("d_layers_0")
+    d_layers_i = kwargs.pop("d_layers_i")
+    d_layers_n = kwargs.pop("d_layers_n")
+
+    d_layers = [
+        d_layers_0,
+        *[d_layers_i for _ in range(n_layers-2)],
+        d_layers_n,
+    ]
+
+    kwargs["d_layers"] = d_layers
+
+    rtdl_params = filter_dict(kwargs, RTDL_PARAMS)
+    kwargs = {k: v for k, v in kwargs.items() if k not in rtdl_params}
+    kwargs["rtdl_params"] = rtdl_params
+
+    model, diffusion, trainer = _train(
+        train,
+        task_type=task,
+        target=target,
+        cat_features=cat_features,
+        checkpoint_dir=checkpoint_dir,
+        log_dir=log_dir,
+        trial=trial,
+        **kwargs,
+    )
+    return model, diffusion, trainer 

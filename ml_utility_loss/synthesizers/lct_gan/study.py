@@ -1,6 +1,6 @@
 
-from ...loss_learning.ml_utility.pipeline import eval_ml_utility
-from .pipeline import create_ae, create_gan
+from ...loss_learning.ml_utility.pipeline import eval_ml_utility_2
+from .pipeline import create_ae_2, create_gan_2
 from ...util import filter_dict_2
 from catboost import CatBoostError
 from optuna.exceptions import TrialPruned
@@ -21,46 +21,40 @@ def objective(
     diff=False,
     **kwargs
 ):
-    train, test = datasets
+    train, test, *_ = datasets
 
-    ae_kwargs = filter_dict_2(kwargs, AE_PARAMS)
-    gan_kwargs = filter_dict_2(kwargs, GAN_PARAMS)
-
-    ae, recon = create_ae(
+    ae, recon = create_ae_2(
         train,
         categorical_columns = cat_features,
         mixed_columns = mixed_features,
         integer_columns = integer_features,
         log_columns=longtail_features,
-        **ae_kwargs
+        checkpoint_dir=checkpoint_dir,
+        log_dir=log_dir,
+        trial=trial,
+        **kwargs
     )
 
-
-    gan, synth = create_gan (
+    gan, synth = create_gan_2(
         ae, train,
         sample=None,
-        **gan_kwargs
+        checkpoint_dir=checkpoint_dir,
+        log_dir=log_dir,
+        trial=trial,
+        **kwargs
     )
 
     try:
-        synth_value = eval_ml_utility(
-            (synth, test),
-            task,
+        value = eval_ml_utility_2(
+            synth=synth,
+            train=train,
+            test=test,
+            diff=diff,
+            task=task,
             target=target,
             cat_features=cat_features,
             **ml_utility_params
         )
-        if diff:
-            real_value = eval_ml_utility(
-                (train, test),
-                task,
-                target=target,
-                cat_features=cat_features,
-                **ml_utility_params
-            )
-            value=abs(synth_value-real_value)
-        else:
-            value = synth_value
     except CatBoostError:
         raise TrialPruned()
 

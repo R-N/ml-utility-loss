@@ -2,6 +2,8 @@ from .autoencoder import LatentTAE
 from .gan import LatentGAN
 from sklearn.preprocessing import StandardScaler
 import torch
+from .params.default import AE_PARAMS, GAN_PARAMS
+from ...util import filter_dict_2
 
 Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
@@ -73,3 +75,50 @@ def create_ae(
     latent_data = ae.encode(preprocessed, preprocessed=True) # could be loaded from file
     reconstructed_data = ae.decode(latent_data, batch=True)
     return ae, reconstructed_data
+
+
+def create_ae_2(
+    datasets,
+    cat_features=[],
+    mixed_features={},
+    longtail_features=[],
+    integer_features=[],
+    checkpoint_dir=None,
+    log_dir=None,
+    trial=None,
+    **kwargs
+):
+    if isinstance(datasets, tuple):
+        train, test, *_ = datasets
+    else:
+        train = datasets
+
+    ae_kwargs = filter_dict_2(kwargs, AE_PARAMS)
+
+    ae, recon = create_ae(
+        train,
+        categorical_columns = cat_features,
+        mixed_columns = mixed_features,
+        integer_columns = integer_features,
+        log_columns=longtail_features,
+        **ae_kwargs
+    )
+    return ae, recon
+
+def create_gan_2(
+    ae,
+    datasets,
+    **kwargs
+):
+    if isinstance(datasets, tuple):
+        train, test, *_ = datasets
+    else:
+        train = datasets
+
+    gan_kwargs = filter_dict_2(kwargs, GAN_PARAMS)
+    gan, synth = create_gan (
+        ae, train,
+        sample=None,
+        **gan_kwargs
+    )
+    return gan, synth

@@ -31,3 +31,24 @@ def eval_ml_utility(
             return value
         except PermissionError:
             pass
+
+def eval_ml_utility_2(
+    synth,
+    train,
+    test,
+    diff=False,
+    **kwargs
+):
+    synth_value = eval_ml_utility(
+        (synth, test),
+        **kwargs
+    )
+    if diff:
+        real_value = eval_ml_utility(
+            (train, test),
+            **kwargs
+        )
+        value=abs(synth_value-real_value)
+    else:
+        value = synth_value
+    return value

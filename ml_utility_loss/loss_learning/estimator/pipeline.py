@@ -14,6 +14,7 @@ from torch import nn
 import torch.nn.functional as F
 import math
 import warnings
+from ...scheduler import PretrainingScheduler
 
 def augment(df, info, save_dir, n=1, test=0.2):
     mkdir(save_dir)
@@ -412,3 +413,66 @@ def eval(
     eval_loss = _eval(whole_model, loader, **kwargs)
 
     return eval_loss
+
+def train_2(
+    datasets,
+    preprocessor,
+    checkpoint_dir=None,
+    log_dir=None,
+    trial=None,
+    verbose=False,
+    **kwargs
+):
+    tf_pma = kwargs.pop("tf_pma")
+    if tf_pma:
+        kwargs.update(tf_pma)
+
+    train_results = train(
+        datasets,
+        preprocessor,
+        verbose=verbose,
+        epoch_callback=None, # for now
+        **kwargs
+    )
+    for k in ["train_loss", "val_loss", "eval_loss"]:
+        print(k, train_results[k])
+    return train_results
+
+
+def train_3(
+    *args,
+    dataset_size_low=32,
+    dataset_size_high=2048,
+    batch_size_low=4,
+    batch_size_high=64,
+    verbose=False,
+    patience=5,
+    objective=train_2,
+    checkpoint_dir=None,
+    log_dir=None,
+    trial=None,
+    **kwargs
+):
+    assert dataset_size_low <= dataset_size_high, "dataset size low must be lower than high"
+    assert batch_size_low <= batch_size_high, "batch size low must be lower than high"
+
+    size_scheduler = PretrainingScheduler(
+        min_size=dataset_size_low,
+        max_size=dataset_size_high,
+        min_batch_size=batch_size_low,
+        max_batch_size=batch_size_high,
+        patience=patience,
+        verbose=verbose,
+    )
+    kwargs["dataset_size"] = size_scheduler.get_size()
+    kwargs["batch_size"] = size_scheduler.get_batch_size()
+    early_stopping = size_scheduler
+    return objective(
+        *args, 
+        size_scheduler=size_scheduler, 
+        early_stopping=early_stopping, 
+        checkpoint_dir=checkpoint_dir,
+        log_dir=log_dir,
+        trial=trial,
+        **kwargs
+    )
