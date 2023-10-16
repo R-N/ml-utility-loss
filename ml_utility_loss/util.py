@@ -128,9 +128,10 @@ def stack_sample_dicts(samples, keys=None, stack_outer=False):
     return sample_dicts
 
 class Cache:
-    def __init__(self, max_cache=torch.inf):
+    def __init__(self, max_cache=torch.inf, remove_old=False):
         self.max_cache = max_cache
         self.cache = OrderedDict()
+        self.remove_old = remove_old
 
     def clear(self):
         self.cache.clear()
@@ -144,7 +145,10 @@ class Cache:
     
     def __setitem__(self, idx, sample):
         if len(self.cache) >= self.max_cache:
-            self.cache.popitem(last=False)
+            if self.remove_old:
+                self.cache.popitem(last=False)
+            else:
+                return
         self.cache[idx] = sample
 
     def __contains__(self, item):

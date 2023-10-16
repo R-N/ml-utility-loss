@@ -53,16 +53,16 @@ def to_tensor(x, Tensor=None):
     return Tensor([x]).squeeze()
 
 class BaseDataset(Dataset):
-    def __init__(self, max_cache=None):
-        self.create_cache(max_cache)
+    def __init__(self, max_cache=None, **cache_kwargs):
+        self.create_cache(max_cache, **cache_kwargs)
 
-    def create_cache(self, max_cache):
+    def create_cache(self, max_cache, **cache_kwargs):
         if hasattr(self, "max_cache") and self.max_cache == max_cache:
             return
         if max_cache == True:
             max_cache = torch.inf
         self.max_cache = max_cache
-        self.cache = Cache(max_cache) if max_cache else None
+        self.cache = Cache(max_cache, **cache_kwargs) if max_cache else None
 
     @property
     def index(self):
@@ -205,7 +205,7 @@ class SubDataset(WrapperDataset):
     
 class MultiSizeDatasetDataset(BaseDataset):
     def __init__(self, dir, size=None, all="all", dataset_cache=None, **kwargs):
-        super().__init__(max_cache=dataset_cache)
+        super().__init__(max_cache=dataset_cache, remove_old=True)
         self.dir = dir
         self.dataset_kwargs = kwargs
         self.all = all
