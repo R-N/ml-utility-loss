@@ -157,7 +157,7 @@ def train_epoch(
     loss_fn=F.mse_loss,
     grad_loss_fn=F.mse_loss,
     adapter_loss_fn=F.l1_loss, # Values can get very large and MSE loss will result in infinity, or maybe use kl_div
-    reduction=torch.mean,
+    reduction=torch.sum,
     val=False,
     fixed_role_model="lct_gan",
     forward_once=True,
@@ -179,7 +179,7 @@ def train_epoch(
 
     # Set the model to eval mode for validation or train mode for training
     whole_model.eval() if val else whole_model.train()
-    avg_batch_loss = 0
+    avg_loss = 0
     avg_role_model_loss = 0
     avg_role_model_g_loss = 0
     avg_non_role_model_g_loss = 0
@@ -499,7 +499,7 @@ def train_epoch(
         avg_role_model_g_loss += try_tensor_item(role_model_g_loss)
         avg_non_role_model_g_loss += try_tensor_item(non_role_model_g_loss)
         avg_non_role_model_embed_loss += try_tensor_item(non_role_model_embed_loss)
-        avg_batch_loss += try_tensor_item(batch_loss)
+        avg_loss += try_tensor_item(batch_loss)
     
         n_size += 1 if reduction == torch.mean else batch_size
 
@@ -507,14 +507,14 @@ def train_epoch(
     avg_role_model_g_loss /= n_size
     avg_non_role_model_g_loss /= n_size
     avg_non_role_model_embed_loss /= n_size
-    avg_batch_loss /= n_size
+    avg_loss /= n_size
     gc.collect()
     return {
         "avg_role_model_loss": avg_role_model_loss, 
         "avg_role_model_g_loss": avg_role_model_g_loss,
         "avg_non_role_model_g_loss": avg_non_role_model_g_loss,
         "avg_non_role_model_embed_loss": avg_non_role_model_embed_loss,
-        "avg_batch_loss": avg_batch_loss,
+        "avg_loss": avg_loss,
     }
         
         
