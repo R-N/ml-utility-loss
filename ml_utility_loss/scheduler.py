@@ -2,6 +2,7 @@ from torch.optim.lr_scheduler import OneCycleLR as _OneCycleLR, ReduceLROnPlatea
 import optuna
 from torch import inf
 from copy import deepcopy
+import torch
 
 class PretrainingScheduler:
     """
@@ -47,9 +48,7 @@ class PretrainingScheduler:
         self.num_bad_epochs = None
         self.mode_worse = None  # the worse value for the chosen mode
         self.eps = eps
-        self.last_epoch = 0
         self.model = model
-        self.best_model = None
         self._init_is_better(mode=mode, threshold=threshold,
                              threshold_mode=threshold_mode)
         self._reset()
@@ -57,25 +56,29 @@ class PretrainingScheduler:
     def _reset(self):
         """Resets counters."""
         self.best = self.mode_worse
-        self.best_model = None
+        self.best_state = None
+        self.last_epoch = -1
+        self.best_epoch = -1
         self.aug_counter = 0
         self.cooldown_counter = 0
         self.num_bad_epochs = 0
-        self.is_done = False
+        self.stopped = False
 
-    def step(self, metrics, epoch=None):
+    def step(self, train_loss, val_loss=None, epoch=None):
         # convert `metrics` to float, in case it's a zero-dim Tensor
+        train_loss = train_loss.item() if torch.is_tensor(train_loss) else train_loss
+        val_loss = val_loss.item() if torch.is_tensor(val_loss) else val_loss
+        assert not isinstance(train_loss, int), "got int train_loss"
+        assert not isinstance(val_loss, int), "got int val_loss"
+        metrics = val_loss if val_loss is not None else train_loss
         current = float(metrics)
         if epoch is None:
             epoch = self.last_epoch + 1
-        self.last_epoch = epoch
+        elif epoch == self.last_epoch:
+            return False
 
         if self.is_better(current, self.best):
-            self.best = current
-            if self.model:
-                del self.best_model
-                self.best_model = deepcopy(self.model.state_dict())
-            self.num_bad_epochs = 0
+            self.new_best(current, epoch=epoch)
         else:
             self.num_bad_epochs += 1
 
@@ -84,8 +87,20 @@ class PretrainingScheduler:
             self.num_bad_epochs = 0  # ignore any bad epochs in cooldown
 
         if self.num_bad_epochs > self.patience:
-            return self._increase_size(epoch)
+            return self._increase_size(epoch=epoch)
+
+        self.last_epoch = epoch
         return False
+    
+    def new_best(self, current, epoch=None):
+        epoch = epoch if epoch is not None else self.last_epoch+1
+        self.best = current
+        self.num_bad_epochs = 0
+        self.best_epoch = epoch
+        if self.model:
+            if self.best_state is not None:
+                del self.best_state
+            self.best_state = deepcopy(self.model.state_dict())
 
     def get_size(self):
         return min(self.max_size, self.cur_size)
@@ -101,8 +116,7 @@ class PretrainingScheduler:
         updated = False
 
         if (self.check_done()):
-            if self.model:
-                self.model.load_state_dict(self.best_model)
+            self.stop()
             print(f"Epoch {epoch_str}: done.")
             return False
 
@@ -128,6 +142,12 @@ class PretrainingScheduler:
             self.aug_counter += 1
             if self.aug_counter >= self.aug_inc:
                 updated = updated or self._increase_aug(epoch=epoch)
+
+        if (not updated and self.check_done()):
+            self.stop()
+            print(f"Epoch {epoch_str}: done. best_epoch={self.best_epoch}")
+            return False
+
         return updated
 
     def _increase_aug(self, epoch=None):
@@ -186,14 +206,19 @@ class PretrainingScheduler:
 
     def check_done(self):
         if self.cur_size >= self.max_size and self.cur_batch_size <= self.min_batch_size and self.cur_aug >= self.max_aug and self.num_bad_epochs > self.patience:
-            self.is_done = True
-        return self.is_done
+            self.stop()
+        return self.stopped
+
+    def stop(self):
+        if not self.stopped:
+            if self.model:
+                self.model.load_state_dict(self.best_state)
+            self.stopped = True
 
 
 class ReduceLROnPlateau(_ReduceLROnPlateau):
-    def __init__(self, *args, factor=0.1, patience=10, cooldown=2, min_lr=1e-7, raise_ex=True, **kwargs):
+    def __init__(self, *args, factor=0.1, patience=10, cooldown=2, min_lr=1e-7, **kwargs):
         super().__init__(*args, factor=factor, patience=patience, cooldown=cooldown, min_lr=min_lr, **kwargs)
-        self.raise_ex = raise_ex
 
     def _reduce_lr(self, epoch):
         updated = False
@@ -210,9 +235,14 @@ class ReduceLROnPlateau(_ReduceLROnPlateau):
                           ' of group {} to {:.4e}.'.format(epoch_str, i, new_lr))
         log = "Learning rate stuck"
         if not updated:
+            self.stop()
             print(log)
-            if self.raise_ex:
-                raise optuna.TrialPruned(log)
+
+    def stop(self):
+        if not self.stopped:
+            #if self.model:
+            #    self.model.load_state_dict(self.best_state)
+            self.stopped = True
 
 class OneCycleLR:
     def __init__(self, optimizer, max_lr, steps_per_epoch, epochs, div_factor=25, autodecay=0.5):

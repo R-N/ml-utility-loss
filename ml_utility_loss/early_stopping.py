@@ -27,7 +27,6 @@ class EarlyStopping:
         label=None,
         eps=1e-3,
         update_state_mode=2,
-        raise_ex=True,
     ):
         """
         :param patience: how many epochs to wait before stopping when loss is
@@ -91,8 +90,6 @@ class EarlyStopping:
 
         self.last_epoch = 0
         self.stop_reason = None
-
-        self.raise_ex = raise_ex
 
         if self.log_dir is not None:
             assert self.label is not None
@@ -169,7 +166,10 @@ class EarlyStopping:
             self.best_loss_2_writer.add_scalar(self.label + label, best_loss_2, global_step=epoch)
             self.best_loss_2_writer.flush()
 
-    def __call__(self, train_loss, val_loss=None, epoch=None):
+    def __call__(self, *args, **kwargs):
+        return self.step(*args, **kwargs)
+
+    def step(self, train_loss, val_loss=None, epoch=None):
         epoch = epoch if epoch is not None else self.epoch
 
         val_loss = train_loss if val_loss is None else val_loss
@@ -408,10 +408,6 @@ class EarlyStopping:
         log = f"INFO: Early stopping due to {reason} at epoch {epoch} with {loss} at epoch {self.best_epoch}"
         if self.debug >= 1:
             print(log)
-            if self.raise_ex:
-                raise optuna.TrialPruned(log)
-        elif self.raise_ex:
-            raise optuna.TrialPruned()
 
     def calculate_forgiveness(self, counter, forgiveness, patience):
         return min(counter, forgiveness * patience)

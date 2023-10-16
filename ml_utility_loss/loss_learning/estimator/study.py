@@ -79,4 +79,10 @@ def objective_2(
     )
     kwargs["dataset_size"] = size_scheduler.get_size()
     kwargs["batch_size"] = size_scheduler.get_batch_size()
-    return objective(*args, size_scheduler=size_scheduler, **kwargs)
+    early_stopping = size_scheduler
+    return objective(
+        *args, 
+        size_scheduler=size_scheduler, 
+        early_stopping=early_stopping, 
+        **kwargs
+    )

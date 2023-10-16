@@ -270,6 +270,7 @@ def train(
     verbose=True,
     epoch_callback=None,
     size_scheduler=None,
+    early_stopping=None,
     dataloader_worker=1,
     **model_args
 ):
@@ -286,6 +287,9 @@ def train(
         batch_size = size_scheduler.get_batch_size()
         dataset_size = size_scheduler.get_size()
         aug_scale = size_scheduler.get_aug()
+    
+    if early_stopping:
+        early_stopping.model = whole_model
 
     def prepare_loader(dataset, val=False, dataset_size=dataset_size, aug_scale=aug_scale, batch_size=batch_size, size_scheduler=None):
         if size_scheduler:
@@ -348,10 +352,12 @@ def train(
         train_loss = train_epoch_(train_loader)
         val_loss = train_epoch_(val_loader, val=True)
 
-        value = val_loss["avg_batch_loss"]
-        if size_scheduler and size_scheduler.step(value, i):
+        train_value = train_loss["avg_batch_loss"]
+        val_value = val_loss["avg_batch_loss"]
+        if size_scheduler and size_scheduler.step(val_value, epoch=i):
             train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
             val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
+
 
         if verbose:
             print("Epoch", i)
@@ -364,8 +370,10 @@ def train(
                 val_loss=val_loss,
             )
 
-        if size_scheduler and size_scheduler.is_done:
-            break
+        if early_stopping:
+            early_stopping.step(train_value, val_value, epoch=i)
+            if early_stopping.stopped:
+                break
 
     test_set.set_size(None)
     test_set.set_aug_scale(0)
