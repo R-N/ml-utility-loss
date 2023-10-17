@@ -96,7 +96,7 @@ PARAM_SPACE = {
 
 PARAM_SPACE_2 = {
     "dataset_size_low": ("int_exp_2", 32, 128),
-    #"dataset_size_high": 2048,
+    "dataset_size_high": ("int_exp_2", 2048, 2048), # param must exist
     "batch_size_low": ("int_exp_2", 1, 2),
     "batch_size_high": ("int_exp_2", 8, 32),
     "patience": ("log_int", 2, 10)
