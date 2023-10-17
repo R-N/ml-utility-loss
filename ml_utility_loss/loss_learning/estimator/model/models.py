@@ -100,7 +100,7 @@ class Encoder(nn.Module):
         self.lora_rank = lora_rank
         Linear = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
 
-        def EncoderLayer_(Linear=Linear):
+        def EncoderLayer_(pma=0, Linear=Linear):
             return EncoderLayer(
                 num_inds=num_inds,
                 d_model=d_model, 
@@ -108,7 +108,7 @@ class Encoder(nn.Module):
                 n_head=n_head, 
                 d_qk=d_qk, 
                 dropout=dropout,
-                pma=pma_steps[i],
+                pma=pma,
                 share_ffn=share_ffn,
                 skip_small=skip_small,
                 activation=activation,
@@ -119,13 +119,13 @@ class Encoder(nn.Module):
             )
 
         self.layer_stack = nn.ModuleList([
-            *[EncoderLayer_() for i in range(0, n_layers)]
+            *[EncoderLayer_(pma=pma_steps[i]) for i in range(0, n_layers)]
         ])
 
         if lora_mode == LoRAMode.LORA:
             # The encoder_0 is not actually used
             # It's just a full layer for lora
-            encoder_0 = EncoderLayer_(Linear=nn.Linear)
+            encoder_0 = EncoderLayer_(pma=0, Linear=nn.Linear)
             for layer in self.layer_stack:
                 layer.lora(base=encoder_0)
 
@@ -195,7 +195,7 @@ class Decoder(nn.Module):
         self.lora_rank = lora_rank
         Linear = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
 
-        def DecoderLayer_(Linear=Linear):
+        def DecoderLayer_(pma, Linear=Linear):
             return DecoderLayer(
                 num_inds=num_inds,
                 d_model=d_model, 
@@ -203,7 +203,7 @@ class Decoder(nn.Module):
                 n_head=n_head, 
                 d_qk=d_qk, 
                 dropout=dropout,
-                pma=pma_steps[i],
+                pma=pma,
                 share_ffn=share_ffn,
                 skip_small=skip_small,
                 isab_mode=isab_mode,
@@ -214,13 +214,13 @@ class Decoder(nn.Module):
             )
 
         self.layer_stack = nn.ModuleList([
-            *[DecoderLayer_() for i in range(0, n_layers)]
+            *[DecoderLayer_(pma=pma_steps[i]) for i in range(0, n_layers)]
         ])
 
         if lora_mode == LoRAMode.LORA:
             # The encoder_0 is not actually used
             # It's just a full layer for lora
-            decoder_0 = DecoderLayer_(Linear=nn.Linear)
+            decoder_0 = DecoderLayer_(pma=0, Linear=nn.Linear)
             for layer in self.layer_stack:
                 layer.lora(base=decoder_0)
 
