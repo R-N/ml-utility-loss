@@ -256,12 +256,14 @@ class InducedSetAttention(nn.Module):
     def lora(self, base=None, mab0=None, mab1=None):
         if base is not None and base is not self:
             mab0 = base.mab0
-            mab1 = base.mab1
+            if base.mode == ISABMode.SEPARATE:
+                mab1 = base.mab1
 
         if mab0 is not None and mab0 is not self.mab0:
             self.mab0.lora(mab0)
         if mab1 is not None and mab1 is not self.mab1:
-            self.mab1.lora(mab1)
+            if self.mode == ISABMode.SEPARATE:
+                self.mab1.lora(mab1)
 
         return self
     
