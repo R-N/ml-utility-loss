@@ -41,7 +41,8 @@ PARAM_SPACE = {
     # Transformer args
     "tf_num_inds": ("int_exp_2", 8, 64),
     "tf_d_inner": ("int_exp_2", 64, 128),
-    "tf_n_layers": ("int", 3, 4), 
+    "tf_n_layers_enc": ("int", 3, 5), 
+    "tf_n_layers_dec": ("int", 2, 4), 
     "tf_n_head": ("int_exp_2", 2, 8), 
     "tf_activation": ("activation", ["relu", "gelu"]),
     # Transformer PMA args

@@ -357,7 +357,8 @@ class Transformer(nn.Module):
         num_inds=32,
         d_model=64, 
         d_inner=64,
-        n_layers=6, 
+        n_layers_enc=4,
+        n_layers_dec=2, 
         n_head=8, 
         d_qk=None, 
         dropout=0.1, 
@@ -378,7 +379,7 @@ class Transformer(nn.Module):
         self.encoder = Encoder(
             num_inds=num_inds,
             d_model=d_model, d_inner=d_inner,
-            n_layers=n_layers, n_head=n_head, d_qk=d_qk, 
+            n_layers=n_layers_enc, n_head=n_head, d_qk=d_qk, 
             dropout=dropout,
             activation=activation,
             softmax=softmax,
@@ -393,7 +394,7 @@ class Transformer(nn.Module):
         self.decoder = Decoder(
             num_inds=num_inds,
             d_model=d_model, d_inner=d_inner,
-            n_layers=n_layers, n_head=n_head, d_qk=d_qk,
+            n_layers=n_layers_dec, n_head=n_head, d_qk=d_qk,
             dropout=dropout,
             activation=activation,
             softmax=softmax,

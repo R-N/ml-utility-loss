@@ -181,7 +181,8 @@ def create_model(
     # Transformer args
     tf_num_inds=32,
     tf_d_inner=64,
-    tf_n_layers=6, 
+    tf_n_layers_enc=4, 
+    tf_n_layers_dec=2, 
     tf_n_head=8, 
     tf_activation=nn.ReLU,
     # Transformer PMA args
@@ -205,7 +206,8 @@ def create_model(
         num_inds=tf_num_inds,
         d_model=d_model, 
         d_inner=tf_d_inner,
-        n_layers=tf_n_layers, 
+        n_layers_enc=tf_n_layers_enc, 
+        n_layers_dec=tf_n_layers_dec, 
         n_head=tf_n_head, 
         dropout=dropout, 
         activation=tf_activation,
