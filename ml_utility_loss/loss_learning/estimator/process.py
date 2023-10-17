@@ -155,7 +155,7 @@ def train_epoch(
     non_role_model_avg=True,
     grad_loss_mul=1.0,
     loss_fn=F.mse_loss,
-    grad_loss_fn=F.mse_loss,
+    grad_loss_fn=F.huber_loss,
     adapter_loss_fn=F.l1_loss, # Values can get very large and MSE loss will result in infinity, or maybe use kl_div
     reduction=torch.sum,
     val=False,

@@ -204,7 +204,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         lct_ae=None,
         lct_ae_embedding_size=64,
         tab_ddpm_normalization="quantile",
-        tab_ddpm_cat_encoding="ordinal",
+        tab_ddpm_cat_encoding="ordinal", # Make sure to set this according to the dataset
         tab_ddpm_y_policy="default",
         tab_ddpm_is_y_cond=True,
         model=None,

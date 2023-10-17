@@ -64,13 +64,13 @@ class Encoder(nn.Module):
         n_head, 
         d_qk=None,
         dropout=0.1, 
-        pma_start=-4,
+        pma_start=-3,
         pma_high=512,
         pma_low=32,
         share_ffn=True,
         skip_small=True,
         activation=nn.ReLU,
-        softmax=nn.Softmax,
+        softmax=ReLU15,
         device=DEFAULT_DEVICE,
     ):
         super().__init__()
@@ -138,13 +138,13 @@ class Decoder(nn.Module):
         n_head, 
         d_qk=None, 
         dropout=0.1, 
-        pma_start=-4,
+        pma_start=-3,
         pma_high=512,
         pma_low=32,
         share_ffn=True,
         skip_small=True,
         activation=nn.ReLU,
-        softmax=nn.Softmax,
+        softmax=ReLU15,
         device=DEFAULT_DEVICE,
     ):
         super().__init__()
@@ -208,13 +208,15 @@ class Adapter(nn.Module):
         n_layers=2, 
         dropout=0.1, 
         activation=nn.ReLU,
+        activation_final=nn.Tanh,
         device=DEFAULT_DEVICE,
     ):
         super().__init__()
         assert n_layers >= 2
         def Linear(
             d_input,
-            d_output
+            d_output,
+            activation=activation
         ):
             return FeedForward(
                 d_input,
@@ -226,7 +228,7 @@ class Adapter(nn.Module):
         self.linear = nn.Sequential(*[
             Linear(d_input, d_hid),
             *[Linear(d_hid, d_hid) for i in range(n_layers-2)],
-            Linear(d_hid, d_model),
+            Linear(d_hid, d_model, activation=activation_final),
         ])
 
         self.device = device

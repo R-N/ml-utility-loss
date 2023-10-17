@@ -5,45 +5,45 @@ PARAM_SPACE = {
     "dataset_size": ("int_exp_2", 32, 2048),
     "batch_size": ("int_exp_2", 1, 8),
     # Training args
-    "epochs": ("int", 2, 100),
+    "epochs": ("int", 20, 100),
     "lr": ("log_float", 1e-5, 1e-3),
-    "Optim": ("optimizer", ["adam", "adamw", "sgd"]),
+    "Optim": ("optimizer", ["adam", "adamw"]),
     # Training args
-    "non_role_model_mul": ("float", 0.1, 1.0),
+    "non_role_model_mul": ("float", 0.3, 0.8),
     "non_role_model_avg": BOOLEAN,
-    "grad_loss_mul": ("float", 0.1, 1.5),
-    "loss_fn": ("loss", ["mse", "mae", "huber"]),
-    "grad_loss_fn": ("loss", ["mse", "mae", "huber"]),
-    "adapter_loss_fn": ("loss", ["mae", "kl_div"]),
+    "grad_loss_mul": ("float", 0.3, 1.5),
+    #"loss_fn": ("loss", "mse"),
+    #"grad_loss_fn": ("loss", "huber"),
+    "adapter_loss_fn": ("loss", ["mse", "mae", "huber"]),
     "fixed_role_model": ("categorical", [
-        None, 
-        "tvae", 
+        #None, 
+        #"tvae", 
         "lct_gan", 
-        "lct_gan_latent", 
+        #"lct_gan_latent", 
         "tab_ddpm_concat", 
         "realtabformer"
     ]),
     "gradient_penalty_mode": ("gradient_penalty_mode", [
-        "NONE",
-        "ALL",
-        "ONCE",
+        #"NONE", # Surprisingly, NONE wasn't good
+        #"ALL",
+        #"ONCE",
         "ESTIMATE",
-        "AVERAGE_NO_MUL",
+        #"AVERAGE_NO_MUL",
         "AVERAGE_MUL"
     ]),
     # Common model args
-    "d_model": ("int_exp_2", 8, 64), 
-    "dropout": ("float", 0.0, 0.2), 
-    "softmax": ("softmax", ["softmax", "relu15"]),
-    "flip": BOOLEAN,
+    "d_model": ("int_exp_2", 16, 64), 
+    "dropout": ("float", 0.02, 0.2), 
+    #"softmax": ("softmax", "relu15"),
+    #"flip": False,
     "skip_small": BOOLEAN,
     "loss_clamp": ("log_float", 0.5, 10.0),
     # Transformer args
     "tf_num_inds": ("int_exp_2", 8, 64),
-    "tf_d_inner": ("int_exp_2", 32, 64),
-    "tf_n_layers": ("int", 2, 3), 
-    "tf_n_head": ("int_exp_2", 2, 16), 
-    "tf_activation": ("activation", ["relu", "gelu", "identity"]),
+    "tf_d_inner": ("int_exp_2", 64, 128),
+    "tf_n_layers": ("int", 3, 4), 
+    "tf_n_head": ("int_exp_2", 2, 8), 
+    "tf_activation": ("activation", ["relu", "gelu"]),
     # Transformer PMA args
     "tf_pma": ("conditional", {
         "tf_pma_start": ("int", -4, -1),
@@ -63,20 +63,19 @@ PARAM_SPACE = {
     # Head args
     "head_n_seeds": ("int", 1, 8),
     "head_d_hid": ("int_exp_2", 8, 128), 
-    "head_n_layers": ("int", 2, 4), 
+    "head_n_layers": ("int", 2, 8), 
     "head_n_head": ("int_exp_2", 2, 16),
     "head_activation": ("activation", [
-        "tanh", "sigmoid", 
-        "relu", "leakyrelu", 
-        "elu", "selu", "gelu", 
+        "leakyrelu", 
+        "selu", 
         "identity"
     ]),
 }
 
 PARAM_SPACE_2 = {
-    "dataset_size_low": ("int_exp_2", 32, 2048),
-    "dataset_size_high": ("int_exp_2", 256, 4096),
-    "batch_size_low": ("int_exp_2", 2, 4),
+    "dataset_size_low": ("int_exp_2", 32, 256),
+    "dataset_size_high": ("int_exp_2", 1024, 4096),
+    "batch_size_low": ("int_exp_2", 1, 4),
     "batch_size_high": ("int_exp_2", 4, 16),
     "patience": ("log_int", 2, 10)
 }
