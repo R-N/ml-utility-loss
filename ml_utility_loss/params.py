@@ -11,14 +11,14 @@ class LoRAMode:
     LOW_RANK = "low_rank"
     LORA = "lora"
 
-    __ALL__ = ["full", "low_rank", "lora"]
+    __ALL__ = ("full", "low_rank", "lora")
 
 class ISABMode:
     SEPARATE = "separate"
     SHARED = "shared"
     MINI = "mini"
 
-    __ALL__ = ["separate", "shared", "mini"]
+    __ALL__ = ("separate", "shared", "mini")
 
 class GradientPenaltyMode:
     NONE = {

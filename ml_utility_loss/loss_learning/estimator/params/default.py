@@ -47,7 +47,7 @@ PARAM_SPACE = {
     "tf_activation": ("activation", ["relu", "gelu"]),
     "tf_isab_mode": ("categorical", ISABMode.__ALL__),
     "tf_lora": ("conditional", {
-        "tf_lora_mode", ("categorical", [LoRAMode.LOW_RANK, LoRAMode.LORA]),
+        "tf_lora_mode", ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
         "tf_lora_rank", ("int_exp_2", 2, 16),
     }),
     # Transformer PMA args
@@ -67,7 +67,7 @@ PARAM_SPACE = {
         "identity"
     ]),
     "ada_lora": ("conditional", {
-        "ada_lora_mode", ("categorical", [LoRAMode.LOW_RANK, LoRAMode.LORA]),
+        "ada_lora_mode", ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
         "ada_lora_rank", ("int_exp_2", 2, 16),
     }),
     # Head args
@@ -81,7 +81,7 @@ PARAM_SPACE = {
         "identity"
     ]),
     "head_lora": ("conditional", {
-        "head_lora_mode", ("categorical", [LoRAMode.LOW_RANK, LoRAMode.LORA]),
+        "head_lora_mode", ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
         "head_lora_rank", ("int_exp_2", 2, 16),
     }),
 }
