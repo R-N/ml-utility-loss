@@ -187,6 +187,7 @@ def create_model(
     tf_n_head=8, 
     tf_activation=nn.ReLU,
     tf_isab_mode=ISABMode.SEPARATE,
+    tf_lora=False,
     tf_lora_mode=LoRAMode.FULL,
     tf_lora_rank=2,
     # Transformer PMA args
@@ -209,7 +210,8 @@ def create_model(
     head_lora_mode=LoRAMode.FULL,
     head_lora_rank=2,
 ): 
-    
+    if not tf_lora:
+        tf_lora_mode = LoRAMode.FULL
     body = Transformer(
         num_inds=tf_num_inds,
         d_model=d_model, 
