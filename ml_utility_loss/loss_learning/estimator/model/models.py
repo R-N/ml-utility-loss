@@ -418,7 +418,7 @@ class Head(nn.Module):
         except RuntimeError:
             print("check_cuda b", check_cuda(self), check_cuda(self.linear), x.is_cuda)
             raise
-        y = self.final_activation(y)
+        #y = self.final_activation(y)
         if not torch.isnan(y).any():
             y_max, y_min = torch.max(y), torch.min(y)
             assert y_max <= 1.0 and y_min >= 0.0, f"Invalid sigmoid range: {(y_min, y_max)}"
