@@ -187,6 +187,7 @@ def create_model(
     tf_n_head=8, 
     tf_activation=nn.ReLU,
     tf_isab_mode=ISABMode.SEPARATE,
+    tf_isab_rank=0,
     tf_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
     tf_lora_mode=LoRAMode.FULL,
     tf_lora_rank=2,
@@ -195,6 +196,7 @@ def create_model(
     tf_pma_high=512,
     tf_pma_low=32,
     tf_share_ffn=True,
+    tf_pma_rank=0,
     # Adapter args
     ada_d_hid=32, 
     ada_n_layers=2, 
@@ -208,6 +210,7 @@ def create_model(
     head_n_layers=2, 
     head_n_head=8,   
     head_activation=nn.Sigmoid,
+    head_pma_rank=0,
     head_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
     head_lora_mode=LoRAMode.FULL,
     head_lora_rank=2,
@@ -235,6 +238,8 @@ def create_model(
         share_ffn=tf_share_ffn,
         skip_small=skip_small,
         isab_mode=tf_isab_mode,
+        isab_rank=tf_isab_rank,
+        pma_rank=tf_pma_rank,
         lora_mode=tf_lora_mode,
         lora_rank=tf_lora_rank,
     )
@@ -257,6 +262,7 @@ def create_model(
             "dropout": dropout, 
             "activation": head_activation,
             #"skip_small": skip_small,
+            "pma_rank":head_pma_rank,
             "softmax": softmax,
             "lora_mode":head_lora_mode,
             "lora_rank":head_lora_rank,

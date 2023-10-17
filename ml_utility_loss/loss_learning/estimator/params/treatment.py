@@ -49,6 +49,7 @@ PARAM_SPACE = {
     "tf_n_head": ("int_exp_2", 4, 8), 
     "tf_activation": ("activation", ["relu", "gelu"]),
     "tf_isab_mode": ("categorical", ISABMode.__ALL__),
+    "tf_isab_rank": ("bool_int_exp_2", 2, 16),
     "tf_lora": ("conditional", {
         "tf_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
         "tf_lora_rank": ("int_exp_2", 2, 16),
@@ -58,6 +59,7 @@ PARAM_SPACE = {
         "tf_pma_start": ("int", -4, -1),
         "tf_pma_high": ("int_exp_2", 8, 64),
         "tf_pma_low": ("int_exp_2", 2, 32),
+        "tf_pma_rank": ("bool_int_exp_2", 2, 16),
     }),
     "tf_share_ffn": BOOLEAN, # almost doesn't matter
     # Adapter args
@@ -83,6 +85,7 @@ PARAM_SPACE = {
         "selu", 
         "identity"
     ]),
+    "head_pma_rank": ("bool_int_exp_2", 2, 16),
     "head_lora": ("conditional", {
         "head_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
         "head_lora_rank": ("int_exp_2", 2, 16),

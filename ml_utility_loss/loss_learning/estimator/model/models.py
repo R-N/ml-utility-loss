@@ -79,6 +79,8 @@ class Encoder(nn.Module):
         skip_small=True,
         activation=nn.ReLU,
         isab_mode=ISABMode.SEPARATE,
+        isab_rank=0,
+        pma_rank=0,
         softmax=ReLU15,
         lora_mode=LoRAMode.FULL,
         lora_rank=2,
@@ -116,6 +118,8 @@ class Encoder(nn.Module):
                 softmax=softmax,
                 device=device,
                 Linear=Linear,
+                isab_rank=isab_rank,
+                pma_rank=pma_rank,
             )
 
         self.layer_stack = nn.ModuleList([
@@ -173,6 +177,8 @@ class Decoder(nn.Module):
         skip_small=True,
         activation=nn.ReLU,
         isab_mode=ISABMode.SEPARATE,
+        isab_rank=0,
+        pma_rank=0,
         softmax=ReLU15,
         lora_mode=LoRAMode.FULL,
         lora_rank=2,
@@ -211,6 +217,8 @@ class Decoder(nn.Module):
                 activation=activation,
                 device=device,
                 Linear=Linear,
+                isab_rank=isab_rank,
+                pma_rank=pma_rank,
             )
 
         self.layer_stack = nn.ModuleList([
@@ -355,6 +363,7 @@ class Head(nn.Module):
         dropout=0.1, 
         activation=nn.SELU,
         activation_final=nn.Sigmoid,
+        pma_rank=0,
         softmax=nn.Softmax,
         lora_mode=LoRAMode.FULL,
         lora_rank=2,
@@ -373,6 +382,7 @@ class Head(nn.Module):
             softmax=softmax,
             device=device,
             Linear=Linear,
+            rank=pma_rank,
         )
         self.lora_mode = lora_mode
         self.lora_rank = lora_rank
@@ -450,6 +460,8 @@ class Transformer(nn.Module):
         share_ffn=True,
         skip_small=True,
         isab_mode=ISABMode.SEPARATE,
+        isab_rank=0,
+        pma_rank=0,
         lora_mode=LoRAMode.FULL,
         lora_rank=2,
         device=DEFAULT_DEVICE,
@@ -471,6 +483,8 @@ class Transformer(nn.Module):
             share_ffn=share_ffn,
             skip_small=skip_small,
             isab_mode=isab_mode,
+            isab_rank=isab_rank,
+            pma_rank=pma_rank,
             lora_mode=lora_mode,
             lora_rank=lora_rank,
             device=device,
@@ -489,6 +503,8 @@ class Transformer(nn.Module):
             share_ffn=share_ffn,
             skip_small=skip_small,
             isab_mode=isab_mode,
+            isab_rank=isab_rank,
+            pma_rank=pma_rank,
             lora_mode=lora_mode,
             lora_rank=lora_rank,
             device=device,

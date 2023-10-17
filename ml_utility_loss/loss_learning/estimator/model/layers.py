@@ -11,7 +11,7 @@ __author__ = "Yu-Hsiang Huang"
 class EncoderLayer(nn.Module):
     ''' Compose with two layers '''
 
-    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=True, activation=nn.ReLU, softmax=nn.Softmax, isab_mode=ISABMode.SEPARATE, device=DEFAULT_DEVICE, Linear=nn.Linear):
+    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=True, activation=nn.ReLU, softmax=nn.Softmax, isab_mode=ISABMode.SEPARATE, isab_rank=0, pma_rank=0, device=DEFAULT_DEVICE, Linear=nn.Linear):
         super().__init__()
         Attention = SimpleInducedSetAttention if num_inds else SimpleMultiHeadAttention
         self.slf_attn = Attention(
@@ -25,6 +25,7 @@ class EncoderLayer(nn.Module):
             softmax=softmax,
             device=device,
             Linear=Linear,
+            rank=isab_rank,
         )
         self.pos_ffn = DoubleFeedForward(
             d_model, 
@@ -48,6 +49,7 @@ class EncoderLayer(nn.Module):
                 softmax=softmax,
                 device=device,
                 Linear=Linear,
+                rank=pma_rank,
             )
             self.pos_ffn_pma = self.pos_ffn
             if not share_ffn: 
@@ -105,7 +107,7 @@ class EncoderLayer(nn.Module):
 class DecoderLayer(nn.Module):
     ''' Compose with three layers '''
 
-    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=True, activation=nn.ReLU, softmax=nn.Softmax, isab_mode=ISABMode.SEPARATE, device=DEFAULT_DEVICE, Linear=nn.Linear):
+    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=True, activation=nn.ReLU, softmax=nn.Softmax, isab_mode=ISABMode.SEPARATE, isab_rank=0, pma_rank=0, device=DEFAULT_DEVICE, Linear=nn.Linear):
         super().__init__()
         Attention = SimpleInducedSetAttention if num_inds else SimpleMultiHeadAttention
         self.slf_attn = Attention(
@@ -119,6 +121,7 @@ class DecoderLayer(nn.Module):
             softmax=softmax,
             device=device,
             Linear=Linear,
+            rank=isab_rank,
         )
         self.enc_attn = Attention(
             num_inds=num_inds, 
@@ -131,6 +134,7 @@ class DecoderLayer(nn.Module):
             softmax=softmax,
             device=device,
             Linear=Linear,
+            rank=isab_rank
         )
         self.pos_ffn = DoubleFeedForward(
             d_model, 
@@ -154,6 +158,7 @@ class DecoderLayer(nn.Module):
                 softmax=softmax,
                 device=device,
                 Linear=Linear,
+                rank=pma_rank,
             )
             self.pos_ffn_pma = self.pos_ffn
             if not share_ffn: 

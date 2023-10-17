@@ -78,7 +78,7 @@ class ScaledDotProductAttention(nn.Module):
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0.1, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, Linear=nn.Linear, mode=None):
+    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0.1, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=nn.Linear, mode=None):
         super().__init__()
 
         d_qk = d_qk or (d_O//n_head)
@@ -204,16 +204,44 @@ class InducedSetAttentionMini(nn.Module):
         H, I_attn = self.attn0(I, k, v, mask=None) #yes it's none
         O, O_attn = self.attn1(q, H, H, mask=mask) #mask is applied to the query, since query is from decoder
         return O, (I_attn, O_attn)
+    
+class TensorInductionPoint(nn.Module):
+    def __init__(self, num_inds, d_I, rank=None, device=DEFAULT_DEVICE):
+        super().__init__()
+        self.tensor = nn.Parameter(Tensor(num_inds, d_I))
+        nn.init.xavier_uniform_(self.tensor)
+        self.device = device
+        self.to(device)
+
+    def forward(self):
+        return self.tensor
+
+class LowRankInductionPoint(nn.Module):
+    def __init__(self, num_inds, d_I, rank, device=DEFAULT_DEVICE):
+        super().__init__()
+        self.a = nn.Parameter(Tensor(num_inds, rank))
+        self.b = nn.Parameter(Tensor(rank, d_I))
+        nn.init.xavier_uniform_(self.a)
+        nn.init.xavier_uniform_(self.b)
+        self.device = device
+        self.to(device)
+
+    def forward(self):
+        return torch.matmul(self.a, self.b)
 
 class InducedSetAttention(nn.Module):
-    def __init__(self, num_inds, d_I, d_H, n_head, d_Q, d_KV, d_O, skip_small=True, mode=ISABMode.SEPARATE, device=DEFAULT_DEVICE, **kwargs):
+    def __init__(self, num_inds, d_I, d_H, n_head, d_Q, d_KV, d_O, skip_small=True, mode=ISABMode.SEPARATE, rank=0, device=DEFAULT_DEVICE, **kwargs):
         super().__init__()
         self.skip_small = skip_small
         self.d_I = d_I
         self.d_H = d_H
         self.num_inds = num_inds
-        self.I = nn.Parameter(Tensor(num_inds, d_I))
-        nn.init.xavier_uniform_(self.I)
+        self.rank = rank
+
+        InductionPoint = TensorInductionPoint
+        if rank:
+            InductionPoint = LowRankInductionPoint
+        self.I = InductionPoint(num_inds, d_I, rank=rank, device=device)
 
         assert mode in ISABMode.__ALL__
         self.mode = mode
@@ -253,7 +281,7 @@ class InducedSetAttention(nn.Module):
         # Ok so this is actually a problem
         # It expects batched input so I is repeated to the batch dimension
         # So it has to be handled
-        I = scale_inds_to_batch(self.I, q)
+        I = scale_inds_to_batch(self.I(), q)
         if self.mode == ISABMode.MINI:
             O, (I_attn, O_attn) = self.mab0(q, k, v, mask=mask, I=I)
         else:
@@ -289,12 +317,17 @@ class SimpleInducedSetAttention(InducedSetAttention):
         )
 
 class PoolingByMultiheadAttention(nn.Module):
-    def __init__(self, num_seeds, n_head, d_model, skip_small=True, device=DEFAULT_DEVICE, **kwargs):
+    def __init__(self, num_seeds, n_head, d_model, skip_small=True, rank=0, device=DEFAULT_DEVICE, **kwargs):
         super().__init__()
         self.num_seeds = num_seeds
         self.skip_small = skip_small
-        self.S = nn.Parameter(Tensor(num_seeds, d_model))
-        nn.init.xavier_uniform_(self.S)
+        self.rank = rank
+
+        InductionPoint = TensorInductionPoint
+        if rank:
+            InductionPoint = LowRankInductionPoint
+        self.S = InductionPoint(num_seeds, d_model, rank=rank, device=device)
+
         self.mab = SimpleMultiHeadAttention(
             n_head, 
             d_model, 
@@ -308,7 +341,7 @@ class PoolingByMultiheadAttention(nn.Module):
     def forward(self, X):
         if self.skip_small and self.num_seeds > X.shape[-2]:
             return X, None
-        S = scale_inds_to_batch(self.S, X)
+        S = scale_inds_to_batch(self.S(), X)
         return self.mab(S, X, X)
 
     def lora(self, base=None, mab=None):
