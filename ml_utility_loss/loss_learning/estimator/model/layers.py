@@ -36,6 +36,7 @@ class EncoderLayer(nn.Module):
         )
         self.pma = None
         self.share_ffn = share_ffn
+        self.pos_ffn_pma = None
         if pma:
             self.pma = PoolingByMultiheadAttention(
                 pma, 
@@ -141,6 +142,7 @@ class DecoderLayer(nn.Module):
         )
         self.share_ffn = share_ffn
         self.pma = None
+        self.pos_ffn_pma = None
         if pma:
             self.pma = PoolingByMultiheadAttention(
                 pma, 
