@@ -250,7 +250,7 @@ def train(
     batch_size=4,
     # Training args
     epochs=1,
-    lr=1e-3,
+    lr=1e-4,
     Optim=torch.optim.Adam,
     optim=None,
     models=None,
