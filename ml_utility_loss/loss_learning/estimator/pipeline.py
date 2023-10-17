@@ -187,7 +187,7 @@ def create_model(
     tf_n_head=8, 
     tf_activation=nn.ReLU,
     tf_isab_mode=ISABMode.SEPARATE,
-    tf_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if true
+    tf_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
     tf_lora_mode=LoRAMode.FULL,
     tf_lora_rank=2,
     # Transformer PMA args
@@ -199,6 +199,7 @@ def create_model(
     ada_d_hid=32, 
     ada_n_layers=2, 
     ada_activation=nn.ReLU,
+    ada_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
     ada_lora_mode=LoRAMode.FULL,
     ada_lora_rank=2,
     # Head args
@@ -207,11 +208,16 @@ def create_model(
     head_n_layers=2, 
     head_n_head=8,   
     head_activation=nn.Sigmoid,
+    head_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
     head_lora_mode=LoRAMode.FULL,
     head_lora_rank=2,
 ): 
     if not tf_lora:
         tf_lora_mode = LoRAMode.FULL
+    if not ada_lora:
+        ada_lora_mode = LoRAMode.FULL
+    if not head_lora:
+        head_lora_mode = LoRAMode.FULL
     body = Transformer(
         num_inds=tf_num_inds,
         d_model=d_model, 
