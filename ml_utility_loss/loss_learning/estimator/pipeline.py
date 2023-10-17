@@ -187,7 +187,7 @@ def create_model(
     tf_n_head=8, 
     tf_activation=nn.ReLU,
     tf_isab_mode=ISABMode.SEPARATE,
-    tf_lora=False,
+    tf_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if true
     tf_lora_mode=LoRAMode.FULL,
     tf_lora_rank=2,
     # Transformer PMA args
