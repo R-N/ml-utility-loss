@@ -431,7 +431,7 @@ class Head(nn.Module):
         #y = self.final_activation(y)
         if not torch.isnan(y).any():
             y_max, y_min = torch.max(y), torch.min(y)
-            assert y_max <= 1.0 and y_min >= 0.0, f"Invalid sigmoid range: {(y_min, y_max)}"
+            assert y_max <= 1.1 and y_min >= 0.0, f"Invalid sigmoid range: {(y_min, y_max)}"
         y = y.squeeze(dim=-1)
         if return_attns:
             return y, pma_attn

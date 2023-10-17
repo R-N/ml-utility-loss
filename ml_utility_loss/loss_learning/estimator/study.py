@@ -48,8 +48,8 @@ def objective_2(
         size_len = int(math.log(dataset_size_high//dataset_size_low, 2)+1)
         epochs = kwargs["epochs"]
         m = epochs / (patience*size_len)
-        assert m <= 4, f"patience too low for dataset size steps:  {epochs} / ({patience}*{size_len}) <= 4"
-        assert m >= 1, f"patience too high for dataset size steps:  {epochs} / ({patience}*{size_len}) >= 1"
+        assert m <= 3, f"patience too low for dataset size steps:  {epochs} / ({patience}*{size_len}) = {m} <= 3"
+        assert m >= 1, f"patience too high for dataset size steps:  {epochs} / ({patience}*{size_len}) = {m} >= 1"
 
         train_results = train(
             *args, 
