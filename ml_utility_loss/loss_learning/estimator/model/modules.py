@@ -129,6 +129,10 @@ class MultiHeadAttention(nn.Module):
         sz_b_arg = q.shape[:-2]
         len_q, len_k, len_v = q.size(-2), k.size(-2), v.size(-2)
 
+        len_I = 0
+        if I is not None:
+            len_I = I.size(-2)
+
         residual = q
 
         # Pass through the pre-attention projection: b x lq x (n*dv)
@@ -140,12 +144,16 @@ class MultiHeadAttention(nn.Module):
         q = q.view(*sz_b_arg, len_q, n_head, d_qk)
         k = k.view(*sz_b_arg, len_k, n_head, d_qk)
         v = v.view(*sz_b_arg, len_v, n_head, d_v)
+        if I is not None:
+            I = I.view(*sz_b_arg, len_I, n_head, d_qk)
 
         # Transpose for attention dot product: b x n x lq x dv
         # it was (1, 2) expecting 4 dims (0, 1, 2, 3)
         # That means (1, 2) was (size, head)
         # But anyway, to adjust, it'll be (-3, -2) for 4 dims (-4, -3, -2, -1)
         q, k, v = q.transpose(-3, -2), k.transpose(-3, -2), v.transpose(-3, -2)
+        if I is not None:
+            I = I.transpose(-3, -2)
 
         if mask is not None:
             mask = mask.unsqueeze(-2)   # For head axis broadcasting.
