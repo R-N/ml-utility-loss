@@ -73,10 +73,10 @@ PARAM_SPACE = {
         "elu", "selu", "gelu", 
         "identity"
     ]),
-    "ada_lora": ("conditional", {
-        "ada_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
-        "ada_lora_rank": ("int_exp_2", 2, 16),
-    }),
+    #"ada_lora": ("conditional", {
+    #    "ada_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
+    #    "ada_lora_rank": ("int_exp_2", 2, 16),
+    #}),
     # Head args
     "head_n_seeds": ("int", 1, 8), # 1 was never sampled or always pruned
     "head_d_hid": ("int_exp_2", 64, 256), 
@@ -87,11 +87,11 @@ PARAM_SPACE = {
         "selu", 
         "identity"
     ]),
-    "head_pma_rank": ("bool_int_exp_2", 2, 16),
-    "head_lora": ("conditional", {
-        "head_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
-        "head_lora_rank": ("int_exp_2", 2, 16),
-    }),
+    #"head_pma_rank": ("bool_int_exp_2", 2, 16),
+    #"head_lora": ("conditional", {
+    #    "head_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
+    #    "head_lora_rank": ("int_exp_2", 2, 16),
+    #}),
 }
 
 PARAM_SPACE_2 = {
