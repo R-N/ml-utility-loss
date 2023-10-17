@@ -51,7 +51,7 @@ def objective_2(
         assert m <= 4, f"patience too low for dataset size steps:  {epochs} / ({patience}*{size_len}) <= 3"
         assert m >= 1, f"patience too high for dataset size steps:  {epochs} / ({patience}*{size_len}) >= 1"
 
-        return train(
+        train_results = train(
             *args, 
             dataset_size_low=dataset_size_low,
             dataset_size_high=dataset_size_high,
@@ -61,6 +61,8 @@ def objective_2(
             trial=trial,
             **kwargs
         )
+        eval_loss = train_results["eval_loss"]
+        return eval_loss["avg_loss"]
 
     except AssertionError as ex:
         msg = str(ex)
@@ -68,6 +70,12 @@ def objective_2(
             print(f"AssertionError: {msg}")
             raise TrialPruned(msg)
         if "patience too low" in msg or "patience too high" in msg:
+            print(f"AssertionError: {msg}")
+            raise TrialPruned(msg)
+        if "Invalid attention dim and n_head" in msg:
+            print(f"AssertionError: {msg}")
+            raise TrialPruned(msg)
+        if "has nan" in msg:
             print(f"AssertionError: {msg}")
             raise TrialPruned(msg)
         raise
