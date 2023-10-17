@@ -15,6 +15,7 @@ import torch.nn.functional as F
 import math
 import warnings
 from ...scheduler import PretrainingScheduler
+from ...params import ISABMode, LoRAMode
 
 def augment(df, info, save_dir, n=1, test=0.2):
     mkdir(save_dir)
@@ -185,6 +186,9 @@ def create_model(
     tf_n_layers_dec=2, 
     tf_n_head=8, 
     tf_activation=nn.ReLU,
+    tf_isab_mode=ISABMode.SEPARATE,
+    tf_lora_mode=LoRAMode.FULL,
+    tf_lora_rank=2,
     # Transformer PMA args
     tf_pma_start=-4,
     tf_pma_high=512,
@@ -194,12 +198,16 @@ def create_model(
     ada_d_hid=32, 
     ada_n_layers=2, 
     ada_activation=nn.ReLU,
+    ada_lora_mode=LoRAMode.FULL,
+    ada_lora_rank=2,
     # Head args
     head_n_seeds=1,
     head_d_hid=32, 
     head_n_layers=2, 
     head_n_head=8,   
     head_activation=nn.Sigmoid,
+    head_lora_mode=LoRAMode.FULL,
+    head_lora_rank=2,
 ): 
     
     body = Transformer(
@@ -218,6 +226,9 @@ def create_model(
         pma_low=tf_pma_low,
         share_ffn=tf_share_ffn,
         skip_small=skip_small,
+        isab_mode=tf_isab_mode,
+        lora_mode=tf_lora_mode,
+        lora_rank=tf_lora_rank,
     )
     whole_model = MLUtilityWhole(
         body=body,
@@ -227,6 +238,8 @@ def create_model(
             "n_layers":ada_n_layers, 
             "dropout":dropout, 
             "activation":ada_activation,
+            "lora_mode":ada_lora_mode,
+            "lora_rank":ada_lora_rank,
         },
         head_args={
             "n_seeds": head_n_seeds,
@@ -237,6 +250,8 @@ def create_model(
             "activation": head_activation,
             #"skip_small": skip_small,
             "softmax": softmax,
+            "lora_mode":head_lora_mode,
+            "lora_rank":head_lora_rank,
         }
     )
     return whole_model

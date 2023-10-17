@@ -1,4 +1,4 @@
-from ....params import BOOLEAN
+from ....params import BOOLEAN, ISABMode, LoRAMode
 
 PARAM_SPACE = {
     # Dataset args
@@ -48,6 +48,11 @@ PARAM_SPACE = {
     "tf_n_layers_dec": ("int", 2, 4), 
     "tf_n_head": ("int_exp_2", 4, 8), 
     "tf_activation": ("activation", ["relu", "gelu"]),
+    "tf_isab_mode": ("categorical", ISABMode.__ALL__),
+    "tf_lora": ("conditional", {
+        "tf_lora_mode", ("categorical", [LoRAMode.LOW_RANK, LoRAMode.LORA]),
+        "tf_lora_rank", ("int_exp_2", 2, 16),
+    }),
     # Transformer PMA args
     "tf_pma": ("conditional", { # False
         "tf_pma_start": ("int", -4, -1),
@@ -64,6 +69,10 @@ PARAM_SPACE = {
         "elu", "selu", "gelu", 
         "identity"
     ]),
+    "ada_lora": ("conditional", {
+        "ada_lora_mode", ("categorical", [LoRAMode.LOW_RANK, LoRAMode.LORA]),
+        "ada_lora_rank", ("int_exp_2", 2, 16),
+    }),
     # Head args
     "head_n_seeds": ("int", 1, 4),
     "head_d_hid": ("int_exp_2", 32, 128), 
@@ -74,6 +83,10 @@ PARAM_SPACE = {
         "selu", 
         "identity"
     ]),
+    "head_lora": ("conditional", {
+        "head_lora_mode", ("categorical", [LoRAMode.LOW_RANK, LoRAMode.LORA]),
+        "head_lora_rank", ("int_exp_2", 2, 16),
+    }),
 }
 
 PARAM_SPACE_2 = {

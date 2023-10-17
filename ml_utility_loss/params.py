@@ -6,6 +6,19 @@ from entmax import sparsemax, entmax15, Sparsemax, Entmax15
 from alpharelu import relu15, ReLU15
 import torch.nn.functional as F
 
+class LoRAMode:
+    FULL = "full"
+    LOW_RANK = "low_rank"
+    LORA = "lora"
+
+    __ALL__ = ["full", "low_rank", "lora"]
+
+class ISABMode:
+    SEPARATE = "separate"
+    SHARED = "shared"
+    MINI = "mini"
+
+    __ALL__ = ["separate", "shared", "mini"]
 
 class GradientPenaltyMode:
     NONE = {
