@@ -13,11 +13,11 @@ __author__ = "Yu-Hsiang Huang"
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
 
-    def __init__(self, temperature, attn_dropout=0.1, softmax=nn.Softmax, device=DEFAULT_DEVICE):
+    def __init__(self, temperature, attn_dropout=0.1, softmax=ReLU15, device=DEFAULT_DEVICE):
         super().__init__()
         self.temperature = temperature
         self.dropout = nn.Dropout(attn_dropout)
-        self.softmax = softmax or nn.Softmax
+        self.softmax = softmax or ReLU15
         self.softmax_args = {"dim": -1}
         if inspect.isclass(self.softmax):
             self.softmax = self.softmax(**self.softmax_args)
@@ -40,10 +40,11 @@ class ScaledDotProductAttention(nn.Module):
 
         return output, [attn]
 
+
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0.1, softmax=nn.Softmax, device=DEFAULT_DEVICE):
+    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0.1, softmax=ReLU15, device=DEFAULT_DEVICE):
         super().__init__()
 
         d_qk = d_qk or (d_O//n_head)
@@ -84,9 +85,13 @@ class MultiHeadAttention(nn.Module):
 
         # Pass through the pre-attention projection: b x lq x (n*dv)
         # Separate different heads: b x lq x n x dv
-        q = self.w_qs(q).view(*sz_b_arg, len_q, n_head, d_qk)
-        k = self.w_ks(k).view(*sz_b_arg, len_k, n_head, d_qk)
-        v = self.w_vs(v).view(*sz_b_arg, len_v, n_head, d_v)
+        q = self.w_qs(q)
+        k = self.w_ks(k)
+        v = self.w_vs(v)
+
+        q = q.view(*sz_b_arg, len_q, n_head, d_qk)
+        k = k.view(*sz_b_arg, len_k, n_head, d_qk)
+        v = v.view(*sz_b_arg, len_v, n_head, d_v)
 
         # Transpose for attention dot product: b x n x lq x dv
         # it was (1, 2) expecting 4 dims (0, 1, 2, 3)
@@ -118,7 +123,7 @@ class MultiHeadAttention(nn.Module):
 class SimpleMultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_model, d_qk=None, dropout=0.1, softmax=nn.Softmax, device=DEFAULT_DEVICE):
+    def __init__(self, n_head, d_model, d_qk=None, dropout=0.1, softmax=ReLU15, device=DEFAULT_DEVICE):
         super().__init__()
         self.mab = MultiHeadAttention(
             n_head, 
@@ -142,7 +147,7 @@ def scale_inds_to_batch(I, q):
     return I
 
 class InducedSetAttention(nn.Module):
-    def __init__(self, num_inds, d_I, d_H, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0.1, skip_small=True, softmax=nn.Softmax, device=DEFAULT_DEVICE):
+    def __init__(self, num_inds, d_I, d_H, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0.1, skip_small=True, softmax=ReLU15, device=DEFAULT_DEVICE):
         super(InducedSetAttention, self).__init__()
         self.skip_small = skip_small
         self.d_I = d_I
@@ -185,7 +190,7 @@ class InducedSetAttention(nn.Module):
 class SimpleInducedSetAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, num_inds, n_head, d_model, d_qk=None, dropout=0.1, skip_small=True, softmax=nn.Softmax, device=DEFAULT_DEVICE):
+    def __init__(self, num_inds, n_head, d_model, d_qk=None, dropout=0.1, skip_small=True, softmax=ReLU15, device=DEFAULT_DEVICE):
         super().__init__()
         self.isab = InducedSetAttention(
             num_inds, 
@@ -206,7 +211,7 @@ class SimpleInducedSetAttention(nn.Module):
         return self.isab.forward(q, k, v, mask=mask)
 
 class PoolingByMultiheadAttention(nn.Module):
-    def __init__(self, num_seeds, n_head, d_model, d_qk=None, dropout=0.1, skip_small=True, softmax=nn.Softmax, device=DEFAULT_DEVICE):
+    def __init__(self, num_seeds, n_head, d_model, d_qk=None, dropout=0.1, skip_small=True, softmax=ReLU15, device=DEFAULT_DEVICE):
         super().__init__()
         self.num_seeds = num_seeds
         self.skip_small = skip_small
@@ -292,3 +297,23 @@ class FeedForward(nn.Module):
             x = self.layer_norm(x)
 
         return x
+
+class LowRankLinear(nn.Module):
+    def __init__(self, in_features, out_features, rank, **kwargs):
+        bias = kwargs.pop("bias", True)
+        self.lin_1 = nn.Linear(in_features, rank, bias=False, **kwargs)
+        self.lin_2 = nn.Linear(rank, out_features, bias=bias, **kwargs)
+
+    def forward(self, x):
+        x = self.lin_1(x)
+        x = self.lin_2(x)
+        return x
+
+class LoRALinear(nn.Module):
+    def __init__(self, base, adaptation):
+        self.base = base
+        self.adaptation = adaptation
+
+    def forward(self, x):
+        return self.base(x) + self.adaptation(x)
+    
