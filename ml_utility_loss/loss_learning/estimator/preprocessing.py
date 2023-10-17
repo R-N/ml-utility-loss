@@ -306,10 +306,10 @@ class DataPreprocessor: #preprocess all with this. save all model here
                 self.embedding_sizes[model] = x.shape[-1]
             return x
         if model in ("tab_ddpm", "tab_ddpm_concat"):
-            X_num, X_cat, y = x = self.tab_ddpm_preprocessor.preprocess(df)
+            X_num, X_cat, y = x = self.tab_ddpm_preprocessor.preprocess(df, store_embedding_size=True)
             y1 = y.reshape(-1, 1)
             if store_embedding_size:
-                self.embedding_sizes[model] = sum(xi.shape[-1] for xi in (X_num, X_cat, y1))
+                self.embedding_sizes[model] = sum(xi.shape[-1] if xi is not None else 0 for xi in (X_num, X_cat, y1))
             if model == "tab_ddpm_concat":
                 x = np.concatenate([X_num, X_cat, y1], axis=1)
             return x
@@ -346,8 +346,8 @@ class DataPreprocessor: #preprocess all with this. save all model here
                 x = x.to_numpy()
             if isinstance(x, np.ndarray):
                 y = np.squeeze(x[:,-1])
-                n_num = self.tab_ddpm_preprocessor.n_num
-                n_cat = self.tab_ddpm_preprocessor.n_cat
+                n_num = self.tab_ddpm_preprocessor.n_num_1
+                n_cat = self.tab_ddpm_preprocessor.n_cat_2
                 X_num = x[:, :n_num]
                 X_cat = x[:, n_num:n_num+n_cat]
                 return self.tab_ddpm_preprocessor.postprocess(X_num, X_cat, y)

@@ -642,8 +642,8 @@ class DataPreprocessor:
 
     def fit(self, df):
         X_num, X_cat, y = self.split_features(df)
-        self.n_num = X_num.shape[-1]
-        self.n_cat = X_cat.shape[-1]
+        self.n_num = X_num.shape[-1] if X_num is not None else 0
+        self.n_cat = X_cat.shape[-1] if X_cat is not None else 0
         self.transformer.fit(
             X_num=X_num,
             X_cat=X_cat,
@@ -653,13 +653,17 @@ class DataPreprocessor:
         self.cols = [*self.num_features, *self.cat_features, self.target]
         self.real_cols = df.columns
         self.dtypes = df.dtypes
+        self.preprocess(df, store_embedding_size=True)
 
-    def preprocess(self, df):
+    def preprocess(self, df, store_embedding_size=False):
         df = df[self.cols]
         X_num, X_cat, y = self.split_features(df)
         X_num, X_cat, y = self.transformer.transform(
             X_num, X_cat, y,
         )
+        if store_embedding_size:
+            self.n_num_1 = X_num.shape[-1] if X_num is not None else 0
+            self.n_cat_1 = X_cat.shape[-1] if X_cat is not None else 0
         return X_num, X_cat, y
 
     def postprocess(self, X_num, X_cat, y):
