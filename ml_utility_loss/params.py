@@ -12,6 +12,11 @@ class LoRAMode:
     LORA = "lora"
 
     __ALL__ = ("full", "low_rank", "lora")
+    DICT = {
+        "FULL": FULL,
+        "LOW_RANK": LOW_RANK,
+        "LORA": LORA,
+    }
 
 class ISABMode:
     SEPARATE = "separate"
@@ -19,6 +24,11 @@ class ISABMode:
     MINI = "mini"
 
     __ALL__ = ("separate", "shared", "mini")
+    DICT = {
+        "SEPARATE": SEPARATE,
+        "SHARED": SHARED,
+        "MINI": MINI,
+    }
 
 class GradientPenaltyMode:
     NONE = {
@@ -131,6 +141,7 @@ SOFTMAXES = {
     "entmax15": entmax15,
     "relu15": relu15
 }
+ACTIVATIONS = {**SOFTMAXES, **ACTIVATIONS}
 GRADIENT_PENALTY_MODES = GradientPenaltyMode.DICT
 PARAM_MAP = {
     "loss": LOSSES,
