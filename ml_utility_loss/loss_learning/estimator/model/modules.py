@@ -187,6 +187,7 @@ def scale_inds_to_batch(I, q):
 
 class InducedSetAttentionMini(nn.Module):
     def __init__(self, *args, **kwargs):
+        super().__init__()
         self.attn0 = ScaledDotProductAttention(*args, **kwargs)
         self.attn1 = self.attn0
 
@@ -198,7 +199,7 @@ class InducedSetAttentionMini(nn.Module):
 
 class InducedSetAttention(nn.Module):
     def __init__(self, num_inds, d_I, d_H, n_head, d_Q, d_KV, d_O, skip_small=True, mode=ISABMode.SEPARATE, device=DEFAULT_DEVICE, **kwargs):
-        super(InducedSetAttention, self).__init__()
+        super().__init__()
         self.skip_small = skip_small
         self.d_I = d_I
         self.d_H = d_H
