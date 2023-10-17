@@ -44,6 +44,7 @@ def objective_2(
     **kwargs
 ):
     try:
+        assert dataset_size_low <= dataset_size_high, "dataset size low must be lower than high"
         size_len = int(math.log(dataset_size_high//dataset_size_low, 2)+1)
         epochs = kwargs["epochs"]
         m = epochs / (patience*size_len)
