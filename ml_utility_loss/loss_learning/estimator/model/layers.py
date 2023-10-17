@@ -82,7 +82,8 @@ class EncoderLayer(nn.Module):
             slf_attn = base.slf_attn
             pos_ffn = base.pos_ffn
             pma = base.pma
-            pos_ffn_pma = base.pos_ffn_pma
+            if base.pma:
+                pos_ffn_pma = base.pos_ffn_pma
 
         if slf_attn is not None and slf_attn is not self.slf_attn:
             self.slf_attn.lora(slf_attn)
@@ -198,7 +199,8 @@ class DecoderLayer(nn.Module):
             enc_attn = base.enc_attn
             pos_ffn = base.pos_ffn
             pma = base.pma
-            pos_ffn_pma = base.pos_ffn_pma
+            if base.pma:
+                pos_ffn_pma = base.pos_ffn_pma
 
         if slf_attn is not None and slf_attn is not self.slf_attn:
             self.slf_attn.lora(slf_attn)
