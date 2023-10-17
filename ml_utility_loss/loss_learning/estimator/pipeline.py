@@ -261,7 +261,7 @@ def train(
     non_role_model_avg=True,
     grad_loss_mul=1.0,
     loss_fn=F.mse_loss,
-    grad_loss_fn=None,
+    grad_loss_fn=F.huber_loss,
     adapter_loss_fn=F.l1_loss,
     fixed_role_model="lct_gan",
     gradient_penalty_mode=GradientPenaltyMode.AVERAGE_MUL,
