@@ -454,9 +454,21 @@ def train_2(
     verbose=False,
     **kwargs
 ):
-    tf_pma = kwargs.pop("tf_pma")
+    tf_pma = kwargs.pop("tf_pma", None)
     if tf_pma:
         kwargs.update(tf_pma)
+    tf_lora = kwargs.pop("tf_lora", None)
+    if tf_lora:
+        kwargs.update(tf_lora)
+    ada_lora = kwargs.pop("ada_lora", None)
+    if ada_lora:
+        kwargs.update(ada_lora)
+    head_lora = kwargs.pop("head_lora", None)
+    if head_lora:
+        kwargs.update(head_lora)
+        
+    kwargs = {k: v for k, v in kwargs.items() if not k.endswith("_bool")}
+    kwargs = {k: v for k, v in kwargs.items() if not k.endswith("_boolc")}
 
     train_results = train(
         datasets,
@@ -486,6 +498,7 @@ def train_3(
 ):
     assert dataset_size_low <= dataset_size_high, "dataset size low must be lower than high"
     assert batch_size_low <= batch_size_high, "batch size low must be lower than high"
+
 
     size_scheduler = PretrainingScheduler(
         min_size=dataset_size_low,
