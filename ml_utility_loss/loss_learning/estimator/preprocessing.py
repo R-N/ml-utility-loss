@@ -311,7 +311,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
             if store_embedding_size:
                 self.embedding_sizes[model] = sum(xi.shape[-1] if xi is not None else 0 for xi in (X_num, X_cat, y1))
             if model == "tab_ddpm_concat":
-                x = np.concatenate([X_num, X_cat, y1], axis=1)
+                x = np.concatenate([xi for xi in [X_num, X_cat, y1] if xi is not None], axis=1)
             return x
         raise ValueError(f"Unknown model: {model}")
         
