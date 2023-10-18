@@ -200,9 +200,11 @@ class InducedSetAttentionMini(nn.Module):
         self.attn1 = self.attn0
 
     def forward(self, q, k, v, mask=None, I=None):
-        assert I is not None
-        H, I_attn = self.attn0(I, k, v, mask=None) #yes it's none
-        O, O_attn = self.attn1(q, H, H, mask=mask) #mask is applied to the query, since query is from decoder
+        if I is None:
+            O, O_attn = self.attn1(q, k, v, mask=mask)
+        else:
+            H, I_attn = self.attn0(I, k, v, mask=None) #yes it's none
+            O, O_attn = self.attn1(q, H, H, mask=mask) #mask is applied to the query, since query is from decoder
         return O, (I_attn, O_attn)
     
 class TensorInductionPoint(nn.Module):
@@ -251,9 +253,9 @@ class InducedSetAttention(nn.Module):
             assert d_Q == d_KV == d_I == d_H == d_O, f"for ISAB to operate in optimized mini mode, all dims must be equal {d_Q} == {d_KV} == {d_I} == {d_H} == {d_O}"
             Attention = InducedSetAttentionMini
 
-        self.mab0 = MultiHeadAttention(
+        self.mab1 = MultiHeadAttention(
             n_head, 
-            d_I, d_KV, d_H, 
+            d_Q, d_H, d_O, 
             Attention=Attention,
             device=device,
             **kwargs,
@@ -261,15 +263,16 @@ class InducedSetAttention(nn.Module):
 
         self.mab1 = None
         if mode == ISABMode.SEPARATE: 
-            self.mab1 = MultiHeadAttention(
+            self.mab0 = MultiHeadAttention(
                 n_head, 
-                d_Q, d_H, d_O, 
+                d_I, d_KV, d_H, 
+                #Attention=Attention,
                 device=device,
                 **kwargs,
             )
         elif mode == ISABMode.SHARED:
             assert d_Q == d_KV == d_I == d_H == d_O, f"for ISAB to share attention, all dims must be equal {d_Q} == {d_KV} == {d_I} == {d_H} == {d_O}"
-            self.mab1 = self.mab0
+            self.mab0 = self.mab1
 
         self.device = device
         self.to(device)
@@ -283,7 +286,7 @@ class InducedSetAttention(nn.Module):
         # So it has to be handled
         I = scale_inds_to_batch(self.I(), q)
         if self.mode == ISABMode.MINI:
-            O, (I_attn, O_attn) = self.mab0(q, k, v, mask=mask, I=I)
+            O, (I_attn, O_attn) = self.mab1(q, k, v, mask=mask, I=I)
         else:
             H, I_attn = self.mab0(I, k, v, mask=None) #yes it's none
             O, O_attn = self.mab1(q, H, H, mask=mask) #mask is applied to the query, since query is from decoder
