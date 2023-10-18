@@ -262,7 +262,7 @@ class InducedSetAttention(nn.Module):
             **kwargs,
         )
 
-        self.mab1 = None
+        self.mab0 = None
         if mode == ISABMode.SEPARATE: 
             self.mab0 = MultiHeadAttention(
                 n_head, 
