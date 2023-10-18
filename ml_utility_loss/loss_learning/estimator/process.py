@@ -169,7 +169,8 @@ def train_epoch(
     grad_clip=4.0,
     models = None,
     head="mlu",
-    eps=1e-6
+    eps=1e-6,
+    timer=None
 ):
     assert optim or val, "Optimizer must be provided if val is false"
     #torch.autograd.set_detect_anomaly(True)
@@ -191,8 +192,13 @@ def train_epoch(
 
     role_model = None
 
+    if timer:
+        timer.check_time()
+
     for batch, batch_dict in enumerate(train_loader):
         gc.collect()
+        if timer:
+            timer.check_time()
         if not val:
             optim.zero_grad()
 
@@ -318,6 +324,8 @@ def train_epoch(
             model_2 = [m for m in models if m != role_model][0]
 
         role_model_loss = reduction(role_model_compute["loss"])
+        if timer:
+            timer.check_time()
 
         non_role_model_embed_loss = 0
         if len(computes) > 1:
@@ -375,6 +383,8 @@ def train_epoch(
                 for model, compute in computes.items() 
                 if model != role_model
             ])
+        if timer:
+            timer.check_time()
 
         non_role_model_g_loss = 0
         # Now we calculate the gradient penalty
@@ -459,6 +469,8 @@ def train_epoch(
                     for model, compute in computes.items() 
                     if model != role_model and "g_loss" in compute
                 ])
+        if timer:
+            timer.check_time()
 
         # Due to the convenient calculation of second order derivative,
         # Every g_loss backward call will populate the whole model grad
@@ -488,6 +500,9 @@ def train_epoch(
         if not val:
             batch_loss.backward()
 
+        if timer:
+            timer.check_time()
+
         if not val:
             if grad_clip:
                 clip_grad_norm_(whole_model.parameters(), grad_clip)
@@ -502,6 +517,10 @@ def train_epoch(
         avg_loss += try_tensor_item(batch_loss)
     
         n_size += 1 if reduction == torch.mean else batch_size
+        if timer:
+            timer.check_time()
+    if timer:
+        timer.check_time()
 
     avg_role_model_loss /= n_size
     avg_role_model_g_loss /= n_size

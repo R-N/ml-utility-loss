@@ -7,6 +7,8 @@ import torch
 from math import sqrt
 import scipy.stats as st
 import os
+from optuna.exceptions import TrialPruned
+import time
 
 def load_json(path, **kwargs):
     return json.loads(Path(path).read_text(), **kwargs)
@@ -214,3 +216,24 @@ types_ = {
     **types_,
     **{f"<class '{k}'>": v for k, v in types_.items()}
 }
+
+class Timer:
+    def __init__(self, max_seconds, start_time=0, timer=time.time):
+        assert max_seconds > 0
+        self.max_seconds = max_seconds
+        self.timer = timer
+        if not start_time:
+            start_time = self.timer()
+        self.start_time = start_time
+
+    def cur_seconds(self, cur_time=0):
+        if not cur_time:
+            cur_time = self.timer()
+        return cur_time - self.start_time
+
+    def check_time(self, cur_time=0):
+        cur_seconds = self.cur_seconds(cur_time=cur_time)
+        
+        if (cur_seconds > self.max_seconds):
+            raise TrialPruned(f"TIme out: {cur_seconds}/{self.max_seconds}")
+        return cur_seconds

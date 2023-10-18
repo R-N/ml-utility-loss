@@ -2,7 +2,7 @@ import pandas as pd
 import json
 from .preprocessing import DataAugmenter
 import os
-from ...util import mkdir, filter_dict, split_df_kfold
+from ...util import mkdir, filter_dict, split_df_kfold, Timer
 from ..ml_utility.pipeline import eval_ml_utility
 from ...params import GradientPenaltyMode
 from .model.models import Transformer, MLUtilityWhole
@@ -16,8 +16,6 @@ import math
 import warnings
 from ...scheduler import PretrainingScheduler
 from ...params import ISABMode, LoRAMode
-from optuna.exceptions import TrialPruned
-import time
 
 def augment(df, info, save_dir, n=1, test=0.2):
     mkdir(save_dir)
@@ -307,9 +305,10 @@ def train(
     early_stopping=None,
     dataloader_worker=1,
     max_seconds=1800,
+    timer=None,
     **model_args
 ):
-    start_time = time.time()
+    timer = timer or (Timer(max_seconds=max_seconds) if max_seconds else None)
     if len(datasets) == 3:
         train_set, val_set, test_set = datasets
     elif len(datasets) == 2:
@@ -383,13 +382,16 @@ def train(
             **gradient_penalty_mode,
         )
     
-    check_time(time.time()-start_time, max_seconds)
+    if timer:
+        timer.check_time()
     
     for i in range(i, i+epochs):
         train_loss = train_epoch_(train_loader)
-        check_time(time.time()-start_time, max_seconds)
+        if timer:
+            timer.check_time()
         val_loss = train_epoch_(val_loader, val=True)
-        check_time(time.time()-start_time, max_seconds)
+        if timer:
+            timer.check_time()
 
         train_value = train_loss["avg_loss"]
         val_value = val_loss["avg_loss"]
@@ -413,8 +415,10 @@ def train(
             early_stopping.step(train_value, val_value, epoch=i)
             if early_stopping.stopped:
                 break
-        check_time(time.time()-start_time, max_seconds)
-    check_time(time.time()-start_time, max_seconds)
+        if timer:
+            timer.check_time()
+    if timer:
+        timer.check_time()
 
     test_set.set_size(None)
     test_set.set_aug_scale(0)
@@ -433,12 +437,6 @@ def train(
         "eval_loss": eval_loss
     }
 
-def check_time(cur_seconds, max_seconds=0):
-    if not max_seconds:
-        return
-    
-    if (cur_seconds > max_seconds):
-        raise TrialPruned(f"TIme out: {cur_seconds}/{max_seconds}")
 
 
 def eval(
