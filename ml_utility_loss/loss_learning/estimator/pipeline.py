@@ -16,6 +16,8 @@ import math
 import warnings
 from ...scheduler import PretrainingScheduler
 from ...params import ISABMode, LoRAMode
+from optuna.exceptions import TrialPruned
+import time
 
 def augment(df, info, save_dir, n=1, test=0.2):
     mkdir(save_dir)
@@ -304,8 +306,10 @@ def train(
     size_scheduler=None,
     early_stopping=None,
     dataloader_worker=1,
+    max_seconds=1800,
     **model_args
 ):
+    start_time = time.time()
     if len(datasets) == 3:
         train_set, val_set, test_set = datasets
     elif len(datasets) == 2:
@@ -378,11 +382,14 @@ def train(
             head=head,
             **gradient_penalty_mode,
         )
-        
+    
+    check_time(time.time()-start_time, max_seconds)
     
     for i in range(i, i+epochs):
         train_loss = train_epoch_(train_loader)
+        check_time(time.time()-start_time, max_seconds)
         val_loss = train_epoch_(val_loader, val=True)
+        check_time(time.time()-start_time, max_seconds)
 
         train_value = train_loss["avg_loss"]
         val_value = val_loss["avg_loss"]
@@ -406,6 +413,8 @@ def train(
             early_stopping.step(train_value, val_value, epoch=i)
             if early_stopping.stopped:
                 break
+        check_time(time.time()-start_time, max_seconds)
+    check_time(time.time()-start_time, max_seconds)
 
     test_set.set_size(None)
     test_set.set_aug_scale(0)
@@ -423,6 +432,13 @@ def train(
         "val_loss": val_loss,
         "eval_loss": eval_loss
     }
+
+def check_time(cur_seconds, max_seconds=0):
+    if not max_seconds:
+        return
+    
+    if (cur_seconds > max_seconds):
+        raise TrialPruned(f"TIme out: {cur_seconds}/{max_seconds}")
 
 
 def eval(
