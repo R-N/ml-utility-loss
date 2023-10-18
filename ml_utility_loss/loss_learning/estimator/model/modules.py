@@ -201,6 +201,7 @@ class InducedSetAttentionMini(nn.Module):
 
     def forward(self, q, k, v, mask=None, I=None):
         if I is None:
+            I_attn = None
             O, O_attn = self.attn1(q, k, v, mask=mask)
         else:
             H, I_attn = self.attn0(I, k, v, mask=None) #yes it's none
