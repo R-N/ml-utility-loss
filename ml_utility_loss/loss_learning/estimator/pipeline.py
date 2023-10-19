@@ -2,6 +2,8 @@ import pandas as pd
 import json
 from .preprocessing import DataAugmenter
 import os
+from entmax import sparsemax, entmax15, Sparsemax, Entmax15
+from alpharelu import relu15, ReLU15
 from ...util import mkdir, filter_dict, split_df_kfold, Timer
 from ..ml_utility.pipeline import eval_ml_utility
 from ...params import GradientPenaltyMode
@@ -176,7 +178,7 @@ def create_model(
     # Common model args
     d_model=64, 
     dropout=0.1, 
-    softmax=nn.Softmax,
+    softmax=ReLU15,
     flip=False,
     skip_small=True,
     # Transformer args
@@ -186,7 +188,7 @@ def create_model(
     tf_n_layers_dec=2, 
     tf_n_head=8, 
     tf_activation=nn.ReLU,
-    tf_isab_mode=ISABMode.SEPARATE,
+    tf_isab_mode=ISABMode.SHARED,
     tf_isab_rank=0,
     tf_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
     tf_lora_mode=LoRAMode.FULL,
@@ -209,7 +211,7 @@ def create_model(
     head_d_hid=32, 
     head_n_layers=2, 
     head_n_head=8,   
-    head_activation=nn.Sigmoid,
+    head_activation=nn.LeakyReLU,
     head_pma_rank=0,
     head_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
     head_lora_mode=LoRAMode.FULL,
@@ -282,7 +284,7 @@ def train(
     # Training args
     epochs=1,
     lr=1e-4,
-    Optim=torch.optim.Adam,
+    Optim=torch.optim.AdamW,
     optim=None,
     models=None,
     whole_model=None,
@@ -293,11 +295,11 @@ def train(
     grad_loss_mul=1.0,
     loss_fn=F.mse_loss,
     grad_loss_fn=F.huber_loss,
-    adapter_loss_fn=F.l1_loss,
-    fixed_role_model="lct_gan",
+    adapter_loss_fn=F.huber_loss,
+    fixed_role_model="tab_ddpm_concat",
     gradient_penalty_mode=GradientPenaltyMode.AVERAGE_MUL,
-    loss_clamp=1.0,
-    grad_clip=1.0,
+    loss_clamp=4.0,
+    grad_clip=2.0,
     head="mlu",
     verbose=True,
     epoch_callback=None,

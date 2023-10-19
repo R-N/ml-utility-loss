@@ -9,11 +9,10 @@ PARAM_SPACE = {
     # Training args
     "epochs": ("int", 40, 100),
     "lr": ("log_float", 5e-5, 5e-4),
-    "Optim": ("optimizer", ["adam", "adamw"]),
+    "Optim": ("optimizer", ["adamw"]),
     # Training args
     "non_role_model_mul": ("float", 0.3, 0.7), #almost random
-    "non_role_model_avg": BOOLEAN, 
-    #"non_role_model_avg": True,
+    #"non_role_model_avg": True, 
     "grad_loss_mul": ("float", 0.8, 1.5), #almost random
     #"loss_fn": ("loss", "mse"),
     #"grad_loss_fn": ("loss", "huber"),
@@ -31,7 +30,7 @@ PARAM_SPACE = {
         #"NONE",
         #"ALL", # ALL was the best, but it takes a long time to train
         #"ONCE",
-        "ESTIMATE",
+        #"ESTIMATE",
         #"AVERAGE_NO_MUL",
         "AVERAGE_MUL"
     ]),
@@ -50,27 +49,35 @@ PARAM_SPACE = {
     "tf_n_layers_dec": ("int", 2, 4), 
     "tf_n_head": ("int_exp_2", 4, 8), 
     "tf_activation": ("activation", ["relu", "gelu"]),
-    "tf_isab_mode": ("categorical", ISABMode.__ALL__),
+    #"tf_isab_mode": ("categorical", (
+    #    #ISABMode.SEPARATE, about the same as shared
+    #    ISABMode.SHARED,
+    #    #ISABMode.MINI, bad
+    #)),
     "tf_isab_rank": ("bool_int_exp_2", 2, 16),
     "tf_lora": ("conditional", {
-        "tf_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
+        "tf_lora_mode": ("categorical", (
+            LoRAMode.LOW_RANK, 
+            LoRAMode.LORA
+        )),
         "tf_lora_rank": ("int_exp_2", 2, 16),
     }),
     # Transformer PMA args
-    "tf_pma": ("conditional", { # False
-        "tf_pma_start": ("int", -4, -1),
-        "tf_pma_high": ("int_exp_2", 8, 64),
-        "tf_pma_low": ("int_exp_2", 2, 32),
-        "tf_pma_rank": ("bool_int_exp_2", 2, 16),
-    }),
-    "tf_share_ffn": BOOLEAN, # almost doesn't matter
+    #"tf_pma": ("conditional", { # False
+    #    "tf_pma_start": ("int", -3, -1),
+    #    "tf_pma_high": ("int_exp_2", 8, 32),
+    #    "tf_pma_low": ("int_exp_2", 8, 16),
+    #    "tf_pma_rank": ("bool_int_exp_2", 8, 16),
+    #}),
+    #"tf_share_ffn": True, #almost doesnt matter
     # Adapter args
     "ada_d_hid": ("int_exp_2", 8, 128), 
     "ada_n_layers": ("int", 2, 5), 
     "ada_activation": ("activation", [
-        "tanh", "sigmoid", 
-        "relu", "leakyrelu", 
-        "elu", "selu", "gelu", 
+        "tanh",  
+        "relu", 
+        "leakyrelu", 
+        "selu", "gelu", 
         "identity"
     ]),
     #"ada_lora": ("conditional", {
@@ -85,7 +92,7 @@ PARAM_SPACE = {
     "head_activation": ("activation", [
         "leakyrelu", 
         "selu", 
-        "identity"
+        #"identity"
     ]),
     #"head_pma_rank": ("bool_int_exp_2", 2, 16),
     #"head_lora": ("conditional", {
@@ -99,9 +106,92 @@ PARAM_SPACE_2 = {
     "dataset_size_high": ("int_exp_2", 1024, 4096),
     "batch_size_low": ("int_exp_2", 1, 2),
     "batch_size_high": ("int_exp_2", 4, 4), 
-    "patience": ("log_int", 2, 10)
+    "patience": ("log_int", 3, 9)
 }
 
+DEFAULT = {
+    'epochs': 64,
+    'lr': 0.00015695575182672898,
+    'Optim': 'adamw',
+    'non_role_model_mul': 0.34767057208496993,
+    'non_role_model_avg': False,
+    'grad_loss_mul': 0.9446039578517014,
+    'adapter_loss_fn': 'mae',
+    'fixed_role_model': 'tab_ddpm_concat',
+    'gradient_penalty_mode': 'AVERAGE_MUL',
+    'd_model': 32,
+    'dropout': 0.060779596057051896,
+    'skip_small': False,
+    'loss_clamp': 1.0189098439370885,
+    'tf_num_inds': 16,
+    'tf_d_inner': 128,
+    'tf_n_layers_enc': 5,
+    'tf_n_layers_dec': 2,
+    'tf_n_head': 4,
+    'tf_activation': 'relu',
+    'tf_isab_mode': 'mini',
+    'tf_isab_rank_bool': True,
+    'tf_isab_rank': 2,
+    'tf_lora_boolc': False,
+    'tf_pma_boolc': False,
+    'tf_share_ffn': True,
+    'ada_d_hid': 64,
+    'ada_n_layers': 4,
+    'ada_activation': 'tanh',
+    'head_n_seeds': 1,
+    'head_d_hid': 128,
+    'head_n_layers': 5,
+    'head_n_head': 8,
+    'head_activation': 'identity',
+    'dataset_size_low': 256,
+    'dataset_size_high': 1024,
+    'batch_size_low': 1,
+    'batch_size_high': 4,
+    'patience': 8
+}
+#0.006890142790507525
+BEST = {
+    'epochs': 64,
+    'lr': 0.00015695575182672898,
+    'Optim': 'adamw',
+    'non_role_model_mul': 0.34767057208496993,
+    'non_role_model_avg': False,
+    'grad_loss_mul': 0.9446039578517014,
+    'adapter_loss_fn': 'mae',
+    'fixed_role_model': 'tab_ddpm_concat',
+    'gradient_penalty_mode': 'AVERAGE_MUL',
+    'd_model': 32,
+    'dropout': 0.060779596057051896,
+    'skip_small': False,
+    'loss_clamp': 1.0189098439370885,
+    'tf_num_inds': 16,
+    'tf_d_inner': 128,
+    'tf_n_layers_enc': 5,
+    'tf_n_layers_dec': 2,
+    'tf_n_head': 4,
+    'tf_activation': 'relu',
+    'tf_isab_mode': 'mini',
+    'tf_isab_rank_bool': True,
+    'tf_isab_rank': 2,
+    'tf_lora_boolc': False,
+    'tf_pma_boolc': False,
+    'tf_share_ffn': True,
+    'ada_d_hid': 64,
+    'ada_n_layers': 4,
+    'ada_activation': 'tanh',
+    'head_n_seeds': 1,
+    'head_d_hid': 128,
+    'head_n_layers': 5,
+    'head_n_head': 8,
+    'head_activation': 'identity',
+    'dataset_size_low': 256,
+    'dataset_size_high': 1024,
+    'batch_size_low': 1,
+    'batch_size_high': 4,
+    'patience': 8
+}
+
+"""
 DEFAULT = {
     "epochs": 45, 
     "lr": 7e-05, 
@@ -183,3 +273,4 @@ BEST = {
     "batch_size_high": 4, #2, 
     #"patience": 7
 }
+"""

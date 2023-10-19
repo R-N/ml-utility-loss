@@ -233,7 +233,7 @@ class LowRankInductionPoint(nn.Module):
         return torch.matmul(self.a, self.b)
 
 class InducedSetAttention(nn.Module):
-    def __init__(self, num_inds, d_I, d_H, n_head, d_Q, d_KV, d_O, skip_small=True, mode=ISABMode.SEPARATE, rank=0, device=DEFAULT_DEVICE, **kwargs):
+    def __init__(self, num_inds, d_I, d_H, n_head, d_Q, d_KV, d_O, skip_small=True, mode=ISABMode.SHARED, rank=0, device=DEFAULT_DEVICE, **kwargs):
         super().__init__()
         self.skip_small = skip_small
         self.d_I = d_I

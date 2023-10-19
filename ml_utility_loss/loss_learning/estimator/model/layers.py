@@ -11,7 +11,7 @@ __author__ = "Yu-Hsiang Huang"
 class EncoderLayer(nn.Module):
     ''' Compose with two layers '''
 
-    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=True, activation=nn.ReLU, softmax=nn.Softmax, isab_mode=ISABMode.SEPARATE, isab_rank=0, pma_rank=0, device=DEFAULT_DEVICE, Linear=nn.Linear):
+    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=True, activation=nn.ReLU, softmax=nn.Softmax, isab_mode=ISABMode.SHARED, isab_rank=0, pma_rank=0, device=DEFAULT_DEVICE, Linear=nn.Linear):
         super().__init__()
         Attention = SimpleInducedSetAttention if num_inds else SimpleMultiHeadAttention
         self.slf_attn = Attention(
@@ -107,7 +107,7 @@ class EncoderLayer(nn.Module):
 class DecoderLayer(nn.Module):
     ''' Compose with three layers '''
 
-    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=True, activation=nn.ReLU, softmax=nn.Softmax, isab_mode=ISABMode.SEPARATE, isab_rank=0, pma_rank=0, device=DEFAULT_DEVICE, Linear=nn.Linear):
+    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=True, activation=nn.ReLU, softmax=nn.Softmax, isab_mode=ISABMode.SHARED, isab_rank=0, pma_rank=0, device=DEFAULT_DEVICE, Linear=nn.Linear):
         super().__init__()
         Attention = SimpleInducedSetAttention if num_inds else SimpleMultiHeadAttention
         self.slf_attn = Attention(
