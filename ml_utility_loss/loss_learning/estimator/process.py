@@ -498,7 +498,10 @@ def train_epoch(
         # Finally, backprop
         batch_loss = role_model_total_loss + non_role_model_loss
         if not val:
-            batch_loss.backward()
+            if reduction != torch.mean:
+                (batch_loss/batch_size).backward()
+            else:
+                batch_loss.backward()
 
         if timer:
             timer.check_time()
