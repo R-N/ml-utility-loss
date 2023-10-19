@@ -138,6 +138,69 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
         info_out.to_csv(info_path)
     return info_out
 
+def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params={}, save_info="info.csv"):
+    target = info["target"]
+    task = info["task"]
+    cat_features = info["cat_features"]
+    info_path = os.path.join(data_dir, save_info)
+
+    if not info_out:
+        try:
+            info_out = pd.read_csv(info_path, index_col=0)
+            print(f"Loaded info_out {len(info_out)} {info_out.last_valid_index()}")
+        except FileNotFoundError:
+            info_out = pd.DataFrame()
+
+    indices = []
+    #objs = info_out.to_dict("records")
+    objs = []
+
+    for index in subfolders:
+        """
+        while True:
+            with warnings.catch_warnings():
+                warnings.filterwarnings('error')
+                try:
+                    break
+                except Warning:
+                    continue
+        """
+        data_dir_i = os.path.join(data_dir, index)
+        obj = {t: os.path.join(index, f"{t}.csv") for t in dataset_types}
+        df_train = pd.read_csv(os.path.join(data_dir, obj["train"]))
+        df_synth = pd.read_csv(os.path.join(data_dir, obj["synth"]))
+        df_val = pd.read_csv(os.path.join(data_dir, obj["val"]))
+        df_test = pd.read_csv(os.path.join(data_dir, obj["test"]))
+
+        dataset_types = DATASET_TYPES_VAL
+            
+        synth_value = eval_ml_utility(
+            (df_synth, df_val),
+            task,
+            target=target,
+            cat_features=cat_features,
+            **ml_utility_params
+        )
+        real_value = eval_ml_utility(
+            (df_train, df_val),
+            task,
+            target=target,
+            cat_features=cat_features,
+            **ml_utility_params
+        )
+        obj["synth_value"] = synth_value
+        obj["real_value"] = real_value
+
+        objs.append(obj)
+        indices.append(index)
+
+    df = pd.DataFrame(objs, index=indices)
+    info_out = pd.concat([info_out, df], axis=0)
+    info_out[~info_out.index.duplicated(keep='last')]
+    info_out.to_csv(info_path)
+
+    return info_out
+
 def generate_sizes(n, low=32, exp=2):
     steps = math.ceil(math.log(n/low, exp) + 1)
     return [low*(exp**i) for i in range(steps)]
