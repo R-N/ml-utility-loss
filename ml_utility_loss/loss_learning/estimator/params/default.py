@@ -50,7 +50,7 @@ PARAM_SPACE = {
     "tf_lora": ("conditional", {
         "tf_lora_mode": ("categorical", (
             LoRAMode.LOW_RANK, 
-            LoRAMode.LORA
+            LoRAMode.LORA,
         )),
         "tf_lora_rank": ("int_exp_2", 2, 16),
     }),

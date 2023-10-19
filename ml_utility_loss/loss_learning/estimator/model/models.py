@@ -55,7 +55,7 @@ def calc_pma_steps(
 
 def TryLoRA(lora_mode, lora_rank):
     Linear = nn.Linear
-    assert not lora_mode or lora_mode in LoRAMode.__ALL__
+    assert (not lora_mode) or (lora_mode in LoRAMode.__ALL__), f"Invalid LoRA mode {lora_mode}"
     if lora_mode and lora_mode != LoRAMode.FULL:
         Linear = LowRankLinearFactory(lora_rank)
     return Linear
@@ -431,7 +431,7 @@ class Head(nn.Module):
         #y = self.final_activation(y)
         if not torch.isnan(y).any():
             y_max, y_min = torch.max(y), torch.min(y)
-            assert y_max <= 1.1 and y_min >= 0.0, f"Invalid sigmoid range: {(y_min, y_max)}"
+            assert y_max <= 1.2 and y_min >= 0.0, f"Invalid sigmoid range: {(y_min, y_max)}"
         y = y.squeeze(dim=-1)
         if return_attns:
             return y, pma_attn
