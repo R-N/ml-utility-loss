@@ -18,6 +18,8 @@ import math
 import warnings
 from ...scheduler import PretrainingScheduler
 from ...params import ISABMode, LoRAMode
+from torch.utils.tensorboard import SummaryWriter
+from copy import deepcopy
 
 def augment(df, info, save_dir, n=1, test=0.2):
     mkdir(save_dir)
@@ -372,6 +374,8 @@ def train(
     dataloader_worker=1,
     max_seconds=1800,
     timer=None,
+    log_dir=None,
+    checkpoint_dir=None,
     **model_args
 ):
     timer = timer or (Timer(max_seconds=max_seconds) if max_seconds else None)
@@ -383,6 +387,10 @@ def train(
 
     if optim:
         assert whole_model
+
+    writer=None
+    if log_dir:
+        writer = SummaryWriter(log_dir)
 
     if size_scheduler:
         batch_size = size_scheduler.get_batch_size()
@@ -430,7 +438,7 @@ def train(
         train_loader,
         val=False,
     ):
-        return train_epoch(
+        loss = train_epoch(
             whole_model, 
             train_loader, 
             optim,
@@ -447,6 +455,7 @@ def train(
             head=head,
             **gradient_penalty_mode,
         )
+        return loss
     
     if timer:
         timer.check_time()
@@ -458,6 +467,11 @@ def train(
         val_loss = train_epoch_(val_loader, val=True)
         if timer:
             timer.check_time()
+
+        for k, v in train_loss.items():
+            writer.add_scalar(f"{k}/train", v, i)
+        for k, v in val_loss.items():
+            writer.add_scalar(f"{k}/val", v, i)
 
         train_value = train_loss["avg_loss"]
         val_value = val_loss["avg_loss"]
@@ -493,6 +507,10 @@ def train(
         batch_size=size_scheduler.get_batch_size(),
         dataloader_worker=dataloader_worker
     )
+
+    if checkpoint_dir:
+        torch.save(whole_model, os.path.join(checkpoint_dir, "model.pt"))
+        torch.save(deepcopy(whole_model.state_dict()), os.path.join(checkpoint_dir, "states.pt"))
 
     return {
         "whole_model": whole_model,
@@ -555,6 +573,8 @@ def train_2(
         preprocessor,
         verbose=verbose,
         epoch_callback=None, # for now
+        checkpoint_dir=checkpoint_dir,
+        log_dir=log_dir,
         **kwargs
     )
     for k in ["train_loss", "val_loss", "eval_loss"]:
