@@ -617,7 +617,7 @@ def pred(
     y = y.to(model.device)
 
     pred = model(
-        train, test, model
+        train, test
     )
     # We reduce directly because no further need for shape
     loss = loss_fn(pred, y, reduction="none")
