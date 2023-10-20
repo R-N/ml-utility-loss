@@ -645,3 +645,6 @@ def pred(
         "grad": dbody_dx_norm,
         "grad_loss": g_loss,
     }
+
+def pred_2(whole_model, batch_dict, **kwargs):
+    return {m: pred(whole_model[m], s, **kwargs) for m, s in batch_dict.items()}
