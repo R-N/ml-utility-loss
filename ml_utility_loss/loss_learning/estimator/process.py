@@ -616,6 +616,7 @@ def pred(
     test = test.to(model.device)
     y = y.to(model.device)
 
+    train.requires_grad_()
     pred = model(
         train, test
     )
