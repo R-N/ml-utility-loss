@@ -167,13 +167,13 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
                     continue
         """
         data_dir_i = os.path.join(data_dir, index)
+        dataset_types = DATASET_TYPES_VAL
         obj = {t: os.path.join(index, f"{t}.csv") for t in dataset_types}
         df_train = pd.read_csv(os.path.join(data_dir, obj["train"]))
         df_synth = pd.read_csv(os.path.join(data_dir, obj["synth"]))
         df_val = pd.read_csv(os.path.join(data_dir, obj["val"]))
         df_test = pd.read_csv(os.path.join(data_dir, obj["test"]))
 
-        dataset_types = DATASET_TYPES_VAL
             
         synth_value = eval_ml_utility(
             (df_synth, df_val),
