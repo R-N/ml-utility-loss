@@ -155,7 +155,7 @@ def train_epoch(
     non_role_model_avg=True,
     grad_loss_mul=1.0,
     loss_fn=F.mse_loss,
-    grad_loss_fn=F.huber_loss,
+    grad_loss_fn=F.huber_loss, # It's fine as long as loss_fn is MSE
     adapter_loss_fn=F.l1_loss, # Values can get very large and MSE loss will result in infinity, or maybe use kl_div
     reduction=torch.sum,
     val=False,
@@ -538,8 +538,8 @@ def train_epoch(
         "avg_non_role_model_embed_loss": avg_non_role_model_embed_loss,
         "avg_loss": avg_loss,
     }
-        
-        
+
+
 def eval(
     whole_model, 
     eval_loader, 
@@ -597,4 +597,50 @@ def eval(
         "avg_losses": avg_losses,
         "avg_loss": avg_loss,
     }
-        
+
+def pred(
+    model, 
+    batch, 
+    loss_fn=F.mse_loss,
+    grad_loss_fn=F.mse_loss, #for RMSE,
+):
+
+    # Set the model to eval mode for validation or train mode for training
+    model.eval()
+
+    gc.collect()
+    # Compute prediction and loss for all adapters
+    train, test, y = batch
+
+    train = train.to(model.device)
+    test = test.to(model.device)
+    y = y.to(model.device)
+
+    pred = model(
+        train, test, model
+    )
+    # We reduce directly because no further need for shape
+    loss = loss_fn(pred, y, reduction="none")
+    dbody_dx = calc_gradient(train, loss)
+    # The gradient is of shape (batch, size, dim)
+    # Sum gradient over the size dimension, resulting in (batch, dim)
+    dbody_dx = torch.sum(dbody_dx, dim=-2)
+    # Calculate the magnitude of the gradient
+    # No keep_dim, so this results in (batch)
+    dbody_dx_norm = dbody_dx.norm(2, dim=-1)
+    # expected gradient is 2*sqrt(loss)
+    g = 2 * torch.sqrt(loss.detach())
+    g_loss = grad_loss_fn(dbody_dx_norm, g, reduction="none")
+
+    pred = pred.detach().cpu()
+    loss = loss.detach().cpu()
+    dbody_dx_norm = dbody_dx_norm.detach().cpu()
+    g_loss = g_loss.detach().cpu()
+
+    gc.collect()
+    return {
+        "pred": pred, 
+        "loss": loss,
+        "grad": dbody_dx_norm,
+        "grad_loss": g_loss,
+    }
