@@ -504,7 +504,7 @@ def train(
     test_set.set_aug_scale(0)
     eval_loss = eval(
         test_set, whole_model,
-        batch_size=size_scheduler.get_batch_size(),
+        batch_size=size_scheduler.get_batch_size() if size_scheduler else batch_size,
         dataloader_worker=dataloader_worker
     )
 
