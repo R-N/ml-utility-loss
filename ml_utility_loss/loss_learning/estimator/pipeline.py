@@ -156,6 +156,7 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
     objs = []
 
     for index in subfolders:
+        index = str(index)
         """
         while True:
             with warnings.catch_warnings():
