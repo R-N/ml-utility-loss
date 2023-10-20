@@ -314,8 +314,8 @@ class OverlapDataset(BaseDataset):
         return sample
 
 class PreprocessedDataset(WrapperDataset):
-    def __init__(self, dataset, preprocessor, model=None, max_cache=None, Tensor=Tensor, dtype=float):
-        super().__init__(dataset=dataset, max_cache=max_cache)
+    def __init__(self, dataset, preprocessor, model=None, max_cache=None, Tensor=Tensor, dtype=float, **kwargs):
+        super().__init__(dataset=dataset, max_cache=max_cache, **kwargs)
         assert model or preprocessor.model
         self.preprocessor = preprocessor
         self.model = model
@@ -346,6 +346,15 @@ class MultiPreprocessedDataset(WrapperDataset):
         self.preprocessor = preprocessor
         self.Tensor = Tensor
         self.dtype = dtype
+        self.datasets = {
+            PreprocessedDataset(
+                dataset=self.dataset,
+                preprocessor=preprocessor,
+                model=m,
+                max_cache=self.cache.max_cache if self.cache else None
+            )
+            for m in self.models
+        }
 
     @property
     def models(self):
@@ -355,25 +364,23 @@ class MultiPreprocessedDataset(WrapperDataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
         if isinstance(idx, str):
-            assert idx in self.models
-            preprocessor = self.preprocessor
-            #preprocessor = deepcopy(self.preprocessor)
-            #preprocessor.model = idx
-            return PreprocessedDataset(
-                dataset=self.dataset,
-                preprocessor=preprocessor,
-                model=idx,
-                max_cache=self.cache.max_cache if self.cache else None
-            )
+            assert idx in self.datasets
+            return self.datasets[idx]
         if hasattr(idx, "__iter__"):
             return stack_sample_dicts([self[id] for id in idx])
         if self.cache and idx in self.cache:
             return self.cache[idx]
         
+        """
+        sample_dict = {
+            m: self.datasets[m][idx]
+            for m in self.models
+        }
+        """
         sample = self.dataset[idx]
         sample_dict = {
-            model: preprocess_sample(sample, self.preprocessor, model)
-            for model in self.models
+            m: preprocess_sample(sample, self.preprocessor, m)
+            for m in self.models
         }
         sample_dict = to_dtype(sample_dict, self.dtype)
         sample_dict = to_tensor(sample_dict, self.Tensor)

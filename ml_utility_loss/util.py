@@ -9,6 +9,7 @@ import scipy.stats as st
 import os
 from optuna.exceptions import TrialPruned
 import time
+import shutil
 
 def load_json(path, **kwargs):
     return json.loads(Path(path).read_text(), **kwargs)
@@ -129,8 +130,62 @@ def stack_sample_dicts(samples, keys=None, stack_outer=False):
     }
     return sample_dicts
 
-class Cache:
-    def __init__(self, max_cache=torch.inf, remove_old=False):
+class CacheType:
+    MEMORY = "memory"
+    PICKLE = "pickle"
+
+    __ALL__ = (MEMORY, PICKLE)
+
+
+def Cache(cache_type=CacheType.MEMORY, **kwargs):
+    if cache_type == CacheType.MEMORY:
+        return InMemoryCache(**kwargs)
+    elif cache_type == CacheType.PICKLE:
+        return PickleCache(**kwargs)
+
+def remake_dir(path):
+    if os.path.exists(path):
+        shutil.rmtree(path)
+    while os.path.exists(path):
+        pass
+    while True:
+        try:
+            mkdir(path)
+            if not os.path.exists(path):
+                continue
+            break
+        except PermissionError:
+            continue
+
+class PickleCache:
+    def __init__(self, max_cache=torch.inf, remove_old=False, cache_dir="_cache"):
+        assert cache_dir is not None
+        self.remove_old = remove_old
+        remake_dir(cache_dir)
+        self.cache_dir = cache_dir
+
+    def clear(self):
+        remake_dir(self.cache_dir)
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+        if hasattr(idx, "__iter__"):
+            return stack_samples([self[id] for id in idx])
+        sample = torch.load(self.file_path(idx))
+        return sample
+    
+    def __setitem__(self, idx, sample):
+        torch.save(sample, self.file_path(idx))
+
+    def __contains__(self, item):
+        return item in self.cache
+    
+    def file_path(self, idx):
+        return os.path.join(self.cache_dir, f"_cache_{idx}.pt")
+
+class InMemoryCache:
+    def __init__(self, max_cache=torch.inf, remove_old=False, cache_dir=None):
         self.max_cache = max_cache
         self.cache = OrderedDict()
         self.remove_old = remove_old
