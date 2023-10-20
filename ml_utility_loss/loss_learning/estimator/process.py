@@ -633,10 +633,10 @@ def pred(
     g = 2 * torch.sqrt(loss.detach())
     g_loss = grad_loss_fn(dbody_dx_norm, g, reduction="none")
 
-    pred = pred.detach().cpu()
-    loss = loss.detach().cpu()
-    dbody_dx_norm = dbody_dx_norm.detach().cpu()
-    g_loss = g_loss.detach().cpu()
+    pred = pred.detach().cpu().numpy()
+    loss = loss.detach().cpu().numpy()
+    dbody_dx_norm = dbody_dx_norm.detach().cpu().numpy()
+    g_loss = g_loss.detach().cpu().numpy()
 
     gc.collect()
     return {
