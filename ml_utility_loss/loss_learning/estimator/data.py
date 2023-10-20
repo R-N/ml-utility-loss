@@ -372,7 +372,7 @@ class MultiPreprocessedDataset(WrapperDataset):
         self.Tensor = Tensor
         self.dtype = dtype
         self.datasets = {
-            PreprocessedDataset(
+            m: PreprocessedDataset(
                 dataset=self.dataset,
                 preprocessor=preprocessor,
                 model=m,
