@@ -53,16 +53,27 @@ def to_tensor(x, Tensor=None):
     return Tensor([x]).squeeze()
 
 class BaseDataset(Dataset):
-    def __init__(self, max_cache=None, **cache_kwargs):
-        self.create_cache(max_cache, **cache_kwargs)
+    def __init__(self, max_cache=None, size=None, aug_scale=0, all="all", **kwargs):
+        size = size or all
+        self.all = all
+        self.size = size
+        self.aug_scale = aug_scale
+        self.create_cache(max_cache=max_cache, **kwargs)
 
-    def create_cache(self, max_cache, **cache_kwargs):
-        if hasattr(self, "max_cache") and self.max_cache == max_cache:
+    def create_cache(self, max_cache=None, cache_dir="_cache", force=False, **kwargs):
+        if not force and hasattr(self, "max_cache") and self.max_cache == max_cache:
             return
+        if max_cache is None and hasattr(self, "max_cache"):
+            max_cache == self.max_cache
         if max_cache == True:
             max_cache = torch.inf
         self.max_cache = max_cache
-        self.cache = Cache(max_cache, **cache_kwargs) if max_cache else None
+
+        size = str(self.size)
+        if size not in cache_dir:
+            cache_dir = os.path.join(cache_dir, size)
+
+        self.cache = Cache(max_cache=max_cache, cache_dir=cache_dir, **kwargs) if max_cache else None
 
     @property
     def index(self):
@@ -70,14 +81,21 @@ class BaseDataset(Dataset):
 
     def clear_cache(self):
         if self.cache:
-            self.cache.clear()
+            self.create_cache(force=True)
             gc.collect()
 
-    def set_size(self, size):
-        pass
+    def set_size(self, size, force=False):
+        size = size or self.all
+        if not force and hasattr(self, "size") and self.size == size:
+            return False
+        self.size = size
+        return True
 
-    def set_aug_scale(self, aug_scale):
-        pass
+    def set_aug_scale(self, aug_scale, force=False):
+        if not force and hasattr(self, "aug_scale") and self.aug_scale == aug_scale:
+            return False
+        self.aug_scale = aug_scale
+        return True
 
     def slice(self, start=0, stop=None, step=1):
         index = pd.Series(self.index)
@@ -106,8 +124,9 @@ class BaseDataset(Dataset):
 
 class DatasetDataset(BaseDataset):
 
-    def __init__(self, dir, file="info.csv", max_cache=None, Tensor=None, mode="shuffle", train="synth", test="test", value="synth_value", subdir="all"):
-        super().__init__(max_cache=max_cache)
+    def __init__(self, dir, file="info.csv", Tensor=None, mode="shuffle", train="synth", test="test", value="synth_value", **kwargs):
+        super().__init__(**kwargs)
+        subdir = str(self.size)
         if subdir:
             dir = os.path.join(dir, subdir)
         self.dir = dir
@@ -149,17 +168,12 @@ class DatasetDataset(BaseDataset):
             self.cache[idx] = sample
 
         return sample
-
-    def set_size(self, size):
-        pass
-
-    def set_aug_scale(self, aug_scale):
-        pass
     
 class WrapperDataset(BaseDataset):
-    def __init__(self, dataset, max_cache=None):
-        super().__init__(max_cache=max_cache)
+    def __init__(self, dataset, **kwargs):
+        super().__init__(**kwargs)
         self.dataset = dataset
+        self.size = dataset.size
 
     @property
     def index(self):
@@ -170,22 +184,23 @@ class WrapperDataset(BaseDataset):
     
     def __getitem__(self, idx):
         return self.dataset[idx]
-
-    @property
-    def size(self):
-        return self.dataset.size
     
-    def set_size(self, size):
-        self.clear_cache()
-        return self.dataset.set_size(size)
+    def set_size(self, size, **kwargs):
+        if self.dataset.set_size(size, **kwargs):
+            self.clear_cache()
+            self.size = self.dataset.size
+            return True
+        return False
     
-    def set_aug_scale(self, aug_scale):
-        self.clear_cache()
-        return self.dataset.set_aug_scale(aug_scale)
+    def set_aug_scale(self, aug_scale, **kwargs):
+        if self.dataset.set_aug_scale(aug_scale, **kwargs):
+            self.clear_cache()
+            return True
+        return False
 
 class SubDataset(WrapperDataset):
-    def __init__(self, dataset, index, max_cache=None):
-        super().__init__(dataset=dataset, max_cache=max_cache)
+    def __init__(self, dataset, index, **kwargs):
+        super().__init__(dataset=dataset, **kwargs)
         if isinstance(index, pd.Series) or isinstance(index, pd.Index):
             index = index.to_numpy()
         if not isinstance(index, np.ndarray):
@@ -204,27 +219,30 @@ class SubDataset(WrapperDataset):
         return self.dataset[self.index[idx]]
     
 class MultiSizeDatasetDataset(BaseDataset):
-    def __init__(self, dir, size=None, all="all", dataset_cache=None, **kwargs):
-        super().__init__(max_cache=dataset_cache, remove_old=True)
+    def __init__(self, dir, size=None, dataset_cache=None, **kwargs):
+        super().__init__(max_cache=dataset_cache, remove_old=True, size=size)
         self.dir = dir
         self.dataset_kwargs = kwargs
-        self.all = all
         self.aug_scale = 0
-        self.set_size(size)
+        self.dataset = None
+        self.set_size(size, force=True)
 
     @property
     def index(self):
         return self.dataset.index
 
-    def set_size(self, size):
-        if hasattr(self, "size") and size == self.size:
-            return
+    def set_size(self, size, force=False):
+        size = size or self.all
+        if not force and hasattr(self, "size") and size == self.size:
+            return False
         if self.cache and size in self.cache:
             self.dataset = self.cache[size]
         else:
+            if self.dataset and self.dataset.cache:
+                self.dataset.clear_cache()
             self.dataset = DatasetDataset(
                 dir=self.dir,
-                subdir=str(size) if size else str(self.all),
+                size=size,
                 **self.dataset_kwargs
             )
             self.dataset.set_aug_scale(self.aug_scale)
@@ -232,12 +250,14 @@ class MultiSizeDatasetDataset(BaseDataset):
                 self.cache[size] = self.dataset
         self.size = size
         gc.collect()
+        return True
 
-    def set_aug_scale(self, aug_scale):
-        if aug_scale == self.aug_scale:
-            return
+    def set_aug_scale(self, aug_scale, force=False):
+        if not force and aug_scale == self.aug_scale:
+            return False
         self.aug_scale = aug_scale
         self.dataset.set_aug_scale(self.aug_scale)
+        return True
 
     def __len__(self):
         return len(self.dataset)
@@ -248,8 +268,8 @@ class MultiSizeDatasetDataset(BaseDataset):
 
 class OverlapDataset(BaseDataset):
 
-    def __init__(self, dfs, size=None, test_ratio=0.2, test_candidate_mul=1.5, augmenter=None, aug_scale=None, aug_penalty_mul=0.5, max_cache=None, Tensor=None, mode="shuffle", metric=None):
-        super().__init__(max_cache=max_cache)
+    def __init__(self, dfs, size=None, test_ratio=0.2, test_candidate_mul=1.5, augmenter=None, aug_scale=None, aug_penalty_mul=0.5, Tensor=None, mode="shuffle", metric=None, **kwargs):
+        super().__init__(**kwargs)
         self.dfs = dfs
         self.augmenter=augmenter
         self.size = size
@@ -263,17 +283,22 @@ class OverlapDataset(BaseDataset):
             
         self.len_dfs = len(self.dfs)
         self.len = self.len_dfs
-        if max_cache:
-            self.len = max_cache // self.len
         self.Tensor = Tensor
 
-    def set_size(self, size):
+    def set_size(self, size, force=False):
+        #size = size or self.all
+        if not force and hasattr(self, "size") and self.size == size:
+            return False
         self.clear_cache()
         self.size = size
+        return True
 
-    def set_aug_scale(self, aug_scale):
+    def set_aug_scale(self, aug_scale, force=False):
+        if not force and hasattr(self, "aug_scale") and self.aug_scale == aug_scale:
+            return False
         self.clear_cache()
         self.aug_scale = aug_scale
+        return True
 
     def __len__(self):
         return self.len
@@ -314,8 +339,8 @@ class OverlapDataset(BaseDataset):
         return sample
 
 class PreprocessedDataset(WrapperDataset):
-    def __init__(self, dataset, preprocessor, model=None, max_cache=None, Tensor=Tensor, dtype=float, **kwargs):
-        super().__init__(dataset=dataset, max_cache=max_cache, **kwargs)
+    def __init__(self, dataset, preprocessor, model=None, Tensor=Tensor, dtype=float, **kwargs):
+        super().__init__(dataset=dataset, **kwargs)
         assert model or preprocessor.model
         self.preprocessor = preprocessor
         self.model = model
@@ -341,8 +366,8 @@ class PreprocessedDataset(WrapperDataset):
         return sample
 
 class MultiPreprocessedDataset(WrapperDataset):
-    def __init__(self, dataset, preprocessor, max_cache=None, Tensor=Tensor, dtype=float):
-        super().__init__(dataset=dataset, max_cache=max_cache)
+    def __init__(self, dataset, preprocessor, Tensor=Tensor, dtype=float, **kwargs):
+        super().__init__(dataset=dataset, **kwargs)
         self.preprocessor = preprocessor
         self.Tensor = Tensor
         self.dtype = dtype
@@ -351,7 +376,7 @@ class MultiPreprocessedDataset(WrapperDataset):
                 dataset=self.dataset,
                 preprocessor=preprocessor,
                 model=m,
-                max_cache=self.cache.max_cache if self.cache else None
+                #max_cache=self.cache.max_cache if self.cache else None
             )
             for m in self.models
         }
@@ -384,6 +409,8 @@ class MultiPreprocessedDataset(WrapperDataset):
         }
         sample_dict = to_dtype(sample_dict, self.dtype)
         sample_dict = to_tensor(sample_dict, self.Tensor)
+        if self.cache:
+            self.cache[idx] = sample_dict
         return sample_dict
     
 def collate_fn(samples):

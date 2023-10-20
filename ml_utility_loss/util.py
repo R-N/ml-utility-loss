@@ -137,11 +137,13 @@ class CacheType:
     __ALL__ = (MEMORY, PICKLE)
 
 
-def Cache(cache_type=CacheType.MEMORY, **kwargs):
+def Cache(cache_type=CacheType.MEMORY, max_cache=None, **kwargs):
+    if not max_cache:
+        return None
     if cache_type == CacheType.MEMORY:
-        return InMemoryCache(**kwargs)
+        return InMemoryCache(max_cache=max_cache, **kwargs)
     elif cache_type == CacheType.PICKLE:
-        return PickleCache(**kwargs)
+        return PickleCache(max_cache=max_cache, **kwargs)
 
 def remake_dir(path):
     if os.path.exists(path):
@@ -158,11 +160,15 @@ def remake_dir(path):
             continue
 
 class PickleCache:
-    def __init__(self, max_cache=torch.inf, remove_old=False, cache_dir="_cache"):
+    def __init__(self, max_cache=torch.inf, remove_old=False, cache_dir="_cache", clear_first=False):
         assert cache_dir is not None
         self.remove_old = remove_old
-        remake_dir(cache_dir)
+        if clear_first:
+            remake_dir(cache_dir)
+        else:
+            mkdir(cache_dir)
         self.cache_dir = cache_dir
+        print("Caching in", cache_dir, max_cache, remove_old)
 
     def clear(self):
         remake_dir(self.cache_dir)
@@ -178,17 +184,18 @@ class PickleCache:
     def __setitem__(self, idx, sample):
         torch.save(sample, self.file_path(idx))
 
-    def __contains__(self, item):
-        return item in self.cache
+    def __contains__(self, idx):
+        return os.path.exists(self.file_path(idx))
     
     def file_path(self, idx):
         return os.path.join(self.cache_dir, f"_cache_{idx}.pt")
 
 class InMemoryCache:
-    def __init__(self, max_cache=torch.inf, remove_old=False, cache_dir=None):
+    def __init__(self, max_cache=torch.inf, remove_old=False, cache_dir=None, clear_first=False):
         self.max_cache = max_cache
         self.cache = OrderedDict()
         self.remove_old = remove_old
+        print("Caching in memory", max_cache, remove_old)
 
     def clear(self):
         self.cache.clear()
