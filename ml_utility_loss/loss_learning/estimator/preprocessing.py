@@ -4,6 +4,7 @@ from ...synthesizers.tvae.preprocessing import DataTransformer as TVAEDataTransf
 from ...synthesizers.realtabformer.wrapper import REaLTabFormer
 from ...synthesizers.realtabformer.data_utils import make_dataset_2, map_input_ids
 from ...synthesizers.lct_gan.pipeline import create_ae
+from ...util import DEFAULT_DEVICE
 from ml_utility_loss.synthesizers.tab_ddpm.preprocessing import DatasetTransformer, split_features, DataPreprocessor as TabDDPMDataPreprocessor
 from sklearn.metrics import pairwise_distances #metric='minkowski'
 
@@ -266,6 +267,9 @@ class DataPreprocessor: #preprocess all with this. save all model here
                 )
         if "tab_ddpm" in self.models or "tab_ddpm_concat" in self.models:
             self.tab_ddpm_preprocessor.fit(train)
+
+        self.lct_ae.ae.device = DEFAULT_DEVICE
+        self.lct_ae.ae.model.to(DEFAULT_DEVICE)
 
         self.embedding_sizes = {}
         for k in self.models:
