@@ -390,6 +390,7 @@ def train(
 
     writer=None
     if log_dir:
+        mkdir(log_dir)
         writer = SummaryWriter(log_dir)
 
     if size_scheduler:
@@ -509,6 +510,7 @@ def train(
     )
 
     if checkpoint_dir:
+        mkdir(checkpoint_dir)
         torch.save(whole_model, os.path.join(checkpoint_dir, "model.pt"))
         torch.save(deepcopy(whole_model.state_dict()), os.path.join(checkpoint_dir, "states.pt"))
 
