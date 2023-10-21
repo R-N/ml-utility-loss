@@ -96,19 +96,43 @@ def sample_parameters(trial, param_space, param_map={}):
     return params, params_raw
 
 
-def map_parameters(params_raw, param_map={}):
+def map_parameters(params_raw, param_space={}, param_map={}):
     param_map = {**PARAM_MAP, **param_map}
     ret = {}
     for k, v in params_raw.items():
         if k.endswith("_bool") or k.endswith("_boolc"):
             continue
-        if k.endswith("_exp_2"):
+        done = False
+        if not done and k.endswith("_exp_2"):
             v = int(math.pow(2, v))
             k = k[:-6]
-        else:
+            done = True
+        if not done and k in param_space:
+            type_0, *args = param_space[k]
+            if not done and type_0 in param_map:
+                try:
+                    v = param_map[type_0][v]
+                    done = True
+                    break
+                except KeyError:
+                    pass
+        if not done:
+            for k0, v0 in param_space.items():
+                if not done and k0 in k:
+                    type_0, *args = v0
+                    if not done and type_0 == "conditional":
+                        v = map_parameters({k: v}, v0, param_map=param_map)
+                        done = True
+                    break
+        if not done:
             for k0, v0 in param_map.items():
                 if k0 in k:
-                    v = v0[v]
+                    try:
+                        v = v0[v]
+                        done = True
+                        break
+                    except KeyError:
+                        pass
         ret[k] = v
     return ret
 
