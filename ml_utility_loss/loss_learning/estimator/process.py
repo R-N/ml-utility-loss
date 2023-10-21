@@ -3,6 +3,12 @@ import torch.nn.functional as F
 import gc
 from ...util import stack_samples, stack_sample_dicts
 from torch.nn.utils import clip_grad_norm_
+from torchmetrics import MeanSquaredError as MSE, MeanAbsoluteError as MAE, MeanAbsolutePercentageError as MAPE
+
+RMSE = MSE(squared=False)
+MSE = MSE(squared=True)
+MAE = MAE()
+MAPE = MAPE()
 
 Tensor = torch.FloatTensor
 
@@ -544,6 +550,7 @@ def eval(
     whole_model, 
     eval_loader, 
     loss_fn=F.mse_loss,
+    grad_loss_fn=F.mse_loss, #for RMSE,
     reduction=torch.sum,
     models=None,
 ):
@@ -556,6 +563,12 @@ def eval(
     n_size = 0
 
     avg_losses = {model: 0 for model in models}
+    avg_g_losses = {model: 0 for model in models}
+
+    preds = {model: [] for model in models}
+    ys = {model: [] for model in models}
+    gs = {model: [] for model in models}
+    grads = {model: [] for model in models}
 
     for batch, batch_dict in enumerate(eval_loader):
         gc.collect()
@@ -563,6 +576,8 @@ def eval(
         # Compute prediction and loss for all adapters
         for model, (train, test, y) in batch_dict.items():
             batch_size = y.shape[0] if y.dim() > 0 else 1
+
+            ys[model].extend(y.detach().cpu())
 
             train = train.to(whole_model.device)
             test = test.to(whole_model.device)
@@ -573,14 +588,36 @@ def eval(
             )
             # We reduce directly because no further need for shape
             loss = loss_fn(pred, y, reduction="none")
+            dbody_dx = calc_gradient(train, loss)
+            # The gradient is of shape (batch, size, dim)
+            # Sum gradient over the size dimension, resulting in (batch, dim)
+            dbody_dx = torch.sum(dbody_dx, dim=-2)
+            # Calculate the magnitude of the gradient
+            # No keep_dim, so this results in (batch)
+            dbody_dx_norm = dbody_dx.norm(2, dim=-1)
+            # expected gradient is 2*sqrt(loss)
+            g = 2 * torch.sqrt(loss.detach())
+            g_loss = grad_loss_fn(dbody_dx_norm, g, reduction="none")
+            
+            preds[model].extend(pred.detach().cpu())
+            grads[model].extend(dbody_dx_norm.detach().cpu())
+            gs[model].extend(g.detach().cpu())
+
             loss = reduction(loss).item()
             avg_losses[model] += loss
+            g_loss = reduction(g_loss).item()
+            avg_g_losses[model] += g_loss
+
 
         n_size += 1 if reduction == torch.mean else batch_size
 
     avg_losses = {
         model: (loss/n_size) 
         for model, loss in avg_losses.items()
+    }
+    avg_g_losses = {
+        model: (g_loss/n_size) 
+        for model, g_loss in avg_g_losses.items()
     }
 
     # determine role model (adapter) by minimum loss
@@ -589,6 +626,13 @@ def eval(
         key=lambda item: item[-1] # it's already reduced and item
     )
     avg_loss = sum(avg_losses.values()) / len(models)
+    avg_g_loss = sum(avg_g_losses.values()) / len(models)
+
+    pred_metrics = calc_metrics(preds, ys)
+    grad_metrics = calc_metrics(grads, gs)
+
+    pred_metrics = {f"pred_{k}": v for k, v in pred_metrics.items()}
+    grad_metrics = {f"grad_{k}": v for k, v in grad_metrics.items()}
 
     gc.collect()
     return {
@@ -596,6 +640,17 @@ def eval(
         "min_loss": min_loss,
         "avg_losses": avg_losses,
         "avg_loss": avg_loss,
+        "avg_g_losses": avg_g_losses,
+        "avg_g_loss": avg_g_loss,
+        **pred_metrics,
+        **grad_metrics,
+    }
+
+def calc_metrics(pred, y):
+    return {
+        "rmse": RMSE(pred, y),
+        "mae": MAE(pred, y),
+        "mape": MAPE(pred, y)
     }
 
 def pred(
