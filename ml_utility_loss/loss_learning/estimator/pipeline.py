@@ -282,6 +282,7 @@ def create_model(
     head_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
     head_lora_mode=LoRAMode.FULL,
     head_lora_rank=2,
+    **kwargs
 ): 
     if not tf_lora:
         tf_lora_mode = LoRAMode.FULL
