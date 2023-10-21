@@ -468,11 +468,31 @@ def train(
         val_loss = train_epoch_(val_loader, val=True)
         if timer:
             timer.check_time()
-
+        """
         for k, v in train_loss.items():
             writer.add_scalar(f"{k}/train", v, i)
         for k, v in val_loss.items():
             writer.add_scalar(f"{k}/val", v, i)
+        """
+        for k in train_loss.keys():
+            writer.add_scalar(
+                k, 
+                {
+                    "train": train_loss[k],
+                    "val": val_loss[k],
+                }, 
+                i
+            )
+        writer.add_scalar(
+            "train", 
+            train_loss, 
+            i
+        )
+        writer.add_scalar(
+            "val", 
+            val_loss, 
+            i
+        )
 
         train_value = train_loss["avg_loss"]
         val_value = val_loss["avg_loss"]
