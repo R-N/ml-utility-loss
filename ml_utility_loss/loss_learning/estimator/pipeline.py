@@ -353,9 +353,9 @@ def log(writer, i, train_loss, val_loss, train_set=None, val_set=None, size_sche
     writer.add_scalars("train", train_loss, i)
     writer.add_scalars("val", val_loss, i)
     size = {}
-    if train_set is not None and isinstance(train_set.size, str):
+    if train_set is not None and isinstance(train_set.size, (int, float)):
         size["train"] = train_set.size
-    if val_set is not None and isinstance(val_set.size, str):
+    if val_set is not None and isinstance(val_set.size, (int, float)):
         size["val"] = val_set.size
     if size_scheduler:
         size["scheduler"] = size_scheduler.get_size()
