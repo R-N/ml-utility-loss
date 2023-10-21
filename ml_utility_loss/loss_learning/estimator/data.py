@@ -22,6 +22,8 @@ def preprocess_sample(sample, preprocessor=None, model=None):
 def to_dtype(x, dtype=None):
     if not dtype:
         return x
+    if x is None:
+        return x
     if isinstance(x, tuple):
         return tuple([to_dtype(a, dtype) for a in x])
     if isinstance(x, list):
@@ -40,12 +42,18 @@ def to_dtype(x, dtype=None):
 def to_tensor(x, Tensor=None):
     if not Tensor:
         return x
+    if x is None:
+        return x
     if isinstance(x, tuple):
         return tuple([to_tensor(a, Tensor) for a in x])
     if isinstance(x, list):
         return [to_tensor(a, Tensor) for a in x]
     if isinstance(x, dict):
         return {k: to_tensor(v, Tensor) for k, v in x.items()}
+    if isinstance(x, pd.DataFrame):
+        return to_tensor(x.to_numpy())
+    if isinstance(x, pd.Series):
+        return to_tensor(x.to_numpy())
     if torch.is_tensor(x):
         return x.to(Tensor.dtype)
     if hasattr(x, "__iter__"):

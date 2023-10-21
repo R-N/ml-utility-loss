@@ -116,7 +116,7 @@ def split_df_kfold(df, ratio=0.2, val=False, filter_i=None, seed=42, return_3=Fa
 
 def stack_samples(samples):
     samples = list(zip(*samples))
-    samples = [torch.stack(x) for x in samples]
+    samples = [torch.stack(x) if x[0] is not None else None for x in samples]
     return samples
 
 def stack_sample_dicts(samples, keys=None, stack_outer=False):
@@ -126,7 +126,7 @@ def stack_sample_dicts(samples, keys=None, stack_outer=False):
             torch.stack([x[model] for x in samples]) 
             if stack_outer 
             else stack_samples([x[model] for x in samples])
-        )
+        ) if samples[model] is not None else None
         for model in keys
     }
     return sample_dicts
