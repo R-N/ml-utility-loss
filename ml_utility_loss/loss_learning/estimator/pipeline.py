@@ -346,12 +346,12 @@ def log(writer, i, train_loss, val_loss, train_set=None, val_set=None, size_sche
         writer.add_scalar(f"{k}/val", v, i)
     """
     for k in train_loss.keys():
-        writer.add_scalar(k, {
+        writer.add_scalars(k, {
             "train": train_loss[k],
             "val": val_loss[k],
         }, i)
-    writer.add_scalar("train", train_loss, i)
-    writer.add_scalar("val", val_loss, i)
+    writer.add_scalars("train", train_loss, i)
+    writer.add_scalars("val", val_loss, i)
     size = {}
     if train_set is not None and isinstance(train_set.size, str):
         size["train"] = train_set.size
@@ -360,9 +360,9 @@ def log(writer, i, train_loss, val_loss, train_set=None, val_set=None, size_sche
     if size_scheduler:
         size["scheduler"] = size_scheduler.get_size()
     if size:
-        writer.add_scalar("size", size, i)
+        writer.add_scalars("size", size, i)
     if size_scheduler:
-        writer.add_scalar("batch_size", size_scheduler.get_batch_size(), i)
+        writer.add_scalars("batch_size", size_scheduler.get_batch_size(), i)
 
 def train(
     # Dataset args
