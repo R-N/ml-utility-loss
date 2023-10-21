@@ -37,12 +37,12 @@ def plot_synth_real_density(info_path, synth="synth", fig=None, ax=None, real=Tr
     leg = ax.legend(axes)
     return fig
 
-def plot_synths_density(data_dir, sizes=None, fig=None, ax=None, real=False, **kwargs):
+def plot_synths_density(info_dir, sizes=None, fig=None, ax=None, real=False, **kwargs):
     if not ax:
         fig, ax = plt.subplots()
-    sizes = sizes or list(sorted_nicely(os.listdir(data_dir)))
+    sizes = sizes or list(sorted_nicely(os.listdir(info_dir)))
     for size in sizes:
-        info_dir_1 = os.path.join(data_dir, size)
+        info_dir_1 = os.path.join(info_dir, size)
         info_path = os.path.join(info_dir_1, "info.csv")
         plot_synth_real_density(info_path, fig=fig, ax=ax, real=real, real_linestyle="dashed", synth=size, **kwargs)
     ax.legend(sizes)
