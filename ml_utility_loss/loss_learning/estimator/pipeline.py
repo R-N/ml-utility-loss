@@ -338,7 +338,31 @@ def create_model(
     )
     return whole_model
 
-    
+def log(writer, i, train_loss, val_loss, train_set=None, val_set=None, size_scheduler=None):
+    """
+    for k, v in train_loss.items():
+        writer.add_scalar(f"{k}/train", v, i)
+    for k, v in val_loss.items():
+        writer.add_scalar(f"{k}/val", v, i)
+    """
+    for k in train_loss.keys():
+        writer.add_scalar(k, {
+            "train": train_loss[k],
+            "val": val_loss[k],
+        }, i)
+    writer.add_scalar("train", train_loss, i)
+    writer.add_scalar("val", val_loss, i)
+    size = {}
+    if train_set is not None and isinstance(train_set.size, str):
+        size["train"] = train_set.size
+    if val_set is not None and isinstance(val_set.size, str):
+        size["val"] = val_set.size
+    if size_scheduler:
+        size["scheduler"] = size_scheduler.get_size()
+    if size:
+        writer.add_scalar("size", size, i)
+    if size_scheduler:
+        writer.add_scalar("batch_size", size_scheduler.get_batch_size(), i)
 
 def train(
     # Dataset args
@@ -468,30 +492,15 @@ def train(
         val_loss = train_epoch_(val_loader, val=True)
         if timer:
             timer.check_time()
-        """
-        for k, v in train_loss.items():
-            writer.add_scalar(f"{k}/train", v, i)
-        for k, v in val_loss.items():
-            writer.add_scalar(f"{k}/val", v, i)
-        """
-        for k in train_loss.keys():
-            writer.add_scalar(
-                k, 
-                {
-                    "train": train_loss[k],
-                    "val": val_loss[k],
-                }, 
-                i
-            )
-        writer.add_scalar(
-            "train", 
-            train_loss, 
-            i
-        )
-        writer.add_scalar(
-            "val", 
-            val_loss, 
-            i
+
+        log(
+            writer=writer, 
+            i=i, 
+            train_loss=train_loss, 
+            val_loss=val_loss,
+            train_set=train_set,
+            val_set=val_set,
+            size_scheduler=size_scheduler
         )
 
         train_value = train_loss["avg_loss"]
