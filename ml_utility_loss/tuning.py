@@ -100,6 +100,8 @@ def map_parameters(params_raw, param_map={}):
     param_map = {**PARAM_MAP, **param_map}
     ret = {}
     for k, v in params_raw.items():
+        if k.endswith("_bool") or k.endswith("_boolc"):
+            continue
         if k.endswith("_exp_2"):
             v = int(math.pow(2, v))
             k = k[:-6]
