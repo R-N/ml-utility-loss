@@ -210,6 +210,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         tab_ddpm_is_y_cond=True,
         model=None,
         models=DEFAULT_MODELS,
+        cuda=False,
     ):
         self.cat_features = cat_features
         self.mixed_features = mixed_features
@@ -224,6 +225,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         self.rtf_model = None
         self.lct_ae = None
         self.tab_ddpm_preprocessor = None
+        self.cuda = cuda
 
         if "tvae" in self.models:
             self.tvae_transformer = TVAEDataTransformer()
@@ -268,8 +270,9 @@ class DataPreprocessor: #preprocess all with this. save all model here
         if "tab_ddpm" in self.models or "tab_ddpm_concat" in self.models:
             self.tab_ddpm_preprocessor.fit(train)
 
-        self.lct_ae.ae.device = DEFAULT_DEVICE
-        self.lct_ae.ae.model.to(DEFAULT_DEVICE)
+        if self.cuda:
+            self.lct_ae.ae.device = DEFAULT_DEVICE
+            self.lct_ae.ae.model.to(DEFAULT_DEVICE)
 
         self.embedding_sizes = {}
         for k in self.models:
