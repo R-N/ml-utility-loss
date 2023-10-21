@@ -10,6 +10,7 @@ import os
 from optuna.exceptions import TrialPruned
 import time
 import shutil
+import re
 
 def load_json(path, **kwargs):
     return json.loads(Path(path).read_text(), **kwargs)
@@ -299,3 +300,9 @@ class Timer:
         if (cur_seconds > self.max_seconds):
             raise TrialPruned(f"TIme out: {cur_seconds}/{self.max_seconds}")
         return cur_seconds
+
+def sorted_nicely( l ): 
+    """ Sort the given iterable in the way that humans expect.""" 
+    convert = lambda text: int(text) if text.isdigit() else text 
+    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
+    return sorted(l, key = alphanum_key)
