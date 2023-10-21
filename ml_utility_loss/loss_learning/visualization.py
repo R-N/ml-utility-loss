@@ -62,14 +62,14 @@ def plot_synth_real_box(info_path, synth="synth", fig=None, ax=None, real=True, 
     ax.set_xticklabels(axes)
     return fig
 
-def plot_synths_box(info_path, sizes=None, fig=None, ax=None, col="synth_value", **kwargs):
+def plot_synths_box(info_dir, sizes=None, fig=None, ax=None, col="synth_value", **kwargs):
     if not ax:
         fig, ax = plt.subplots()
   
     sizes = sizes or list(sorted_nicely(os.listdir(info_dir)))
     df = pd.DataFrame()
     for size in sizes:
-        info_dir_1 = os.path.join(aug_dir, dataset, size)
+        info_dir_1 = os.path.join(info_dir, size)
         info_path = os.path.join(info_dir_1, "info.csv")
         
         dfi = pd.read_csv(info_path)
