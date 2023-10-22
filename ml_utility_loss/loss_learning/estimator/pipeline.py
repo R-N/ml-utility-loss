@@ -699,5 +699,6 @@ def train_3(
         checkpoint_dir=checkpoint_dir,
         log_dir=log_dir,
         trial=trial,
+        verbose=verbose,
         **kwargs
     )
