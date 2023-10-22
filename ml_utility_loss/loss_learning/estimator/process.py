@@ -3,12 +3,7 @@ import torch.nn.functional as F
 import gc
 from ...util import stack_samples, stack_sample_dicts
 from torch.nn.utils import clip_grad_norm_
-from torchmetrics import MeanSquaredError as MSE, MeanAbsoluteError as MAE, MeanAbsolutePercentageError as MAPE
-
-RMSE = MSE(squared=False)
-MSE = MSE(squared=True)
-MAE = MAE()
-MAPE = MAPE()
+from ...metrics import rmse, mae, mape
 
 Tensor = torch.FloatTensor
 
@@ -648,9 +643,9 @@ def eval(
 
 def calc_metrics(pred, y):
     return {
-        "rmse": RMSE(pred, y),
-        "mae": MAE(pred, y),
-        "mape": MAPE(pred, y)
+        "rmse": rmse(pred, y),
+        "mae": mae(pred, y),
+        "mape": mape(pred, y)
     }
 
 def pred(

@@ -47,7 +47,7 @@ setup(
         "torchvision>=0.12.0",
         "tqdm>=4.64.1",
         "transformers==4.28.0",
-        "torchmetrics",
+        #"torchmetrics",
     ],
 
     classifiers=[
