@@ -365,7 +365,7 @@ def log(writer, i, train_loss, val_loss, train_set=None, val_set=None, size_sche
     if size:
         writer.add_scalars("size", size, i)
     if size_scheduler:
-        writer.add_scalars("batch_size", size_scheduler.get_batch_size(), i)
+        writer.add_scalar("batch_size", size_scheduler.get_batch_size(), i)
 
 def train(
     # Dataset args
