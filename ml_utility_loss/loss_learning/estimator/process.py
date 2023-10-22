@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from ...util import stack_samples, stack_sample_dicts, clear_memory
+from ...util import stack_samples, stack_sample_dicts, clear_memory, clear_cuda_memory
 from torch.nn.utils import clip_grad_norm_
 from ...metrics import rmse, mae, mape
 import time
@@ -194,13 +194,16 @@ def train_epoch(
 
     role_model = None
 
+    clear_memory()
+
     time_0 = time.time()
 
     if timer:
         timer.check_time()
 
     for batch, batch_dict in enumerate(train_loader):
-        clear_memory()
+        clear_cuda_memory()
+
         if timer:
             timer.check_time()
         if not val:
@@ -586,8 +589,10 @@ def eval(
     gs = {model: [] for model in models}
     grads = {model: [] for model in models}
 
+    clear_memory()
+
     for batch, batch_dict in enumerate(eval_loader):
-        clear_memory()
+        clear_cuda_memory()
         batch_size = 1
         # Compute prediction and loss for all adapters
         for model, (train, test, y) in batch_dict.items():

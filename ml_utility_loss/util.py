@@ -312,8 +312,11 @@ def sorted_nicely( l ):
     alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
     return sorted(l, key = alphanum_key)
 
-def clear_memory():
+def clear_cuda_memory():
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
+
+def clear_memory():
+    clear_cuda_memory()
     gc.collect()
 
