@@ -541,7 +541,7 @@ def train(
 
 
         if verbose:
-            print("Epoch", i, torch.cuda.mem_get_info())
+            print("Epoch", i)
             print("Train loss", train_loss)
             print("Val loss", val_loss)
         if epoch_callback:
