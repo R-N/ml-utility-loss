@@ -228,7 +228,7 @@ class WrapperDataset(BaseDataset):
     
     def try_copy(self):
         if self.must_copy():
-            return WrapperDataset(self.dataset.try_copy(), **self.kwargs)
+            return WrapperDataset(self.dataset, **self.kwargs)
         return self
 
 class SubDataset(WrapperDataset):
@@ -254,7 +254,7 @@ class SubDataset(WrapperDataset):
     
     def try_copy(self):
         if self.must_copy():
-            return SubDataset(self.dataset.try_copy(), index=self.index, **self.kwargs)
+            return SubDataset(self.dataset, index=self.index, **self.kwargs)
         return self
     
 
@@ -433,7 +433,7 @@ class PreprocessedDataset(WrapperDataset):
     
     def try_copy(self):
         if self.must_copy():
-            return PreprocessedDataset(self.dataset.try_copy(), preprocessor=self.preprocessor, model=self.model, Tensor=self.Tensor, dtype=self.dtype, **self.kwargs)
+            return PreprocessedDataset(self.dataset, preprocessor=self.preprocessor, model=self.model, Tensor=self.Tensor, dtype=self.dtype, **self.kwargs)
         return self
 
 class MultiPreprocessedDataset(WrapperDataset):
@@ -448,6 +448,7 @@ class MultiPreprocessedDataset(WrapperDataset):
                 dataset=self.dataset,
                 preprocessor=preprocessor,
                 model=m,
+                copy=False,
                 #max_cache=self.cache.max_cache if self.cache else None
             )
             for m in self.models
@@ -487,7 +488,7 @@ class MultiPreprocessedDataset(WrapperDataset):
     
     def try_copy(self):
         if self.must_copy():
-            return MultiPreprocessedDataset(self.dataset.try_copy(), preprocessor=self.preprocessor, Tensor=self.Tensor, dtype=self.dtype, **self.kwargs)
+            return MultiPreprocessedDataset(self.dataset, preprocessor=self.preprocessor, Tensor=self.Tensor, dtype=self.dtype, **self.kwargs)
         return self
     
 def collate_fn(samples):
