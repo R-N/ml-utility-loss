@@ -193,9 +193,10 @@ class DatasetDataset(BaseDataset):
         return sample
     
 class WrapperDataset(BaseDataset):
-    def __init__(self, dataset, **kwargs):
+    def __init__(self, dataset, copy=True, **kwargs):
         super().__init__(**kwargs)
-        self.dataset = dataset.try_copy()
+        print("Wrapper", type(self), copy)
+        self.dataset = dataset.try_copy() if copy else dataset
         self.size = dataset.size
         self.kwargs = kwargs
 
@@ -437,7 +438,7 @@ class PreprocessedDataset(WrapperDataset):
 
 class MultiPreprocessedDataset(WrapperDataset):
     def __init__(self, dataset, preprocessor, Tensor=Tensor, dtype=float, **kwargs):
-        super().__init__(dataset=dataset, **kwargs)
+        super().__init__(dataset=dataset, copy=False, **kwargs)
         self.preprocessor = preprocessor
         self.Tensor = Tensor
         self.dtype = dtype
