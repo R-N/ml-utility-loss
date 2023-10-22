@@ -490,14 +490,20 @@ def train(
     if timer:
         timer.check_time()
     
+    print("[INFO] Beginning epoch")
     for i in range(i, i+epochs):
+        print("[INFO] Train epoch", i)
         train_loss = train_epoch_(train_loader)
+        print("[INFO] Train epoch done", i)
         if timer:
             timer.check_time()
+        print("[INFO] Val epoch", i)
         val_loss = train_epoch_(val_loader, val=True)
+        print("[INFO] Val epoch done", i)
         if timer:
             timer.check_time()
 
+        print("[INFO] Logging", i)
         log(
             writer=writer, 
             i=i, 
@@ -510,12 +516,18 @@ def train(
 
         train_value = train_loss["avg_loss"]
         val_value = val_loss["avg_loss"]
+
+        print("[INFO] Stepping scheduler", i)
         if size_scheduler and size_scheduler.step(val_value, epoch=i):
+            print("[INFO] Deleting loader", i)
             del train_loader
             del val_loader
             gc.collect()
+            print("[INFO] Deleted loader", i)
             train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
+            print("[INFO] Created train loader", i)
             val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
+            print("[INFO] Created val loader", i)
 
 
         if verbose:
@@ -538,15 +550,19 @@ def train(
     if timer:
         timer.check_time()
 
+    print("[INFO] Setting test size", i)
     test_set.set_size(None)
     test_set.set_aug_scale(0)
+    print("[INFO] Eval", i)
     eval_loss = eval(
         test_set, whole_model,
         batch_size=size_scheduler.get_batch_size() if size_scheduler else batch_size,
         dataloader_worker=dataloader_worker
     )
+    print("[INFO] Done eval", i)
 
     if checkpoint_dir:
+        print("[INFO] Saving checkpoint", i)
         mkdir(checkpoint_dir)
         torch.save(whole_model, os.path.join(checkpoint_dir, "model.pt"))
         torch.save(deepcopy(whole_model.state_dict()), os.path.join(checkpoint_dir, "states.pt"))
