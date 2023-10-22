@@ -8,6 +8,7 @@ from ...util import Cache, stack_samples, stack_sample_dicts, sort_df, shuffle_d
 from copy import deepcopy
 import numpy as np
 import gc
+import traceback
 
 Tensor=torch.FloatTensor
 
@@ -89,7 +90,7 @@ class BaseDataset(Dataset):
 
     def clear_cache(self):
         if self.cache:
-            print("Clearing cache")
+            print("Clearing cache", type(self))
             self.create_cache(force=True)
             gc.collect()
 
@@ -266,6 +267,7 @@ class MultiSizeDatasetDataset(BaseDataset):
         self.aug_scale = 0
         self.dataset = None
         print("Created multisize dataset")
+        traceback.print_stack()
         self.set_size(size, force=True)
 
     @property
