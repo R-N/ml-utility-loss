@@ -25,16 +25,26 @@ def plot_grad_2(y, models, loss="loss", grad="grad", **kwargs):
     ax.legend(axes)
     return fig
 
-def plot_synth_real_density(info_path, synth="synth", fig=None, ax=None, real=True, real_linestyle="solid", col="synth_value", **kwargs):
+def plot_synth_real_density(info_path, synth="synth", fig=None, ax=None, real=True, real_linestyle="solid", col="synth_value", real_col="real_value", **kwargs):
     if not ax:
         fig, ax = plt.subplots()
     df = pd.read_csv(info_path)
     df[col].plot.kde(alpha=0.5, ax=ax, linestyle="dashed", **kwargs)
     if real:
-        df["real_value"].plot.kde(alpha=0.5, ax=ax, linestyle=real_linestyle, **kwargs)
+        df[real_col].plot.kde(alpha=0.5, ax=ax, linestyle=real_linestyle, **kwargs)
     axes = [synth]
     if real:
         axes.append("real")
+    
+    leg = ax.legend(axes)
+    return fig
+
+def plot_pred_density(pred, y, fig=None, ax=None, real_linestyle="solid", **kwargs):
+    if not ax:
+        fig, ax = plt.subplots()
+    pd.Series(pred).plot.kde(alpha=0.5, ax=ax, linestyle="dashed", **kwargs)
+    pd.Series(y).plot.kde(alpha=0.5, ax=ax, linestyle=real_linestyle, **kwargs)
+    axes = ["pred", "y"]
     
     leg = ax.legend(axes)
     return fig
@@ -62,6 +72,20 @@ def plot_synth_real_box(info_path, synth="synth", fig=None, ax=None, real=True, 
 
     df.boxplot(column=cols, **kwargs)
     ax.set_xticklabels(axes)
+    return fig
+
+
+def plot_pred_box(pred, y, fig=None, ax=None, **kwargs):
+    if not ax:
+        fig, ax = plt.subplots()
+    df = pd.DataFrame()
+    df["pred"] = pred
+    df["y"] = y
+
+    cols = list(df.columns)
+    df.boxplot(column=cols, **kwargs)
+    ax.set_xticklabels(cols)
+
     return fig
 
 def plot_synths_box(info_dir, sizes=None, fig=None, ax=None, col="synth_value", **kwargs):
