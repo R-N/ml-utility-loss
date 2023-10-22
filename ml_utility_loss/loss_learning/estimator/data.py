@@ -62,18 +62,20 @@ def to_tensor(x, Tensor=None):
     return Tensor([x]).squeeze()
 
 class BaseDataset(Dataset):
-    def __init__(self, max_cache=None, size=None, aug_scale=0, all="all", **kwargs):
+    def __init__(self, max_cache=None, size=None, aug_scale=0, all="all", cache_dir="_cache", **kwargs):
         size = size or all
         self.all = all
         self.size = size
         self.aug_scale = aug_scale
-        self.create_cache(max_cache=max_cache, **kwargs)
+        self.base_kwargs = kwargs
+        self.cache_dir = cache_dir
+        self.create_cache(max_cache=max_cache, cache_dir=cache_dir, **kwargs)
 
     def create_cache(self, max_cache=None, cache_dir="_cache", force=False, **kwargs):
         if not force and hasattr(self, "max_cache") and self.max_cache == max_cache:
             return
         if max_cache is None and hasattr(self, "max_cache"):
-            max_cache == self.max_cache
+            max_cache = self.max_cache
         if max_cache == True:
             max_cache = torch.inf
         self.max_cache = max_cache
@@ -81,6 +83,7 @@ class BaseDataset(Dataset):
         size = str(self.size)
         if size not in cache_dir:
             cache_dir = os.path.join(cache_dir, size)
+        self.cache_dir = cache_dir
 
         self.cache = Cache(max_cache=max_cache, cache_dir=cache_dir, **kwargs) if max_cache else None
 
@@ -91,7 +94,7 @@ class BaseDataset(Dataset):
     def clear_cache(self):
         if self.cache:
             print("Clearing cache", type(self))
-            self.create_cache(force=True)
+            self.create_cache(max_cache=self.max_cache, cache_dir=self.cache_dir, force=True, **self.base_kwargs)
             gc.collect()
 
     def set_size(self, size, force=False):
@@ -197,7 +200,7 @@ class WrapperDataset(BaseDataset):
         super().__init__(**kwargs)
         self.dataset = dataset.try_copy() if copy else dataset
         self.size = dataset.size
-        self.kwargs = kwargs
+        self.wrapper_kwargs = kwargs
 
     @property
     def index(self):
@@ -227,7 +230,7 @@ class WrapperDataset(BaseDataset):
     
     def try_copy(self):
         if self.must_copy():
-            return WrapperDataset(self.dataset, **self.kwargs)
+            return WrapperDataset(self.dataset, **self.wrapper_kwargs)
         return self
 
 class SubDataset(WrapperDataset):
@@ -238,7 +241,7 @@ class SubDataset(WrapperDataset):
         if not isinstance(index, np.ndarray):
             index = np.array(index)
         index = index.astype(int)
-        self.kwargs = kwargs
+        self.sub_kwargs = kwargs
         self.index_ = index
 
     @property
@@ -253,7 +256,7 @@ class SubDataset(WrapperDataset):
     
     def try_copy(self):
         if self.must_copy():
-            return SubDataset(self.dataset, index=self.index, **self.kwargs)
+            return SubDataset(self.dataset, index=self.index, **self.sub_kwargs)
         return self
     
 
@@ -289,7 +292,6 @@ class MultiSizeDatasetDataset(BaseDataset):
                 **self.dataset_kwargs
             )
             self.dataset.set_aug_scale(self.aug_scale)
-            print("Created dataset with new size", size, self.dataset.cache, self.dataset_kwargs)
             if self.cache:
                 print("Multisize caching dataset", size)
                 self.cache[size] = self.dataset
