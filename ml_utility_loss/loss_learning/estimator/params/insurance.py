@@ -107,7 +107,7 @@ PARAM_SPACE_2 = {
     "dataset_size_low": ("int_exp_2", 32, 128),
     "dataset_size_high": ("int_exp_2", 2048, 2048), # param must exist
     "batch_size_low": ("int_exp_2", 1, 2),
-    "batch_size_high": ("int_exp_2", 16, 32),
+    "batch_size_high": ("int_exp_2", 16, 16),
     "patience": ("log_int", 6, 9)
 }
 
@@ -150,7 +150,7 @@ BEST = {
     'dataset_size_low': 32,
     'dataset_size_high': 2048,
     'batch_size_low': 2,
-    'batch_size_high': 32,
+    'batch_size_high': 16,
     'patience': 7
 }
 
