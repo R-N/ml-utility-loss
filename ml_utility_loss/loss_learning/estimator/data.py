@@ -89,6 +89,7 @@ class BaseDataset(Dataset):
 
     def clear_cache(self):
         if self.cache:
+            print("Clearing cache")
             self.create_cache(force=True)
             gc.collect()
 
@@ -104,6 +105,12 @@ class BaseDataset(Dataset):
             return False
         self.aug_scale = aug_scale
         return True
+    
+    def must_copy(self):
+        return False
+    
+    def try_copy(self):
+        return self
 
     def slice(self, start=0, stop=None, step=1):
         index = pd.Series(self.index)
@@ -134,6 +141,7 @@ class DatasetDataset(BaseDataset):
 
     def __init__(self, dir, file="info.csv", Tensor=None, mode="shuffle", train="synth", test="test", value="synth_value", **kwargs):
         super().__init__(**kwargs)
+        self._dir = dir
         subdir = str(self.size)
         if subdir:
             dir = os.path.join(dir, subdir)
@@ -146,6 +154,12 @@ class DatasetDataset(BaseDataset):
         self.value = value
         assert mode in ("shuffle", "sort")
         self.mode = mode
+
+    def set_size(self, size, force=False):
+        return False
+
+    def set_aug_scale(self, aug_scale, force=False):
+        return False
 
     def __len__(self):
         return len(self.info)
@@ -180,8 +194,9 @@ class DatasetDataset(BaseDataset):
 class WrapperDataset(BaseDataset):
     def __init__(self, dataset, **kwargs):
         super().__init__(**kwargs)
-        self.dataset = dataset
+        self.dataset = dataset.try_copy()
         self.size = dataset.size
+        self.kwargs = kwargs
 
     @property
     def index(self):
@@ -205,6 +220,14 @@ class WrapperDataset(BaseDataset):
             self.clear_cache()
             return True
         return False
+    
+    def must_copy(self):
+        return self.dataset.must_copy()
+    
+    def try_copy(self):
+        if self.must_copy():
+            return WrapperDataset(self.dataset.try_copy(), **self.kwargs)
+        return self
 
 class SubDataset(WrapperDataset):
     def __init__(self, dataset, index, **kwargs):
@@ -214,6 +237,7 @@ class SubDataset(WrapperDataset):
         if not isinstance(index, np.ndarray):
             index = np.array(index)
         index = index.astype(int)
+        self.kwargs = kwargs
         self.index_ = index
 
     @property
@@ -225,6 +249,13 @@ class SubDataset(WrapperDataset):
 
     def __getitem__(self, idx):
         return self.dataset[self.index[idx]]
+    
+    def try_copy(self):
+        if self.must_copy():
+            return SubDataset(self.dataset.try_copy(), index=self.index, **self.kwargs)
+        return self
+    
+
     
 class MultiSizeDatasetDataset(BaseDataset):
     def __init__(self, dir, size=None, dataset_cache=None, **kwargs):
@@ -274,6 +305,17 @@ class MultiSizeDatasetDataset(BaseDataset):
 
     def __getitem__(self, idx):
         return self.dataset[idx]
+    
+    def must_copy(self):
+        return True
+    
+    def try_copy(self):
+        return MultiSizeDatasetDataset(
+            dir=self.dir,
+            size=self.size,
+            dataset_cache=self.dataset_cache,
+            **self.dataset_kwargs
+        )
 
 
 class OverlapDataset(BaseDataset):
@@ -290,6 +332,7 @@ class OverlapDataset(BaseDataset):
         assert mode in ("shuffle", "sort")
         self.mode = mode
         self.metric = metric
+        self.kwargs = kwargs
             
         self.len_dfs = len(self.dfs)
         self.len = self.len_dfs
@@ -347,6 +390,12 @@ class OverlapDataset(BaseDataset):
             self.cache[idx] = sample
 
         return sample
+    
+    def must_copy(self):
+        return True
+    
+    def try_copy(self):
+        raise NotImplementedError()
 
 class PreprocessedDataset(WrapperDataset):
     def __init__(self, dataset, preprocessor, model=None, Tensor=Tensor, dtype=float, **kwargs):
@@ -356,6 +405,7 @@ class PreprocessedDataset(WrapperDataset):
         self.model = model
         self.Tensor = Tensor
         self.dtype = dtype
+        self.kwargs = kwargs
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
@@ -374,6 +424,11 @@ class PreprocessedDataset(WrapperDataset):
             self.cache[idx] = sample
 
         return sample
+    
+    def try_copy(self):
+        if self.must_copy():
+            return PreprocessedDataset(self.dataset.try_copy(), **self.kwargs)
+        return self
 
 class MultiPreprocessedDataset(WrapperDataset):
     def __init__(self, dataset, preprocessor, Tensor=Tensor, dtype=float, **kwargs):
@@ -381,6 +436,7 @@ class MultiPreprocessedDataset(WrapperDataset):
         self.preprocessor = preprocessor
         self.Tensor = Tensor
         self.dtype = dtype
+        self.kwargs = kwargs
         self.datasets = {
             m: PreprocessedDataset(
                 dataset=self.dataset,
@@ -422,6 +478,11 @@ class MultiPreprocessedDataset(WrapperDataset):
         if self.cache:
             self.cache[idx] = sample_dict
         return sample_dict
+    
+    def try_copy(self):
+        if self.must_copy():
+            return MultiPreprocessedDataset(self.dataset.try_copy(), **self.kwargs)
+        return self
     
 def collate_fn(samples):
     sample = samples[0]
