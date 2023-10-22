@@ -21,6 +21,7 @@ from ...scheduler import PretrainingScheduler
 from ...params import ISABMode, LoRAMode
 from torch.utils.tensorboard import SummaryWriter
 from copy import deepcopy
+import gc
 
 def augment(df, info, save_dir, n=1, test=0.2):
     mkdir(save_dir)
@@ -512,6 +513,7 @@ def train(
         if size_scheduler and size_scheduler.step(val_value, epoch=i):
             del train_loader
             del val_loader
+            gc.collect()
             train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
             val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
 
