@@ -404,6 +404,7 @@ def train(
     log_dir=None,
     checkpoint_dir=None,
     persistent_workers=False,
+    DataLoader=DataLoader,
     **model_args
 ):
     timer = timer or (Timer(max_seconds=max_seconds) if max_seconds else None)
@@ -443,7 +444,7 @@ def train(
             collate_fn=collate_fn,
             num_workers=dataloader_worker,
             persistent_workers=persistent_workers,
-            multiprocessing_context="loky",
+            #multiprocessing_context="loky",
         )
         return loader
     
@@ -572,7 +573,9 @@ def train(
     eval_loss = eval(
         test_set, whole_model,
         batch_size=size_scheduler.get_batch_size() if size_scheduler else batch_size,
-        dataloader_worker=dataloader_worker
+        dataloader_worker=dataloader_worker,
+        persistent_workers=persistent_workers,
+        DataLoader=DataLoader,
     )
     #print("[INFO] Done eval", i, torch.cuda.mem_get_info())
 
@@ -601,6 +604,7 @@ def eval(
     batch_size=4,
     dataloader_worker=1,
     persistent_workers=False,
+    DataLoader=DataLoader,
     **kwargs
 ):
     loader = DataLoader(
@@ -610,7 +614,7 @@ def eval(
         collate_fn=collate_fn,
         num_workers=dataloader_worker,
         persistent_workers=persistent_workers,
-        multiprocessing_context="loky",
+        #multiprocessing_context="loky",
     )
 
     eval_loss = _eval(whole_model, loader, **kwargs)
