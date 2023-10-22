@@ -82,7 +82,7 @@ class BaseDataset(Dataset):
         size = str(self.size)
         if size not in cache_dir:
             cache_dir = os.path.join(cache_dir, size)
-        self.cache_dir = cache_dir
+        #self.cache_dir = cache_dir
 
         self.cache = Cache(max_cache=max_cache, cache_dir=cache_dir, **kwargs) if max_cache else None
 
