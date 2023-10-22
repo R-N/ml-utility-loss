@@ -261,6 +261,7 @@ class MultiSizeDatasetDataset(BaseDataset):
     def __init__(self, dir, size=None, dataset_cache=None, **kwargs):
         super().__init__(max_cache=dataset_cache, remove_old=True, size=size)
         self.dir = dir
+        self.dataset_cache=dataset_cache
         self.dataset_kwargs = kwargs
         self.aug_scale = 0
         self.dataset = None
