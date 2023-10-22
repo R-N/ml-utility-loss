@@ -126,7 +126,7 @@ def stack_sample_dicts(samples, keys=None, stack_outer=False):
             torch.stack([x[model] for x in samples]) 
             if stack_outer 
             else stack_samples([x[model] for x in samples])
-        ) if samples[model] is not None else None
+        ) 
         for model in keys
     }
     return sample_dicts
