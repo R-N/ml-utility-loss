@@ -402,6 +402,7 @@ def train(
     timer=None,
     log_dir=None,
     checkpoint_dir=None,
+    persistent_workers=False,
     **model_args
 ):
     timer = timer or (Timer(max_seconds=max_seconds) if max_seconds else None)
@@ -440,7 +441,7 @@ def train(
             shuffle=not val, 
             collate_fn=collate_fn,
             num_workers=dataloader_worker,
-            persistent_workers=True,
+            persistent_workers=persistent_workers,
         )
         return loader
     
@@ -563,6 +564,7 @@ def eval(
     whole_model,
     batch_size=4,
     dataloader_worker=1,
+    persistent_workers=False,
     **kwargs
 ):
     loader = DataLoader(
@@ -571,7 +573,7 @@ def eval(
         shuffle=True, 
         collate_fn=collate_fn,
         num_workers=dataloader_worker,
-        persistent_workers=True,
+        persistent_workers=persistent_workers,
     )
 
     eval_loss = _eval(whole_model, loader, **kwargs)
