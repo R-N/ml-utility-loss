@@ -4,6 +4,7 @@ import gc
 from ...util import stack_samples, stack_sample_dicts
 from torch.nn.utils import clip_grad_norm_
 from ...metrics import rmse, mae, mape
+import time
 
 Tensor = torch.FloatTensor
 
@@ -187,11 +188,14 @@ def train_epoch(
     avg_non_role_model_g_loss = 0
     avg_non_role_model_embed_loss = 0
     n_size = 0
+    n_batch = 0
 
     non_role_model_count = len(models) - 1
     non_role_model_avg_mul = 1.0/non_role_model_count if non_role_model_avg else 1.0
 
     role_model = None
+
+    time_0 = time.time()
 
     if timer:
         timer.check_time()
@@ -520,17 +524,26 @@ def train_epoch(
         avg_non_role_model_embed_loss += try_tensor_item(non_role_model_embed_loss)
         avg_loss += try_tensor_item(batch_loss)
     
-        n_size += 1 if reduction == torch.mean else batch_size
+        n_size += batch_size
+        n_batch += 1
         if timer:
             timer.check_time()
     if timer:
         timer.check_time()
 
-    avg_role_model_loss /= n_size
-    avg_role_model_g_loss /= n_size
-    avg_non_role_model_g_loss /= n_size
-    avg_non_role_model_embed_loss /= n_size
-    avg_loss /= n_size
+    time_1 = time.time()
+
+    duration = time_1 - time_0
+    duration_batch = duration / n_batch
+    duration_size = duration / n_size
+
+    n = n_batch if reduction == torch.mean else n_size
+
+    avg_role_model_loss /= n
+    avg_role_model_g_loss /= n
+    avg_non_role_model_g_loss /= n
+    avg_non_role_model_embed_loss /= n
+    avg_loss /= n
     gc.collect()
     return {
         "avg_role_model_loss": avg_role_model_loss, 
@@ -538,6 +551,9 @@ def train_epoch(
         "avg_non_role_model_g_loss": avg_non_role_model_g_loss,
         "avg_non_role_model_embed_loss": avg_non_role_model_embed_loss,
         "avg_loss": avg_loss,
+        "duration": duration,
+        "duration_batch": duration_batch,
+        "duration_size": duration_size,
     }
 
 
@@ -556,9 +572,13 @@ def eval(
     # Set the model to eval mode for validation or train mode for training
     whole_model.eval()
     n_size = 0
+    n_batch = 0
+    
 
     avg_losses = {model: 0 for model in models}
     avg_g_losses = {model: 0 for model in models}
+    pred_duration = {model: 0 for model in models}
+    grad_duration = {model: 0 for model in models}
 
     preds = {model: [] for model in models}
     ys = {model: [] for model in models}
@@ -574,6 +594,8 @@ def eval(
 
             ys[model].extend(y.detach().cpu())
 
+            time_0 = time.time()
+
             train = train.to(whole_model.device)
             test = test.to(whole_model.device)
             y = y.to(whole_model.device)
@@ -581,6 +603,8 @@ def eval(
             pred = whole_model(
                 train, test, model
             )
+
+            time_1 = time.time()
             # We reduce directly because no further need for shape
             loss = loss_fn(pred, y, reduction="none")
             dbody_dx = calc_gradient(train, loss)
@@ -590,6 +614,9 @@ def eval(
             # Calculate the magnitude of the gradient
             # No keep_dim, so this results in (batch)
             dbody_dx_norm = dbody_dx.norm(2, dim=-1)
+
+            time_2 = time.time()
+
             # expected gradient is 2*sqrt(loss)
             g = 2 * torch.sqrt(loss.detach())
             g_loss = grad_loss_fn(dbody_dx_norm, g, reduction="none")
@@ -603,15 +630,22 @@ def eval(
             g_loss = reduction(g_loss).item()
             avg_g_losses[model] += g_loss
 
+            pred_duration[model] += time_1 - time_0
+            grad_duration[model] += time_2 - time_1
 
-        n_size += 1 if reduction == torch.mean else batch_size
+
+        n_size += batch_size
+        n_batch += 1
+
+
+    n = n_batch if reduction == torch.mean else n_size
 
     avg_losses = {
-        model: (loss/n_size) 
+        model: (loss/n) 
         for model, loss in avg_losses.items()
     }
     avg_g_losses = {
-        model: (g_loss/n_size) 
+        model: (g_loss/n) 
         for model, g_loss in avg_g_losses.items()
     }
 
@@ -620,32 +654,50 @@ def eval(
         avg_losses.items(), 
         key=lambda item: item[-1] # it's already reduced and item
     )
+
+    pred_metrics = {model: calc_metrics(preds[model], ys[model], prefix="pred") for model in models}
+    grad_metrics = {model: calc_metrics(grads[model], gs[model], prefix="grad") for model in models}
+
+    total_duration = {model: (pred_duration[model] + grad_duration[model]) for model in models}
+
     avg_loss = sum(avg_losses.values()) / len(models)
     avg_g_loss = sum(avg_g_losses.values()) / len(models)
+    avg_pred_duration = sum(pred_duration.values()) / len(models)
+    avg_grad_duration = sum(grad_duration.values()) / len(models)
+    avg_total_duration = sum(total_duration.values()) / len(models)
 
-    pred_metrics = calc_metrics(preds, ys)
-    grad_metrics = calc_metrics(grads, gs)
-
-    pred_metrics = {f"pred_{k}": v for k, v in pred_metrics.items()}
-    grad_metrics = {f"grad_{k}": v for k, v in grad_metrics.items()}
+    model_metrics = {
+        model: {
+            "avg_loss": avg_losses[model],
+            "avg_g_losses": avg_g_losses[model],
+            "pred_duration": pred_duration[model],
+            "grad_duration": grad_duration[model],
+            "total_duration": total_duration[model],
+            **pred_metrics[model],
+            **grad_metrics[model],
+        }
+        for model in models
+    }
 
     gc.collect()
     return {
         "role_model": role_model, 
         "min_loss": min_loss,
-        "avg_losses": avg_losses,
         "avg_loss": avg_loss,
-        "avg_g_losses": avg_g_losses,
         "avg_g_loss": avg_g_loss,
-        **pred_metrics,
-        **grad_metrics,
+        "n_size": n_size,
+        "n_batch": n_batch,
+        "avg_pred_duration": avg_pred_duration,
+        "avg_grad_duration": avg_grad_duration,
+        "avg_total_duration": avg_total_duration,
+        "model_metrics": model_metrics,
     }
 
-def calc_metrics(pred, y):
+def calc_metrics(pred, y, prefix=""):
     return {
-        "rmse": rmse(pred, y),
-        "mae": mae(pred, y),
-        "mape": mape(pred, y)
+        f"{prefix}_rmse": rmse(pred, y),
+        f"{prefix}_mae": mae(pred, y),
+        f"{prefix}_mape": mape(pred, y)
     }
 
 def pred(
