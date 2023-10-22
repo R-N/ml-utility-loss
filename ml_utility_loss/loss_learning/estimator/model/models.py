@@ -548,10 +548,12 @@ class MLUtilitySingle(nn.Module):
         adapter=None,
         body=None,
         head=None,
+        name="single",
         device=DEFAULT_DEVICE,
     ):
         super().__init__()
         assert body, "Must provide body"
+        self.name = name
         self.adapter = adapter
         self.body = body
         self.head = head
@@ -612,9 +614,11 @@ class MLUtilityWhole(nn.Module):
         head_args=None,
         models=None,
         objectives=None,
+        name="whole",
         device=DEFAULT_DEVICE,
     ):
         super().__init__()
+        self.name = name
         self.cache = {}
 
         adapter_args = adapter_args or {}
@@ -668,7 +672,8 @@ class MLUtilityWhole(nn.Module):
         single = MLUtilitySingle(
             adapter=self.adapters[model] if model else None,
             body=self.body,
-            head=self.heads[head]
+            head=self.heads[head],
+            name=model,
         )
 
         self.cache[idx] = single
