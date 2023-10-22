@@ -202,7 +202,7 @@ def train_epoch(
         timer.check_time()
 
     for batch, batch_dict in enumerate(train_loader):
-        clear_cuda_memory()
+        clear_memory()
 
         if timer:
             timer.check_time()
@@ -592,7 +592,7 @@ def eval(
     clear_memory()
 
     for batch, batch_dict in enumerate(eval_loader):
-        clear_cuda_memory()
+        clear_memory()
         batch_size = 1
         # Compute prediction and loss for all adapters
         for model, (train, test, y) in batch_dict.items():
