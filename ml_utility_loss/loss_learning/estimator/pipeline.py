@@ -510,6 +510,8 @@ def train(
         train_value = train_loss["avg_loss"]
         val_value = val_loss["avg_loss"]
         if size_scheduler and size_scheduler.step(val_value, epoch=i):
+            del train_loader
+            del val_loader
             train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
             val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
 

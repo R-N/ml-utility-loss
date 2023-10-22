@@ -248,6 +248,7 @@ class MultiSizeDatasetDataset(BaseDataset):
         else:
             if self.dataset and self.dataset.cache:
                 self.dataset.clear_cache()
+            del self.dataset
             self.dataset = DatasetDataset(
                 dir=self.dir,
                 size=size,
@@ -255,6 +256,7 @@ class MultiSizeDatasetDataset(BaseDataset):
             )
             self.dataset.set_aug_scale(self.aug_scale)
             if self.cache:
+                print("Multisize caching dataset", size)
                 self.cache[size] = self.dataset
         self.size = size
         gc.collect()
