@@ -265,6 +265,7 @@ class MultiSizeDatasetDataset(BaseDataset):
         self.dataset_kwargs = kwargs
         self.aug_scale = 0
         self.dataset = None
+        print("Created multisize dataset")
         self.set_size(size, force=True)
 
     @property
