@@ -8,8 +8,8 @@ from ...util import mkdir, filter_dict, split_df_kfold, Timer
 from ..ml_utility.pipeline import eval_ml_utility
 from ...params import GradientPenaltyMode
 from .model.models import Transformer, MLUtilityWhole
-#from torch.utils.data import DataLoader
-from ...data import FastDataLoader as DataLoader
+from torch.utils.data import DataLoader
+#from ...data import FastDataLoader as DataLoader
 from .data import collate_fn
 import torch
 from .process import train_epoch, eval as _eval
@@ -439,7 +439,8 @@ def train(
             batch_size=batch_size, 
             shuffle=not val, 
             collate_fn=collate_fn,
-            num_workers=dataloader_worker
+            num_workers=dataloader_worker,
+            persistent_workers=True,
         )
         return loader
     
@@ -569,7 +570,8 @@ def eval(
         batch_size=batch_size, 
         shuffle=True, 
         collate_fn=collate_fn,
-        num_workers=dataloader_worker
+        num_workers=dataloader_worker,
+        persistent_workers=True,
     )
 
     eval_loss = _eval(whole_model, loader, **kwargs)
