@@ -5,12 +5,14 @@ from ..util import sorted_nicely
 import pandas as pd
 
 
-def plot_grad(loss, grad, fig=None, ax=None, **kwargs):
+def plot_grad(loss, grad, fig=None, ax=None, name=None, **kwargs):
     if not ax:
         fig, ax = plt.subplots()
     series = np.array(list(zip(loss, grad)))
     series = series[series[:, 0].argsort()]
     ax.plot(series[:, 0], series[:, 1], **kwargs)
+    if name:
+        ax.legend([name])
     return fig
 
 def plot_grad_2(y, models, loss="loss", grad="grad", **kwargs):
