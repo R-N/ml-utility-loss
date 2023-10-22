@@ -644,6 +644,11 @@ def eval(
 
     n = n_batch if reduction == torch.mean else n_size
 
+    preds = {k: torch.stack(v) for k, v in preds.items()}
+    ys = {k: torch.stack(v) for k, v in ys.items()}
+    gs = {k: torch.stack(v) for k, v in gs.items()}
+    grads = {k: torch.stack(v) for k, v in grads.items()}
+
     avg_losses = {
         model: (loss/n) 
         for model, loss in avg_losses.items()
