@@ -405,6 +405,7 @@ def train(
     persistent_workers=False,
     DataLoader=DataLoader,
     multiprocessing_context=None,
+    broken_loader_counter=3,
     **model_args
 ):
     timer = timer or (Timer(max_seconds=max_seconds) if max_seconds else None)
@@ -495,19 +496,30 @@ def train(
     
     if timer:
         timer.check_time()
+
     
     #print("[INFO] Beginning epoch")
     for i in range(i, i+epochs):
-        #print("[INFO] Train epoch", i, torch.cuda.mem_get_info())
-        train_loss = train_epoch_(train_loader)
-        #print("[INFO] Train epoch done", i, torch.cuda.mem_get_info())
-        if timer:
-            timer.check_time()
-        #print("[INFO] Val epoch", i, torch.cuda.mem_get_info())
-        val_loss = train_epoch_(val_loader, val=True)
-        #print("[INFO] Val epoch done", i, torch.cuda.mem_get_info())
-        if timer:
-            timer.check_time()
+
+        while True:
+            try:
+                train_loss = train_epoch_(train_loader)
+                if timer:
+                    timer.check_time()
+                val_loss = train_epoch_(val_loader, val=True)
+                if timer:
+                    timer.check_time()
+                break
+            except RuntimeError as ex:
+                if "stack expects each tensor to be equal size" in str(ex) and broken_loader_counter > 0:
+                    del train_loader
+                    del val_loader
+                    clear_memory()
+                    train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
+                    val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
+                    broken_loader_counter -= 1
+                    continue
+                raise
 
         train_results.append(train_loss)
         val_results.append(val_loss)
@@ -526,17 +538,12 @@ def train(
         train_value = train_loss["avg_loss"]
         val_value = val_loss["avg_loss"]
 
-        #print("[INFO] Stepping scheduler", i, torch.cuda.mem_get_info())
         if size_scheduler and size_scheduler.step(val_value, epoch=i):
-            #print("[INFO] Deleting loader", i, torch.cuda.mem_get_info())
             del train_loader
             del val_loader
             clear_memory()
-            #print("[INFO] Deleted loader", i, torch.cuda.mem_get_info())
             train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
-            #print("[INFO] Created train loader", i, torch.cuda.mem_get_info())
             val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
-            #print("[INFO] Created val loader", i, torch.cuda.mem_get_info())
 
 
         if verbose:
