@@ -602,6 +602,8 @@ def eval(
             test = test.to(whole_model.device)
             y = y.to(whole_model.device)
 
+
+            train.requires_grad_()
             pred = whole_model(
                 train, test, model
             )

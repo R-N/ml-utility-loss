@@ -8,7 +8,8 @@ from ...util import mkdir, filter_dict, split_df_kfold, Timer
 from ..ml_utility.pipeline import eval_ml_utility
 from ...params import GradientPenaltyMode
 from .model.models import Transformer, MLUtilityWhole
-from torch.utils.data import DataLoader
+#from torch.utils.data import DataLoader
+from ...data import FastDataLoader as DataLoader
 from .data import collate_fn
 import torch
 from .process import train_epoch, eval as _eval
