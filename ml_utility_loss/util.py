@@ -139,9 +139,9 @@ class CacheType:
 
 
 def Cache(cache_type=CacheType.MEMORY, max_cache=None, **kwargs):
-    print("Trying cache")
+    #print("Trying cache")
     if not max_cache:
-        print("Max cache none")
+        #print("Max cache none")
         return None
     if cache_type == CacheType.MEMORY:
         return InMemoryCache(max_cache=max_cache, **kwargs)
