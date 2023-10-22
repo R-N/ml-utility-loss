@@ -512,6 +512,7 @@ def train(
                 break
             except RuntimeError as ex:
                 if "stack expects each tensor to be equal size" in str(ex) and broken_loader_counter > 0:
+                    print("Forgiving broken loader. Remaining: ", broken_loader_counter)
                     del train_loader
                     del val_loader
                     clear_memory()
