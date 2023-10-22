@@ -281,6 +281,7 @@ class MultiSizeDatasetDataset(BaseDataset):
             if self.dataset and self.dataset.cache:
                 self.dataset.clear_cache()
             del self.dataset
+            print("Creating dataset with new size", size)
             self.dataset = DatasetDataset(
                 dir=self.dir,
                 size=size,
