@@ -443,6 +443,7 @@ def train(
             collate_fn=collate_fn,
             num_workers=dataloader_worker,
             persistent_workers=persistent_workers,
+            multiprocessing_context="loky",
         )
         return loader
     
@@ -487,6 +488,10 @@ def train(
         )
         return loss
     
+    
+    train_results = []
+    val_results = []
+    
     if timer:
         timer.check_time()
     
@@ -502,6 +507,9 @@ def train(
         #print("[INFO] Val epoch done", i, torch.cuda.mem_get_info())
         if timer:
             timer.check_time()
+
+        train_results.append(train_loss)
+        val_results.append(val_loss)
 
         #print("[INFO] Logging", i, torch.cuda.mem_get_info())
         log(
@@ -550,6 +558,13 @@ def train(
     if timer:
         timer.check_time()
 
+    train_results_2 = [{f"{k}_train": v for k, v in x.items()} for x in train_results]
+    val_results_2 = [{f"{k}_test": v for k, v in x.items()} for x in val_results]
+    train_result_df = pd.DataFrame.from_records(train_results_2)
+    val_result_df = pd.DataFrame.from_records(val_results_2)
+    result_df = pd.concat([train_result_df, val_result_df], axis=1)
+    result_df.head()
+
     #print("[INFO] Setting test size", i, torch.cuda.mem_get_info())
     test_set.set_size(None)
     test_set.set_aug_scale(0)
@@ -573,7 +588,8 @@ def train(
         "i": i,
         "train_loss": train_loss,
         "val_loss": val_loss,
-        "eval_loss": eval_loss
+        "eval_loss": eval_loss,
+        "history": result_df,
     }
 
 
@@ -594,6 +610,7 @@ def eval(
         collate_fn=collate_fn,
         num_workers=dataloader_worker,
         persistent_workers=persistent_workers,
+        multiprocessing_context="loky",
     )
 
     eval_loss = _eval(whole_model, loader, **kwargs)
