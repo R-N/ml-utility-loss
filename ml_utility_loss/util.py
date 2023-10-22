@@ -139,12 +139,16 @@ class CacheType:
 
 
 def Cache(cache_type=CacheType.MEMORY, max_cache=None, **kwargs):
+    print("Trying cache")
     if not max_cache:
+        print("Max cache none")
         return None
     if cache_type == CacheType.MEMORY:
         return InMemoryCache(max_cache=max_cache, **kwargs)
     elif cache_type == CacheType.PICKLE:
         return PickleCache(max_cache=max_cache, **kwargs)
+    raise ValueError("Unknown cache type", cache_type)
+    
 
 def remake_dir(path):
     if os.path.exists(path):

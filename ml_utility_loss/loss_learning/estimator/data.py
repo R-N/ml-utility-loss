@@ -287,7 +287,7 @@ class MultiSizeDatasetDataset(BaseDataset):
                 **self.dataset_kwargs
             )
             self.dataset.set_aug_scale(self.aug_scale)
-            print("Created dataset with new size", size, self.dataset.cache)
+            print("Created dataset with new size", size, self.dataset.cache, self.dataset_kwargs)
             if self.cache:
                 print("Multisize caching dataset", size)
                 self.cache[size] = self.dataset
