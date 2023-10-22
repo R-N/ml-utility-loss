@@ -708,9 +708,9 @@ def eval(
 
 def calc_metrics(pred, y, prefix=""):
     return {
-        f"{prefix}_rmse": rmse(pred, y),
-        f"{prefix}_mae": mae(pred, y),
-        f"{prefix}_mape": mape(pred, y)
+        f"{prefix}_rmse": rmse(pred, y).item(),
+        f"{prefix}_mae": mae(pred, y).item(),
+        f"{prefix}_mape": mape(pred, y).item()
     }
 
 def pred(
@@ -752,6 +752,7 @@ def pred(
     loss = loss.detach().cpu().numpy()
     dbody_dx_norm = dbody_dx_norm.detach().cpu().numpy()
     g_loss = g_loss.detach().cpu().numpy()
+    y = y.detach().cpu().numpy()
 
     clear_memory()
     return {
@@ -759,6 +760,7 @@ def pred(
         "loss": loss,
         "grad": dbody_dx_norm,
         "grad_loss": g_loss,
+        "y": y
     }
 
 def pred_2(whole_model, batch_dict, **kwargs):
