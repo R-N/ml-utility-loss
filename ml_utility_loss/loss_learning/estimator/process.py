@@ -551,6 +551,8 @@ def train_epoch(
         "avg_non_role_model_g_loss": avg_non_role_model_g_loss,
         "avg_non_role_model_embed_loss": avg_non_role_model_embed_loss,
         "avg_loss": avg_loss,
+        "n_size": n_size,
+        "n_batch": n_batch,
         "duration": duration,
         "duration_batch": duration_batch,
         "duration_size": duration_size,
