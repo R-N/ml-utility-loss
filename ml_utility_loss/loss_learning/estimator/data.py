@@ -195,7 +195,6 @@ class DatasetDataset(BaseDataset):
 class WrapperDataset(BaseDataset):
     def __init__(self, dataset, copy=True, **kwargs):
         super().__init__(**kwargs)
-        print("Wrapper", type(self), copy)
         self.dataset = dataset.try_copy() if copy else dataset
         self.size = dataset.size
         self.kwargs = kwargs
@@ -267,8 +266,7 @@ class MultiSizeDatasetDataset(BaseDataset):
         self.dataset_kwargs = kwargs
         self.aug_scale = 0
         self.dataset = None
-        print("Created multisize dataset")
-        traceback.print_stack()
+        #traceback.print_stack()
         self.set_size(size, force=True)
 
     @property
