@@ -405,6 +405,7 @@ def train(
     checkpoint_dir=None,
     persistent_workers=False,
     DataLoader=DataLoader,
+    multiprocessing_context=None,
     **model_args
 ):
     timer = timer or (Timer(max_seconds=max_seconds) if max_seconds else None)
@@ -444,7 +445,7 @@ def train(
             collate_fn=collate_fn,
             num_workers=dataloader_worker,
             persistent_workers=persistent_workers,
-            #multiprocessing_context="loky",
+            multiprocessing_context=multiprocessing_context,
         )
         return loader
     
@@ -576,6 +577,7 @@ def train(
         dataloader_worker=dataloader_worker,
         persistent_workers=persistent_workers,
         DataLoader=DataLoader,
+        multiprocessing_context=multiprocessing_context,
     )
     #print("[INFO] Done eval", i, torch.cuda.mem_get_info())
 
@@ -605,6 +607,7 @@ def eval(
     dataloader_worker=1,
     persistent_workers=False,
     DataLoader=DataLoader,
+    multiprocessing_context=None,
     **kwargs
 ):
     loader = DataLoader(
@@ -614,7 +617,7 @@ def eval(
         collate_fn=collate_fn,
         num_workers=dataloader_worker,
         persistent_workers=persistent_workers,
-        #multiprocessing_context="loky",
+        multiprocessing_context=multiprocessing_context,
     )
 
     eval_loss = _eval(whole_model, loader, **kwargs)
