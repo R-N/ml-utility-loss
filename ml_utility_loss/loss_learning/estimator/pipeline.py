@@ -501,12 +501,19 @@ def train(
     #print("[INFO] Beginning epoch")
     for i in range(i, i+epochs):
 
+        if verbose:
+            print("Epoch", i)
+
         while True:
             try:
                 train_loss = train_epoch_(train_loader)
+                if verbose:
+                    print("Train loss", train_loss)
                 if timer:
                     timer.check_time()
                 val_loss = train_epoch_(val_loader, val=True)
+                if verbose:
+                    print("Val loss", val_loss)
                 if timer:
                     timer.check_time()
                 break
@@ -540,6 +547,7 @@ def train(
         val_value = val_loss["avg_loss"]
 
         if size_scheduler and size_scheduler.step(val_value, epoch=i):
+            print("Prepare loader")
             del train_loader
             del val_loader
             clear_memory()
@@ -547,10 +555,6 @@ def train(
             val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
 
 
-        if verbose:
-            print("Epoch", i)
-            print("Train loss", train_loss)
-            print("Val loss", val_loss)
         if epoch_callback:
             epoch_callback(
                 epoch=i,
