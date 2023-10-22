@@ -39,7 +39,7 @@ def plot_synth_real_density(info_path, synth="synth", fig=None, ax=None, real=Tr
     leg = ax.legend(axes)
     return fig
 
-def plot_pred_density(pred, y, fig=None, ax=None, real_linestyle="solid", **kwargs):
+def plot_pred_density(pred, y, fig=None, ax=None, real_linestyle="solid", title=None, **kwargs):
     if not ax:
         fig, ax = plt.subplots()
     pd.Series(pred).plot.kde(alpha=0.5, ax=ax, linestyle="dashed", **kwargs)
@@ -47,7 +47,15 @@ def plot_pred_density(pred, y, fig=None, ax=None, real_linestyle="solid", **kwar
     axes = ["pred", "y"]
     
     leg = ax.legend(axes)
+
+    if title:
+        ax.set_title(title)
+
     return fig
+
+def plot_pred_density_2(results, **kwargs):
+    for model, result in results.items():
+        plot_pred_density(result["pred"], y=result["y"], title=model, **kwargs)
 
 def plot_synths_density(info_dir, sizes=None, fig=None, ax=None, real=False, **kwargs):
     if not ax:
@@ -75,7 +83,7 @@ def plot_synth_real_box(info_path, synth="synth", fig=None, ax=None, real=True, 
     return fig
 
 
-def plot_pred_box(pred, y, fig=None, ax=None, **kwargs):
+def plot_pred_box(pred, y, fig=None, ax=None, title=None, **kwargs):
     if not ax:
         fig, ax = plt.subplots()
     df = pd.DataFrame()
@@ -86,7 +94,14 @@ def plot_pred_box(pred, y, fig=None, ax=None, **kwargs):
     df.boxplot(column=cols, **kwargs)
     ax.set_xticklabels(cols)
 
+    if title:
+        ax.set_title(title)
+
     return fig
+
+def plot_pred_box_2(results, **kwargs):
+    for model, result in results.items():
+        plot_pred_box(result["pred"], y=result["y"], title=model, **kwargs)
 
 def plot_synths_box(info_dir, sizes=None, fig=None, ax=None, col="synth_value", **kwargs):
     if not ax:
