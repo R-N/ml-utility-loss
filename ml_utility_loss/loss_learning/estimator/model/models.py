@@ -272,6 +272,7 @@ class Adapter(nn.Module):
     ):
         super().__init__()
         assert n_layers >= 2
+        activation_final = activation_final or activation
 
         self.lora_mode = lora_mode
         self.lora_rank = lora_rank
