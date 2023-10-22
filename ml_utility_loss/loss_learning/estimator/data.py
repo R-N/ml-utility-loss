@@ -438,7 +438,7 @@ class PreprocessedDataset(WrapperDataset):
 
 class MultiPreprocessedDataset(WrapperDataset):
     def __init__(self, dataset, preprocessor, Tensor=Tensor, dtype=float, **kwargs):
-        super().__init__(dataset=dataset, copy=False, **kwargs)
+        super().__init__(dataset=dataset, **kwargs)
         self.preprocessor = preprocessor
         self.Tensor = Tensor
         self.dtype = dtype
