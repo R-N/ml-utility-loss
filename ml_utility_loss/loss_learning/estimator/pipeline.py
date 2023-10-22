@@ -490,20 +490,20 @@ def train(
     if timer:
         timer.check_time()
     
-    print("[INFO] Beginning epoch")
+    #print("[INFO] Beginning epoch")
     for i in range(i, i+epochs):
-        print("[INFO] Train epoch", i, torch.cuda.mem_get_info())
+        #print("[INFO] Train epoch", i, torch.cuda.mem_get_info())
         train_loss = train_epoch_(train_loader)
-        print("[INFO] Train epoch done", i, torch.cuda.mem_get_info())
+        #print("[INFO] Train epoch done", i, torch.cuda.mem_get_info())
         if timer:
             timer.check_time()
-        print("[INFO] Val epoch", i, torch.cuda.mem_get_info())
+        #print("[INFO] Val epoch", i, torch.cuda.mem_get_info())
         val_loss = train_epoch_(val_loader, val=True)
-        print("[INFO] Val epoch done", i, torch.cuda.mem_get_info())
+        #print("[INFO] Val epoch done", i, torch.cuda.mem_get_info())
         if timer:
             timer.check_time()
 
-        print("[INFO] Logging", i, torch.cuda.mem_get_info())
+        #print("[INFO] Logging", i, torch.cuda.mem_get_info())
         log(
             writer=writer, 
             i=i, 
@@ -517,17 +517,17 @@ def train(
         train_value = train_loss["avg_loss"]
         val_value = val_loss["avg_loss"]
 
-        print("[INFO] Stepping scheduler", i, torch.cuda.mem_get_info())
+        #print("[INFO] Stepping scheduler", i, torch.cuda.mem_get_info())
         if size_scheduler and size_scheduler.step(val_value, epoch=i):
-            print("[INFO] Deleting loader", i, torch.cuda.mem_get_info())
+            #print("[INFO] Deleting loader", i, torch.cuda.mem_get_info())
             del train_loader
             del val_loader
             gc.collect()
-            print("[INFO] Deleted loader", i, torch.cuda.mem_get_info())
+            #print("[INFO] Deleted loader", i, torch.cuda.mem_get_info())
             train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
-            print("[INFO] Created train loader", i, torch.cuda.mem_get_info())
+            #print("[INFO] Created train loader", i, torch.cuda.mem_get_info())
             val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
-            print("[INFO] Created val loader", i, torch.cuda.mem_get_info())
+            #print("[INFO] Created val loader", i, torch.cuda.mem_get_info())
 
 
         if verbose:
@@ -550,19 +550,19 @@ def train(
     if timer:
         timer.check_time()
 
-    print("[INFO] Setting test size", i, torch.cuda.mem_get_info())
+    #print("[INFO] Setting test size", i, torch.cuda.mem_get_info())
     test_set.set_size(None)
     test_set.set_aug_scale(0)
-    print("[INFO] Eval", i, torch.cuda.mem_get_info())
+    #print("[INFO] Eval", i, torch.cuda.mem_get_info())
     eval_loss = eval(
         test_set, whole_model,
         batch_size=size_scheduler.get_batch_size() if size_scheduler else batch_size,
         dataloader_worker=dataloader_worker
     )
-    print("[INFO] Done eval", i, torch.cuda.mem_get_info())
+    #print("[INFO] Done eval", i, torch.cuda.mem_get_info())
 
     if checkpoint_dir:
-        print("[INFO] Saving checkpoint", i, torch.cuda.mem_get_info())
+        #print("[INFO] Saving checkpoint", i, torch.cuda.mem_get_info())
         mkdir(checkpoint_dir)
         torch.save(whole_model, os.path.join(checkpoint_dir, "model.pt"))
         torch.save(deepcopy(whole_model.state_dict()), os.path.join(checkpoint_dir, "states.pt"))
