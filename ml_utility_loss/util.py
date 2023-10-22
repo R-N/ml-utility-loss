@@ -11,6 +11,7 @@ from optuna.exceptions import TrialPruned
 import time
 import shutil
 import re
+import gc
 
 def load_json(path, **kwargs):
     return json.loads(Path(path).read_text(), **kwargs)
@@ -310,3 +311,9 @@ def sorted_nicely( l ):
     convert = lambda text: int(text) if text.isdigit() else text 
     alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
     return sorted(l, key = alphanum_key)
+
+def clear_memory():
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    gc.collect()
+

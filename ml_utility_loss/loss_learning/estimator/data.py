@@ -4,10 +4,9 @@ from torch.utils.data import Dataset, DataLoader
 import glob
 import pandas as pd
 from .preprocessing import generate_overlap
-from ...util import Cache, stack_samples, stack_sample_dicts, sort_df, shuffle_df, split_df_ratio, split_df_kfold, fix_path
+from ...util import Cache, stack_samples, stack_sample_dicts, sort_df, shuffle_df, split_df_ratio, split_df_kfold, fix_path, clear_memory
 from copy import deepcopy
 import numpy as np
-import gc
 import traceback
 
 Tensor=torch.FloatTensor
@@ -95,7 +94,7 @@ class BaseDataset(Dataset):
         if self.cache:
             print("Clearing cache", type(self))
             self.create_cache(max_cache=self.max_cache, cache_dir=self.cache_dir, force=True, **self.base_kwargs)
-            gc.collect()
+            clear_memory()
 
     def set_size(self, size, force=False):
         size = size or self.all
@@ -296,7 +295,7 @@ class MultiSizeDatasetDataset(BaseDataset):
                 print("Multisize caching dataset", size)
                 self.cache[size] = self.dataset
         self.size = size
-        gc.collect()
+        clear_memory()
         return True
 
     def set_aug_scale(self, aug_scale, force=False):

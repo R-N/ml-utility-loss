@@ -4,7 +4,7 @@ from .preprocessing import DataAugmenter
 import os
 from entmax import sparsemax, entmax15, Sparsemax, Entmax15
 from alpharelu import relu15, ReLU15
-from ...util import mkdir, filter_dict, split_df_kfold, Timer
+from ...util import mkdir, filter_dict, split_df_kfold, Timer, clear_memory
 from ..ml_utility.pipeline import eval_ml_utility
 from ...params import GradientPenaltyMode
 from .model.models import Transformer, MLUtilityWhole
@@ -21,7 +21,6 @@ from ...scheduler import PretrainingScheduler
 from ...params import ISABMode, LoRAMode
 from torch.utils.tensorboard import SummaryWriter
 from copy import deepcopy
-import gc
 
 def augment(df, info, save_dir, n=1, test=0.2):
     mkdir(save_dir)
@@ -532,7 +531,7 @@ def train(
             #print("[INFO] Deleting loader", i, torch.cuda.mem_get_info())
             del train_loader
             del val_loader
-            gc.collect()
+            clear_memory()
             #print("[INFO] Deleted loader", i, torch.cuda.mem_get_info())
             train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
             #print("[INFO] Created train loader", i, torch.cuda.mem_get_info())

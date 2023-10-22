@@ -1,7 +1,6 @@
 import torch
 import torch.nn.functional as F
-import gc
-from ...util import stack_samples, stack_sample_dicts
+from ...util import stack_samples, stack_sample_dicts, clear_memory
 from torch.nn.utils import clip_grad_norm_
 from ...metrics import rmse, mae, mape
 import time
@@ -201,7 +200,7 @@ def train_epoch(
         timer.check_time()
 
     for batch, batch_dict in enumerate(train_loader):
-        gc.collect()
+        clear_memory()
         if timer:
             timer.check_time()
         if not val:
@@ -544,7 +543,7 @@ def train_epoch(
     avg_non_role_model_g_loss /= n
     avg_non_role_model_embed_loss /= n
     avg_loss /= n
-    gc.collect()
+    clear_memory()
     return {
         "avg_role_model_loss": avg_role_model_loss, 
         "avg_role_model_g_loss": avg_role_model_g_loss,
@@ -588,7 +587,7 @@ def eval(
     grads = {model: [] for model in models}
 
     for batch, batch_dict in enumerate(eval_loader):
-        gc.collect()
+        clear_memory()
         batch_size = 1
         # Compute prediction and loss for all adapters
         for model, (train, test, y) in batch_dict.items():
@@ -688,7 +687,7 @@ def eval(
         for model in models
     }
 
-    gc.collect()
+    clear_memory()
     return {
         "role_model": role_model, 
         "min_loss": min_loss,
@@ -719,7 +718,7 @@ def pred(
     # Set the model to eval mode for validation or train mode for training
     model.eval()
 
-    gc.collect()
+    clear_memory()
     # Compute prediction and loss for all adapters
     train, test, y = batch
 
@@ -749,7 +748,7 @@ def pred(
     dbody_dx_norm = dbody_dx_norm.detach().cpu().numpy()
     g_loss = g_loss.detach().cpu().numpy()
 
-    gc.collect()
+    clear_memory()
     return {
         "pred": pred, 
         "loss": loss,
