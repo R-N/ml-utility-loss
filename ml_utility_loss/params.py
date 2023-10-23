@@ -6,12 +6,19 @@ from entmax import sparsemax, entmax15, Sparsemax, Entmax15
 from alpharelu import relu15, ReLU15
 import torch.nn.functional as F
 
+class HeadFinalMul:
+    IDENTITY = "identity"
+    MINUS = "minus"
+    ONEMINUS = "oneminus"
+
+    __ALL__ = (IDENTITY, MINUS, ONEMINUS)
+
 class LoRAMode:
     FULL = "full"
     LOW_RANK = "low_rank"
     LORA = "lora"
 
-    __ALL__ = ("full", "low_rank", "lora")
+    __ALL__ = (FULL, LOW_RANK, LORA)
     DICT = {
         "FULL": FULL,
         "LOW_RANK": LOW_RANK,
@@ -23,7 +30,7 @@ class ISABMode:
     SHARED = "shared"
     MINI = "mini"
 
-    __ALL__ = ("separate", "shared", "mini")
+    __ALL__ = (SEPARATE, SHARED, MINI)
     DICT = {
         "SEPARATE": SEPARATE,
         "SHARED": SHARED,
@@ -133,6 +140,9 @@ ACTIVATIONS = {
     "elu": torch.nn.ELU,
     "selu": torch.nn.SELU,
     "gelu": torch.nn.GELU,
+    "silu": torch.nn.SiLU,
+    "swish": torch.nn.SiLU,
+    "msih": torch.nn.Mish,
 }
 BOOLEAN = ("categorical", [True, False])
 SOFTMAXES = {

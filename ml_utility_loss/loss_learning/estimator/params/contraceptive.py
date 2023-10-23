@@ -5,32 +5,39 @@ from torch.nn import functional as F
 PARAM_SPACE = {
     # Dataset args
     "dataset_size": ("int_exp_2", 32, 2048),
-    "batch_size": ("int_exp_2", 1, 8),
+    "batch_size": ("int_exp_2", 1, 4),
     # Training args
-    "epochs": ("int", 20, 80), # seems like random after 20
-    "lr": ("log_float", 1e-5, 3e-5),
+    "epochs": ("log_int", 20, 1000), # seems like random after 20
+    "lr": ("log_float", 1e-5, 1e-3),
     "Optim": ("optimizer", ["adamw"]),
     # Training args
-    "non_role_model_mul": ("float", 0.5, 0.6),
+    "non_role_model_mul": ("float", 0.5, 1.0),
     #"non_role_model_avg": True, # doesnt matter
-    "grad_loss_mul": ("float", 0.6, 1.2), #almost random
+    "grad_loss_mul": ("float", 0.5, 1.2), #almost random
     #"loss_fn": ("loss", "mse"),
     #"loss_fn": ("loss", ["mse", "mae"]),
     #"grad_loss_fn": ("loss", "huber"),
-    #"grad_loss_fn": ("loss", ["mse", "huber"]),
-    "adapter_loss_fn": ("loss", ["mse", "huber"]),
+    "grad_loss_fn": ("loss", ["mse", "mae", "huber"]),
+    "adapter_loss_fn": ("loss", ["mse", "mae", "huber"]),
     "fixed_role_model": ("categorical", [
         #"lct_gan", 
+        "tvae", 
+        "lct_gan", 
+        "lct_gan_latent", 
         "tab_ddpm_concat", 
         "realtabformer"
     ]),
     "gradient_penalty_mode": ("gradient_penalty_mode", [
-        #"ESTIMATE",
+        #"NONE",
+        "ALL", # ALL was the best, but it takes a long time to train
+        "ONCE",
+        "ESTIMATE",
+        "AVERAGE_NO_MUL",
         "AVERAGE_MUL"
     ]),
     # Common model args
     "d_model": ("int_exp_2", 64, 128), 
-    "dropout": ("float", 0.13, 0.18), #close to random
+    "dropout": ("float", 0.13, 0.5), #close to random
     #"softmax": ("softmax", "relu15"),
     #"flip": BOOLEAN, #doesn't matter
     "skip_small": BOOLEAN,
@@ -43,11 +50,11 @@ PARAM_SPACE = {
     "tf_n_layers_dec": ("int", 3, 4), 
     "tf_n_head": ("int_exp_2", 4, 8), 
     "tf_activation": ("activation", ["relu"]),
-    #"tf_isab_mode": ("categorical", (
-    #    #ISABMode.SEPARATE, about the same as shared
-    #    ISABMode.SHARED,
-    #    #ISABMode.MINI, bad
-    #)),
+    "tf_isab_mode": ("categorical", (
+        ISABMode.SEPARATE, #about the same as shared
+        ISABMode.SHARED,
+        ISABMode.MINI, #bad
+    )),
     "tf_isab_rank": ("bool_int_exp_2", 2, 4),
     "tf_lora": ("conditional", {
         "tf_lora_mode": ("categorical", (
@@ -57,12 +64,13 @@ PARAM_SPACE = {
         "tf_lora_rank": ("int_exp_2", 2, 16),
     }),
     # Transformer PMA args
-    #"tf_pma": ("conditional", { # doesnt matter
-    #    "tf_pma_start": ("int", -3, -1),
-    #    "tf_pma_high": ("int_exp_2", 16, 32),
-    #    "tf_pma_low": ("int_exp_2", 8, 16),
-    #    "tf_pma_rank": ("int_exp_2", 8, 16),
-    #}),
+    "tf_pma": ("conditional", { # doesnt matter
+        "tf_pma_start": ("int", -3, -1),
+        "tf_pma_high": ("int_exp_2", 16, 32),
+        "tf_pma_low": ("int_exp_2", 8, 16),
+        "tf_pma_rank": ("int_exp_2", 8, 16),
+    }),
+    "tf_share_ffn": BOOLEAN, #doesnt matter
     #"tf_share_ffn": True, #doesnt matter
     # Adapter args
     "ada_d_hid": ("int_exp_2", 128, 256), 
@@ -71,6 +79,10 @@ PARAM_SPACE = {
         "leakyrelu", 
         "selu", 
         "gelu", 
+    ]),
+    "ada_activation_final": ("activation", [
+        "tanh", 
+        "sigmoid", 
     ]),
     #"ada_lora": ("conditional", {
     #    "ada_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
@@ -98,9 +110,9 @@ PARAM_SPACE_2 = {
     "dataset_size_low": ("int_exp_2", 64, 256),
     "dataset_size_high": ("int_exp_2", 2048, 4096),
     #"dataset_size_high": ("int_exp_2", 256, 4096),
-    "batch_size_low": ("int_exp_2", 2, 4), # check
-    "batch_size_high": ("int_exp_2", 4, 8),
-    "patience": ("log_int", 3, 5)
+    "batch_size_low": ("int_exp_2", 1, 2), # check
+    "batch_size_high": ("int_exp_2", 2, 4),
+    "patience": ("log_int", 2, 6)
 }
 
 DEFAULT = {

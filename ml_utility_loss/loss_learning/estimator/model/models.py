@@ -8,7 +8,7 @@ from .layers import EncoderLayer, DecoderLayer
 from .modules import PoolingByMultiheadAttention, FeedForward, LowRankLinearFactory
 import inspect
 from ....util import DEFAULT_DEVICE, Cache, check_cuda
-from ....params import ISABMode, LoRAMode
+from ....params import ISABMode, LoRAMode, HeadFinalMul
 
 
 __author__ = "Yu-Hsiang Huang"
@@ -364,6 +364,7 @@ class Head(nn.Module):
         dropout=0.1, 
         activation=nn.SELU,
         activation_final=nn.Sigmoid,
+        final_mul=HeadFinalMul.IDENTITY,
         pma_rank=0,
         softmax=nn.Softmax,
         lora_mode=LoRAMode.FULL,
@@ -372,6 +373,10 @@ class Head(nn.Module):
     ):
         super().__init__()
         assert n_layers >= 2
+        assert final_mul in HeadFinalMul.__ALL__
+        
+        self.final_mul = final_mul
+
         Linear = nn.Linear
         self.pma = PoolingByMultiheadAttention(
             n_seeds, 
@@ -434,6 +439,14 @@ class Head(nn.Module):
             y_max, y_min = torch.max(y), torch.min(y)
             assert y_max <= 1.2 and y_min >= 0.0, f"Invalid sigmoid range: {(y_min, y_max)}"
         y = y.squeeze(dim=-1)
+
+        if self.final_mul == HeadFinalMul.IDENTITY:
+            pass
+        elif self.final_mul == HeadFinalMul.MINUS:
+            y = -y
+        elif self.final_mul == HeadFinalMul.ONEMINUS:
+            y = 1 - y
+
         if return_attns:
             return y, pma_attn
         return y

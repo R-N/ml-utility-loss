@@ -18,7 +18,7 @@ import torch.nn.functional as F
 import math
 import warnings
 from ...scheduler import PretrainingScheduler
-from ...params import ISABMode, LoRAMode
+from ...params import ISABMode, LoRAMode, HeadFinalMul
 from torch.utils.tensorboard import SummaryWriter
 from copy import deepcopy
 
@@ -270,6 +270,7 @@ def create_model(
     ada_d_hid=32, 
     ada_n_layers=2, 
     ada_activation=nn.ReLU,
+    ada_activation_final=nn.Tanh,
     ada_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
     ada_lora_mode=LoRAMode.FULL,
     ada_lora_rank=2,
@@ -279,6 +280,8 @@ def create_model(
     head_n_layers=2, 
     head_n_head=8,   
     head_activation=nn.LeakyReLU,
+    head_activation_final=nn.Sigmoid,
+    head_final_mul=HeadFinalMul.IDENTITY,
     head_pma_rank=0,
     head_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
     head_lora_mode=LoRAMode.FULL,
@@ -321,6 +324,7 @@ def create_model(
             "n_layers":ada_n_layers, 
             "dropout":dropout, 
             "activation":ada_activation,
+            "activation_final": ada_activation_final,
             "lora_mode":ada_lora_mode,
             "lora_rank":ada_lora_rank,
         },
@@ -331,6 +335,8 @@ def create_model(
             "n_head": head_n_head,  
             "dropout": dropout, 
             "activation": head_activation,
+            "activation_final": head_activation_final,
+            "final_mul": head_final_mul,
             #"skip_small": skip_small,
             "pma_rank":head_pma_rank,
             "softmax": softmax,
