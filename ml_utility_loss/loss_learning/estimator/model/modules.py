@@ -16,6 +16,7 @@ class LowRankLinear(nn.Module):
     def __init__(self, in_features, out_features, rank, **kwargs):
         super().__init__()
         bias = kwargs.pop("bias", True)
+        assert rank > 0
         self.lin_1 = nn.Linear(in_features, rank, bias=False, **kwargs)
         self.lin_2 = nn.Linear(rank, out_features, bias=bias, **kwargs)
 
@@ -229,6 +230,7 @@ class TensorInductionPoint(nn.Module):
 class LowRankInductionPoint(nn.Module):
     def __init__(self, num_inds, d_I, rank, device=DEFAULT_DEVICE):
         super().__init__()
+        assert rank > 0
         self.a = nn.Parameter(Tensor(num_inds, rank))
         self.b = nn.Parameter(Tensor(rank, d_I))
         nn.init.xavier_uniform_(self.a)

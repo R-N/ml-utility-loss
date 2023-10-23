@@ -56,7 +56,7 @@ def calc_pma_steps(
 def TryLoRA(lora_mode, lora_rank):
     Linear = nn.Linear
     assert (not lora_mode) or (lora_mode in LoRAMode.__ALL__), f"Invalid LoRA mode {lora_mode}"
-    if lora_mode and lora_mode != LoRAMode.FULL:
+    if lora_mode and lora_mode != LoRAMode.FULL and lora_rank:
         Linear = LowRankLinearFactory(lora_rank)
     return Linear
 

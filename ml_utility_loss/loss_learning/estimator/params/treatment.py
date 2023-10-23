@@ -60,7 +60,7 @@ PARAM_SPACE = {
             LoRAMode.LOW_RANK, 
             LoRAMode.LORA,
         )),
-        "tf_lora_rank": ("bool_int_exp_2", 2, 16),
+        "tf_lora_rank": ("int_exp_2", 2, 16), #Mustn't be bool int
     }),
     # Transformer PMA args
     "tf_pma": ("conditional", { # False
