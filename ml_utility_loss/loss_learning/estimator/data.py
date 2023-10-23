@@ -497,3 +497,55 @@ def collate_fn(samples):
     if isinstance(sample, tuple) or isinstance(sample, list):
         return stack_samples(samples)
     raise ValueError(f"Invalid sample type: {type(sample)}")
+
+class ConcatDataset(BaseDataset):
+    def __init__(self, datasets, copy=True, **kwargs):
+        super().__init__(**kwargs)
+        assert len(set([dataset.size for dataset in datasets])) == 1
+        self.datasets = [dataset.try_copy() if copy else dataset for dataset in datasets]
+        self.size = datasets[0].size
+        self.concat_kwargs = kwargs
+
+        self.dataset_count = len(self.datasets)
+        self.counts = [len(dataset) for dataset in datasets]
+        self.cumulatives = np.cumsum(self.counts)
+        self.count = sum(self.counts)
+
+    @property
+    def index(self):
+        return list(range(len(self)))
+
+    def __len__(self):
+        return self.count
+    
+    def __getitem__(self, idx):
+        assert idx < len(self)
+        prev = 0
+        for i, ci in enumerate(self.cumulatives):
+            if idx < ci:
+                break
+            prev = ci
+        return self.datasets[i][idx-prev]
+    
+    def set_size(self, size, **kwargs):
+        if np.array([dataset.set_size(size, **kwargs) for dataset in self.datasets]).any():
+            assert len(set([dataset.size for dataset in self.datasets])) == 1
+            self.size = self.datasets[0].size
+            self.clear_cache()
+            return True
+        return False
+    
+    def set_aug_scale(self, aug_scale, **kwargs):
+        if np.array([dataset.set_aug_scale(aug_scale, **kwargs) for dataset in self.datasets]).any():
+            self.aug_scale = aug_scale
+            self.clear_cache()
+            return True
+        return False
+    
+    def must_copy(self):
+        return np.array([dataset.must_copy() for dataset in self.datasets]).any()
+    
+    def try_copy(self):
+        if self.must_copy():
+            return ConcatDataset(self.datasets, **self.concat_kwargs)
+        return self
