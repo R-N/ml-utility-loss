@@ -15,12 +15,13 @@ def plot_grad(loss, grad, fig=None, ax=None, name=None, **kwargs):
         ax.legend([name])
     return fig
 
-def plot_grad_2(y, models, loss="loss", grad="grad", **kwargs):
+def plot_grad_2(y, models, loss="loss", grad="grad", g="g", **kwargs):
     fig, ax = plt.subplots()
     axes = []
     for m in models:
         yi = y[m]
         plot_grad(yi[loss], yi[grad], fig=fig, ax=ax, **kwargs)
+        plot_grad(yi[loss], yi[g], fig=fig, ax=ax, **kwargs)
         axes.append(m)
     ax.legend(axes)
     return fig

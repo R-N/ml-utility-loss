@@ -753,6 +753,7 @@ def pred(
     dbody_dx_norm = dbody_dx_norm.detach().cpu().numpy()
     g_loss = g_loss.detach().cpu().numpy()
     y = y.detach().cpu().numpy()
+    g = g.detach().cpu().numpy()
 
     clear_memory()
     return {
@@ -760,7 +761,8 @@ def pred(
         "loss": loss,
         "grad": dbody_dx_norm,
         "grad_loss": g_loss,
-        "y": y
+        "y": y,
+        "g": g,
     }
 
 def pred_2(whole_model, batch_dict, **kwargs):
