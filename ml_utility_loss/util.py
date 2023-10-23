@@ -29,15 +29,17 @@ def filter_dict(dict, keys):
 def filter_dict_2(dict, keys):
     return {keys[k]: v for k, v in dict.items() if k in keys}
 
-def split_df(df, points, seed=42):
+def split_df(df, points, seed=42, random=True):
+    if random:
+        df = df.sample(frac=1, random_state=seed)
     splits = np.split(
-        df.sample(frac=1, random_state=seed), 
+        df, 
         [int(x*len(df)) for x in points]
     )
     return splits
 
-def split_df_2(df, points, test=-1, val=None, seed=42, return_3=False):
-    splits = split_df(df, points, seed=seed)
+def split_df_2(df, points, test=-1, val=None, return_3=False, **kwargs):
+    splits = split_df(df, points, **kwargs)
 
     test_df = splits[test]
     val_df = splits[val] if val else None
@@ -48,10 +50,10 @@ def split_df_2(df, points, test=-1, val=None, seed=42, return_3=False):
         return train_df, val_df, test_df
     return train_df, test_df
 
-def split_df_ratio(df, ratio=0.2, val=False, i=0, seed=42, return_3=False):
+def split_df_ratio(df, ratio=0.2, val=False, i=0, return_3=False, **kwargs):
     count = int(1.0/ratio)
     splits = [k*ratio for k in range(1, count)]
-    splits = split_df(df, splits, seed=seed)
+    splits = split_df(df, splits, **kwargs)
     test_index = (count - 1 + i)%count
     val_index = (test_index-1)%count if val else None
     n = min([len(s) for s in splits])
@@ -75,11 +77,11 @@ def split_df_ratio(df, ratio=0.2, val=False, i=0, seed=42, return_3=False):
         return train_df, val_df, test_df
     return train_df, test_df
 
-def split_df_kfold(df, ratio=0.2, val=False, filter_i=None, seed=42, return_3=False):
+def split_df_kfold(df, ratio=0.2, val=False, filter_i=None, return_3=False, **kwargs):
     result = []
     count = int(1.0/ratio)
     splits = [k*ratio for k in range(1, count)]
-    splits = split_df(df, splits, seed=seed)
+    splits = split_df(df, splits, **kwargs)
     n = min([len(s) for s in splits])
     n_train = len(df) - ((2 if val else 1) * n)
 
