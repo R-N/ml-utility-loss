@@ -36,15 +36,15 @@ PARAM_SPACE = {
     ]),
     # Common model args
     "d_model": ("int_exp_2", 16, 64), 
-    "dropout": ("float", 0.02, 0.5), #almost random
+    "dropout": ("float", 0.075, 0.5), #almost random
     #"softmax": ("softmax", "relu15"),
     #"flip": False,
     "skip_small": BOOLEAN,
     #"skip_small": False,
     "loss_clamp": ("log_float", 1.0, 8.0), #almost random
     # Transformer args
-    "tf_num_inds": ("int_exp_2", 16, 64),
-    "tf_d_inner": ("int_exp_2", 64, 128),
+    "tf_num_inds": ("int_exp_2", 32, 128),
+    "tf_d_inner": ("int_exp_2", 128, 256),
     "tf_n_layers_enc": ("int", 3, 5), 
     "tf_n_layers_dec": ("int", 2, 4), 
     "tf_n_head": ("int_exp_2", 4, 8), 
@@ -60,7 +60,7 @@ PARAM_SPACE = {
             LoRAMode.LOW_RANK, 
             LoRAMode.LORA,
         )),
-        "tf_lora_rank": ("int_exp_2", 2, 16),
+        "tf_lora_rank": ("bool_int_exp_2", 2, 16),
     }),
     # Transformer PMA args
     "tf_pma": ("conditional", { # False
@@ -91,15 +91,15 @@ PARAM_SPACE = {
     #}),
     # Head args
     "head_n_seeds": ("int", 1, 4),
-    "head_d_hid": ("int_exp_2", 32, 128), 
+    "head_d_hid": ("int_exp_2", 32, 256), 
     "head_n_layers": ("int", 3, 8), 
-    "head_n_head": ("int_exp_2", 4, 16), #16 was never sampled but 8 was top
+    "head_n_head": ("int_exp_2", 8, 16), #16 was never sampled but 8 was top
     "head_activation": ("activation", [
         "leakyrelu", 
         "selu", 
         "identity"
     ]),
-    #"head_pma_rank": ("bool_int_exp_2", 2, 16),
+    "head_pma_rank": ("bool_int_exp_2", 2, 16),
     #"head_lora": ("conditional", {
     #    "head_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
     #    "head_lora_rank": ("int_exp_2", 2, 16),
@@ -107,13 +107,52 @@ PARAM_SPACE = {
 }
 
 PARAM_SPACE_2 = {
-    "dataset_size_low": ("int_exp_2", 32, 256),
+    "dataset_size_low": ("int_exp_2", 64, 256),
     "dataset_size_high": ("int_exp_2", 1024, 4096),
-    "batch_size_low": ("int_exp_2", 1, 2),
-    "batch_size_high": ("int_exp_2", 2, 4), 
+    "batch_size_low": ("int_exp_2", 1, 4),
+    "batch_size_high": ("int_exp_2", 2, 8), 
     "patience": ("log_int", 2, 9)
 }
 
+#0.0034473507694610106
+BEST = {
+    'epochs': 42,
+    'lr': 0.00045939735492863873,
+    'Optim': 'adamw',
+    'non_role_model_mul': 0.6514595921007907,
+    'grad_loss_mul': 0.9227584041693792,
+    'adapter_loss_fn': 'mae',
+    'fixed_role_model': 'tab_ddpm_concat',
+    'gradient_penalty_mode': 'AVERAGE_MUL',
+    'd_model_exp_2': 6,
+    'dropout': 0.07590844670718369,
+    'skip_small': False,
+    'loss_clamp': 2.649579542729948,
+    'tf_num_inds_exp_2': 6,
+    'tf_d_inner_exp_2': 7,
+    'tf_n_layers_enc': 5,
+    'tf_n_layers_dec': 2,
+    'tf_n_head_exp_2': 2,
+    'tf_activation': 'gelu',
+    'tf_isab_rank_bool': True,
+    'tf_isab_rank_exp_2': 1,
+    'tf_lora_boolc': False,
+    'ada_d_hid_exp_2': 3,
+    'ada_n_layers': 4,
+    'ada_activation': 'leakyrelu',
+    'head_n_seeds': 3,
+    'head_d_hid_exp_2': 7,
+    'head_n_layers': 3,
+    'head_n_head_exp_2': 3,
+    'head_activation': 'selu',
+    'dataset_size_low_exp_2': 6,
+    'dataset_size_high_exp_2': 10,
+    'batch_size_low_exp_2': 0,
+    'batch_size_high_exp_2': 2,
+    'patience': 3
+}
+
+"""
 DEFAULT = {
     'epochs': 64,
     'lr': 0.00015695575182672898,
@@ -195,6 +234,7 @@ BEST = {
     'batch_size_high': 4,
     'patience': 8
 }
+"""
 
 """
 DEFAULT = {

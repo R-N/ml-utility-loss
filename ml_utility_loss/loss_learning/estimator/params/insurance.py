@@ -37,7 +37,7 @@ PARAM_SPACE = {
         "AVERAGE_MUL"
     ]),
     # Common model args
-    "d_model": ("int_exp_2", 16, 32), 
+    "d_model": ("int_exp_2", 16, 128), 
     "dropout": ("float", 0.05, 0.5),  #almost random
     #"softmax": ("softmax", "relu15"),
     #"flip": False,
@@ -46,23 +46,23 @@ PARAM_SPACE = {
     "loss_clamp": ("log_float", 0.5, 1.0), #almost random
     # Transformer args
     "tf_num_inds": ("int_exp_2", 64, 128),
-    "tf_d_inner": ("int_exp_2", 64, 128),
+    "tf_d_inner": ("int_exp_2", 128, 256),
     "tf_n_layers_enc": ("int", 4, 5), 
     "tf_n_layers_dec": ("int", 2, 4), 
-    "tf_n_head": ("int_exp_2", 2, 4), 
+    "tf_n_head": ("int_exp_2", 4, 8), 
     "tf_activation": ("activation", ["relu", "gelu"]),
     "tf_isab_mode": ("categorical", (
         ISABMode.SEPARATE, #about the same as shared
         ISABMode.SHARED,
         ISABMode.MINI, #bad
     )),
-    "tf_isab_rank": ("bool_int_exp_2", 4, 16),
+    "tf_isab_rank": ("bool_int_exp_2", 8, 16),
     "tf_lora": ("conditional", {
         "tf_lora_mode": ("categorical", (
             LoRAMode.LOW_RANK, 
             LoRAMode.LORA,
         )),
-        "tf_lora_rank": ("int_exp_2", 2, 8),
+        "tf_lora_rank": ("bool_int_exp_2", 2, 16),
     }),
     # Transformer PMA args
     "tf_pma": ("conditional", {
@@ -74,12 +74,12 @@ PARAM_SPACE = {
     "tf_share_ffn": BOOLEAN,
     #"tf_share_ffn": True, 
     # Adapter args
-    "ada_d_hid": ("int_exp_2", 32, 128), 
-    "ada_n_layers": ("int", 3, 4), 
+    "ada_d_hid": ("int_exp_2", 64, 256), 
+    "ada_n_layers": ("int", 3, 5), 
     "ada_activation": ("activation", [
         "tanh",  
         "relu", 
-        "selu", "gelu", 
+        "selu", 
         "identity"
     ]),
     "ada_activation_final": ("activation", [
@@ -93,7 +93,7 @@ PARAM_SPACE = {
     # Head args
     "head_n_seeds": ("int", 5, 8), # 1 was never sampled or always pruned
     "head_d_hid": ("int_exp_2", 128, 256), 
-    "head_n_layers": ("int", 4, 7), 
+    "head_n_layers": ("int", 4, 6), 
     "head_n_head": ("int_exp_2", 8, 16),
     "head_activation": ("activation", [
         "leakyrelu", 
@@ -111,7 +111,7 @@ PARAM_SPACE = {
         "minus",
         "oneminus",
     ]),
-    #"head_pma_rank": ("bool_int_exp_2", 2, 16),
+    "head_pma_rank": ("bool_int_exp_2", 2, 16),
     #"head_lora": ("conditional", {
     #    "head_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
     #    "head_lora_rank": ("int_exp_2", 2, 16),
@@ -119,13 +119,54 @@ PARAM_SPACE = {
 }
 
 PARAM_SPACE_2 = {
-    "dataset_size_low": ("int_exp_2", 32, 128),
+    "dataset_size_low": ("int_exp_2", 128, 256),
     "dataset_size_high": ("int_exp_2", 2048, 2048), # param must exist
-    "batch_size_low": ("int_exp_2", 1, 2),
-    "batch_size_high": ("int_exp_2", 2, 4),
+    "batch_size_low": ("int_exp_2", 1, 4),
+    "batch_size_high": ("int_exp_2", 2, 8),
     "patience": ("log_int", 2, 9)
 }
 
+# 1.7655762349022552e-05
+BEST = {
+    'epochs': 68,
+    'lr': 0.0009227193547271108,
+    'Optim': 'adam',
+    'non_role_model_mul': 0.3616428828984363,
+    'grad_loss_mul': 0.6671878195693722,
+    'adapter_loss_fn': 'huber',
+    'fixed_role_model': 'lct_gan',
+    'gradient_penalty_mode': 'AVERAGE_MUL',
+    'd_model_exp_2': 5,
+    'dropout': 0.05262517572043549,
+    'skip_small': False,
+    'loss_clamp': 0.519078518694728,
+    'tf_num_inds_exp_2': 6,
+    'tf_d_inner_exp_2': 7,
+    'tf_n_layers_enc': 4,
+    'tf_n_layers_dec': 3,
+    'tf_n_head_exp_2': 2,
+    'tf_activation': 'relu',
+    'tf_isab_rank_bool': True,
+    'tf_isab_rank_exp_2': 3,
+    'tf_lora_boolc': True,
+    'tf_lora_mode': 'lora',
+    'tf_lora_rank_exp_2': 3,
+    'ada_d_hid_exp_2': 7,
+    'ada_n_layers': 4,
+    'ada_activation': 'identity',
+    'head_n_seeds': 8,
+    'head_d_hid_exp_2': 7,
+    'head_n_layers': 4,
+    'head_n_head_exp_2': 4,
+    'head_activation': 'leakyrelu',
+    'dataset_size_low_exp_2': 6,
+    'dataset_size_high_exp_2': 11,
+    'batch_size_low_exp_2': 0,
+    'batch_size_high_exp_2': 5,
+    'patience': 7
+}
+
+"""
 # 1.772324976627715e-05
 BEST = {
     'epochs': 80,
@@ -168,7 +209,7 @@ BEST = {
     'batch_size_high': 4,
     'patience': 7
 }
-
+"""
 """
 DEFAULT = {
     "epochs": 75, 

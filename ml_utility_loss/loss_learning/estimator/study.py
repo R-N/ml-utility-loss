@@ -9,6 +9,7 @@ def objective(
     checkpoint_dir=None,
     log_dir=None,
     trial=None,
+    g_loss_mul=0.5,
     **kwargs
 ):
     try:
@@ -20,7 +21,7 @@ def objective(
             **kwargs
         )
         eval_loss = train_results["eval_loss"]
-        return eval_loss["avg_loss"]
+        return eval_loss["avg_loss"] + g_loss_mul * eval_loss["avg_g_loss"]
     except AssertionError as ex:
         msg = str(ex)
         if "Invalid attention dim and n_head" in msg:
@@ -41,6 +42,7 @@ def objective_2(
     checkpoint_dir=None,
     log_dir=None,
     trial=None,
+    g_loss_mul=0.5,
     **kwargs
 ):
     try:
@@ -62,7 +64,7 @@ def objective_2(
             **kwargs
         )
         eval_loss = train_results["eval_loss"]
-        return eval_loss["avg_loss"]
+        return eval_loss["avg_loss"] + g_loss_mul * eval_loss["avg_g_loss"]
 
     except AssertionError as ex:
         msg = str(ex)
