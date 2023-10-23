@@ -529,14 +529,15 @@ class ConcatDataset(BaseDataset):
     
     def set_size(self, size, **kwargs):
         if np.array([dataset.set_size(size, **kwargs) for dataset in self.datasets]).any():
-            self.size = self.dataset.size
+            assert len(set([dataset.size for dataset in self.datasets])) == 1
+            self.size = self.datasets[0].size
             self.clear_cache()
             return True
         return False
     
     def set_aug_scale(self, aug_scale, **kwargs):
         if np.array([dataset.set_aug_scale(aug_scale, **kwargs) for dataset in self.datasets]).any():
-            self.aug_scale = self.dataset.aug_scale
+            self.aug_scale = aug_scale
             self.clear_cache()
             return True
         return False
