@@ -213,8 +213,8 @@ class WrapperDataset(BaseDataset):
     
     def set_size(self, size, **kwargs):
         if self.dataset.set_size(size, **kwargs):
-            self.clear_cache()
             self.size = self.dataset.size
+            self.clear_cache()
             return True
         return False
     
@@ -347,15 +347,15 @@ class OverlapDataset(BaseDataset):
         #size = size or self.all
         if not force and hasattr(self, "size") and self.size == size:
             return False
-        self.clear_cache()
         self.size = size
+        self.clear_cache()
         return True
 
     def set_aug_scale(self, aug_scale, force=False):
         if not force and hasattr(self, "aug_scale") and self.aug_scale == aug_scale:
             return False
-        self.clear_cache()
         self.aug_scale = aug_scale
+        self.clear_cache()
         return True
 
     def __len__(self):
