@@ -142,7 +142,7 @@ ACTIVATIONS = {
     "gelu": torch.nn.GELU,
     "silu": torch.nn.SiLU,
     "swish": torch.nn.SiLU,
-    "msih": torch.nn.Mish,
+    "mish": torch.nn.Mish,
 }
 BOOLEAN = ("categorical", [True, False])
 SOFTMAXES = {
