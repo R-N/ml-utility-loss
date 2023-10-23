@@ -20,9 +20,16 @@ class LowRankLinear(nn.Module):
         self.lin_2 = nn.Linear(rank, out_features, bias=bias, **kwargs)
 
     def forward(self, x):
-        x = self.lin_1(x)
-        x = self.lin_2(x)
-        return x
+        try:
+            x0 = x
+            x1 = x = self.lin_1(x0)
+            x2 = x = self.lin_2(x1)
+            return x
+        except IndexError as ex:
+            msg = str(ex)
+            if "Dimension out of range" in msg:
+                raise IndexError(f"{msg}. {x0.shape} {x.shape}.") from ex
+            raise
     
 def LowRankLinearFactory(rank):
     def f(*args, **kwargs):
