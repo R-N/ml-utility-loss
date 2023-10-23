@@ -32,6 +32,8 @@ def filter_dict_2(dict, keys):
 def split_df(df, points, seed=42, random=True):
     if random:
         df = df.sample(frac=1, random_state=seed)
+    else:
+        print("Splitting without random!")
     splits = np.split(
         df, 
         [int(x*len(df)) for x in points]
