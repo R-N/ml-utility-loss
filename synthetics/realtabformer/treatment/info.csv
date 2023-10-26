@@ -1,6 +1,6 @@
 ,synth,train,val,test,synth_value,real_value
-0,0/synth.csv,0/train.csv,0/val.csv,0/test.csv,0.6331471135940411,0.6404715127701376
-1,1/synth.csv,1/train.csv,1/val.csv,1/test.csv,0.6424682395644283,0.5714285714285714
-2,2/synth.csv,2/train.csv,2/val.csv,2/test.csv,0.6215644820295982,0.5478841870824054
-3,3/synth.csv,3/train.csv,3/val.csv,3/test.csv,0.5611814345991561,0.5974025974025974
-4,4/synth.csv,4/train.csv,4/val.csv,4/test.csv,0.6349892008639307,0.6143790849673202
+0,0/synth.csv,0/train.csv,0/val.csv,0/test.csv,0.6436363636363636,0.6454183266932271
+1,1/synth.csv,1/train.csv,1/val.csv,1/test.csv,0.5865580448065173,0.6035502958579881
+2,2/synth.csv,2/train.csv,2/val.csv,2/test.csv,0.6654867256637169,0.5750528541226215
+3,3/synth.csv,3/train.csv,3/val.csv,3/test.csv,0.6150627615062761,0.625
+4,4/synth.csv,4/train.csv,4/val.csv,4/test.csv,0.6215139442231075,0.6612244897959185
