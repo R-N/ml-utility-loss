@@ -112,8 +112,7 @@ def map_parameters(params_raw, param_space={}, param_map={}):
             if not done and type_0 in param_map:
                 try:
                     v = param_map[type_0][v]
-                    done = True
-                    break
+                    done = True # NO BREAK, NO LOOP HERE
                 except KeyError:
                     pass
         if not done:
