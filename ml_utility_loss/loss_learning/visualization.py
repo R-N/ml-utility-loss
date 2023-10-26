@@ -29,7 +29,7 @@ def plot_grad_2(y, models, loss="loss", grad="grad", g="g", **kwargs):
 
 def plot_density(series, *args, **kwargs):
     try:
-        return series.plot.kde(**args, **kwargs)
+        return series.plot.kde(*args, **kwargs)
     except LinAlgError:
         pass
 
