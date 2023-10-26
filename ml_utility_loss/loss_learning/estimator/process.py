@@ -171,7 +171,8 @@ def train_epoch(
     models = None,
     head="mlu",
     eps=1e-6,
-    timer=None
+    timer=None,
+    allow_same_prediction=True,
 ):
     assert optim or val, "Optimizer must be provided if val is false"
     #torch.autograd.set_detect_anomaly(True)
@@ -531,7 +532,7 @@ def train_epoch(
         max_pred_i = torch.max(pred).item()
         min_pred_i = torch.min(pred).item()
         
-        assert batch_size == 1 or max_pred_i != min_pred_i, f"model predicts the same for every input, {min_pred_i}"
+        assert allow_same_prediction or batch_size == 1 or max_pred_i != min_pred_i, f"model predicts the same for every input, {min_pred_i}"
 
         max_pred = max(max_pred_i, max_pred)
         min_pred = min(min_pred_i, min_pred)
@@ -580,6 +581,7 @@ def eval(
     grad_loss_fn=F.mse_loss, #for RMSE,
     reduction=torch.sum,
     models=None,
+    allow_same_prediction=True,
 ):
     size = len(eval_loader.dataset)
 
@@ -658,7 +660,7 @@ def eval(
             max_pred_i = torch.max(pred).item()
             min_pred_i = torch.min(pred).item()
             
-            assert batch_size == 1 or max_pred_i != min_pred_i, f"model predicts the same for every input, {min_pred_i}"
+            assert allow_same_prediction or batch_size == 1 or max_pred_i != min_pred_i, f"model predicts the same for every input, {min_pred_i}"
 
             max_preds[model] = max(max_pred_i, max_preds[model])
             min_preds[model] = min(min_pred_i, min_preds[model])
