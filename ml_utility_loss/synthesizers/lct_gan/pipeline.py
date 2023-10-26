@@ -43,7 +43,8 @@ def create_gan(
         epochs=epochs, 
     )
 
-    synth_df = gan.sample(sample or len(df))
+    n = sample or len(df)
+    synth_df = gan.sample(n)[:n]
 
     return gan, synth_df
 
