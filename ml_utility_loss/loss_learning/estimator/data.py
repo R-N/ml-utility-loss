@@ -177,8 +177,13 @@ class DatasetDataset(BaseDataset):
             return self.cache[idx]
 
         info = self.info[idx]
-        train = pd.read_csv(os.path.join(self.dir, fix_path(info[self.train])))
         test = pd.read_csv(os.path.join(self.dir, fix_path(info[self.test])))
+        train = pd.read_csv(os.path.join(self.dir, fix_path(info[self.train])))
+
+        #drop index if exists
+        if len(train.columns) > len(test.columns):
+            train.drop(train.columns[0], axis=1, inplace=True)
+
         y = info[self.value]
 
         if self.mode == "shuffle":
