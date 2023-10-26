@@ -612,6 +612,8 @@ def eval(
                 train, test, model
             )
 
+            print(pred.shape, y.shape)
+
             time_1 = time.time()
             # We reduce directly because no further need for shape
             loss = loss_fn(pred, y, reduction="none")
@@ -640,11 +642,6 @@ def eval(
 
             pred_duration[model] += time_1 - time_0
             grad_duration[model] += time_2 - time_1
-
-            m = whole_model.adapters[model](train)
-            m_test = whole_model.adapters[model](test)
-            print(model, train, m)
-            print(model, test, m_test)
 
 
         n_size += batch_size
