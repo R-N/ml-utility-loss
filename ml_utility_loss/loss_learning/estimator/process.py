@@ -531,7 +531,7 @@ def train_epoch(
         max_pred_i = torch.max(pred).item()
         min_pred_i = torch.min(pred).item()
         
-        assert batch_size == 1 or max_pred_i != min_pred_i
+        assert batch_size == 1 or max_pred_i != min_pred_i, "model predicts the same for every input"
 
         max_pred = max(max_pred_i, max_pred)
         min_pred = min(min_pred_i, min_pred)
@@ -658,7 +658,7 @@ def eval(
             max_pred_i = torch.max(pred).item()
             min_pred_i = torch.min(pred).item()
             
-            assert batch_size == 1 or max_pred_i != min_pred_i
+            assert batch_size == 1 or max_pred_i != min_pred_i, "model predicts the same for every input"
 
             max_preds[model] = max(max_pred_i, max_preds[model])
             min_preds[model] = min(min_pred_i, min_preds[model])
