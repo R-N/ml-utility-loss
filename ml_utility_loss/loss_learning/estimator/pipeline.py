@@ -142,7 +142,7 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
         info_out.to_csv(info_path)
     return info_out
 
-def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params={}, save_info="info.csv"):
+def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params={}, save_info="info.csv", drop_first_column=True):
     target = info["target"]
     task = info["task"]
     cat_features = info["cat_features"]
@@ -178,6 +178,13 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
         df_val = pd.read_csv(os.path.join(data_dir, obj["val"]))
         df_test = pd.read_csv(os.path.join(data_dir, obj["test"]))
 
+        if drop_first_column:
+            df_train.drop(df_train.columns[0], axis=1, inplace=True)
+            df_synth.drop(df_synth.columns[0], axis=1, inplace=True)
+            df_val.drop(df_val.columns[0], axis=1, inplace=True)
+            df_test.drop(df_test.columns[0], axis=1, inplace=True)
+
+        assert len(df_synth) == len(df_train)
             
         synth_value = eval_ml_utility(
             (df_synth, df_val),
