@@ -193,6 +193,8 @@ def train_epoch(
     non_role_model_avg_mul = 1.0/non_role_model_count if non_role_model_avg else 1.0
 
     role_model = None
+    max_pred = 0
+    min_pred = 1
 
     clear_memory()
 
@@ -525,6 +527,9 @@ def train_epoch(
         avg_non_role_model_g_loss += try_tensor_item(non_role_model_g_loss)
         avg_non_role_model_embed_loss += try_tensor_item(non_role_model_embed_loss)
         avg_loss += try_tensor_item(batch_loss)
+
+        max_pred = max(torch.max(pred).item(), max_pred)
+        min_pred = min(torch.min(pred).item(), min_pred)
     
         n_size += batch_size
         n_batch += 1
@@ -558,6 +563,8 @@ def train_epoch(
         "duration": duration,
         "duration_batch": duration_batch,
         "duration_size": duration_size,
+        "max_pred": max_pred,
+        "min_pred": min_pred,
     }
 
 
@@ -588,6 +595,8 @@ def eval(
     ys = {model: [] for model in models}
     gs = {model: [] for model in models}
     grads = {model: [] for model in models}
+    max_preds = {model: 0 for model in models}
+    min_preds = {model: 1 for model in models}
 
     clear_memory()
 
@@ -643,6 +652,9 @@ def eval(
             pred_duration[model] += time_1 - time_0
             grad_duration[model] += time_2 - time_1
 
+            max_preds[model] = max(torch.max(pred).item(), max_preds[model])
+            min_preds[model] = min(torch.min(pred).item(), min_preds[model])
+
 
         n_size += batch_size
         n_batch += 1
@@ -688,6 +700,8 @@ def eval(
             "pred_duration": pred_duration[model],
             "grad_duration": grad_duration[model],
             "total_duration": total_duration[model],
+            "max_pred": max_preds[model],
+            "min_pred": min_preds[model],
             **pred_metrics[model],
             **grad_metrics[model],
         }
@@ -706,6 +720,8 @@ def eval(
         "avg_grad_duration": avg_grad_duration,
         "avg_total_duration": avg_total_duration,
         "model_metrics": model_metrics,
+        "max_pred": max(max_preds.values()),
+        "min_pred": min(min_preds.values()),
     }
 
 def calc_metrics(pred, y, prefix=""):
