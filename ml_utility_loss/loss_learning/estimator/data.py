@@ -142,7 +142,7 @@ class BaseDataset(Dataset):
 
 class DatasetDataset(BaseDataset):
 
-    def __init__(self, dir, file="info.csv", Tensor=None, mode="shuffle", train="synth", test="test", value="synth_value", **kwargs):
+    def __init__(self, dir, file="info.csv", Tensor=None, mode="shuffle", train="synth", test="test", value="synth_value", drop_first_column=False, **kwargs):
         super().__init__(**kwargs)
         self._dir = dir
         subdir = self.size
@@ -158,6 +158,7 @@ class DatasetDataset(BaseDataset):
         self.value = value
         assert mode in ("shuffle", "sort")
         self.mode = mode
+        self.drop_first_column = drop_first_column
 
     def set_size(self, size, force=False):
         return False
@@ -180,8 +181,10 @@ class DatasetDataset(BaseDataset):
         test = pd.read_csv(os.path.join(self.dir, fix_path(info[self.test])))
         train = pd.read_csv(os.path.join(self.dir, fix_path(info[self.train])))
 
-        #drop index if exists
-        if len(train.columns) > len(test.columns):
+        #drop index
+        if "" in list(test.columns) or self.drop_first_column:
+            test.drop(test.columns[0], axis=1, inplace=True)
+        if len(train.columns) > len(test.columns) or "" in list(train.columns) or self.drop_first_column:
             train.drop(train.columns[0], axis=1, inplace=True)
 
         y = info[self.value]
