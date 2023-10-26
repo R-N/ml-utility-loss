@@ -122,6 +122,7 @@ def map_parameters(params_raw, param_space={}, param_map={}):
                     if not done and type_0 == "conditional":
                         print({k: v}, args[0])
                         v = map_parameters({k: v}, args[0], param_map=param_map)
+                        print(v)
                         done = True
                     break
         if not done:
