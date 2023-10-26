@@ -629,7 +629,7 @@ def eval(
             g = 2 * torch.sqrt(loss.detach())
             g_loss = grad_loss_fn(dbody_dx_norm, g, reduction="none")
             
-            print(model, pred)
+            print(model, train, test, y, pred)
             preds[model].extend(pred.detach().cpu())
             grads[model].extend(dbody_dx_norm.detach().cpu())
             gs[model].extend(g.detach().cpu())
