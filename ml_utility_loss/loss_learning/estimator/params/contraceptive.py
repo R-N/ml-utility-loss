@@ -20,7 +20,7 @@ PARAM_SPACE = {
     "grad_loss_fn": ("loss", ["mse", "mae", "huber"]),
     "adapter_loss_fn": ("loss", ["mse", "mae", "huber"]),
     "fixed_role_model": ("categorical", [
-        #"lct_gan", 
+        #None, 
         "tvae", 
         "lct_gan", 
         "lct_gan_latent", 
