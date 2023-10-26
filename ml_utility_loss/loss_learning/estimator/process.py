@@ -629,7 +629,6 @@ def eval(
             g = 2 * torch.sqrt(loss.detach())
             g_loss = grad_loss_fn(dbody_dx_norm, g, reduction="none")
             
-            print(model, train, test, y, pred)
             preds[model].extend(pred.detach().cpu())
             grads[model].extend(dbody_dx_norm.detach().cpu())
             gs[model].extend(g.detach().cpu())
@@ -641,6 +640,11 @@ def eval(
 
             pred_duration[model] += time_1 - time_0
             grad_duration[model] += time_2 - time_1
+
+            m = whole_model.adapters[model](train)
+            m_test = whole_model.adapters[model](test)
+            print(model, train, m)
+            print(model, test, m_test)
 
 
         n_size += batch_size
