@@ -528,8 +528,13 @@ def train_epoch(
         avg_non_role_model_embed_loss += try_tensor_item(non_role_model_embed_loss)
         avg_loss += try_tensor_item(batch_loss)
 
-        max_pred = max(torch.max(pred).item(), max_pred)
-        min_pred = min(torch.min(pred).item(), min_pred)
+        max_pred_i = torch.max(pred).item()
+        min_pred_i = torch.min(pred).item()
+        
+        assert batch_size == 1 or max_pred_i != min_pred_i
+
+        max_pred = max(max_pred_i, max_pred)
+        min_pred = min(min_pred_i, min_pred)
     
         n_size += batch_size
         n_batch += 1
@@ -621,8 +626,6 @@ def eval(
                 train, test, model
             )
 
-            print(pred.shape, y.shape)
-
             time_1 = time.time()
             # We reduce directly because no further need for shape
             loss = loss_fn(pred, y, reduction="none")
@@ -652,8 +655,13 @@ def eval(
             pred_duration[model] += time_1 - time_0
             grad_duration[model] += time_2 - time_1
 
-            max_preds[model] = max(torch.max(pred).item(), max_preds[model])
-            min_preds[model] = min(torch.min(pred).item(), min_preds[model])
+            max_pred_i = torch.max(pred).item()
+            min_pred_i = torch.min(pred).item()
+            
+            assert batch_size == 1 or max_pred_i != min_pred_i
+
+            max_preds[model] = max(max_pred_i, max_preds[model])
+            min_preds[model] = min(min_pred_i, min_preds[model])
 
 
         n_size += batch_size
