@@ -22,18 +22,19 @@ from ...params import ISABMode, LoRAMode, HeadFinalMul
 from torch.utils.tensorboard import SummaryWriter
 from copy import deepcopy
 
-def augment(df, info, save_dir, n=1, test=0.2):
+def augment(df, info, save_dir, n=1, test=0.2, augmenter=None):
     mkdir(save_dir)
-    aug = DataAugmenter(
-        cat_features=info["cat_features"]
-    )
-    aug.fit(df)
+    if not augmenter:
+        augmenter = DataAugmenter(
+            cat_features=info["cat_features"]
+        )
+        augmenter.fit(df)
     for i in range(n):
         df_train = df
         if test:
             df_test = df.sample(frac=test)
             df_train = df_train[~df_train.index.isin(df_test.index)]
-        df_aug = aug.augment(df_train)
+        df_aug = augmenter.augment(df_train)
         df_aug.drop("aug", axis=1, inplace=True)
         df_aug.to_csv(os.path.join(save_dir, f"{i}_aug.csv"))
         df_train.to_csv(os.path.join(save_dir, f"{i}_train.csv"))
