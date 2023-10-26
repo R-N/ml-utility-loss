@@ -145,8 +145,9 @@ class DatasetDataset(BaseDataset):
     def __init__(self, dir, file="info.csv", Tensor=None, mode="shuffle", train="synth", test="test", value="synth_value", **kwargs):
         super().__init__(**kwargs)
         self._dir = dir
-        subdir = str(self.size)
+        subdir = self.size
         if subdir:
+            subdir = str(subdir)
             dir = os.path.join(dir, subdir)
         self.dir = dir
         self.info_all = pd.read_csv(os.path.join(dir, file))
