@@ -1,0 +1,6 @@
+{
+    "latent_dim": 16,
+    "epochs": 776,
+    "n_critic": 2,
+    "batch_size": 1024
+}

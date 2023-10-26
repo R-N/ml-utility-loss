@@ -1,0 +1,16 @@
+{
+    "embedding_dim": 128,
+    "compress_dims": [
+        128,
+        128,
+        128
+    ],
+    "decompress_dims": [
+        32,
+        32
+    ],
+    "l2scale": 1.6390893391694554e-05,
+    "batch_size": 128,
+    "epochs": 983,
+    "loss_factor": 1.1781779412009343
+}

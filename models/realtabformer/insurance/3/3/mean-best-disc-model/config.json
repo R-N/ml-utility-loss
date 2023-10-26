@@ -1,0 +1,31 @@
+{
+  "activation_function": "silu",
+  "architectures": [
+    "GPT2LMHeadModel"
+  ],
+  "attn_pdrop": 0.19505395766868772,
+  "bos_token_id": 5,
+  "embd_pdrop": 0.15973197964190122,
+  "eos_token_id": 6,
+  "initializer_range": 0.020939009147278642,
+  "layer_norm_epsilon": 3.177679957145914e-05,
+  "model_type": "gpt2",
+  "n_embd": 800,
+  "n_head": 32,
+  "n_inner": null,
+  "n_layer": 12,
+  "n_positions": 2048,
+  "reorder_and_upcast_attn": false,
+  "resid_pdrop": 0.05023809244858679,
+  "scale_attn_by_inverse_layer_idx": true,
+  "scale_attn_weights": true,
+  "summary_activation": null,
+  "summary_first_dropout": 0.1,
+  "summary_proj_to_labels": true,
+  "summary_type": "cls_index",
+  "summary_use_proj": true,
+  "torch_dtype": "float32",
+  "transformers_version": "4.28.0",
+  "use_cache": true,
+  "vocab_size": 550
+}

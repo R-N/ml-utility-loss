@@ -1,0 +1,19 @@
+{
+    "lr": 0.00046012302895792503,
+    "weight_decay": 0.00042109595980701183,
+    "batch_size": 512,
+    "num_timesteps": 200,
+    "gaussian_loss_type": "mse",
+    "cat_encoding": "ordinal",
+    "steps": 46415,
+    "rtdl_params": {
+        "dropout": 0.07748751171373565,
+        "d_layers": [
+            128,
+            2048,
+            2048,
+            2048,
+            2048
+        ]
+    }
+}
