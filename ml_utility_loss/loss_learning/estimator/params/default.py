@@ -3,7 +3,7 @@ from ....params import BOOLEAN, ISABMode, LoRAMode
 PARAM_SPACE = {
     # Dataset args
     "dataset_size": ("int_exp_2", 32, 2048),
-    "batch_size": ("int_exp_2", 1, 4),
+    "batch_size": ("int_exp_2", 2, 4),
     # Training args
     "epochs": ("log_int", 20, 1000),
     "lr": ("log_float", 1e-5, 1e-3),
@@ -101,7 +101,7 @@ PARAM_SPACE = {
 PARAM_SPACE_2 = {
     "dataset_size_low": ("int_exp_2", 32, 256),
     "dataset_size_high": ("int_exp_2", 1024, 4096),
-    "batch_size_low": ("int_exp_2", 1, 2),
+    "batch_size_low": ("int_exp_2", 2, 2),
     "batch_size_high": ("int_exp_2", 2, 4),
     "patience": ("log_int", 2, 10)
 }

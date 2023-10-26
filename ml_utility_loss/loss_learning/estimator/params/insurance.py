@@ -5,7 +5,7 @@ from torch.nn import functional as F
 PARAM_SPACE = {
     # Dataset args
     "dataset_size": ("int_exp_2", 32, 2048),
-    "batch_size": ("int_exp_2", 1, 4),
+    "batch_size": ("int_exp_2", 2, 4),
     # Training args
     "epochs": ("log_int", 60, 100),
     "lr": ("log_float", 5e-5, 1e-3),
@@ -121,7 +121,7 @@ PARAM_SPACE = {
 PARAM_SPACE_2 = {
     "dataset_size_low": ("int_exp_2", 128, 256),
     "dataset_size_high": ("int_exp_2", 2048, 2048), # param must exist
-    "batch_size_low": ("int_exp_2", 1, 4),
+    "batch_size_low": ("int_exp_2", 2, 4),
     "batch_size_high": ("int_exp_2", 2, 8),
     "patience": ("log_int", 2, 9)
 }
