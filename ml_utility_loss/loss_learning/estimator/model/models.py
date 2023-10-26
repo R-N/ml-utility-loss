@@ -427,7 +427,9 @@ class Head(nn.Module):
         #print("Head.check_cuda", check_cuda(self))
 
     def forward(self, x, return_attns=False):
+        print("Pre PMA", x)
         x, pma_attn = self.pma(x)
+        print("Post PMA", x)
         x = x.flatten(-2, -1)
         try:
             y = self.linear(x)
