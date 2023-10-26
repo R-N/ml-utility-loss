@@ -420,6 +420,7 @@ def train(
     DataLoader=DataLoader,
     multiprocessing_context=None,
     broken_loader_counter=3,
+    allow_same_prediction=True,
     **model_args
 ):
     timer = timer or (Timer(max_seconds=max_seconds) if max_seconds else None)
@@ -500,6 +501,7 @@ def train(
             loss_clamp=loss_clamp,
             grad_clip=grad_clip,
             head=head,
+            allow_same_prediction=allow_same_prediction,
             **gradient_penalty_mode,
         )
         return loss
@@ -603,6 +605,7 @@ def train(
         persistent_workers=persistent_workers,
         DataLoader=DataLoader,
         multiprocessing_context=multiprocessing_context,
+        allow_same_prediction=allow_same_prediction,
     )
     #print("[INFO] Done eval", i, torch.cuda.mem_get_info())
 
