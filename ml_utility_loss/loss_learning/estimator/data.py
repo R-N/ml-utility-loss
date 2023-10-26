@@ -519,6 +519,10 @@ class ConcatDataset(BaseDataset):
         return self.count
     
     def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+        if hasattr(idx, "__iter__"):
+            return stack_sample_dicts([self[id] for id in idx])
         assert idx < len(self)
         prev = 0
         for i, ci in enumerate(self.cumulatives):
