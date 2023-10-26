@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import os
 from ..util import sorted_nicely
 import pandas as pd
+from scipy.linalg import LinAlgError
 
 
 def plot_grad(loss, grad, fig=None, ax=None, name=None, **kwargs):
@@ -26,26 +27,36 @@ def plot_grad_2(y, models, loss="loss", grad="grad", g="g", **kwargs):
     ax.legend(axes)
     return fig
 
+def plot_density(series, *args, **kwargs):
+    try:
+        return series.plot.kde(**args, **kwargs)
+    except LinAlgError:
+        pass
+
 def plot_synth_real_density(info_path, synth="synth", fig=None, ax=None, real=True, real_linestyle="solid", col="synth_value", real_col="real_value", **kwargs):
     if not ax:
         fig, ax = plt.subplots()
     df = pd.read_csv(info_path)
-    df[col].plot.kde(alpha=0.5, ax=ax, linestyle="dashed", **kwargs)
+
+    axes = []
+    if plot_density(df[col], alpha=0.5, ax=ax, linestyle="dashed", **kwargs):
+        axes.append(synth)
     if real:
-        df[real_col].plot.kde(alpha=0.5, ax=ax, linestyle=real_linestyle, **kwargs)
-    axes = [synth]
-    if real:
-        axes.append("real")
+        if plot_density(df[real_col], alpha=0.5, ax=ax, linestyle=real_linestyle, **kwargs):
+            axes.append("real")
     
     leg = ax.legend(axes)
+
     return fig
 
 def plot_pred_density(pred, y, fig=None, ax=None, real_linestyle="solid", title=None, **kwargs):
     if not ax:
         fig, ax = plt.subplots()
-    pd.Series(pred).plot.kde(alpha=0.5, ax=ax, linestyle="dashed", **kwargs)
-    pd.Series(y).plot.kde(alpha=0.5, ax=ax, linestyle=real_linestyle, **kwargs)
-    axes = ["pred", "y"]
+    axes = []
+    if plot_density(pd.Series(pred), alpha=0.5, ax=ax, linestyle="dashed", **kwargs):
+        axes.append("pred")
+    if plot_density(pd.Series(y), alpha=0.5, ax=ax, linestyle=real_linestyle, **kwargs):
+        axes.append("y")
     
     leg = ax.legend(axes)
 
