@@ -132,8 +132,9 @@ OPTIMS = {
     "sgd": torch.optim.SGD,
 }
 ACTIVATIONS = {
-    #None: torch.nn.Identity,
+    None: torch.nn.Identity,
     "identity": torch.nn.Identity,
+    "linear": torch.nn.Identity,
     "relu": torch.nn.ReLU,
     "tanh": torch.nn.Tanh,
     "sigmoid": torch.nn.Sigmoid,
@@ -155,7 +156,8 @@ SOFTMAXES = {
 ACTIVATIONS = {**SOFTMAXES, **ACTIVATIONS}
 ACTIVATIONS_INVERSE = {v: k for k, v in ACTIVATIONS.items()}
 ACTIVATIONS_INVERSE = {**ACTIVATIONS_INVERSE, **{v: "sigmoid" for v in SOFTMAXES.values()}}
-ACTIVATIONS_INVERSE[None] = "identity"
+ACTIVATIONS_INVERSE[None] = "linear"
+ACTIVATIONS_INVERSE[torch.nn.Identity] = "linear"
 GRADIENT_PENALTY_MODES = GradientPenaltyMode.DICT
 PARAM_MAP = {
     "loss": LOSSES,
