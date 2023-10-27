@@ -456,7 +456,7 @@ class DoubleFeedForward(nn.Module):
 
 class FeedForward(nn.Module):
 
-    def __init__(self, d_in, d_out, activation=nn.Sigmoid, dropout=0.1, layer_norm=False, residual=True, device=DEFAULT_DEVICE, Linear=nn.Linear):
+    def __init__(self, d_in, d_out, activation=nn.Sigmoid, dropout=0.1, layer_norm=True, residual=True, device=DEFAULT_DEVICE, Linear=nn.Linear):
         super().__init__()
         self.w = Linear(d_in, d_out) # position-wise
         self.residual = residual and d_in == d_out

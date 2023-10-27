@@ -44,6 +44,7 @@ PARAM_SPACE = {
     "skip_small": False,
     #"skip_small": True,
     "loss_clamp": ("log_float", 0.6, 1.0), #almost random
+    "layer_norm": BOOLEAN,
     # Transformer args
     "tf_num_inds": ("int_exp_2", 64, 128),
     "tf_d_inner": ("int_exp_2", 128, 256),

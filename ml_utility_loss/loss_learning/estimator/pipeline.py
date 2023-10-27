@@ -256,6 +256,7 @@ def create_model(
     softmax=ReLU15,
     flip=False,
     skip_small=False,
+    layer_norm=True,
     # Transformer args
     tf_num_inds=32,
     tf_d_inner=64,
@@ -335,6 +336,7 @@ def create_model(
             "activation_final": ada_activation_final,
             "lora_mode":ada_lora_mode,
             "lora_rank":ada_lora_rank,
+            "layer_norm": layer_norm,
         },
         head_args={
             "n_seeds": head_n_seeds,
@@ -350,6 +352,7 @@ def create_model(
             "softmax": softmax,
             "lora_mode":head_lora_mode,
             "lora_rank":head_lora_rank,
+            "layer_norm": layer_norm,
         }
     )
     return whole_model

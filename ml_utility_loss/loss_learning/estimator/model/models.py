@@ -281,6 +281,7 @@ class Adapter(nn.Module):
         lora_mode=LoRAMode.FULL,
         lora_rank=2,
         device=DEFAULT_DEVICE,
+        layer_norm=True,
         **kwargs,
     ):
         super().__init__()
@@ -303,6 +304,7 @@ class Adapter(nn.Module):
                 activation=activation,
                 device=device,
                 Linear=Linear,
+                layer_norm=layer_norm,
                 **kwargs,
             )
         self.linear = nn.Sequential(*[
@@ -394,6 +396,7 @@ class Head(nn.Module):
         softmax=nn.Softmax,
         lora_mode=LoRAMode.FULL,
         lora_rank=2,
+        layer_norm=True,
         device=DEFAULT_DEVICE,
     ):
         super().__init__()
@@ -414,6 +417,7 @@ class Head(nn.Module):
             device=device,
             Linear=Linear,
             rank=pma_rank,
+            layer_norm=layer_norm,
         )
         self.lora_mode = lora_mode
         self.lora_rank = lora_rank
