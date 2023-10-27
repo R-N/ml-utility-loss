@@ -230,8 +230,12 @@ def augment_2(dataset_name, save_dir, dataset_dir="datasets", augmenter=None, si
         )
         augmenter.fit(df)
     if sizes == True:
-        sizes = generate_sizes(len(df), low=size_low, exp=size_exp)
+        if "sizes" in info:
+            sizes = info["sizes"]
+        else:
+            sizes = generate_sizes(len(df), low=size_low, exp=size_exp)
     if sizes:
+        print("generating", sizes)
         for size in sizes:
             augment_kfold(
                 df, info, 
