@@ -85,6 +85,7 @@ PARAM_SPACE = {
     "ada_activation_final": ("activation", [
         "tanh", 
         "sigmoid", 
+        "identity",
     ]),
     #"ada_lora": ("conditional", {
     #    "ada_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
