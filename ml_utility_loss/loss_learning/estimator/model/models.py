@@ -607,6 +607,7 @@ class MLUtilitySingle(nn.Module):
         head=None,
         name="single",
         device=DEFAULT_DEVICE,
+        init=True,
     ):
         super().__init__()
         assert body, "Must provide body"
@@ -615,7 +616,8 @@ class MLUtilitySingle(nn.Module):
         self.body = body
         self.head = head
 
-        self.init()
+        if init:
+            self.init()
 
         self.device = device
         self.to(device)
@@ -747,6 +749,7 @@ class MLUtilityWhole(nn.Module):
             body=self.body,
             head=self.heads[head],
             name=model,
+            init=False,
         )
 
         self.cache[idx] = single
