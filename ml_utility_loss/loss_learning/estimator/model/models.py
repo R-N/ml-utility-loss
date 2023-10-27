@@ -310,7 +310,7 @@ class Adapter(nn.Module):
         self.linear = nn.Sequential(*[
             Linear_(d_input, d_hid),
             *[Linear_(d_hid, d_hid) for i in range(n_layers-2)],
-            Linear_(d_hid, d_model, activation=activation_final),
+            Linear_(d_hid, d_model, activation=activation_final, residual=False),
         ])
         if lora_mode == LoRAMode.LORA and n_layers > 2:
             #assert n_layers > 3, "too few layers for lora {n_layers}"
@@ -427,6 +427,7 @@ class Head(nn.Module):
             d_output,
             activation=activation,
             Linear=Linear,
+            layer_norm=layer_norm,
         ):
             return FeedForward(
                 d_input,
@@ -440,7 +441,7 @@ class Head(nn.Module):
         self.linear = nn.Sequential(*[
             Linear_(n_seeds*d_model, d_hid),
             *[Linear_(d_hid, d_hid) for i in range(n_layers-2)],
-            Linear_(d_hid, 1, activation=activation_final),
+            Linear_(d_hid, 1, activation=activation_final, layer_norm=False, residual=False),
         ])
         if lora_mode == LoRAMode.LORA and n_layers > 2:
             #assert n_layers > 3, "too few layers for lora {n_layers}"
