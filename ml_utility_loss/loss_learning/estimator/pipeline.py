@@ -144,7 +144,7 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
         info_out.to_csv(info_path)
     return info_out
 
-def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params={}, save_info="info.csv", drop_first_column=True):
+def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params={}, save_info="info.csv", drop_first_column=True, augmenter=None):
     target = info["target"]
     task = info["task"]
     cat_features = info["cat_features"]
@@ -176,7 +176,13 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
         dataset_types = DATASET_TYPES_VAL
         obj = {t: os.path.join(index, f"{t}.csv") for t in dataset_types}
         df_train = pd.read_csv(os.path.join(data_dir, obj["train"]))
-        df_synth = pd.read_csv(os.path.join(data_dir, obj["synth"]))
+        if augmenter:
+            df_synth = augmenter.augment(df_train)
+            if "aug" in df_synth.columns:
+                df_synth.drop("aug", axis=1, inplace=True)
+            df_synth.to_csv(os.path.join(data_dir, obj["synth"]), index=False)
+        else:
+            df_synth = pd.read_csv(os.path.join(data_dir, obj["synth"]))
         df_val = pd.read_csv(os.path.join(data_dir, obj["val"]))
         df_test = pd.read_csv(os.path.join(data_dir, obj["test"]))
 
