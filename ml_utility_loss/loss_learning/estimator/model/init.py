@@ -1,4 +1,5 @@
 import torch
+import types
 from ..params import ACTIVATIONS_INVERSE
 # Reinit weights because apparently bad weights lead to small variance
 
@@ -6,7 +7,8 @@ def init_linear(linear, activation=None):
     a = 0
     if activation and hasattr(activation, "negative_slope"):
         a = activation.negative_slope
-    nonlinearity = ACTIVATIONS_INVERSE(activation)
+    t = type(activation) if isinstance(activation, torch.nn.Module) else activation
+    nonlinearity = ACTIVATIONS_INVERSE[t]
     torch.nn.init.kaiming_normal_(linear.weight, a=a, nonlinearity=nonlinearity)
     if linear.bias:
         torch.nn.init.zeros_(linear.bias)
