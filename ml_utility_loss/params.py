@@ -158,6 +158,7 @@ ACTIVATIONS_INVERSE = {v: k for k, v in ACTIVATIONS.items()}
 ACTIVATIONS_INVERSE = {**ACTIVATIONS_INVERSE, **{v: "sigmoid" for v in SOFTMAXES.values()}}
 ACTIVATIONS_INVERSE[None] = "linear"
 ACTIVATIONS_INVERSE[torch.nn.Identity] = "linear"
+ACTIVATIONS_INVERSE[torch.nn.LeakyReLU] = "leaky_relu"
 GRADIENT_PENALTY_MODES = GradientPenaltyMode.DICT
 PARAM_MAP = {
     "loss": LOSSES,
