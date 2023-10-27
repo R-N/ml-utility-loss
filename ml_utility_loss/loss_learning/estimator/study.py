@@ -24,6 +24,9 @@ def objective(
         return eval_loss["avg_loss"] + g_loss_mul * eval_loss["avg_g_loss"]
     except AssertionError as ex:
         msg = str(ex)
+        if "model predicts the same for every input" in msg:
+            print(f"AssertionError: {msg}")
+            raise TrialPruned(msg)
         if "Invalid attention dim and n_head" in msg:
             print(f"AssertionError: {msg}")
             raise TrialPruned(msg)
@@ -68,6 +71,9 @@ def objective_2(
 
     except AssertionError as ex:
         msg = str(ex)
+        if "model predicts the same for every input" in msg:
+            print(f"AssertionError: {msg}")
+            raise TrialPruned(msg)
         if "low must be lower than high" in msg:
             print(f"AssertionError: {msg}")
             raise TrialPruned(msg)
