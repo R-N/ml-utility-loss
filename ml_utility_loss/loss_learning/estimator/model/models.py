@@ -417,7 +417,6 @@ class Head(nn.Module):
             device=device,
             Linear=Linear,
             rank=pma_rank,
-            layer_norm=layer_norm,
         )
         self.lora_mode = lora_mode
         self.lora_rank = lora_rank
@@ -436,6 +435,7 @@ class Head(nn.Module):
                 dropout=dropout,
                 device=device,
                 Linear=Linear,
+                layer_norm=layer_norm,
             )
         self.linear = nn.Sequential(*[
             Linear_(n_seeds*d_model, d_hid),
