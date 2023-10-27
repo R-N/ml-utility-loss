@@ -6,6 +6,8 @@ from ....params import ACTIVATIONS_INVERSE
 def init_linear(linear, activation=None):
     if linear is None:
         return
+    if hasattr(linear, "init"):
+        linear.init(activation=activation)
     a = 0
     if activation and hasattr(activation, "negative_slope"):
         a = activation.negative_slope
@@ -18,6 +20,8 @@ def init_linear(linear, activation=None):
 def init_layer_norm(norm, activation=None):
     if norm is None:
         return
+    if hasattr(norm, "init"):
+        norm.init(activation=activation)
     torch.nn.init.ones_(norm.weight)
     if norm.bias is not None:
         torch.nn.init.zeros_(norm.bias)
@@ -25,6 +29,8 @@ def init_layer_norm(norm, activation=None):
 def init(module, activation=None):
     if module is None:
         return
+    if hasattr(module, "init"):
+        module.init(activation=activation)
     if isinstance(module, torch.nn.Linear):
         init_linear(module, activation=activation)
     if isinstance(module, torch.nn.LayerNorm):
