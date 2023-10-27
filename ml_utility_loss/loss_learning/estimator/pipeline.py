@@ -255,7 +255,7 @@ def create_model(
     dropout=0.1, 
     softmax=ReLU15,
     flip=False,
-    skip_small=True,
+    skip_small=False,
     # Transformer args
     tf_num_inds=32,
     tf_d_inner=64,
@@ -384,7 +384,7 @@ def train(
     # Dataset args
     datasets,
     preprocessor,
-    dataset_size=32,
+    dataset_size=256,
     aug_scale=1.0,
     batch_size=4,
     # Training args
@@ -405,7 +405,7 @@ def train(
     fixed_role_model="tab_ddpm_concat",
     gradient_penalty_mode=GradientPenaltyMode.AVERAGE_MUL,
     loss_clamp=4.0,
-    grad_clip=2.0,
+    grad_clip=1.0,
     head="mlu",
     verbose=True,
     epoch_callback=None,
@@ -421,8 +421,11 @@ def train(
     multiprocessing_context=None,
     broken_loader_counter=3,
     allow_same_prediction=True,
+    allow_same_prediction_eval=None,
     **model_args
 ):
+    allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
+    
     timer = timer or (Timer(max_seconds=max_seconds) if max_seconds else None)
     if len(datasets) == 3:
         train_set, val_set, test_set = datasets
@@ -515,6 +518,7 @@ def train(
 
     
     #print("[INFO] Beginning epoch")
+    epochs = epochs or 1000
     for i in range(i, i+epochs):
 
         if verbose:

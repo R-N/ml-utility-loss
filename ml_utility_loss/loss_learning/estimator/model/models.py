@@ -9,6 +9,7 @@ from .modules import PoolingByMultiheadAttention, FeedForward, LowRankLinearFact
 import inspect
 from ....util import DEFAULT_DEVICE, Cache, check_cuda
 from ....params import ISABMode, LoRAMode, HeadFinalMul
+from .init import init, init_linear, init_layer_norm
 
 
 __author__ = "Yu-Hsiang Huang"
@@ -76,7 +77,7 @@ class Encoder(nn.Module):
         pma_high=512,
         pma_low=32,
         share_ffn=True,
-        skip_small=True,
+        skip_small=False,
         activation=nn.ReLU,
         isab_mode=ISABMode.SHARED,
         isab_rank=0,
@@ -135,10 +136,16 @@ class Encoder(nn.Module):
 
         self.d_model = d_model
 
+        self.init()
+
         self.device = device
         self.to(device)
 
         #print("Encoder.check_cuda", check_cuda(self))
+
+    def init(self, activation=None):
+        for enc_layer in self.layer_stack:
+            enc_layer.init(activation=activation)
 
     def forward(self, src_seq, src_mask=None, return_attns=False):
         # Here we should still have inputs of shape (batch, size, d_model)
@@ -174,7 +181,7 @@ class Decoder(nn.Module):
         pma_high=512,
         pma_low=32,
         share_ffn=True,
-        skip_small=True,
+        skip_small=False,
         activation=nn.ReLU,
         isab_mode=ISABMode.SHARED,
         isab_rank=0,
@@ -234,10 +241,16 @@ class Decoder(nn.Module):
 
         self.d_model = d_model
 
+        self.init()
+
         self.device = device
         self.to(device)
 
         #print("Decoder.check_cuda", check_cuda(self))
+
+    def init(self, activation=None):
+        for dec_layer in self.layer_stack:
+            dec_layer.init(activation=activation)
 
     def forward(self, trg_seq, enc_output, src_mask=None, trg_mask=None, return_attns=False):
         # Here we should still have inputs of shape (batch, size, d_model)
@@ -305,10 +318,16 @@ class Adapter(nn.Module):
             for layer in self.layer_stack[1:-1]: # skip first and last layer because different dim
                 layer.lora(base=linear_0)
 
+        self.init()
+
         self.device = device
         self.to(device)
 
         #print("Adapter.check_cuda", check_cuda(self))
+
+    def init(self, activation=None):
+        for lin in self.linear.children():
+            lin.init(activation=activation)
 
     def forward(self, x):
         try:
@@ -341,10 +360,16 @@ class AdapterAutoencoder(nn.Module):
             **kwargs
         )
 
+        self.init()
+
         self.device = device
         self.to(device)
 
         #print("AdapterAutoencoder.check_cuda", check_cuda(self))
+
+    def init(self, activation=None):
+        self.encoder.init(activation=activation)
+        self.decoder.init(activation=activation)
         
 
     def forward(self, x):
@@ -421,10 +446,20 @@ class Head(nn.Module):
             for layer in self.layer_stack[1:-1]: # skip first and last layer because different dim
                 layer.lora(base=linear_0)
 
+        self.init()
+
         self.device = device
         self.to(device)
 
         #print("Head.check_cuda", check_cuda(self))
+
+    def init(self, activation=None):
+        childs = list(self.linear.children())
+        activation = activation or childs[0].activation
+        self.pma.init(activation=activation)
+        for lin in self.linear.children():
+            lin.init(activation=activation)
+        
 
     def forward(self, x, return_attns=False):
         x, pma_attn = self.pma(x)
@@ -472,7 +507,7 @@ class Transformer(nn.Module):
         pma_high=512,
         pma_low=32,
         share_ffn=True,
-        skip_small=True,
+        skip_small=False,
         isab_mode=ISABMode.SHARED,
         isab_rank=0,
         pma_rank=0,
@@ -530,11 +565,16 @@ class Transformer(nn.Module):
 
         self.flip = flip
 
+        self.init()
+
         self.device = device
         self.to(device)
 
         #print("Transformer.check_cuda", check_cuda(self))
 
+    def init(self, activation=None):
+        self.encoder.init(activation=activation)
+        self.decoder.init(activation=activation)
 
     def forward(self, src_seq, trg_seq, return_attns=False):
 
@@ -571,10 +611,17 @@ class MLUtilitySingle(nn.Module):
         self.body = body
         self.head = head
 
+        self.init()
+
         self.device = device
         self.to(device)
 
         #print("MLUtilitySingle.check_cuda", check_cuda(self))
+
+    def init(self, activation=None):
+        self.adapter.init(activation=activation)
+        self.body.init(activation=activation)
+        self.head.init(activation=activation)
 
     def non_adapter_zero_grad(self):
         self.body.zero_grad()
@@ -663,10 +710,19 @@ class MLUtilityWhole(nn.Module):
         self.objectives = objectives or list(self.heads.keys())
         self.objectives = [x for x in self.objectives if x in self.heads]
 
+        self.init()
+
         self.device = device
         self.to(device)
 
         #print("MLUtilityWhole.check_cuda", check_cuda(self))
+
+    def init(self, activation=None):
+        for adapter in self.adapter_list:
+            adapter.init(activation=activation)
+        self.body.init(activation=activation)
+        for head in self.head_list:
+            head.init(activation=activation)
 
     def non_adapter_zero_grad(self):
         self.body.zero_grad()

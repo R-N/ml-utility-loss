@@ -166,7 +166,7 @@ def train_epoch(
     avg_non_role_model_m=True,
     inverse_avg_non_role_model_m=True,
     gradient_penalty=True,
-    loss_clamp=2.0,
+    loss_clamp=4.0,
     grad_clip=1.0,
     models = None,
     head="mlu",

@@ -6,6 +6,7 @@ from alpharelu import relu15, ReLU15
 import inspect
 from ....util import DEFAULT_DEVICE, check_cuda
 from ....params import ISABMode
+from .init import init, init_linear, init_layer_norm
 
 Tensor = torch.Tensor
 
@@ -13,12 +14,21 @@ __author__ = "Yu-Hsiang Huang"
 
 
 class LowRankLinear(nn.Module):
-    def __init__(self, in_features, out_features, rank, **kwargs):
+    def __init__(self, in_features, out_features, rank, device=DEFAULT_DEVICE, **kwargs):
         super().__init__()
         bias = kwargs.pop("bias", True)
         assert rank > 0
         self.lin_1 = nn.Linear(in_features, rank, bias=False, **kwargs)
         self.lin_2 = nn.Linear(rank, out_features, bias=bias, **kwargs)
+
+        self.init()
+
+        self.device = device
+        self.to(device)
+
+    def init(self, activation=None):
+        init_linear(self.lin_1, activation=None)
+        init_linear(self.lin_2, activation=activation)
 
     def forward(self, x):
         try:
@@ -42,6 +52,12 @@ class LoRALinear(nn.Module):
         super().__init__()
         self.base = base
         self.adaptation = adaptation
+
+        self.init()
+
+    def init(self, activation=None):
+        init_linear(self.base, activation=activation)
+        init_linear(self.adaptation, activation=activation)
 
     def forward(self, x):
         return self.base(x) + self.adaptation(x)
@@ -110,8 +126,18 @@ class MultiHeadAttention(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.layer_norm = nn.LayerNorm(self.d_O, eps=1e-6)
 
+        self.init()
+
         self.device = device
         self.to(device)
+
+
+    def init(self, activation=None):
+        init_linear(self.w_qs, activation=activation)
+        init_linear(self.w_ks, activation=activation)
+        init_linear(self.w_vs, activation=activation)
+        init_linear(self.fc, activation=activation)
+        init_layer_norm(self.layer_norm, activation=activation)
 
 
     def lora(self, base=None, w_qs=None, w_ks=None, w_vs=None, fc=None):
@@ -242,7 +268,7 @@ class LowRankInductionPoint(nn.Module):
         return torch.matmul(self.a, self.b)
 
 class InducedSetAttention(nn.Module):
-    def __init__(self, num_inds, d_I, d_H, n_head, d_Q, d_KV, d_O, skip_small=True, mode=ISABMode.SHARED, rank=0, device=DEFAULT_DEVICE, **kwargs):
+    def __init__(self, num_inds, d_I, d_H, n_head, d_Q, d_KV, d_O, skip_small=False, mode=ISABMode.SHARED, rank=0, device=DEFAULT_DEVICE, **kwargs):
         super().__init__()
         self.skip_small = skip_small
         self.d_I = d_I
@@ -284,8 +310,15 @@ class InducedSetAttention(nn.Module):
             assert d_Q == d_KV == d_I == d_H == d_O, f"for ISAB to share attention, all dims must be equal {d_Q} == {d_KV} == {d_I} == {d_H} == {d_O}"
             self.mab0 = self.mab1
 
+        self.init()
+
         self.device = device
         self.to(device)
+
+    def init(self, activation=None):
+        self.mab1.init(activation=activation)
+        if self.mab0:
+            self.mab0.init(activation=activation)
 
     def forward(self, q, k, v, mask=None):
         # This just uses MultiheadAttention
@@ -330,7 +363,7 @@ class SimpleInducedSetAttention(InducedSetAttention):
         )
 
 class PoolingByMultiheadAttention(nn.Module):
-    def __init__(self, num_seeds, n_head, d_model, skip_small=True, rank=0, device=DEFAULT_DEVICE, **kwargs):
+    def __init__(self, num_seeds, n_head, d_model, skip_small=False, rank=0, device=DEFAULT_DEVICE, **kwargs):
         super().__init__()
         self.num_seeds = num_seeds
         self.skip_small = skip_small
@@ -348,8 +381,13 @@ class PoolingByMultiheadAttention(nn.Module):
             **kwargs
         )
 
+        self.init()
+
         self.device = device
         self.to(device)
+
+    def init(self, activation=None):
+        self.mab.init(activation=activation)
 
     def forward(self, X):
         if self.skip_small and self.num_seeds > X.shape[-2]:
@@ -379,8 +417,17 @@ class DoubleFeedForward(nn.Module):
         self.layer_norm = nn.LayerNorm(d_in, eps=1e-6)
         self.dropout = nn.Dropout(dropout)
 
+        self.init()
+
         self.device = device
         self.to(device)
+
+    def init(self, activation=None):
+        activation_ = self.activation if not isinstance(activation, torch.nn.Identity) else None
+        activation = activation_ or activation
+        init_linear(self.w_1, activation=activation)
+        init_linear(self.w_2, activation=activation)
+        init_layer_norm(self.layer_norm, activation=activation)
 
     def forward(self, x):
 
@@ -419,8 +466,16 @@ class FeedForward(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.layer_norm = nn.LayerNorm(d_in, eps=1e-6) if layer_norm else None
 
+        self.init()
+
         self.device = device
         self.to(device)
+
+    def init(self, activation=None):
+        activation_ = self.activation if not isinstance(activation, torch.nn.Identity) else None
+        activation = activation_ or activation
+        init_linear(self.w, activation=activation)
+        init_layer_norm(self.layer_norm, activation=activation)
 
     def forward(self, x):
         residual = x

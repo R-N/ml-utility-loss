@@ -14,7 +14,7 @@ PARAM_SPACE = {
     "grad_loss_mul": ("float", 0.3, 1.5),
     #"loss_fn": ("loss", "mse"),
     "grad_loss_fn": ("loss", ["mse", "mae", "huber"]),
-    "adapter_loss_fn": ("loss", ["mse", "mae", "huber"]),
+    "adapter_loss_fn": ("loss", ["mse", "huber"]),
     "fixed_role_model": ("categorical", [
         #None, 
         "tvae", 
@@ -31,22 +31,22 @@ PARAM_SPACE = {
     ]),
     # Common model args
     "d_model": ("int_exp_2", 16, 64), 
-    "dropout": ("float", 0.02, 0.5), 
+    "dropout": ("float", 0.02, 0.2), 
     #"softmax": ("softmax", "relu15"),
     #"flip": False,
-    "skip_small": BOOLEAN,
+    #"skip_small": False,
     "loss_clamp": ("log_float", 0.5, 10.0),
     # Transformer args
     "tf_num_inds": ("int_exp_2", 8, 64),
-    "tf_d_inner": ("int_exp_2", 64, 128),
+    "tf_d_inner": ("int_exp_2", 128, 256),
     "tf_n_layers_enc": ("int", 3, 5), 
     "tf_n_layers_dec": ("int", 2, 4), 
     "tf_n_head": ("int_exp_2", 2, 8), 
-    "tf_activation": ("activation", ["relu", "gelu"]),
+    "tf_activation": ("activation", ["relu", "leakyrelu"]),
     "tf_isab_mode": ("categorical", (
-        ISABMode.SEPARATE, #about the same as shared
+        ISABMode.SEPARATE, 
         ISABMode.SHARED,
-        ISABMode.MINI, #bad
+        ISABMode.MINI, 
     )),
     "tf_isab_rank": ("bool_int_exp_2", 2, 16),
     "tf_lora": ("conditional", {
@@ -58,20 +58,20 @@ PARAM_SPACE = {
     }),
     # Transformer PMA args
     "tf_pma": ("conditional", {
-        "tf_pma_start": ("int", -3, -1),
+        "tf_pma_start": ("int", -2, -1),
         "tf_pma_high": ("int_exp_2", 8, 64),
         "tf_pma_low": ("int_exp_2", 2, 32),
-        "tf_pma_rank": ("bool_int_exp_2", 2, 16),
+        "tf_pma_rank": ("int_exp_2", 2, 16),
     }),
     "tf_share_ffn": BOOLEAN,
     # Adapter args
-    "ada_d_hid": ("int_exp_2", 8, 128), 
+    "ada_d_hid": ("int_exp_2", 8, 64), 
     "ada_n_layers": ("int", 2, 4), 
     "ada_activation": ("activation", [
         "tanh", 
-        "relu", "leakyrelu", 
-        "selu", "gelu", 
-        "identity"
+        "leakyrelu", 
+        "selu", 
+        "mish", 
     ]),
     "ada_activation_final": ("activation", [
         "tanh", 
@@ -89,9 +89,8 @@ PARAM_SPACE = {
     "head_activation": ("activation", [
         "leakyrelu", 
         "selu", 
-        "identity"
     ]),
-    #"head_pma_rank": ("bool_int_exp_2", 2, 16),
+    "head_pma_rank": ("int_exp_2", 2, 16),
     #"head_lora": ("conditional", {
     #    "head_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
     #    "head_lora_rank": ("int_exp_2", 2, 16),
@@ -99,10 +98,10 @@ PARAM_SPACE = {
 }
 
 PARAM_SPACE_2 = {
-    "dataset_size_low": ("int_exp_2", 32, 256),
+    "dataset_size_low": ("int_exp_2", 256, 1024),
     "dataset_size_high": ("int_exp_2", 1024, 4096),
-    "batch_size_low": ("int_exp_2", 2, 2),
-    "batch_size_high": ("int_exp_2", 2, 4),
+    "batch_size_low": ("int_exp_2", 2, 4),
+    "batch_size_high": ("int_exp_2", 8, 16),
     "patience": ("log_int", 2, 10)
 }
 
@@ -118,8 +117,18 @@ def update_param_space_2(param_space, dataset_sizes):
         **param_space,
         #"dataset_size_low": (*param_space["dataset_size_low"][:-1], dataset_sizes[-2]),
         "dataset_size_low": (*param_space["dataset_size_low"][:-1], dataset_sizes[-1]),
-        "dataset_size_high": (*param_space["dataset_size_high"][:-1], dataset_sizes[-1]),
+        #"dataset_size_high": (*param_space["dataset_size_high"][:-1], , dataset_sizes[-1]),
+        "dataset_size_high": (*param_space["dataset_size_high"][:-2], dataset_sizes[-1], dataset_sizes[-1]),
     }
     param_space.pop("dataset_size", None)
     param_space.pop("batch_size", None)
     return param_space
+    
+def update_params_2(params, dataset_sizes):
+    params = {
+        **params,
+        "dataset_size_high": dataset_sizes[-1],
+    }
+    params.pop("dataset_size", None)
+    params.pop("batch_size", None)
+    return params

@@ -5,13 +5,14 @@ import torch
 from .modules import SimpleInducedSetAttention, DoubleFeedForward, PoolingByMultiheadAttention, SimpleMultiHeadAttention
 from ....util import DEFAULT_DEVICE, check_cuda
 from ....params import ISABMode
+from .init import init, init_linear, init_layer_norm
 
 __author__ = "Yu-Hsiang Huang"
 
 class EncoderLayer(nn.Module):
     ''' Compose with two layers '''
 
-    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=True, activation=nn.ReLU, softmax=nn.Softmax, isab_mode=ISABMode.SHARED, isab_rank=0, pma_rank=0, device=DEFAULT_DEVICE, Linear=nn.Linear):
+    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=False, activation=nn.ReLU, softmax=nn.Softmax, isab_mode=ISABMode.SHARED, isab_rank=0, pma_rank=0, device=DEFAULT_DEVICE, Linear=nn.Linear):
         super().__init__()
         Attention = SimpleInducedSetAttention if num_inds else SimpleMultiHeadAttention
         self.slf_attn = Attention(
@@ -62,8 +63,17 @@ class EncoderLayer(nn.Module):
                     Linear=Linear,
                 )
 
+        self.init()
+
         self.device = device
         self.to(device)
+
+    def init(self, activation=None):
+        self.slf_attn.init(activation=self.pos_ffn.activation)
+        self.pos_ffn.init(activation=activation)
+        if self.pma:
+            self.pma.init(activation=self.pos_ffn_pma.activation)
+            self.pos_ffn_pma.init(activation=activation)
 
     def forward(self, enc_input, slf_attn_mask=None):
         # Here we should still have inputs of shape (batch, size, d_model)
@@ -107,7 +117,7 @@ class EncoderLayer(nn.Module):
 class DecoderLayer(nn.Module):
     ''' Compose with three layers '''
 
-    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=True, activation=nn.ReLU, softmax=nn.Softmax, isab_mode=ISABMode.SHARED, isab_rank=0, pma_rank=0, device=DEFAULT_DEVICE, Linear=nn.Linear):
+    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=False, activation=nn.ReLU, softmax=nn.Softmax, isab_mode=ISABMode.SHARED, isab_rank=0, pma_rank=0, device=DEFAULT_DEVICE, Linear=nn.Linear):
         super().__init__()
         Attention = SimpleInducedSetAttention if num_inds else SimpleMultiHeadAttention
         self.slf_attn = Attention(
@@ -171,8 +181,18 @@ class DecoderLayer(nn.Module):
                     Linear=Linear,
                 )
 
+        self.init()
+
         self.device = device
         self.to(device)
+
+    def init(self, activation=None):
+        self.slf_attn.init(activation=self.pos_ffn.activation)
+        self.enc_attn.init(activation=self.pos_ffn.activation)
+        self.pos_ffn.init(activation=activation)
+        if self.pma:
+            self.pma.init(activation=self.pos_ffn_pma.activation)
+            self.pos_ffn_pma.init(activation=activation)
 
     def forward(
         self, 
