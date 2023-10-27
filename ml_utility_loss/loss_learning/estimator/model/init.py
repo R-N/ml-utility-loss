@@ -1,6 +1,6 @@
 import torch
 import types
-from ..params import ACTIVATIONS_INVERSE
+from ....params import ACTIVATIONS_INVERSE
 # Reinit weights because apparently bad weights lead to small variance
 
 def init_linear(linear, activation=None):
