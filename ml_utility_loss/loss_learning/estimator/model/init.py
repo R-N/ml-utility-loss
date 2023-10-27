@@ -10,12 +10,12 @@ def init_linear(linear, activation=None):
     t = type(activation) if isinstance(activation, torch.nn.Module) else activation
     nonlinearity = ACTIVATIONS_INVERSE[t]
     torch.nn.init.kaiming_normal_(linear.weight, a=a, nonlinearity=nonlinearity)
-    if linear.bias:
+    if linear.bias is not None:
         torch.nn.init.zeros_(linear.bias)
 
 def init_layer_norm(norm, activation=None):
     torch.nn.init.ones_(norm.weight)
-    if norm.bias:
+    if norm.bias is not None:
         torch.nn.init.zeros_(norm.bias)
 
 def init(module, activation=None):
