@@ -475,7 +475,8 @@ class FeedForward(nn.Module):
         activation_ = self.activation if not isinstance(activation, torch.nn.Identity) else None
         activation = activation_ or activation
         init_linear(self.w, activation=activation)
-        init_layer_norm(self.layer_norm, activation=activation)
+        if self.layer_norm:
+            init_layer_norm(self.layer_norm, activation=activation)
 
     def forward(self, x):
         residual = x
