@@ -35,7 +35,8 @@ def augment(df, info, save_dir, n=1, test=0.2, augmenter=None):
             df_test = df.sample(frac=test)
             df_train = df_train[~df_train.index.isin(df_test.index)]
         df_aug = augmenter.augment(df_train)
-        df_aug.drop("aug", axis=1, inplace=True)
+        if "aug" in df_aug.columns:
+            df_aug.drop("aug", axis=1, inplace=True)
         df_aug.to_csv(os.path.join(save_dir, f"{i}_aug.csv"))
         df_train.to_csv(os.path.join(save_dir, f"{i}_train.csv"))
         if test:
@@ -109,7 +110,8 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
             dataset_types = DATASET_TYPES_VAL
             obj = {t: os.path.join(index, f"{t}.csv") for t in dataset_types}
             #obj["index"] = index
-            df_aug.drop("aug", axis=1, inplace=True)
+            if "aug" in df_aug.columns:
+                df_aug.drop("aug", axis=1, inplace=True)
             
 
             aug_value = eval_ml_utility(
