@@ -464,7 +464,7 @@ class FeedForward(nn.Module):
         if inspect.isclass(self.activation):
             self.activation = self.activation()
         self.dropout = nn.Dropout(dropout)
-        self.layer_norm = nn.LayerNorm(d_in, eps=1e-6) if layer_norm else None
+        self.layer_norm = nn.LayerNorm(d_out, eps=1e-6) if layer_norm else None
 
         self.init()
 
