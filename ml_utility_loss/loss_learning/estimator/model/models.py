@@ -296,7 +296,8 @@ class Adapter(nn.Module):
             d_input,
             d_output,
             activation=activation,
-            Linear=Linear
+            Linear=Linear,
+            residual=True,
         ):
             return FeedForward(
                 d_input,
@@ -305,6 +306,7 @@ class Adapter(nn.Module):
                 device=device,
                 Linear=Linear,
                 layer_norm=layer_norm,
+                residual=residual,
                 **kwargs,
             )
         self.linear = nn.Sequential(*[
@@ -428,6 +430,7 @@ class Head(nn.Module):
             activation=activation,
             Linear=Linear,
             layer_norm=layer_norm,
+            residual=True,
         ):
             return FeedForward(
                 d_input,
@@ -437,6 +440,7 @@ class Head(nn.Module):
                 device=device,
                 Linear=Linear,
                 layer_norm=layer_norm,
+                residual=residual,
             )
         self.linear = nn.Sequential(*[
             Linear_(n_seeds*d_model, d_hid),
