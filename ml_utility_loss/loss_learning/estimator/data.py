@@ -142,7 +142,7 @@ class BaseDataset(Dataset):
 
 class DatasetDataset(BaseDataset):
 
-    def __init__(self, dir, file="info.csv", Tensor=None, mode="shuffle", train="synth", test="test", value="synth_value", drop_first_column=False, **kwargs):
+    def __init__(self, dir, file="info.csv", Tensor=None, mode="shuffle", train="synth", test="val", value="synth_value", drop_first_column=False, **kwargs):
         super().__init__(**kwargs)
         self._dir = dir
         subdir = self.size
