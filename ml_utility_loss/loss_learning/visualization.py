@@ -33,7 +33,7 @@ def plot_density(series, *args, **kwargs):
     except LinAlgError:
         pass
 
-def plot_synth_real_density(info_path, synth="synth", fig=None, ax=None, real=True, real_linestyle="solid", col="synth_value", real_col="real_value", label="", **kwargs):
+def plot_synth_real_density(info_path, synth="synth", fig=None, ax=None, real=True, real_linestyle="solid", col="synth_value", real_col="real_value", label="", limit=None, **kwargs):
     if not ax:
         fig, ax = plt.subplots()
 
@@ -41,6 +41,8 @@ def plot_synth_real_density(info_path, synth="synth", fig=None, ax=None, real=Tr
         df = info_path
     else:
         df = pd.read_csv(info_path)
+    if limit:
+        df = df[:limit]
 
     axes = []
     if plot_density(df[col], alpha=0.5, ax=ax, linestyle="dashed", **kwargs):
@@ -84,7 +86,7 @@ def plot_synths_density(info_dir, sizes=None, fig=None, ax=None, real=False, **k
     ax.legend(sizes)
     return fig
 
-def plot_synth_real_box(info_path, synth="synth", fig=None, ax=None, real=True, col="synth_value", real_col="real_value", label="", **kwargs):
+def plot_synth_real_box(info_path, synth="synth", fig=None, ax=None, real=True, col="synth_value", real_col="real_value", label="", limit=None, **kwargs):
     if not ax:
         fig, ax = plt.subplots()
 
@@ -92,6 +94,8 @@ def plot_synth_real_box(info_path, synth="synth", fig=None, ax=None, real=True, 
         df = info_path
     else:
         df = pd.read_csv(info_path)
+    if limit:
+        df = df[:limit]
 
     axes = [synth if not label else (f"{label}_{synth}" if real else label)]
     cols = [col]
@@ -124,7 +128,7 @@ def plot_pred_box_2(results, **kwargs):
     for model, result in results.items():
         plot_pred_box(result["pred"], y=result["y"], title=model, **kwargs)
 
-def plot_synths_box(info_dir, sizes=None, fig=None, ax=None, col="synth_value", **kwargs):
+def plot_synths_box(info_dir, sizes=None, fig=None, ax=None, col="synth_value", limit=None, **kwargs):
     if not ax:
         fig, ax = plt.subplots()
   
@@ -137,6 +141,10 @@ def plot_synths_box(info_dir, sizes=None, fig=None, ax=None, col="synth_value", 
         dfi = pd.read_csv(info_path)
         s = pd.Series(dfi[col], name=size)
         df[size] = s
+
+    if limit:
+        df = df[:limit]
+
     df.boxplot(column=list(df.columns), **kwargs)
     ax.set_xticklabels(sizes)
     return fig
