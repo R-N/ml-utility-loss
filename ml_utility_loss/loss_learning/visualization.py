@@ -33,17 +33,21 @@ def plot_density(series, *args, **kwargs):
     except LinAlgError:
         pass
 
-def plot_synth_real_density(info_path, synth="synth", fig=None, ax=None, real=True, real_linestyle="solid", col="synth_value", real_col="real_value", **kwargs):
+def plot_synth_real_density(info_path, synth="synth", fig=None, ax=None, real=True, real_linestyle="solid", col="synth_value", real_col="real_value", label="", **kwargs):
     if not ax:
         fig, ax = plt.subplots()
-    df = pd.read_csv(info_path)
+
+    if isinstance(info_path, pd.DataFrame):
+        df = info_path
+    else:
+        df = pd.read_csv(info_path)
 
     axes = []
     if plot_density(df[col], alpha=0.5, ax=ax, linestyle="dashed", **kwargs):
-        axes.append(synth)
+        axes.append(synth if not label else (f"{label}_{synth}" if real else label))
     if real:
         if plot_density(df[real_col], alpha=0.5, ax=ax, linestyle=real_linestyle, **kwargs):
-            axes.append("real")
+            axes.append(f"{label}_real" if label else "real")
     
     leg = ax.legend(axes)
 
@@ -76,19 +80,24 @@ def plot_synths_density(info_dir, sizes=None, fig=None, ax=None, real=False, **k
     for size in sizes:
         info_dir_1 = os.path.join(info_dir, size)
         info_path = os.path.join(info_dir_1, "info.csv")
-        plot_synth_real_density(info_path, fig=fig, ax=ax, real=real, real_linestyle="dashed", synth=size, **kwargs)
+        plot_synth_real_density(info_path, fig=fig, ax=ax, real=real, real_linestyle="dashed", label=size, **kwargs)
     ax.legend(sizes)
     return fig
 
-def plot_synth_real_box(info_path, synth="synth", fig=None, ax=None, real=True, col="synth_value", **kwargs):
+def plot_synth_real_box(info_path, synth="synth", fig=None, ax=None, real=True, col="synth_value", real_col="real_value", label="", **kwargs):
     if not ax:
         fig, ax = plt.subplots()
-    df = pd.read_csv(info_path)
-    axes = [synth]
+
+    if isinstance(info_path, pd.DataFrame):
+        df = info_path
+    else:
+        df = pd.read_csv(info_path)
+
+    axes = [synth if not label else (f"{label}_{synth}" if real else label)]
     cols = [col]
     if real:
-        axes.append("real")
-        cols.append("real_value")
+        axes.append(f"{label}_real" if label else "real")
+        cols.append(real_col)
 
     df.boxplot(column=cols, **kwargs)
     ax.set_xticklabels(axes)
