@@ -108,15 +108,25 @@ def map_parameters(params_raw, param_space={}, param_map={}):
             k = k[:-6]
             done = True
         if not done and k in param_space:
-            type_0, *args = param_space[k]
-            if not done and type_0 in param_map:
-                try:
-                    v = param_map[type_0][v]
-                    done = True # NO BREAK, NO LOOP HERE
-                except KeyError:
-                    pass
+            v0 = param_space[k]
+            if not isinstance(v0, list) and not isinstance(v0, tuple):
+                #v = v0
+                #done = True
+                pass
+            else:
+                type_0, *args = v0
+                if not done and type_0 in param_map:
+                    try:
+                        v = param_map[type_0][v]
+                        done = True # NO BREAK, NO LOOP HERE
+                    except KeyError:
+                        pass
         if not done:
             for k0, v0 in param_space.items():
+                if not isinstance(v0, list) and not isinstance(v0, tuple):
+                    #v = v0
+                    #done = True
+                    continue
                 if not done and k0 in k:
                     type_0, *args = v0
                     if not done and type_0 == "conditional":
