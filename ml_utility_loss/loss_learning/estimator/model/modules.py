@@ -136,7 +136,7 @@ class MultiHeadAttention(nn.Module):
         init_linear(self.w_qs, activation=self.attention.softmax)
         init_linear(self.w_ks, activation=self.attention.softmax)
         init_linear(self.w_vs, activation=self.attention.softmax)
-        init_linear(self.fc, activation=self.attention.softmax)
+        init_linear(self.fc, activation=activation)
         init_layer_norm(self.layer_norm, activation=activation)
 
 
