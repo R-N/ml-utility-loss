@@ -318,7 +318,7 @@ class InducedSetAttention(nn.Module):
     def init(self, activation=None):
         self.mab1.init(activation=activation)
         if self.mab0:
-            self.mab0.init(activation=activation)
+            self.mab0.init(activation=None)
 
     def forward(self, q, k, v, mask=None):
         # This just uses MultiheadAttention
@@ -424,8 +424,7 @@ class DoubleFeedForward(nn.Module):
 
     def init(self, activation=None):
         activation_ = self.activation if not isinstance(activation, torch.nn.Identity) else None
-        activation = activation_ or activation
-        init_linear(self.w_1, activation=activation)
+        init_linear(self.w_1, activation=activation_)
         init_linear(self.w_2, activation=activation)
         init_layer_norm(self.layer_norm, activation=activation)
 

@@ -144,7 +144,10 @@ class Encoder(nn.Module):
         #print("Encoder.check_cuda", check_cuda(self))
 
     def init(self, activation=None):
+        enc_layer = None
         for enc_layer in self.layer_stack:
+            enc_layer.init(activation=None)
+        if activation:
             enc_layer.init(activation=activation)
 
     def forward(self, src_seq, src_mask=None, return_attns=False):
@@ -249,7 +252,10 @@ class Decoder(nn.Module):
         #print("Decoder.check_cuda", check_cuda(self))
 
     def init(self, activation=None):
+        dec_layer = None
         for dec_layer in self.layer_stack:
+            dec_layer.init(activation=None)
+        if activation:
             dec_layer.init(activation=activation)
 
     def forward(self, trg_seq, enc_output, src_mask=None, trg_mask=None, return_attns=False):
@@ -330,7 +336,10 @@ class Adapter(nn.Module):
         #print("Adapter.check_cuda", check_cuda(self))
 
     def init(self, activation=None):
+        lin = None
         for lin in self.linear.children():
+            lin.init(activation=None)
+        if activation:
             lin.init(activation=activation)
 
     def forward(self, x):
@@ -372,7 +381,7 @@ class AdapterAutoencoder(nn.Module):
         #print("AdapterAutoencoder.check_cuda", check_cuda(self))
 
     def init(self, activation=None):
-        self.encoder.init(activation=activation)
+        self.encoder.init(activation=None)
         self.decoder.init(activation=activation)
         
 
@@ -464,9 +473,12 @@ class Head(nn.Module):
 
     def init(self, activation=None):
         childs = list(self.linear.children())
-        activation = activation or childs[0].activation
-        self.pma.init(activation=activation)
-        for lin in self.linear.children():
+        #activation_ = activation or childs[0].activation
+        self.pma.init(activation=None)
+        lin = None
+        for lin in childs:
+            lin.init(activation=None)
+        if activation:
             lin.init(activation=activation)
         
 
@@ -582,7 +594,7 @@ class Transformer(nn.Module):
         #print("Transformer.check_cuda", check_cuda(self))
 
     def init(self, activation=None):
-        self.encoder.init(activation=activation)
+        self.encoder.init(activation=None)
         self.decoder.init(activation=activation)
 
     def forward(self, src_seq, trg_seq, return_attns=False):
@@ -630,8 +642,8 @@ class MLUtilitySingle(nn.Module):
         #print("MLUtilitySingle.check_cuda", check_cuda(self))
 
     def init(self, activation=None):
-        self.adapter.init(activation=activation)
-        self.body.init(activation=activation)
+        self.adapter.init(activation=None)
+        self.body.init(activation=None)
         self.head.init(activation=activation)
 
     def non_adapter_zero_grad(self):
@@ -730,8 +742,8 @@ class MLUtilityWhole(nn.Module):
 
     def init(self, activation=None):
         for adapter in self.adapter_list:
-            adapter.init(activation=activation)
-        self.body.init(activation=activation)
+            adapter.init(activation=None)
+        self.body.init(activation=None)
         for head in self.head_list:
             head.init(activation=activation)
 

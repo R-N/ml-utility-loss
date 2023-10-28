@@ -69,11 +69,13 @@ class EncoderLayer(nn.Module):
         self.to(device)
 
     def init(self, activation=None):
-        self.slf_attn.init(activation=self.pos_ffn.activation)
-        self.pos_ffn.init(activation=activation)
+        self.slf_attn.init(activation=None)
         if self.pma:
-            self.pma.init(activation=self.pos_ffn_pma.activation)
+            self.pos_ffn.init(activation=None)
+            self.pma.init(activation=None)
             self.pos_ffn_pma.init(activation=activation)
+        else:
+            self.pos_ffn.init(activation=activation)
 
     def forward(self, enc_input, slf_attn_mask=None):
         # Here we should still have inputs of shape (batch, size, d_model)
@@ -187,12 +189,14 @@ class DecoderLayer(nn.Module):
         self.to(device)
 
     def init(self, activation=None):
-        self.slf_attn.init(activation=self.pos_ffn.activation)
-        self.enc_attn.init(activation=self.pos_ffn.activation)
-        self.pos_ffn.init(activation=activation)
+        self.slf_attn.init(activation=None)
+        self.enc_attn.init(activation=None)
         if self.pma:
-            self.pma.init(activation=self.pos_ffn_pma.activation)
+            self.pos_ffn.init(activation=None)
+            self.pma.init(activation=None)
             self.pos_ffn_pma.init(activation=activation)
+        else:
+            self.pos_ffn.init(activation=activation)
 
     def forward(
         self, 
