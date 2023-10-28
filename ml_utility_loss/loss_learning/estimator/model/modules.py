@@ -85,6 +85,10 @@ class ScaledDotProductAttention(nn.Module):
         self.device = device
         self.to(device)
 
+    @property
+    def activation(self):
+        return self.softmax
+
     def forward(self, q, k, v, mask=None, I=None):
 
         # it was (2, 3) expecting 4 dims (0, 1, 2, 3)
@@ -232,6 +236,14 @@ class InducedSetAttentionMini(nn.Module):
         super().__init__()
         self.attn0 = ScaledDotProductAttention(*args, **kwargs)
         self.attn1 = self.attn0
+
+    @property
+    def softmax(self):
+        return self.attn0.softmax
+    
+    @property
+    def activation(self):
+        return self.attn1.activation
 
     def forward(self, q, k, v, mask=None, I=None):
         if I is None:
