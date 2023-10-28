@@ -638,8 +638,8 @@ def train(
         "whole_model": whole_model,
         "optim": optim,
         "i": i,
-        "train_loss": train_loss,
-        "val_loss": val_loss,
+        "train_loss": train_results,
+        "val_loss": val_results,
         "eval_loss": eval_loss,
         "history": result_df,
     }
