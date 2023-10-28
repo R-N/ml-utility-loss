@@ -153,9 +153,19 @@ SOFTMAXES = {
     "entmax15": entmax15,
     "relu15": relu15
 }
+SOFTMAXES2 = {
+    "softmax": torch.nn.Softmax,
+    "sparsemax": Sparsemax,
+    "entmax15": Entmax15,
+    "relu15": ReLU15
+}
 ACTIVATIONS = {**SOFTMAXES, **ACTIVATIONS}
 ACTIVATIONS_INVERSE = {v: k for k, v in ACTIVATIONS.items()}
-ACTIVATIONS_INVERSE = {**ACTIVATIONS_INVERSE, **{v: "sigmoid" for v in SOFTMAXES.values()}}
+ACTIVATIONS_INVERSE = {
+    **ACTIVATIONS_INVERSE, 
+    **{v: "sigmoid" for v in SOFTMAXES.values()}
+    **{v: "sigmoid" for v in SOFTMAXES2.values()}
+}
 ACTIVATIONS_INVERSE[None] = "linear"
 ACTIVATIONS_INVERSE[torch.nn.Identity] = "linear"
 ACTIVATIONS_INVERSE[torch.nn.LeakyReLU] = "leaky_relu"
