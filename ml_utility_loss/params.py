@@ -163,8 +163,8 @@ ACTIVATIONS = {**SOFTMAXES, **ACTIVATIONS}
 ACTIVATIONS_INVERSE = {v: k for k, v in ACTIVATIONS.items()}
 ACTIVATIONS_INVERSE = {
     **ACTIVATIONS_INVERSE, 
-    **{v: "sigmoid" for v in SOFTMAXES.values()}
-    **{v: "sigmoid" for v in SOFTMAXES2.values()}
+    **{v: "sigmoid" for v in SOFTMAXES.values()},
+    **{v: "sigmoid" for v in SOFTMAXES2.values()},
 }
 ACTIVATIONS_INVERSE[None] = "linear"
 ACTIVATIONS_INVERSE[torch.nn.Identity] = "linear"
