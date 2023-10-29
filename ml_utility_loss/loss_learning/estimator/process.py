@@ -194,8 +194,8 @@ def train_epoch(
     non_role_model_avg_mul = 1.0/non_role_model_count if non_role_model_avg else 1.0
 
     role_model = None
-    max_pred = 0
-    min_pred = 1
+    max_pred = float("-inf")
+    min_pred = float("inf")
 
     clear_memory()
 
@@ -602,8 +602,8 @@ def eval(
     ys = {model: [] for model in models}
     gs = {model: [] for model in models}
     grads = {model: [] for model in models}
-    max_preds = {model: 0 for model in models}
-    min_preds = {model: 1 for model in models}
+    max_preds = {model: float("-inf") for model in models}
+    min_preds = {model: float("inf") for model in models}
 
     clear_memory()
 
