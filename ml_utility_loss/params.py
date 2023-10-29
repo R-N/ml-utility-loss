@@ -131,13 +131,7 @@ OPTIMS = {
     "adamw": torch.optim.AdamW,
     "sgd": torch.optim.SGD,
 }
-ACTIVATIONS = {
-    None: torch.nn.Identity,
-    "identity": torch.nn.Identity,
-    "linear": torch.nn.Identity,
-    "relu": torch.nn.ReLU,
-    "tanh": torch.nn.Tanh,
-    "sigmoid": torch.nn.Sigmoid,
+RELUS = {
     "leakyrelu": torch.nn.LeakyReLU,
     "elu": torch.nn.ELU,
     "selu": torch.nn.SELU,
@@ -145,6 +139,15 @@ ACTIVATIONS = {
     "silu": torch.nn.SiLU,
     "swish": torch.nn.SiLU,
     "mish": torch.nn.Mish,
+}
+ACTIVATIONS = {
+    None: torch.nn.Identity,
+    "identity": torch.nn.Identity,
+    "linear": torch.nn.Identity,
+    "relu": torch.nn.ReLU,
+    "tanh": torch.nn.Tanh,
+    "sigmoid": torch.nn.Sigmoid,
+    **RELUS,
 }
 BOOLEAN = ("categorical", [True, False])
 SOFTMAXES = {
@@ -165,10 +168,14 @@ ACTIVATIONS_INVERSE = {
     **ACTIVATIONS_INVERSE, 
     **{v: "sigmoid" for v in SOFTMAXES.values()},
     **{v: "sigmoid" for v in SOFTMAXES2.values()},
+    **{v: "relu" for v in RELUS.values()},
 }
-ACTIVATIONS_INVERSE[None] = "linear"
-ACTIVATIONS_INVERSE[torch.nn.Identity] = "linear"
-ACTIVATIONS_INVERSE[torch.nn.LeakyReLU] = "leaky_relu"
+ACTIVATIONS_INVERSE = {
+    **ACTIVATIONS_INVERSE,
+    None: "linear",
+    torch.nn.Identity: "linear",
+    torch.nn.LeakyReLU: "leaky_relu",
+}
 GRADIENT_PENALTY_MODES = GradientPenaltyMode.DICT
 PARAM_MAP = {
     "loss": LOSSES,
