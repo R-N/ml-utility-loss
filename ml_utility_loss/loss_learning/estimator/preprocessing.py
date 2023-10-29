@@ -238,6 +238,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         self.lct_ae = None
         self.tab_ddpm_preprocessor = None
         self.cuda = cuda
+        self.dtypes = None
 
         if "tvae" in self.models:
             self.tvae_transformer = TVAEDataTransformer()
@@ -264,6 +265,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
             )
 
     def fit(self, train):
+        self.dtypes = train.dtypes.to_dict()
         if "tvae" in self.models:
             self.tvae_transformer.fit(train, self.cat_features)
         if "realtabformer" in self.models:
@@ -294,6 +296,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         model = model or self.model
         assert model, "must provide model"
         assert model in self.models
+        df = df.astype(self.dtypes)
         if model == "tvae":
             x = self.tvae_transformer.transform(df)
             if store_embedding_size:
