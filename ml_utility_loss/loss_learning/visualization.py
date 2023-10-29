@@ -24,7 +24,7 @@ def plot_grad_2(y, models, loss="loss", grad="grad", g="g", **kwargs):
         yi = y[m]
         plot_grad(yi[loss], yi[grad], fig=fig, ax=ax, **kwargs)
         axes.append(f"{m}_{grad}")
-        if g in y:
+        if g in yi:
             plot_grad(yi[loss], yi[g], fig=fig, ax=ax, **kwargs)
             axes.append(f"{m}_{g}")
     ax.legend(axes)
