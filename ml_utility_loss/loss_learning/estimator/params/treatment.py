@@ -7,17 +7,18 @@ PARAM_SPACE = {
     "dataset_size": ("int_exp_2", 32, 2048),
     "batch_size": ("int_exp_2", 2, 4),
     # Training args
-    "epochs": ("log_int", 70, 200),
+    "epochs": ("log_int", 70, 100),
     "lr": ("log_float", 5e-5, 2e-4),
     "Optim": ("optimizer", ["adamw"]),
     # Training args
     "non_role_model_mul": ("float", 0.75, 1.0), #almost random
+    "non_role_model_avg": BOOLEAN,
     #"non_role_model_avg": True, 
     "grad_loss_mul": ("float", 0.6, 1.0), #almost random
     #"loss_fn": ("loss", "mse"),
     #"grad_loss_fn": ("loss", "huber"),
     "grad_loss_fn": ("loss", ["mse", "mae", "huber"]),
-    "adapter_loss_fn": ("loss", ["mse", "huber"]),
+    "adapter_loss_fn": ("loss", ["mse", "mae", "huber"]),
     "fixed_role_model": ("categorical", [
         #None, 
         "tvae", 
@@ -39,7 +40,7 @@ PARAM_SPACE = {
     "dropout": ("float", 0.15, 0.15), #almost random
     #"softmax": ("softmax", "relu15"),
     #"flip": False,
-    #"skip_small": False,
+    "skip_small": BOOLEAN,
     #"skip_small": False,
     "loss_clamp": ("log_float", 2.5, 5.0), #almost random
     "layer_norm": BOOLEAN,
@@ -53,10 +54,10 @@ PARAM_SPACE = {
     "tf_activation": ("activation", ["relu", "leakyrelu"]),
     "tf_isab_mode": ("categorical", (
         ISABMode.SEPARATE, #best
-        #ISABMode.SHARED,
+        ISABMode.SHARED,
         ISABMode.MINI, 
     )),
-    "tf_isab_rank": ("int_exp_2", 2, 8), #doesn't matter much
+    "tf_isab_rank": ("bool_int_exp_2", 2, 8), #doesn't matter much
     "tf_lora": ("conditional", { #true is better
         "tf_lora_mode": ("categorical", ( #doesn't matter
             LoRAMode.LOW_RANK, 
@@ -65,24 +66,24 @@ PARAM_SPACE = {
         "tf_lora_rank": ("int_exp_2", 4, 8), #Mustn't be bool int
     }),
     # Transformer PMA args
-    #"tf_pma": ("conditional", { # doesn't matter
-    "tf_pma_start": ("int", -2, -1),
-    "tf_pma_high": ("int_exp_2", 32, 64),
-    "tf_pma_low": ("int_exp_2", 16, 16),
-    "tf_pma_rank": ("int_exp_2", 16, 64), #doesn't matter so true it is
-    #}),
+    "tf_pma": ("conditional", { # doesn't matter
+        "tf_pma_start": ("int", -2, -1),
+        "tf_pma_high": ("int_exp_2", 32, 64),
+        "tf_pma_low": ("int_exp_2", 16, 16),
+        "tf_pma_rank": ("bool_int_exp_2", 16, 64), #doesn't matter so true it is
+    }),
+    "tf_share_ffn": BOOLEAN, 
     #"tf_share_ffn": True, #true is better
-    #"tf_share_ffn": True, #almost doesnt matter
     # Adapter args
     "ada_d_hid": ("int_exp_2", 16, 64), 
     "ada_n_layers": ("int", 4, 5), 
     "ada_activation": ("activation", [
-        #"tanh",  
+        "tanh",  
         "leakyrelu", 
         "selu",
     ]),
     "ada_activation_final": ("activation", [
-        #"tanh", 
+        "tanh", 
         "sigmoid", 
         "identity",
     ]),
@@ -99,7 +100,7 @@ PARAM_SPACE = {
         "leakyrelu", 
         "selu", 
     ]),
-    "head_pma_rank": ("int_exp_2", 4, 8), #doesn't matter so lora it is
+    "head_pma_rank": ("bool_int_exp_2", 4, 8), #doesn't matter so lora it is
     #"head_lora": ("conditional", {
     #    "head_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
     #    "head_lora_rank": ("int_exp_2", 2, 16),
