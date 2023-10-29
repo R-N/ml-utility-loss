@@ -627,7 +627,7 @@ def train(
         multiprocessing_context=multiprocessing_context,
         allow_same_prediction=allow_same_prediction_eval,
     )
-    if eval_val:
+    if eval_val and val_set is not test_set:
         val_set.set_size(None)
         val_set.set_aug_scale(0)
         eval_loss = eval(
