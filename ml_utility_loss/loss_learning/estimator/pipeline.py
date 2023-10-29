@@ -437,6 +437,7 @@ def train(
     broken_loader_counter=3,
     allow_same_prediction=True,
     allow_same_prediction_eval=None,
+    eval_val=False,
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
@@ -624,8 +625,20 @@ def train(
         persistent_workers=persistent_workers,
         DataLoader=DataLoader,
         multiprocessing_context=multiprocessing_context,
-        allow_same_prediction=allow_same_prediction,
+        allow_same_prediction=allow_same_prediction_eval,
     )
+    if eval_val:
+        val_set.set_size(None)
+        val_set.set_aug_scale(0)
+        eval_loss = eval(
+            val_set, whole_model,
+            batch_size=size_scheduler.get_batch_size() if size_scheduler else batch_size,
+            dataloader_worker=dataloader_worker,
+            persistent_workers=persistent_workers,
+            DataLoader=DataLoader,
+            multiprocessing_context=multiprocessing_context,
+            allow_same_prediction=allow_same_prediction_eval,
+        )
     #print("[INFO] Done eval", i, torch.cuda.mem_get_info())
 
     if checkpoint_dir:
