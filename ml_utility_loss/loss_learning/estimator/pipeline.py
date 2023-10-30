@@ -647,6 +647,8 @@ def train(
             multiprocessing_context=multiprocessing_context,
             allow_same_prediction=allow_same_prediction_eval,
         )
+    if verbose:
+        print("Eval loss", eval_loss)
     #print("[INFO] Done eval", i, torch.cuda.mem_get_info())
 
     if checkpoint_dir:
