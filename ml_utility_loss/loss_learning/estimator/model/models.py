@@ -368,7 +368,7 @@ class Head(nn.Module):
         n_layers=2, 
         n_head=8,  
         d_qk=None, 
-        dropout=0.1, 
+        dropout=0.15, 
         activation=nn.SELU,
         activation_final=nn.Sigmoid,
         final_mul=HeadFinalMul.IDENTITY,

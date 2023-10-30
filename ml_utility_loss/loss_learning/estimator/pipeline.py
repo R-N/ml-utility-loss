@@ -264,7 +264,7 @@ def create_model(
     adapters,
     # Common model args
     d_model=64, 
-    dropout=0.1, 
+    dropout=0.15, 
     softmax=ReLU15,
     flip=False,
     skip_small=False,
@@ -278,7 +278,7 @@ def create_model(
     tf_n_layers_dec=2, 
     tf_n_head=8, 
     tf_activation=nn.ReLU,
-    tf_isab_mode=ISABMode.SHARED,
+    tf_isab_mode=ISABMode.MINI,
     tf_isab_rank=0,
     tf_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
     tf_lora_mode=LoRAMode.FULL,

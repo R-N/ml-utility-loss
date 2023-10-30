@@ -84,7 +84,7 @@ def LoRALinearFactory(base, rank):
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
 
-    def __init__(self, temperature, attn_dropout=0.1, softmax=ReLU15, device=DEFAULT_DEVICE, d_H=None, Linear=None, bias=False):
+    def __init__(self, temperature, attn_dropout=0.15, softmax=ReLU15, device=DEFAULT_DEVICE, d_H=None, Linear=None, bias=False):
         super().__init__()
         self.temperature = temperature
         self.dropout = nn.Dropout(attn_dropout)
@@ -124,7 +124,7 @@ class ScaledDotProductAttention(nn.Module):
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0.1, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=nn.Linear, mode=None, bias=False):
+    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0.15, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=nn.Linear, mode=None, bias=False):
         super().__init__()
 
         d_qk = d_qk or (d_O//n_head)
@@ -464,7 +464,7 @@ class PoolingByMultiheadAttention(nn.Module):
 class DoubleFeedForward(nn.Module):
     ''' A two-feed-forward-layer module '''
 
-    def __init__(self, d_in, d_hid, dropout=0.1, activation=nn.ReLU, device=DEFAULT_DEVICE, Linear=nn.Linear, bias=False):
+    def __init__(self, d_in, d_hid, dropout=0.15, activation=nn.ReLU, device=DEFAULT_DEVICE, Linear=nn.Linear, bias=False):
         super().__init__()
         self.w_1 = Linear(d_in, d_hid, bias=bias) # position-wise
         self.w_2 = Linear(d_hid, d_in, bias=bias) # position-wise
@@ -512,7 +512,7 @@ class DoubleFeedForward(nn.Module):
 
 class FeedForward(nn.Module):
 
-    def __init__(self, d_in, d_out, activation=nn.Sigmoid, dropout=0.1, layer_norm=True, residual=True, device=DEFAULT_DEVICE, Linear=nn.Linear, bias=False):
+    def __init__(self, d_in, d_out, activation=nn.Sigmoid, dropout=0.15, layer_norm=True, residual=True, device=DEFAULT_DEVICE, Linear=nn.Linear, bias=False):
         super().__init__()
         self.w = Linear(d_in, d_out, bias=bias) # position-wise
         self.residual = residual and d_in == d_out
