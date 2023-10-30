@@ -11,7 +11,7 @@ PARAM_SPACE = {
     # Training args
     "non_role_model_mul": ("float", 0.3, 1.0),
     #"non_role_model_avg": True,
-    "std_loss_mul": ("float", 0.5, 1.5),
+    "std_loss_mul": ("float", 0.5, 2.0),
     "grad_loss_mul": ("float", 0.3, 1.5),
     #"loss_fn": ("loss", "mse"),
     "grad_loss_fn": ("loss", ["mse", "mae", "huber"]),
