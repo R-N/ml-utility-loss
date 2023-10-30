@@ -9,7 +9,7 @@ import numpy as np
 Tensor = torch.FloatTensor
 
 def mean(x):
-    return np.mean(np.array(x))
+    return np.mean(list(x))
 
 def try_tensor_item(tensor, detach=True):
     if hasattr(tensor, "item"):
