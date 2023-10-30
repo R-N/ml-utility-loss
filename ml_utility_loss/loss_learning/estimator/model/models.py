@@ -178,7 +178,6 @@ class Decoder(nn.Module):
                 pma_start=pma_start,
                 pma_high=pma_high,
                 pma_low=pma_low,
-                bias=bias,
             )
         else:
             pma_steps = [0 for  i in range(n_layers)]
@@ -255,6 +254,7 @@ class Adapter(nn.Module):
         lora_rank=2,
         device=DEFAULT_DEVICE,
         residual=True,
+        bias=False,
         **kwargs,
     ):
         super().__init__()
@@ -271,6 +271,7 @@ class Adapter(nn.Module):
             activation=activation,
             Linear=Linear,
             residual=residual,
+            bias=bias,
         ):
             # Feedforward already defaults bias to False
             return FeedForward(
@@ -280,6 +281,7 @@ class Adapter(nn.Module):
                 device=device,
                 Linear=Linear,
                 residual=residual,
+                bias=bias,
                 **kwargs,
             )
         self.linear = nn.Sequential(*[
