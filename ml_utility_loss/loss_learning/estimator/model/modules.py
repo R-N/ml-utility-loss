@@ -12,6 +12,19 @@ Tensor = torch.Tensor
 
 __author__ = "Yu-Hsiang Huang"
 
+class LayerNorm(nn.LayerNorm):
+    def __init__(self, *args, bias=True, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not bias:
+            self.bias = None
+            self.register_parameter('bias', None)
+            self.reset_parameters()
+
+    def reset_parameters(self):
+        if self.elementwise_affine:
+            torch.init.ones_(self.weight)
+            if self.bias is not None:
+                torch.init.zeros_(self.bias)
 
 class LowRankLinear(nn.Module):
     def __init__(self, in_features, out_features, rank, device=DEFAULT_DEVICE, bias=False, **kwargs):
@@ -133,7 +146,7 @@ class MultiHeadAttention(nn.Module):
         self.attention = Attention(temperature=d_qk ** 0.5, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear)
 
         self.dropout = nn.Dropout(dropout)
-        self.layer_norm = nn.LayerNorm(self.d_O, eps=1e-6, bias=bias)
+        self.layer_norm = LayerNorm(self.d_O, eps=1e-6, bias=bias)
 
         self.init()
 
@@ -458,7 +471,7 @@ class DoubleFeedForward(nn.Module):
         self.activation = activation
         if inspect.isclass(self.activation):
             self.activation = self.activation()
-        self.layer_norm = nn.LayerNorm(d_in, eps=1e-6, bias=bias)
+        self.layer_norm = LayerNorm(d_in, eps=1e-6, bias=bias)
         self.dropout = nn.Dropout(dropout)
 
         self.init()
@@ -507,7 +520,7 @@ class FeedForward(nn.Module):
         if inspect.isclass(self.activation):
             self.activation = self.activation()
         self.dropout = nn.Dropout(dropout)
-        self.layer_norm = nn.LayerNorm(d_out, eps=1e-6, bias=bias) if layer_norm else None
+        self.layer_norm = LayerNorm(d_out, eps=1e-6, bias=bias) if layer_norm else None
 
         self.init()
 
