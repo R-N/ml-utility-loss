@@ -198,7 +198,8 @@ class DecoderLayer(EncoderLayer):
 
     def init(self, activation=None):
         super().init(activation=activation)
-        self.enc_attn.init(activation=None)
+        if self.enc_attn:
+            self.enc_attn.init(activation=None)
 
     def forward(
         self, 
