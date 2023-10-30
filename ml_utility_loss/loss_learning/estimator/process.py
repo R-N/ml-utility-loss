@@ -698,7 +698,7 @@ def eval(
     std_losses = {model: std_loss_fn(pred_stds[model], y_stds[model]).item() for model in models}
     pred_stds = {k: v.item() for k, v in pred_stds.items()}
     
-    for k, pred_std in pred_stds:
+    for k, pred_std in pred_stds.items():
         assert allow_same_prediction or batch_size == 1 or pred_std, f"model predicts the same for every input, {k}, {pred_std}, {preds[k][0].item()}"
 
     avg_losses = {
