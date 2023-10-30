@@ -28,8 +28,8 @@ def get_subsequent_mask(seq):
 
 def calc_pma_steps(
     n_layers,
-    pma_start=-4,
-    pma_high=512,
+    pma_start=-2,
+    pma_high=128,
     pma_low=32,
 ):
     if pma_start is None or n_layers == 0:
@@ -66,28 +66,21 @@ class Encoder(nn.Module):
 
     def __init__(
         self, 
-        n_layers, 
-        num_inds,
-        d_model, 
-        d_inner, 
-        n_head, 
-        d_qk=None,
-        dropout=0.1, 
+        n_layers=2, 
+        d_model=64, 
         pma_start=None,
-        pma_high=512,
+        pma_high=128,
         pma_low=32,
-        share_ffn=True,
-        skip_small=False,
-        activation=nn.ReLU,
-        isab_mode=ISABMode.SHARED,
-        isab_rank=0,
-        pma_rank=0,
-        softmax=ReLU15,
         lora_mode=LoRAMode.FULL,
         lora_rank=2,
         device=DEFAULT_DEVICE,
+        bias=False,
+        **kwargs,
     ):
         super().__init__()
+
+        if n_layers < 2 and lora_mode == LoRAMode.LORA:
+            lora_mode = LoRAMode.FULL
 
         if pma_start is not None:
             pma_steps = calc_pma_steps(
@@ -103,24 +96,14 @@ class Encoder(nn.Module):
         self.lora_rank = lora_rank
         Linear = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
 
-        def EncoderLayer_(pma=0, Linear=Linear):
+        def EncoderLayer_(pma=0, Linear=Linear, bias=bias):
             return EncoderLayer(
-                num_inds=num_inds,
                 d_model=d_model, 
-                d_inner=d_inner, 
-                n_head=n_head, 
-                d_qk=d_qk, 
-                dropout=dropout,
                 pma=pma,
-                share_ffn=share_ffn,
-                skip_small=skip_small,
-                activation=activation,
-                isab_mode=isab_mode,
-                softmax=softmax,
                 device=device,
                 Linear=Linear,
-                isab_rank=isab_rank,
-                pma_rank=pma_rank,
+                bias=bias,
+                **kwargs,
             )
 
         self.layer_stack = nn.ModuleList([
@@ -173,28 +156,21 @@ class Decoder(nn.Module):
 
     def __init__(
         self, 
-        n_layers, 
-        num_inds,
-        d_model, 
-        d_inner, 
-        n_head, 
-        d_qk=None, 
-        dropout=0.1, 
+        n_layers=2, 
+        d_model=64, 
         pma_start=None,
-        pma_high=512,
+        pma_high=128,
         pma_low=32,
-        share_ffn=True,
-        skip_small=False,
-        activation=nn.ReLU,
-        isab_mode=ISABMode.SHARED,
-        isab_rank=0,
-        pma_rank=0,
-        softmax=ReLU15,
         lora_mode=LoRAMode.FULL,
         lora_rank=2,
         device=DEFAULT_DEVICE,
+        bias=False,
+        **kwargs,
     ):
         super().__init__()
+
+        if n_layers < 2 and lora_mode == LoRAMode.LORA:
+            lora_mode = LoRAMode.FULL
 
         if pma_start is not None:
             pma_steps = calc_pma_steps(
@@ -202,6 +178,7 @@ class Decoder(nn.Module):
                 pma_start=pma_start,
                 pma_high=pma_high,
                 pma_low=pma_low,
+                bias=bias,
             )
         else:
             pma_steps = [0 for  i in range(n_layers)]
@@ -211,24 +188,14 @@ class Decoder(nn.Module):
         self.lora_rank = lora_rank
         Linear = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
 
-        def DecoderLayer_(pma, Linear=Linear):
+        def DecoderLayer_(pma, Linear=Linear, bias=bias):
             return DecoderLayer(
-                num_inds=num_inds,
                 d_model=d_model, 
-                d_inner=d_inner, 
-                n_head=n_head, 
-                d_qk=d_qk, 
-                dropout=dropout,
                 pma=pma,
-                share_ffn=share_ffn,
-                skip_small=skip_small,
-                isab_mode=isab_mode,
-                softmax=softmax,
-                activation=activation,
                 device=device,
                 Linear=Linear,
-                isab_rank=isab_rank,
-                pma_rank=pma_rank,
+                bias=bias,
+                **kwargs,
             )
 
         self.layer_stack = nn.ModuleList([
@@ -287,7 +254,7 @@ class Adapter(nn.Module):
         lora_mode=LoRAMode.FULL,
         lora_rank=2,
         device=DEFAULT_DEVICE,
-        layer_norm=True,
+        residual=True,
         **kwargs,
     ):
         super().__init__()
@@ -303,15 +270,15 @@ class Adapter(nn.Module):
             d_output,
             activation=activation,
             Linear=Linear,
-            residual=True,
+            residual=residual,
         ):
+            # Feedforward already defaults bias to False
             return FeedForward(
                 d_input,
                 d_output,
                 activation=activation,
                 device=device,
                 Linear=Linear,
-                layer_norm=layer_norm,
                 residual=residual,
                 **kwargs,
             )
@@ -404,11 +371,14 @@ class Head(nn.Module):
         activation_final=nn.Sigmoid,
         final_mul=HeadFinalMul.IDENTITY,
         pma_rank=0,
-        softmax=nn.Softmax,
+        softmax=ReLU15,
         lora_mode=LoRAMode.FULL,
         lora_rank=2,
         layer_norm=True,
         device=DEFAULT_DEVICE,
+        bias=False,
+        bias_final=True,
+        residual=True,
     ):
         super().__init__()
         assert n_layers >= 2
@@ -428,6 +398,7 @@ class Head(nn.Module):
             device=device,
             Linear=Linear,
             rank=pma_rank,
+            bias=bias,
         )
         self.lora_mode = lora_mode
         self.lora_rank = lora_rank
@@ -439,7 +410,8 @@ class Head(nn.Module):
             activation=activation,
             Linear=Linear,
             layer_norm=layer_norm,
-            residual=True,
+            residual=residual,
+            bias=bias,
         ):
             return FeedForward(
                 d_input,
@@ -450,11 +422,12 @@ class Head(nn.Module):
                 Linear=Linear,
                 layer_norm=layer_norm,
                 residual=residual,
+                bias=bias,
             )
         self.linear = nn.Sequential(*[
             Linear_(n_seeds*d_model, d_hid),
             *[Linear_(d_hid, d_hid) for i in range(n_layers-2)],
-            Linear_(d_hid, 1, activation=activation_final, layer_norm=False, residual=False),
+            Linear_(d_hid, 1, activation=activation_final, layer_norm=False, residual=False, bias=bias_final),
         ])
         if lora_mode == LoRAMode.LORA and n_layers > 2:
             #assert n_layers > 3, "too few layers for lora {n_layers}"
@@ -513,71 +486,29 @@ class Transformer(nn.Module):
 
     def __init__(
         self, 
-        num_inds=32,
-        d_model=64, 
-        d_inner=64,
-        n_layers_enc=4,
+        d_model=64,
+        n_layers_enc=3,
         n_layers_dec=2, 
-        n_head=8, 
-        d_qk=None, 
-        dropout=0.1, 
-        activation=nn.ReLU,
-        softmax=nn.Softmax,
         flip=False,
-        pma_start=None,
-        pma_high=512,
-        pma_low=32,
-        share_ffn=True,
-        skip_small=False,
-        isab_mode=ISABMode.SHARED,
-        isab_rank=0,
-        pma_rank=0,
-        lora_mode=LoRAMode.FULL,
-        lora_rank=2,
         device=DEFAULT_DEVICE,
+        **kwargs,
     ):
         super().__init__()
 
         self.d_model = d_model
 
         self.encoder = Encoder(
-            num_inds=num_inds,
-            d_model=d_model, d_inner=d_inner,
-            n_layers=n_layers_enc, n_head=n_head, d_qk=d_qk, 
-            dropout=dropout,
-            activation=activation,
-            softmax=softmax,
-            pma_start=pma_start,
-            pma_high=pma_high,
-            pma_low=pma_low,
-            share_ffn=share_ffn,
-            skip_small=skip_small,
-            isab_mode=isab_mode,
-            isab_rank=isab_rank,
-            pma_rank=pma_rank,
-            lora_mode=lora_mode,
-            lora_rank=lora_rank,
+            d_model=d_model,
+            n_layers=n_layers_enc,
             device=device,
+            **kwargs,
         )
 
         self.decoder = Decoder(
-            num_inds=num_inds,
-            d_model=d_model, d_inner=d_inner,
-            n_layers=n_layers_dec, n_head=n_head, d_qk=d_qk,
-            dropout=dropout,
-            activation=activation,
-            softmax=softmax,
-            pma_start=pma_start,
-            pma_high=pma_high,
-            pma_low=pma_low,
-            share_ffn=share_ffn,
-            skip_small=skip_small,
-            isab_mode=isab_mode,
-            isab_rank=isab_rank,
-            pma_rank=pma_rank,
-            lora_mode=lora_mode,
-            lora_rank=lora_rank,
+            d_model=d_model,
+            n_layers=n_layers_dec,
             device=device,
+            **kwargs,
         )
 
         for p in self.parameters():

@@ -9,17 +9,17 @@ PARAM_SPACE = {
     # Training args
     "epochs": ("log_int", 70, 100),
     "lr": ("log_float", 1e-4, 1e-3),
-    "Optim": ("optimizer", ["adamw"]),
+    "Optim": ("optimizer", ["adamw", "sgd"]),
     # Training args
     "non_role_model_mul": ("float", 0.3, 0.8),
-    "non_role_model_avg": BOOLEAN,
-    #"non_role_model_avg": True, 
+    #"non_role_model_avg": BOOLEAN,
+    "non_role_model_avg": True, 
     "grad_loss_mul": ("float", 0.7, 1.0),
     #"grad_loss_mul": ("float", 0.3, 1),
     #"loss_fn": ("loss", "mse"),
     #"loss_fn": ("loss", ["mse", "huber"]),
-    "grad_loss_fn": ("loss", ["mse", "mae", "huber"]),
-    "adapter_loss_fn": ("loss", ["mse", "mae", "huber"]),
+    "grad_loss_fn": ("loss", ["mse", "huber"]),
+    "adapter_loss_fn": ("loss", ["mse", "huber"]),
     "fixed_role_model": ("categorical", [
         #None, 
         "tvae", 
@@ -41,46 +41,57 @@ PARAM_SPACE = {
     "dropout": ("float", 0.15, 0.15),  #almost random
     #"softmax": ("softmax", "relu15"),
     #"flip": False,
-    "skip_small": BOOLEAN,
-    #"skip_small": False,
+    #"skip_small": BOOLEAN,
+    "skip_small": False,
     "loss_clamp": ("log_float", 0.6, 1.0), #almost random
-    "layer_norm": BOOLEAN,
+    #"layer_norm": BOOLEAN,
+    "layer_norm": True,
+    "bias": False,
+    "bias_final": BOOLEAN,
     # Transformer args
     "tf_num_inds": ("int_exp_2", 64, 128),
-    "tf_d_inner": ("int_exp_2", 64, 256),
-    "tf_n_layers_enc": ("int", 4, 5), 
-    "tf_n_layers_dec": ("int", 3, 4), 
+    "tf_d_inner": ("int_exp_2", 64, 128),
+    "tf_n_layers_enc": ("int", 2, 3), 
+    "tf_n_layers_dec": ("int", 1, 3), 
     "tf_n_head": ("int_exp_2", 4, 8), 
-    "tf_activation": ("activation", ["relu", "leakyrelu"]),
+    "tf_activation": ("activation", [
+        "tanh", 
+        "sigmoid",
+        "relu", 
+        "leakyrelu", 
+        "selu",
+    ]),
     "tf_isab_mode": ("categorical", (
-        ISABMode.SEPARATE, #best
-        ISABMode.SHARED,
+        #ISABMode.SEPARATE, #best
+        #ISABMode.SHARED,
         ISABMode.MINI, 
     )),
-    "tf_isab_rank": ("bool_int_exp_2", 8, 32), #doesn't matter so true it is
-    "tf_lora": ("conditional", {
-        "tf_lora_mode": ("categorical", (
-            LoRAMode.LOW_RANK, 
-            LoRAMode.LORA,
-        )),
-        "tf_lora_rank": ("int_exp_2", 8, 32), #Mustn't be bool int
-    }),
+    "tf_isab_rank": ("int_exp_2", 8, 32), #doesn't matter so true it is
+    #"tf_lora": ("conditional", {
+    "tf_lora_mode": ("categorical", (
+        #LoRAMode.LOW_RANK, 
+        LoRAMode.LORA,
+    )),
+    "tf_lora_rank": ("int_exp_2", 8, 32), #Mustn't be bool int
+    #}),
     # Transformer PMA args
     "tf_pma": ("conditional", { #better true
         "tf_pma_start": ("int", -2, -1),
         "tf_pma_high": ("int_exp_2", 16, 64),
         "tf_pma_low": ("int_exp_2", 8, 16),
-        "tf_pma_rank": ("bool_int_exp_2", 16, 32), #true better
+        "tf_pma_rank": ("int_exp_2", 16, 32), #true better
     }),
-    "tf_share_ffn": BOOLEAN, 
-    #"tf_share_ffn": True,
+    #"tf_share_ffn": BOOLEAN, 
+    "tf_share_ffn": True,
     # Adapter args
-    "ada_d_hid": ("int_exp_2", 128, 256), 
-    "ada_n_layers": ("int", 3, 4), 
+    "ada_d_hid": ("int_exp_2", 32, 256), 
+    "ada_n_layers": ("int", 1, 2), 
     "ada_activation": ("activation", [
         "tanh",  
-        "relu",  
-        "leakyrelu",    
+        "sigmoid", 
+        "relu",
+        "leakyrelu", 
+        "selu",
     ]),
     "ada_activation_final": ("activation", [
         "tanh", 
@@ -93,11 +104,15 @@ PARAM_SPACE = {
     #}),
     # Head args
     "head_n_seeds": ("int_exp_2", 8, 16), # 1 was never sampled or always pruned
-    "head_d_hid": ("int_exp_2", 128, 256), 
-    "head_n_layers": ("int", 3, 4), 
+    "head_d_hid": ("int_exp_2", 32, 64), 
+    "head_n_layers": ("int", 1, 2), 
     "head_n_head": ("int_exp_2", 8, 16),
     "head_activation": ("activation", [
+        "tanh",  
+        "sigmoid", 
+        "relu",
         "leakyrelu", 
+        "selu", 
     ]),
     "head_activation_final": ("activation", [
         #"sigmoid", 
@@ -109,7 +124,7 @@ PARAM_SPACE = {
         "minus",
         "oneminus",
     ]),
-    "head_pma_rank": ("bool_int_exp_2", 4, 8), #doesn't matter so true it is
+    "head_pma_rank": ("int_exp_2", 4, 8), #doesn't matter so true it is
     #"head_lora": ("conditional", {
     #    "head_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
     #    "head_lora_rank": ("int_exp_2", 2, 16),

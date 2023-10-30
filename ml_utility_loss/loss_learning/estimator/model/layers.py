@@ -6,13 +6,34 @@ from .modules import SimpleInducedSetAttention, DoubleFeedForward, PoolingByMult
 from ....util import DEFAULT_DEVICE, check_cuda
 from ....params import ISABMode
 from .init import init, init_linear, init_layer_norm
+from entmax import sparsemax, entmax15, Sparsemax, Entmax15
+from alpharelu import relu15, ReLU15
 
 __author__ = "Yu-Hsiang Huang"
 
 class EncoderLayer(nn.Module):
     ''' Compose with two layers '''
 
-    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=False, activation=nn.ReLU, softmax=nn.Softmax, isab_mode=ISABMode.SHARED, isab_rank=0, pma_rank=0, device=DEFAULT_DEVICE, Linear=nn.Linear):
+    def __init__(
+        self, 
+        num_inds=16, 
+        d_model=64, 
+        d_inner=64, 
+        n_head=8, 
+        d_qk=None, 
+        dropout=0.15, 
+        pma=0, 
+        share_ffn=True, 
+        skip_small=False, 
+        activation=nn.ReLU, 
+        softmax=ReLU15, 
+        isab_mode=ISABMode.MINI, 
+        isab_rank=0, 
+        pma_rank=0, 
+        device=DEFAULT_DEVICE, 
+        Linear=nn.Linear, 
+        bias=False
+    ):
         super().__init__()
         Attention = SimpleInducedSetAttention if num_inds else SimpleMultiHeadAttention
         self.slf_attn = Attention(
@@ -27,6 +48,7 @@ class EncoderLayer(nn.Module):
             device=device,
             Linear=Linear,
             rank=isab_rank,
+            bias=bias,
         )
         self.pos_ffn = DoubleFeedForward(
             d_model, 
@@ -35,6 +57,7 @@ class EncoderLayer(nn.Module):
             activation=activation,
             device=device,
             Linear=Linear,
+            bias=bias,
         )
         self.pma = None
         self.share_ffn = share_ffn
@@ -51,6 +74,7 @@ class EncoderLayer(nn.Module):
                 device=device,
                 Linear=Linear,
                 rank=pma_rank,
+                bias=bias,
             )
             self.pos_ffn_pma = self.pos_ffn
             if not share_ffn: 
@@ -61,6 +85,7 @@ class EncoderLayer(nn.Module):
                     activation=activation,
                     device=device,
                     Linear=Linear,
+                    bias=bias,
                 )
 
         self.init()
@@ -116,25 +141,41 @@ class EncoderLayer(nn.Module):
 
 
 
-class DecoderLayer(nn.Module):
+class DecoderLayer(EncoderLayer):
     ''' Compose with three layers '''
 
-    def __init__(self, num_inds, d_model, d_inner, n_head, d_qk=None, dropout=0.1, pma=0, share_ffn=True, skip_small=False, activation=nn.ReLU, softmax=nn.Softmax, isab_mode=ISABMode.SHARED, isab_rank=0, pma_rank=0, device=DEFAULT_DEVICE, Linear=nn.Linear):
-        super().__init__()
-        Attention = SimpleInducedSetAttention if num_inds else SimpleMultiHeadAttention
-        self.slf_attn = Attention(
+    def __init__(
+        self, 
+        num_inds=16, 
+        d_model=64, 
+        n_head=8, 
+        d_qk=None, 
+        dropout=0.15, 
+        skip_small=False, 
+        softmax=ReLU15, 
+        isab_mode=ISABMode.MINI, 
+        isab_rank=0, 
+        device=DEFAULT_DEVICE, 
+        Linear=nn.Linear, 
+        bias=False,
+        **kwargs,
+    ):
+        super().__init__(
             num_inds=num_inds, 
-            n_head=n_head, 
             d_model=d_model, 
+            n_head=n_head, 
             d_qk=d_qk, 
             dropout=dropout, 
             skip_small=skip_small, 
-            mode=isab_mode,
-            softmax=softmax,
-            device=device,
-            Linear=Linear,
-            rank=isab_rank,
+            softmax=softmax, 
+            isab_mode=isab_mode, 
+            isab_rank=isab_rank, 
+            device=device, 
+            Linear=Linear, 
+            bias=bias,
+            **kwargs,
         )
+        Attention = SimpleInducedSetAttention if num_inds else SimpleMultiHeadAttention
         self.enc_attn = Attention(
             num_inds=num_inds, 
             n_head=n_head, 
@@ -146,42 +187,9 @@ class DecoderLayer(nn.Module):
             softmax=softmax,
             device=device,
             Linear=Linear,
-            rank=isab_rank
+            rank=isab_rank,
+            bias=bias,
         )
-        self.pos_ffn = DoubleFeedForward(
-            d_model, 
-            d_inner, 
-            dropout=dropout, 
-            activation=activation,
-            device=device,
-            Linear=Linear,
-        )
-        self.share_ffn = share_ffn
-        self.pma = None
-        self.pos_ffn_pma = None
-        if pma:
-            self.pma = PoolingByMultiheadAttention(
-                pma, 
-                n_head, 
-                d_model, 
-                d_qk=d_qk, 
-                dropout=dropout, 
-                skip_small=skip_small, 
-                softmax=softmax,
-                device=device,
-                Linear=Linear,
-                rank=pma_rank,
-            )
-            self.pos_ffn_pma = self.pos_ffn
-            if not share_ffn: 
-                self.pos_ffn_pma = DoubleFeedForward(
-                    d_model, 
-                    d_inner, 
-                    dropout=dropout, 
-                    activation=activation,
-                    device=device,
-                    Linear=Linear,
-                )
 
         self.init()
 
@@ -189,14 +197,8 @@ class DecoderLayer(nn.Module):
         self.to(device)
 
     def init(self, activation=None):
-        self.slf_attn.init(activation=None)
+        super().init(activation=activation)
         self.enc_attn.init(activation=None)
-        if self.pma:
-            self.pos_ffn.init(activation=None)
-            self.pma.init(activation=None)
-            self.pos_ffn_pma.init(activation=activation)
-        else:
-            self.pos_ffn.init(activation=activation)
 
     def forward(
         self, 
@@ -225,26 +227,11 @@ class DecoderLayer(nn.Module):
     
     
     def lora(self, base=None, slf_attn=None, enc_attn=None, pos_ffn=None, pma=None, pos_ffn_pma=None):
+        super().lora(base=base, slf_attn=slf_attn, pos_ffn=pos_ffn, pma=pma, pos_ffn_pma=pos_ffn_pma)
         if base is not None and base is not self:
-            slf_attn = base.slf_attn
             enc_attn = base.enc_attn
-            pos_ffn = base.pos_ffn
-            pma = base.pma
-            if base.pma:
-                pos_ffn_pma = base.pos_ffn_pma
 
-        if slf_attn is not None and slf_attn is not self.slf_attn:
-            self.slf_attn.lora(slf_attn)
         if enc_attn is not None and enc_attn is not self.enc_attn:
             self.enc_attn.lora(enc_attn)
-        if pos_ffn is not None and pos_ffn is not self.pos_ffn:
-            self.pos_ffn.lora(pos_ffn)
-
-        if self.pma:
-            if pma is not None and pma is not self.pma:
-                self.pma.lora(pma)
-            if not self.share_ffn:
-                if pos_ffn_pma is not None and pos_ffn_pma is not self.pos_ffn_pma:
-                    self.pos_ffn_pma.lora(pos_ffn_pma)
 
         return self

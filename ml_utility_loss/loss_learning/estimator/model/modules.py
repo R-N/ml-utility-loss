@@ -14,9 +14,8 @@ __author__ = "Yu-Hsiang Huang"
 
 
 class LowRankLinear(nn.Module):
-    def __init__(self, in_features, out_features, rank, device=DEFAULT_DEVICE, **kwargs):
+    def __init__(self, in_features, out_features, rank, device=DEFAULT_DEVICE, bias=False, **kwargs):
         super().__init__()
-        bias = kwargs.pop("bias", True)
         assert rank > 0
         self.lin_1 = nn.Linear(in_features, rank, bias=False, **kwargs)
         self.lin_2 = nn.Linear(rank, out_features, bias=bias, **kwargs)
@@ -72,7 +71,7 @@ def LoRALinearFactory(base, rank):
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
 
-    def __init__(self, temperature, attn_dropout=0.1, softmax=ReLU15, device=DEFAULT_DEVICE, d_H=None, Linear=None):
+    def __init__(self, temperature, attn_dropout=0.1, softmax=ReLU15, device=DEFAULT_DEVICE, d_H=None, Linear=None, bias=False):
         super().__init__()
         self.temperature = temperature
         self.dropout = nn.Dropout(attn_dropout)
@@ -85,9 +84,15 @@ class ScaledDotProductAttention(nn.Module):
         self.device = device
         self.to(device)
 
+    def init(self, activation=None):
+        pass
+
     @property
     def activation(self):
         return self.softmax
+
+    def lora(self, base=None, w=None):
+        return self
 
     def forward(self, q, k, v, mask=None, I=None):
 
@@ -106,7 +111,7 @@ class ScaledDotProductAttention(nn.Module):
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0.1, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=nn.Linear, mode=None):
+    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0.1, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=nn.Linear, mode=None, bias=False):
         super().__init__()
 
         d_qk = d_qk or (d_O//n_head)
@@ -128,7 +133,7 @@ class MultiHeadAttention(nn.Module):
         self.attention = Attention(temperature=d_qk ** 0.5, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear)
 
         self.dropout = nn.Dropout(dropout)
-        self.layer_norm = nn.LayerNorm(self.d_O, eps=1e-6)
+        self.layer_norm = nn.LayerNorm(self.d_O, eps=1e-6, bias=bias)
 
         self.init()
 
@@ -140,20 +145,23 @@ class MultiHeadAttention(nn.Module):
         init_linear(self.w_qs, activation=self.attention.softmax)
         init_linear(self.w_ks, activation=self.attention.softmax)
         init_linear(self.w_vs, activation=self.attention.softmax)
+        self.attention.init(activation=self.attention.softmax)
         init_linear(self.fc, activation=activation)
         init_layer_norm(self.layer_norm, activation=activation)
 
 
-    def lora(self, base=None, w_qs=None, w_ks=None, w_vs=None, fc=None):
+    def lora(self, base=None, w_qs=None, w_ks=None, w_vs=None, fc=None, attention=None):
         if base is not None and base is not self:
             w_qs = base.w_qs
             w_ks = base.w_ks
             w_vs = base.w_vs
             fc = base.fc
+            attention = base.attention
         self.w_qs = LoRALinear(w_qs, self.w_qs) if w_qs and w_qs is not self.w_qs else self.w_qs
         self.w_ks = LoRALinear(w_ks, self.w_ks) if w_ks and w_ks is not self.w_ks else self.w_ks
         self.w_vs = LoRALinear(w_vs, self.w_vs) if w_vs and w_vs is not self.w_vs else self.w_vs
         self.fc = LoRALinear(fc, self.fc) if fc and fc is not self.fc else self.fc
+        self.attention = self.attention.lora(base=attention) if attention else self.attention
 
         return self
 
@@ -232,7 +240,7 @@ def scale_inds_to_batch(I, q):
 
 
 class InducedSetAttentionMini(nn.Module):
-    def __init__(self, d_H=None, Linear=nn.Linear, **kwargs):
+    def __init__(self, d_H=None, Linear=nn.Linear, bias=False, **kwargs):
         super().__init__()
         self.w = None
         self.d_H = d_H
@@ -248,6 +256,18 @@ class InducedSetAttentionMini(nn.Module):
     @property
     def activation(self):
         return self.attn1.activation
+
+    def init(self, activation=None):
+        if self.w:
+            init_linear(self.w, activation=self.activation)
+
+    def lora(self, base=None, w=None):
+        if base is not None and base is not self:
+            w = base.w
+        if w and self.w:
+            self.w = LoRALinear(w, self.w) if w and w is not self.w else self.w
+
+        return self
 
     def forward(self, q, k, v, mask=None, I=None):
         if I is None:
@@ -292,7 +312,7 @@ class LowRankInductionPoint(nn.Module):
         return torch.matmul(self.a, self.b)
 
 class InducedSetAttention(nn.Module):
-    def __init__(self, num_inds, d_I, d_H, n_head, d_Q, d_KV, d_O, skip_small=False, mode=ISABMode.SHARED, rank=0, device=DEFAULT_DEVICE, **kwargs):
+    def __init__(self, num_inds, d_I, d_H, n_head, d_Q, d_KV, d_O, skip_small=False, mode=ISABMode.MINI, rank=0, device=DEFAULT_DEVICE, **kwargs):
         super().__init__()
         self.skip_small = skip_small
         self.d_I = d_I
@@ -431,14 +451,14 @@ class PoolingByMultiheadAttention(nn.Module):
 class DoubleFeedForward(nn.Module):
     ''' A two-feed-forward-layer module '''
 
-    def __init__(self, d_in, d_hid, dropout=0.1, activation=nn.ReLU, device=DEFAULT_DEVICE, Linear=nn.Linear):
+    def __init__(self, d_in, d_hid, dropout=0.1, activation=nn.ReLU, device=DEFAULT_DEVICE, Linear=nn.Linear, bias=False):
         super().__init__()
-        self.w_1 = Linear(d_in, d_hid) # position-wise
-        self.w_2 = Linear(d_hid, d_in) # position-wise
+        self.w_1 = Linear(d_in, d_hid, bias=bias) # position-wise
+        self.w_2 = Linear(d_hid, d_in, bias=bias) # position-wise
         self.activation = activation
         if inspect.isclass(self.activation):
             self.activation = self.activation()
-        self.layer_norm = nn.LayerNorm(d_in, eps=1e-6)
+        self.layer_norm = nn.LayerNorm(d_in, eps=1e-6, bias=bias)
         self.dropout = nn.Dropout(dropout)
 
         self.init()
@@ -479,15 +499,15 @@ class DoubleFeedForward(nn.Module):
 
 class FeedForward(nn.Module):
 
-    def __init__(self, d_in, d_out, activation=nn.Sigmoid, dropout=0.1, layer_norm=True, residual=True, device=DEFAULT_DEVICE, Linear=nn.Linear):
+    def __init__(self, d_in, d_out, activation=nn.Sigmoid, dropout=0.1, layer_norm=True, residual=True, device=DEFAULT_DEVICE, Linear=nn.Linear, bias=False):
         super().__init__()
-        self.w = Linear(d_in, d_out) # position-wise
+        self.w = Linear(d_in, d_out, bias=bias) # position-wise
         self.residual = residual and d_in == d_out
         self.activation = activation
         if inspect.isclass(self.activation):
             self.activation = self.activation()
         self.dropout = nn.Dropout(dropout)
-        self.layer_norm = nn.LayerNorm(d_out, eps=1e-6) if layer_norm else None
+        self.layer_norm = nn.LayerNorm(d_out, eps=1e-6, bias=bias) if layer_norm else None
 
         self.init()
 

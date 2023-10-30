@@ -35,4 +35,4 @@ def init(module, activation=None):
         init_linear(module, activation=activation)
     if isinstance(module, torch.nn.LayerNorm):
         init_layer_norm(module, activation=activation)
-    
+

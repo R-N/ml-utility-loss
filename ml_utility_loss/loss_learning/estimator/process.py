@@ -170,7 +170,7 @@ def train_epoch(
     grad_clip=1.0,
     models = None,
     head="mlu",
-    eps=1e-9,
+    eps=1e-6,
     timer=None,
     allow_same_prediction=True,
 ):

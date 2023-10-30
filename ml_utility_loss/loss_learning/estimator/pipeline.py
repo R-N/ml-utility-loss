@@ -269,6 +269,8 @@ def create_model(
     flip=False,
     skip_small=False,
     layer_norm=True,
+    bias=False,
+    bias_final=True,
     # Transformer args
     tf_num_inds=32,
     tf_d_inner=64,
@@ -336,6 +338,7 @@ def create_model(
         pma_rank=tf_pma_rank,
         lora_mode=tf_lora_mode,
         lora_rank=tf_lora_rank,
+        bias=bias,
     )
     whole_model = MLUtilityWhole(
         body=body,
@@ -349,6 +352,7 @@ def create_model(
             "lora_mode":ada_lora_mode,
             "lora_rank":ada_lora_rank,
             "layer_norm": layer_norm,
+            "bias": bias,
         },
         head_args={
             "n_seeds": head_n_seeds,
@@ -365,6 +369,8 @@ def create_model(
             "lora_mode":head_lora_mode,
             "lora_rank":head_lora_rank,
             "layer_norm": layer_norm,
+            "bias": bias,
+            "bias_final": bias_final,
         }
     )
     return whole_model
