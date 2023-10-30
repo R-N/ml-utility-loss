@@ -24,7 +24,7 @@ PARAM_SPACE = {
         "realtabformer"
     ]),
     "gradient_penalty_mode": ("gradient_penalty_mode", [
-        "ALL",
+        #"ALL",
         "ONCE",
         "ESTIMATE",
         "AVERAGE_MUL",

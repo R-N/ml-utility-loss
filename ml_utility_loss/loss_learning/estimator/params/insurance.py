@@ -7,7 +7,7 @@ PARAM_SPACE = {
     "dataset_size": ("int_exp_2", 32, 2048),
     "batch_size": ("int_exp_2", 2, 4),
     # Training args
-    "epochs": ("log_int", 70, 200),
+    "epochs": ("log_int", 70, 100),
     "lr": ("log_float", 1e-4, 1e-3),
     "Optim": ("optimizer", ["adamw"]),
     # Training args
@@ -30,7 +30,7 @@ PARAM_SPACE = {
     ]),
     "gradient_penalty_mode": ("gradient_penalty_mode", [
         #"NONE",
-        "ALL", # ALL was the best, but it takes a long time to train
+        #"ALL", # ALL was the best, but it takes a long time to train
         "ONCE",
         "ESTIMATE",
         #"AVERAGE_NO_MUL",
@@ -47,9 +47,9 @@ PARAM_SPACE = {
     "layer_norm": BOOLEAN,
     # Transformer args
     "tf_num_inds": ("int_exp_2", 64, 128),
-    "tf_d_inner": ("int_exp_2", 128, 256),
-    "tf_n_layers_enc": ("int", 4, 6), 
-    "tf_n_layers_dec": ("int", 4, 5), 
+    "tf_d_inner": ("int_exp_2", 64, 256),
+    "tf_n_layers_enc": ("int", 4, 5), 
+    "tf_n_layers_dec": ("int", 3, 4), 
     "tf_n_head": ("int_exp_2", 4, 8), 
     "tf_activation": ("activation", ["relu", "leakyrelu"]),
     "tf_isab_mode": ("categorical", (
@@ -76,7 +76,7 @@ PARAM_SPACE = {
     #"tf_share_ffn": True,
     # Adapter args
     "ada_d_hid": ("int_exp_2", 128, 256), 
-    "ada_n_layers": ("int", 4, 6), 
+    "ada_n_layers": ("int", 3, 4), 
     "ada_activation": ("activation", [
         "tanh",  
         "relu",  
@@ -93,8 +93,8 @@ PARAM_SPACE = {
     #}),
     # Head args
     "head_n_seeds": ("int_exp_2", 8, 16), # 1 was never sampled or always pruned
-    "head_d_hid": ("int_exp_2", 256, 512), 
-    "head_n_layers": ("int", 5, 6), 
+    "head_d_hid": ("int_exp_2", 128, 256), 
+    "head_n_layers": ("int", 3, 4), 
     "head_n_head": ("int_exp_2", 8, 16),
     "head_activation": ("activation", [
         "leakyrelu", 

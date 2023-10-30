@@ -29,7 +29,7 @@ PARAM_SPACE = {
     ]),
     "gradient_penalty_mode": ("gradient_penalty_mode", [
         #"NONE",
-        "ALL", # ALL was the best, but it takes a long time to train
+        #"ALL", # ALL was the best, but it takes a long time to train
         "ONCE",
         "ESTIMATE",
         #"AVERAGE_NO_MUL",
@@ -46,10 +46,10 @@ PARAM_SPACE = {
     "layer_norm": BOOLEAN,
     #"layer_norm": False,
     # Transformer args
-    "tf_num_inds": ("int_exp_2", 64, 256),
-    "tf_d_inner": ("int_exp_2", 128, 256),
+    "tf_num_inds": ("int_exp_2", 32, 64),
+    "tf_d_inner": ("int_exp_2", 64, 128),
     "tf_n_layers_enc": ("int", 3, 4), 
-    "tf_n_layers_dec": ("int", 3, 4), 
+    "tf_n_layers_dec": ("int", 2, 4), 
     "tf_n_head": ("int_exp_2", 4, 8), 
     "tf_activation": ("activation", ["relu", "leakyrelu"]),
     "tf_isab_mode": ("categorical", (
@@ -70,13 +70,13 @@ PARAM_SPACE = {
         "tf_pma_start": ("int", -2, -1),
         "tf_pma_high": ("int_exp_2", 32, 64),
         "tf_pma_low": ("int_exp_2", 16, 16),
-        "tf_pma_rank": ("bool_int_exp_2", 16, 64), #doesn't matter so true it is
+        "tf_pma_rank": ("bool_int_exp_2", 16, 32), #doesn't matter so true it is
     }),
     "tf_share_ffn": BOOLEAN, 
     #"tf_share_ffn": True, #true is better
     # Adapter args
     "ada_d_hid": ("int_exp_2", 16, 64), 
-    "ada_n_layers": ("int", 4, 5), 
+    "ada_n_layers": ("int", 3, 4), 
     "ada_activation": ("activation", [
         "tanh",  
         "leakyrelu", 
@@ -94,7 +94,7 @@ PARAM_SPACE = {
     # Head args
     "head_n_seeds": ("int_exp_2", 2, 4),
     "head_d_hid": ("int_exp_2", 32, 64), 
-    "head_n_layers": ("int", 4, 5), 
+    "head_n_layers": ("int", 3, 4), 
     "head_n_head": ("int_exp_2", 8, 16), #16 was never sampled but 8 was top
     "head_activation": ("activation", [
         "leakyrelu", 
