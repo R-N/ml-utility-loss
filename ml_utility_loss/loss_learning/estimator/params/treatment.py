@@ -14,6 +14,7 @@ PARAM_SPACE = {
     "non_role_model_mul": ("float", 0.75, 1.0), #almost random
     #"non_role_model_avg": BOOLEAN,
     "non_role_model_avg": True, 
+    "std_loss_mul": ("float", 0.5, 1.5),
     "grad_loss_mul": ("float", 0.6, 1.0), #almost random
     #"loss_fn": ("loss", "mse"),
     #"grad_loss_fn": ("loss", "huber"),

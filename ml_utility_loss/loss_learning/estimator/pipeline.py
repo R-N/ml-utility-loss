@@ -419,6 +419,7 @@ def train(
     # Training args
     non_role_model_mul=1.0,
     non_role_model_avg=True,
+    std_loss_mul=1.0,
     grad_loss_mul=1.0,
     loss_fn=F.mse_loss,
     grad_loss_fn=F.huber_loss,
@@ -518,6 +519,7 @@ def train(
             val=val,
             non_role_model_mul=non_role_model_mul,
             non_role_model_avg=non_role_model_avg,
+            std_loss_mul=std_loss_mul,
             grad_loss_mul=grad_loss_mul,
             loss_fn=loss_fn,
             grad_loss_fn=grad_loss_fn or loss_fn,

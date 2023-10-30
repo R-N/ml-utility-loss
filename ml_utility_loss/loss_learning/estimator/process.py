@@ -8,6 +8,9 @@ import numpy as np
 
 Tensor = torch.FloatTensor
 
+def mean(x):
+    return np.mean(np.array(x))
+
 def try_tensor_item(tensor, detach=True):
     if hasattr(tensor, "item"):
         if detach:
@@ -153,10 +156,12 @@ def train_epoch(
     whole_model, 
     train_loader, 
     optim=None, 
+    std_loss_mul=1.0,
     non_role_model_mul=1.0,
     non_role_model_avg=True,
     grad_loss_mul=1.0,
     loss_fn=F.mse_loss,
+    std_loss_fn=None,
     grad_loss_fn=F.huber_loss, # It's fine as long as loss_fn is MSE
     adapter_loss_fn=F.l1_loss, # Values can get very large and MSE loss will result in infinity, or maybe use kl_div
     reduction=torch.sum,
@@ -179,12 +184,15 @@ def train_epoch(
     #torch.autograd.set_detect_anomaly(True)
     size = len(train_loader.dataset)
 
+    std_loss_fn = std_loss_fn or loss_fn
+
     models = models or whole_model.models
 
     # Set the model to eval mode for validation or train mode for training
     whole_model.eval() if val else whole_model.train()
     avg_loss = 0
     avg_role_model_loss = 0
+    avg_role_model_std_loss = 0
     avg_role_model_g_loss = 0
     avg_non_role_model_g_loss = 0
     avg_non_role_model_embed_loss = 0
@@ -323,11 +331,14 @@ def train_epoch(
                     compute["grad"] = grad = calc_gradient(train, loss)
                 assert not torch.isnan(grad).any(), f"{model} grad has nan"
 
-            #y_std = torch.std(y)
+            y_std = torch.std(y).detach()
             #compute["y_std"] = y_std
 
             pred_std = torch.std(pred)
             #compute["pred_std"] = pred_std
+
+            std_loss = std_loss_fn(pred_std, y_std)
+            compute["std_loss"] = std_loss
 
             pred_std_ = pred_std.item()
             
@@ -348,6 +359,7 @@ def train_epoch(
             model_2 = [m for m in models if m != role_model][0]
 
         role_model_loss = reduction(role_model_compute["loss"])
+        role_model_std_loss = std_loss_mul * role_model_compute["std_loss"]
         if timer:
             timer.check_time()
 
@@ -515,7 +527,7 @@ def train_epoch(
         role_model_g_loss = reduction(role_model_compute["g_loss"]) if gradient_penalty else 0
         assert isinstance(role_model_g_loss, int) or not torch.isnan(role_model_g_loss).any(), f"role_model_g_loss has nan"
         assert isinstance(role_model_loss, int) or not torch.isnan(role_model_loss).any(), f"role_model_loss has nan"
-        role_model_total_loss = role_model_loss + role_model_g_loss
+        role_model_total_loss = role_model_loss + role_model_std_loss + role_model_g_loss
         #if not val:
         #    role_model_total_loss.backward()
 
@@ -538,6 +550,7 @@ def train_epoch(
 
 
         avg_role_model_loss += try_tensor_item(role_model_loss)
+        avg_role_model_std_loss += try_tensor_item(role_model_std_loss)
         avg_role_model_g_loss += try_tensor_item(role_model_g_loss)
         avg_non_role_model_g_loss += try_tensor_item(non_role_model_g_loss)
         avg_non_role_model_embed_loss += try_tensor_item(non_role_model_embed_loss)
@@ -559,16 +572,18 @@ def train_epoch(
     n = n_batch if reduction == torch.mean else n_size
 
     avg_role_model_loss /= n
+    avg_role_model_std_loss /= n_batch
     avg_role_model_g_loss /= n
     avg_non_role_model_g_loss /= n
     avg_non_role_model_embed_loss /= n
     avg_loss /= n
     avg_pred_stds = {k: (v / n_batch) for k, v in avg_pred_stds.items()}
     avg_pred_stds = {k: try_tensor_item(v) for k, v in avg_pred_stds.items()}
-    avg_pred_std = np.mean(avg_pred_stds.values())
+    avg_pred_std = mean(avg_pred_stds.values())
     clear_memory()
     return {
         "avg_role_model_loss": avg_role_model_loss, 
+        "avg_role_model_std_loss": avg_role_model_std_loss,
         "avg_role_model_g_loss": avg_role_model_g_loss,
         "avg_non_role_model_g_loss": avg_non_role_model_g_loss,
         "avg_non_role_model_embed_loss": avg_non_role_model_embed_loss,
@@ -587,12 +602,15 @@ def eval(
     whole_model, 
     eval_loader, 
     loss_fn=F.mse_loss,
+    std_loss_fn=None,
     grad_loss_fn=F.mse_loss, #for RMSE,
     reduction=torch.sum,
     models=None,
     allow_same_prediction=True,
 ):
     size = len(eval_loader.dataset)
+
+    std_loss_fn = std_loss_fn or loss_fn
 
     models = models or whole_model.models
 
@@ -675,7 +693,10 @@ def eval(
     gs = {k: torch.stack(v) for k, v in gs.items()}
     grads = {k: torch.stack(v) for k, v in grads.items()}
 
-    pred_stds = {k: torch.std(v).item() for k, v in preds.items()}
+    pred_stds = {k: torch.std(v).detach() for k, v in preds.items()}
+    y_stds = {k: torch.std(v).detach() for k, v in ys.items()}
+    std_losses = {model: std_loss_fn(pred_stds[model], y_stds[model]).item() for model in models}
+    pred_stds = {k: v.item() for k, v in pred_stds.items()}
     
     for k, pred_std in pred_stds:
         assert allow_same_prediction or batch_size == 1 or pred_std, f"model predicts the same for every input, {k}, {pred_std}, {preds[k][0].item()}"
@@ -705,7 +726,8 @@ def eval(
     avg_pred_duration = sum(pred_duration.values()) / len(models)
     avg_grad_duration = sum(grad_duration.values()) / len(models)
     avg_total_duration = sum(total_duration.values()) / len(models)
-    avg_pred_std = np.mean(pred_stds.values())
+    avg_pred_std = mean(pred_stds.values())
+    avg_std_loss = mean(std_losses.values())
 
     model_metrics = {
         model: {
@@ -715,6 +737,7 @@ def eval(
             "grad_duration": grad_duration[model],
             "total_duration": total_duration[model],
             "pred_std": pred_stds[model],
+            "std_loss": std_losses[model],
             **pred_metrics[model],
             **grad_metrics[model],
         }
@@ -734,6 +757,7 @@ def eval(
         "avg_total_duration": avg_total_duration,
         "model_metrics": model_metrics,
         "avg_pred_std": avg_pred_std,
+        "avg_std_loss": avg_std_loss,
     }
 
 def calc_metrics(pred, y, prefix=""):

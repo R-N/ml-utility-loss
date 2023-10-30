@@ -9,6 +9,7 @@ def objective(
     checkpoint_dir=None,
     log_dir=None,
     trial=None,
+    std_loss_mul=0.5,
     g_loss_mul=0.5,
     **kwargs
 ):
@@ -21,7 +22,7 @@ def objective(
             **kwargs
         )
         eval_loss = train_results["eval_loss"]
-        return eval_loss["avg_loss"] + g_loss_mul * eval_loss["avg_g_loss"]
+        return eval_loss["avg_loss"] + std_loss_mul * eval_loss["avg_std_loss"] +  g_loss_mul * eval_loss["avg_g_loss"]
     except AssertionError as ex:
         msg = str(ex)
         if "model predicts the same for every input" in msg:
@@ -46,6 +47,7 @@ def objective_2(
     log_dir=None,
     trial=None,
     g_loss_mul=0.5,
+    std_loss_mul=0.5,
     **kwargs
 ):
     try:
@@ -67,7 +69,7 @@ def objective_2(
             **kwargs
         )
         eval_loss = train_results["eval_loss"]
-        return eval_loss["avg_loss"] + g_loss_mul * eval_loss["avg_g_loss"]
+        return eval_loss["avg_loss"] + std_loss_mul * eval_loss["avg_std_loss"] +  g_loss_mul * eval_loss["avg_g_loss"]
 
     except AssertionError as ex:
         msg = str(ex)
