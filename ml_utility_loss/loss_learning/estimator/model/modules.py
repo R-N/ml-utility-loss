@@ -22,9 +22,9 @@ class LayerNorm(nn.LayerNorm):
 
     def reset_parameters(self):
         if self.elementwise_affine:
-            torch.init.ones_(self.weight)
+            torch.nn.init.ones_(self.weight)
             if self.bias is not None:
-                torch.init.zeros_(self.bias)
+                torch.nn.init.zeros_(self.bias)
 
 class LowRankLinear(nn.Module):
     def __init__(self, in_features, out_features, rank, device=DEFAULT_DEVICE, bias=False, **kwargs):
