@@ -4,6 +4,7 @@ from ...util import stack_samples, stack_sample_dicts, clear_memory, clear_cuda_
 from torch.nn.utils import clip_grad_norm_
 from ...metrics import rmse, mae, mape
 import time
+import numpy as np
 
 Tensor = torch.FloatTensor
 
@@ -194,8 +195,7 @@ def train_epoch(
     non_role_model_avg_mul = 1.0/non_role_model_count if non_role_model_avg else 1.0
 
     role_model = None
-    max_pred = float("-inf")
-    min_pred = float("inf")
+    avg_pred_stds = {}
 
     clear_memory()
 
@@ -322,6 +322,20 @@ def train_epoch(
                     train = compute["train"]
                     compute["grad"] = grad = calc_gradient(train, loss)
                 assert not torch.isnan(grad).any(), f"{model} grad has nan"
+
+            #y_std = torch.std(y)
+            #compute["y_std"] = y_std
+
+            pred_std = torch.std(pred)
+            #compute["pred_std"] = pred_std
+
+            pred_std_ = pred_std.item()
+            
+            assert allow_same_prediction or batch_size == 1 or pred_std_ != 0, f"model predicts the same for every input, {model}, {pred[0].item()}, {pred_std_}"
+
+            if model not in avg_pred_stds:
+                avg_pred_stds[model] = 0
+            avg_pred_stds[model] += pred_std_
 
         if role_model and (fixed_role_model or forward_once):
             role_model_compute = computes[role_model]
@@ -528,14 +542,6 @@ def train_epoch(
         avg_non_role_model_g_loss += try_tensor_item(non_role_model_g_loss)
         avg_non_role_model_embed_loss += try_tensor_item(non_role_model_embed_loss)
         avg_loss += try_tensor_item(batch_loss)
-
-        max_pred_i = torch.max(pred).item()
-        min_pred_i = torch.min(pred).item()
-        
-        assert allow_same_prediction or batch_size == 1 or max_pred_i != min_pred_i, f"model predicts the same for every input, {min_pred_i}"
-
-        max_pred = max(max_pred_i, max_pred)
-        min_pred = min(min_pred_i, min_pred)
     
         n_size += batch_size
         n_batch += 1
@@ -557,6 +563,9 @@ def train_epoch(
     avg_non_role_model_g_loss /= n
     avg_non_role_model_embed_loss /= n
     avg_loss /= n
+    avg_pred_stds = {k: (v / n_batch) for k, v in avg_pred_stds.items()}
+    avg_pred_stds = {k: try_tensor_item(v) for k, v in avg_pred_stds.items()}
+    avg_pred_std = np.mean(avg_pred_stds.values())
     clear_memory()
     return {
         "avg_role_model_loss": avg_role_model_loss, 
@@ -569,8 +578,8 @@ def train_epoch(
         "duration": duration,
         "duration_batch": duration_batch,
         "duration_size": duration_size,
-        "max_pred": max_pred,
-        "min_pred": min_pred,
+        #"avg_pred_stds": avg_pred_stds,
+        "avg_pred_std": avg_pred_std,
     }
 
 
@@ -602,8 +611,6 @@ def eval(
     ys = {model: [] for model in models}
     gs = {model: [] for model in models}
     grads = {model: [] for model in models}
-    max_preds = {model: float("-inf") for model in models}
-    min_preds = {model: float("inf") for model in models}
 
     clear_memory()
 
@@ -657,15 +664,6 @@ def eval(
             pred_duration[model] += time_1 - time_0
             grad_duration[model] += time_2 - time_1
 
-            max_pred_i = torch.max(pred).item()
-            min_pred_i = torch.min(pred).item()
-            
-            assert allow_same_prediction or batch_size == 1 or max_pred_i != min_pred_i, f"model predicts the same for every input, {min_pred_i}"
-
-            max_preds[model] = max(max_pred_i, max_preds[model])
-            min_preds[model] = min(min_pred_i, min_preds[model])
-
-
         n_size += batch_size
         n_batch += 1
 
@@ -676,6 +674,11 @@ def eval(
     ys = {k: torch.stack(v) for k, v in ys.items()}
     gs = {k: torch.stack(v) for k, v in gs.items()}
     grads = {k: torch.stack(v) for k, v in grads.items()}
+
+    pred_stds = {k: torch.std(v).item() for k, v in preds.items()}
+    
+    for k, pred_std in pred_stds:
+        assert allow_same_prediction or batch_size == 1 or pred_std, f"model predicts the same for every input, {k}, {pred_std}, {preds[k][0].item()}"
 
     avg_losses = {
         model: (loss/n) 
@@ -702,6 +705,7 @@ def eval(
     avg_pred_duration = sum(pred_duration.values()) / len(models)
     avg_grad_duration = sum(grad_duration.values()) / len(models)
     avg_total_duration = sum(total_duration.values()) / len(models)
+    avg_pred_std = np.mean(pred_stds.values())
 
     model_metrics = {
         model: {
@@ -710,8 +714,7 @@ def eval(
             "pred_duration": pred_duration[model],
             "grad_duration": grad_duration[model],
             "total_duration": total_duration[model],
-            "max_pred": max_preds[model],
-            "min_pred": min_preds[model],
+            "pred_std": pred_stds[model],
             **pred_metrics[model],
             **grad_metrics[model],
         }
@@ -730,8 +733,7 @@ def eval(
         "avg_grad_duration": avg_grad_duration,
         "avg_total_duration": avg_total_duration,
         "model_metrics": model_metrics,
-        "max_pred": max(max_preds.values()),
-        "min_pred": min(min_preds.values()),
+        "avg_pred_std": avg_pred_std,
     }
 
 def calc_metrics(pred, y, prefix=""):
