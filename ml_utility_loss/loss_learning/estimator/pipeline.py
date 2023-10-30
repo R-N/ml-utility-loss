@@ -728,8 +728,6 @@ def train_2(
         log_dir=log_dir,
         **kwargs
     )
-    for k in ["train_loss", "val_loss", "eval_loss"]:
-        print(k, train_results[k])
     return train_results
 
 
