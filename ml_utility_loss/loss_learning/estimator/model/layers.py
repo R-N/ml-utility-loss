@@ -88,10 +88,11 @@ class EncoderLayer(nn.Module):
                     bias=bias,
                 )
 
-        self.init()
+        if type(self) is EncoderLayer:
+            self.init()
 
-        self.device = device
-        self.to(device)
+            self.device = device
+            self.to(device)
 
     def init(self, activation=None):
         self.slf_attn.init(activation=None)
