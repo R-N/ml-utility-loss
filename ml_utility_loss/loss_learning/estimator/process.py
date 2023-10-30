@@ -749,15 +749,15 @@ def eval(
         "role_model": role_model, 
         "min_loss": min_loss,
         "avg_loss": avg_loss,
+        "avg_std_loss": avg_std_loss,
         "avg_g_loss": avg_g_loss,
+        "avg_pred_std": avg_pred_std,
         "n_size": n_size,
         "n_batch": n_batch,
         "avg_pred_duration": avg_pred_duration,
         "avg_grad_duration": avg_grad_duration,
         "avg_total_duration": avg_total_duration,
         "model_metrics": model_metrics,
-        "avg_pred_std": avg_pred_std,
-        "avg_std_loss": avg_std_loss,
     }
 
 def calc_metrics(pred, y, prefix=""):
