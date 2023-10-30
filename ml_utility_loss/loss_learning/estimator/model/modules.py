@@ -72,7 +72,7 @@ def LoRALinearFactory(base, rank):
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
 
-    def __init__(self, temperature, attn_dropout=0.1, softmax=ReLU15, device=DEFAULT_DEVICE):
+    def __init__(self, temperature, attn_dropout=0.1, softmax=ReLU15, device=DEFAULT_DEVICE, d_H=None, Linear=None):
         super().__init__()
         self.temperature = temperature
         self.dropout = nn.Dropout(attn_dropout)
@@ -125,7 +125,7 @@ class MultiHeadAttention(nn.Module):
         self.w_vs = Linear(self.d_KV, self.d_O, bias=False)
         self.fc = Linear(self.d_O, self.d_O, bias=False)
 
-        self.attention = Attention(temperature=d_qk ** 0.5, softmax=softmax, device=device)
+        self.attention = Attention(temperature=d_qk ** 0.5, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear)
 
         self.dropout = nn.Dropout(dropout)
         self.layer_norm = nn.LayerNorm(self.d_O, eps=1e-6)
@@ -232,9 +232,13 @@ def scale_inds_to_batch(I, q):
 
 
 class InducedSetAttentionMini(nn.Module):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, d_H=None, Linear=nn.Linear, **kwargs):
         super().__init__()
-        self.attn0 = ScaledDotProductAttention(*args, **kwargs)
+        self.w = None
+        self.d_H = d_H
+        if self.d_H:
+            self.w = Linear(self.d_H, self.d_H, bias=False)
+        self.attn0 = ScaledDotProductAttention(**kwargs)
         self.attn1 = self.attn0
 
     @property
@@ -251,6 +255,14 @@ class InducedSetAttentionMini(nn.Module):
             O, O_attn = self.attn1(q, k, v, mask=mask)
         else:
             H, I_attn = self.attn0(I, k, v, mask=None) #yes it's none
+            if self.w:
+                #I = I.view(*sz_b_arg, len_I, n_head, d_qk)
+                #I = I.transpose(-3, -2)
+                *sz_b_arg, n_head, len_I, d_qk = I.shape
+                H = H.transpose(-3, -2).contiguous().view(*sz_b_arg, len_I, -1)
+                H = self.w(H)
+                H = H.view(*sz_b_arg, len_I, n_head, d_qk)
+                H = H.transpose(-3, -2)
             O, O_attn = self.attn1(q, H, H, mask=mask) #mask is applied to the query, since query is from decoder
         return O, (I_attn, O_attn)
     
