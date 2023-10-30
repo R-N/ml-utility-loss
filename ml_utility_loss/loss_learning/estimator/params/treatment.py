@@ -50,8 +50,8 @@ PARAM_SPACE = {
     # Transformer args
     "tf_num_inds": ("int_exp_2", 32, 64),
     "tf_d_inner": ("int_exp_2", 64, 128),
-    "tf_n_layers_enc": ("int", 2, 3), 
-    "tf_n_layers_dec": ("int", 1, 3), 
+    "tf_n_layers_enc": ("int", 2, 4), 
+    "tf_n_layers_dec": ("int", 2, 3), 
     "tf_n_head": ("int_exp_2", 4, 8), 
     "tf_activation": ("activation", [
         "tanh", 
@@ -84,7 +84,7 @@ PARAM_SPACE = {
     "tf_share_ffn": True, #true is better
     # Adapter args
     "ada_d_hid": ("int_exp_2", 32, 256), 
-    "ada_n_layers": ("int", 1, 2), 
+    "ada_n_layers": ("int", 2, 3), 
     "ada_activation": ("activation", [
         "tanh",  
         "sigmoid", 
@@ -104,7 +104,7 @@ PARAM_SPACE = {
     # Head args
     "head_n_seeds": ("int_exp_2", 2, 4),
     "head_d_hid": ("int_exp_2", 32, 64), 
-    "head_n_layers": ("int", 1, 2), 
+    "head_n_layers": ("int", 2, 3), 
     "head_n_head": ("int_exp_2", 8, 16), #16 was never sampled but 8 was top
     "head_activation": ("activation", [
         "tanh",  
