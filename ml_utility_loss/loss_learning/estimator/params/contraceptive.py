@@ -63,6 +63,7 @@ PARAM_SPACE = {
         "relu", 
         "leakyrelu", 
         "selu",
+        "learnableleakyrelu",
     ]),
     "tf_isab_mode": ("categorical", (
         #ISABMode.SEPARATE, 
@@ -97,6 +98,7 @@ PARAM_SPACE = {
         "relu",
         "leakyrelu", 
         "selu",
+        "learnableleakyrelu",
     ]),
     "ada_activation_final": ("activation", [
         "tanh", 
@@ -122,6 +124,7 @@ PARAM_SPACE = {
         "relu",
         "leakyrelu", 
         "selu",
+        "learnableleakyrelu",
     ]),
     "head_pma_rank": ("int_exp_2", 2, 4), #bool doesn't matter
     #"head_activation": ("activation", "selu"),
