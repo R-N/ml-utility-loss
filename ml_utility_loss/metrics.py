@@ -1,6 +1,12 @@
 import torch
 import torch.nn.functional as F
 
+def msle(pred, y, **kwargs):
+    return F.mse_loss(torch.log(1+pred), torch.log(1+y), **kwargs)
+
+def rmsle(pred, y, **kwargs):
+    return torch.sqrt(msle(pred, y **kwargs))
+
 def rmse(pred, y, **kwargs):
     return torch.sqrt(F.mse_loss(pred, y, **kwargs))
 
