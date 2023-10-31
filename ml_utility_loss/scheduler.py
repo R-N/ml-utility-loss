@@ -75,13 +75,11 @@ class PretrainingScheduler:
         if epoch is None:
             epoch = self.last_epoch + 1
         elif epoch == self.last_epoch:
-            print("Skipping because same epoch", self.last_epoch)
             return False
 
         if self.is_better(current, self.best):
             self.new_best(current, epoch=epoch)
         else:
-            print(current, "not better than", self.best)
             self.num_bad_epochs += 1
 
         if self.in_cooldown:
@@ -99,11 +97,9 @@ class PretrainingScheduler:
         self.best = current
         self.num_bad_epochs = 0
         self.best_epoch = epoch
-        print("Found new best")
         if self.model:
             if self.best_state is not None:
                 del self.best_state
-            print("Saving new best state")
             self.best_state = deepcopy(self.model.state_dict())
 
     def get_size(self):
