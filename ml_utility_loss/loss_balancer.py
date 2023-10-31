@@ -113,6 +113,7 @@ class ParallelBalancer(LossBalancer):
         losses = self.reduce(*losses)
         ws = [b.weigh(*losses) for b in self.balancers]
         w = [math.prod(wsi) for wsi in zip(ws)]
+        print("par w", w)
         return w
 
 class SequentialBalancer(LossBalancer):
@@ -128,6 +129,7 @@ class SequentialBalancer(LossBalancer):
         for b in self.balancers:
             losses = b(*losses)
         w = [li/l0i for l0i, li in zip(losses0, losses)]
+        print("seq w", w)
         return w
 
 class MyLossBalancer(ParallelBalancer):
