@@ -6,9 +6,9 @@ import math
 DEFAULT_BETA = 0.9
 DEFAULT_R = 1.0
 
-def reduce_losses(self, reduction, *losses):
+def reduce_losses(reduction, *losses):
     if reduction:
-        return [self.reduction(li).detach().item() for li in losses]
+        return [reduction(li).detach().item() for li in losses]
     else:
         return [li.detach() for li in losses]
     
