@@ -9,8 +9,7 @@ DEFAULT_R = 1.0
 def reduce_losses(reduction, *losses):
     if reduction:
         return [reduction(li).detach().item() for li in losses]
-    else:
-        return [li.detach() for li in losses]
+    return losses
     
 class LossBalancer:
     def __init__(self, reduction=torch.mean):
