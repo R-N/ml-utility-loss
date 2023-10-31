@@ -96,7 +96,7 @@ class LBTW(LossBalancer):
     def weigh(self, *losses):
         losses = self.reduce(*losses)
         #w = [(li/l0i).detach() for l0i, li in zip(self.l0, losses)]
-        w = torch.div(losses, self.l0)
+        w = torch.nan_to_num(torch.div(losses, self.l0), nan=0)
         return w.detach()
     
 class LogWeighter(LossBalancer):
@@ -109,7 +109,7 @@ class LogWeighter(LossBalancer):
     def weigh(self, *losses):
         losses = self.reduce(*losses)
         #w = [torch.log(1+li).detach()/li for li in losses]
-        w = torch.div(torch.log(1+losses) / losses)
+        w = torch.nan_to_num(torch.div(torch.log(1+losses) / losses), nan=0)
         return w.detach()
     
 class LogTransformer(LogWeighter):
@@ -148,7 +148,7 @@ class SequentialWeighter(LossBalancer):
         for b in self.balancers:
             losses = b(*losses)
         #w = [li/l0i for l0i, li in zip(losses0, losses)]
-        w = torch.div(losses, losses0)
+        w = torch.nan_to_num(torch.div(losses, losses0), nan=0)
         return w.detach()
     
 class SequentialTransformer(SequentialWeighter):
