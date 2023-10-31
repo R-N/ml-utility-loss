@@ -27,6 +27,7 @@ class AlphaSoftmax(AlphaSigmoid):
 
 class LearnableLeakyReLU(nn.Module):
     def __init__(self, negative_slope=0.01, F=nn.LeakyReLU, **kwargs):
+        super().__init__()
         self.alpha = nn.Parameter(torch.Tensor([negative_slope]).squeeze())
         self.f = F(**kwargs)
         
