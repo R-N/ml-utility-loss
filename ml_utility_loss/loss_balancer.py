@@ -32,7 +32,8 @@ class LossBalancer(nn.Module):
     def forward(self, *losses):
         losses = torch.stack(losses)
         w = self.weigh(*losses)
-        losses = [wi*li for wi, li in zip(w, losses)]
+        #losses = [wi*li for wi, li in zip(w, losses)]
+        losses = torch.mul(w, losses)
         return losses
     
     def __call__(self, *losses):
