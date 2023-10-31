@@ -5,6 +5,7 @@ from torch.nn.utils import clip_grad_norm_
 from ...metrics import rmse, mae, mape
 import time
 import numpy as np
+from ...loss_balancer import FixedWeights, MyLossBalancer, LossBalancer
 
 Tensor = torch.FloatTensor
 
@@ -156,15 +157,13 @@ def train_epoch(
     whole_model, 
     train_loader, 
     optim=None, 
-    std_loss_mul=1.0,
-    non_role_model_mul=1.0,
+    loss_balancer=LossBalancer(),
     non_role_model_avg=True,
-    grad_loss_mul=1.0,
     loss_fn=F.mse_loss,
     std_loss_fn=None,
     grad_loss_fn=F.huber_loss, # It's fine as long as loss_fn is MSE
     adapter_loss_fn=F.l1_loss, # Values can get very large and MSE loss will result in infinity, or maybe use kl_div
-    reduction=torch.sum,
+    reduction=torch.mean,
     val=False,
     fixed_role_model="lct_gan",
     forward_once=True,
@@ -172,7 +171,7 @@ def train_epoch(
     avg_non_role_model_m=True,
     inverse_avg_non_role_model_m=True,
     gradient_penalty=True,
-    loss_clamp=4.0,
+    loss_clamp=None,
     grad_clip=1.0,
     models = None,
     head="mlu",
@@ -359,7 +358,7 @@ def train_epoch(
             model_2 = [m for m in models if m != role_model][0]
 
         role_model_loss = reduction(role_model_compute["loss"])
-        role_model_std_loss = std_loss_mul * role_model_compute["std_loss"]
+        role_model_std_loss = role_model_compute["std_loss"]
         if timer:
             timer.check_time()
 
@@ -515,8 +514,8 @@ def train_epoch(
         # and zero the grads of the rest of the model
         assert isinstance(non_role_model_embed_loss, int) or not torch.isnan(non_role_model_embed_loss).any(), f"non_role_model_embed_loss has nan"
         assert isinstance(non_role_model_g_loss, int) or not torch.isnan(non_role_model_g_loss).any(), f"non_role_model_g_loss has nan"
-        non_role_model_loss = non_role_model_embed_loss + non_role_model_g_loss
-        non_role_model_loss = (non_role_model_mul * non_role_model_avg_mul) * non_role_model_loss
+        #non_role_model_loss = non_role_model_embed_loss + non_role_model_g_loss
+        #non_role_model_loss = non_role_model_avg_mul * non_role_model_loss
         #if not val and hasattr(non_role_model_loss, "backward"):
         #    non_role_model_loss.backward()
             # Zero the rest of the model
@@ -527,14 +526,24 @@ def train_epoch(
         role_model_g_loss = reduction(role_model_compute["g_loss"]) if gradient_penalty else 0
         assert isinstance(role_model_g_loss, int) or not torch.isnan(role_model_g_loss).any(), f"role_model_g_loss has nan"
         assert isinstance(role_model_loss, int) or not torch.isnan(role_model_loss).any(), f"role_model_loss has nan"
-        role_model_total_loss = role_model_loss + role_model_std_loss + role_model_g_loss
+        #role_model_total_loss = role_model_loss + role_model_std_loss + role_model_g_loss
         #if not val:
         #    role_model_total_loss.backward()
 
         # Finally, backprop
-        batch_loss = role_model_total_loss + non_role_model_loss
+        #batch_loss = role_model_total_loss + non_role_model_loss
+        batch_loss = (
+            role_model_loss, 
+            role_model_std_loss, 
+            role_model_g_loss, 
+            non_role_model_embed_loss, 
+            non_role_model_g_loss,
+        )
+        if batch == 0:
+            loss_balancer.pre_weigh(*batch_loss)
+        batch_loss = torch.sum(loss_balancer(*batch_loss))
         if not val:
-            if reduction != torch.mean:
+            if reduction == torch.sum:
                 (batch_loss/batch_size).backward()
             else:
                 batch_loss.backward()
@@ -549,12 +558,13 @@ def train_epoch(
             optim.zero_grad()
 
 
-        avg_role_model_loss += try_tensor_item(role_model_loss)
-        avg_role_model_std_loss += try_tensor_item(role_model_std_loss)
-        avg_role_model_g_loss += try_tensor_item(role_model_g_loss)
-        avg_non_role_model_g_loss += try_tensor_item(non_role_model_g_loss)
-        avg_non_role_model_embed_loss += try_tensor_item(non_role_model_embed_loss)
-        avg_loss += try_tensor_item(batch_loss)
+        n_mul = (batch_size if reduction == torch.mean else 1)
+        avg_role_model_loss += try_tensor_item(role_model_loss) * n_mul
+        avg_role_model_std_loss += try_tensor_item(role_model_std_loss) * n_mul
+        avg_role_model_g_loss += try_tensor_item(role_model_g_loss) * n_mul
+        avg_non_role_model_g_loss += try_tensor_item(non_role_model_g_loss) * n_mul
+        avg_non_role_model_embed_loss += try_tensor_item(non_role_model_embed_loss) * n_mul
+        avg_loss += try_tensor_item(batch_loss) * n_mul
     
         n_size += batch_size
         n_batch += 1
@@ -569,7 +579,8 @@ def train_epoch(
     duration_batch = duration / n_batch
     duration_size = duration / n_size
 
-    n = n_batch if reduction == torch.mean else n_size
+    #n = n_batch if reduction == torch.mean else n_size
+    n = n_size
 
     avg_role_model_loss /= n
     avg_role_model_std_loss /= n_batch
@@ -604,7 +615,7 @@ def eval(
     loss_fn=F.mse_loss,
     std_loss_fn=None,
     grad_loss_fn=F.mse_loss, #for RMSE,
-    reduction=torch.sum,
+    reduction=torch.mean,
     models=None,
     allow_same_prediction=True,
 ):
@@ -674,10 +685,11 @@ def eval(
             grads[model].extend(dbody_dx_norm.detach().cpu())
             gs[model].extend(g.detach().cpu())
 
+            n_mul = (batch_size if reduction == torch.mean else 1)
             loss = reduction(loss).item()
-            avg_losses[model] += loss
+            avg_losses[model] += loss * n_mul
             g_loss = reduction(g_loss).item()
-            avg_g_losses[model] += g_loss
+            avg_g_losses[model] += g_loss * n_mul
 
             pred_duration[model] += time_1 - time_0
             grad_duration[model] += time_2 - time_1
@@ -686,7 +698,8 @@ def eval(
         n_batch += 1
 
 
-    n = n_batch if reduction == torch.mean else n_size
+    #n = n_batch if reduction == torch.mean else n_size
+    n = n_size
 
     preds = {k: torch.stack(v) for k, v in preds.items()}
     ys = {k: torch.stack(v) for k, v in ys.items()}

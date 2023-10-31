@@ -21,6 +21,7 @@ from ...scheduler import PretrainingScheduler
 from ...params import ISABMode, LoRAMode, HeadFinalMul
 from torch.utils.tensorboard import SummaryWriter
 from copy import deepcopy
+from ...loss_balancer import FixedWeights, MyLossBalancer, LossBalancer, DEFAULT_BETA, DEFAULT_R
 
 def augment(df, info, save_dir, n=1, test=0.2, augmenter=None):
     mkdir(save_dir)
@@ -417,16 +418,16 @@ def train(
     whole_model=None,
     i=0,
     # Training args
-    non_role_model_mul=1.0,
     non_role_model_avg=True,
-    std_loss_mul=1.0,
-    grad_loss_mul=1.0,
     loss_fn=F.mse_loss,
     grad_loss_fn=F.huber_loss,
     adapter_loss_fn=F.huber_loss,
+    loss_balancer=None,
+    loss_balancer_beta=DEFAULT_BETA,
+    loss_balancer_r=DEFAULT_R,
     fixed_role_model="tab_ddpm_concat",
     gradient_penalty_mode=GradientPenaltyMode.AVERAGE_MUL,
-    loss_clamp=4.0,
+    loss_clamp=None,
     grad_clip=1.0,
     head="mlu",
     verbose=True,
@@ -455,6 +456,9 @@ def train(
     elif len(datasets) == 2:
         train_set, test_set = datasets
         val_set = test_set
+
+    if not loss_balancer:
+        loss_balancer = MyLossBalancer(beta=loss_balancer_beta, r=loss_balancer_r)
 
     if optim:
         assert whole_model
@@ -517,13 +521,11 @@ def train(
             train_loader, 
             optim,
             val=val,
-            non_role_model_mul=non_role_model_mul,
             non_role_model_avg=non_role_model_avg,
-            std_loss_mul=std_loss_mul,
-            grad_loss_mul=grad_loss_mul,
             loss_fn=loss_fn,
             grad_loss_fn=grad_loss_fn or loss_fn,
             adapter_loss_fn=adapter_loss_fn,
+            loss_balancer=loss_balancer,
             fixed_role_model=fixed_role_model,
             loss_clamp=loss_clamp,
             grad_clip=grad_clip,
