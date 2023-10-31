@@ -541,7 +541,7 @@ def train_epoch(
         )
         if batch == 0:
             loss_balancer.pre_weigh(*batch_loss)
-        batch_loss = torch.sum(loss_balancer(*batch_loss))
+        batch_loss = sum(loss_balancer(*batch_loss))
         if not val:
             if reduction == torch.sum:
                 (batch_loss/batch_size).backward()
