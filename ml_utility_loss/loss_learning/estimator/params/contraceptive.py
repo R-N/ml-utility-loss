@@ -11,11 +11,13 @@ PARAM_SPACE = {
     "lr": ("log_float", 2e-5, 1e-4),
     "Optim": ("optimizer", ["adamw", "sgd"]),
     # Training args
-    "non_role_model_mul": ("float", 0.8, 1.0),
+    #"non_role_model_mul": ("float", 0.8, 1.0),
     #"non_role_model_avg": BOOLEAN,
-    "non_role_model_avg": True, # doesnt matter
-    "std_loss_mul": ("float", 0.5, 2.0),
-    "grad_loss_mul": ("float", 0.6, 1.0), #almost random
+    #"non_role_model_avg": True, # doesnt matter
+    #"std_loss_mul": ("float", 0.5, 2.0),
+    #"grad_loss_mul": ("float", 0.6, 1.0), #almost random
+    "loss_balancer_beta": ("float", 0.5, 1.0),
+    "loss_balancer_r": ("float", 0.5, 1.0),
     #"loss_fn": ("loss", "mse"),
     #"loss_fn": ("loss", ["mse", "mae"]),
     #"grad_loss_fn": ("loss", "huber"),
