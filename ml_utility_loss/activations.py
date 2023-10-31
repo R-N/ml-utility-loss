@@ -5,9 +5,9 @@ from torch import nn
 import torch
 
 class AlphaSigmoid(nn.Module):
-    def __init__(self, default=1.0, F=nn.Sigmoid, **kwargs):
+    def __init__(self, alpha=1.0, F=nn.Sigmoid, **kwargs):
         super().__init__()
-        self.alpha = nn.Parameter(torch.Tensor([default]).squeeze())
+        self.alpha = nn.Parameter(torch.Tensor([alpha]).squeeze())
         self.f = F(**kwargs)
 
     def forward(self, x):
@@ -26,8 +26,8 @@ class AlphaSoftmax(AlphaSigmoid):
         super().__init__(F=nn.Softmax, **kwargs)
 
 class LearnableLeakyReLU(nn.Module):
-    def __init__(self, default=0.01, F=nn.LeakyReLU, **kwargs):
-        self.alpha = nn.Parameter(torch.Tensor([default]).squeeze())
+    def __init__(self, negative_slope=0.01, F=nn.LeakyReLU, **kwargs):
+        self.alpha = nn.Parameter(torch.Tensor([negative_slope]).squeeze())
         self.f = F(**kwargs)
         
     @property
