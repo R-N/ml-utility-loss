@@ -73,7 +73,7 @@ class MetaBalance(LossBalancer):
         #m = [(self.beta * mi + (1 - self.beta) * li) for mi, li in zip(m, losses)]
         #m = try_stack(m)
         m = self.beta * m + (1 - self.beta) * losses
-        self.m = m
+        self.m = m.detach()
         m0 = m[0]
         #w = [mi/m0 for mi in m]
         w = m / m0
@@ -82,7 +82,7 @@ class MetaBalance(LossBalancer):
         #w = [1 + (wi * self.r) - self.r for wi in w]
         #w = [1 + (wi-1) * self.r for wi in w]
         w = 1 + (w - 1) * self.r
-        return w
+        return w.detach()
 
 class LBTW(LossBalancer):
     def __init__(self, **kwargs):
@@ -91,13 +91,13 @@ class LBTW(LossBalancer):
 
     def pre_weigh(self, *losses):
         losses = self.reduce(*losses)
-        self.l0 = losses
+        self.l0 = losses.detach()
         
     def weigh(self, *losses):
         losses = self.reduce(*losses)
         #w = [(li/l0i).detach() for l0i, li in zip(self.l0, losses)]
         w = torch.div(losses, self.l0)
-        return w
+        return w.detach()
     
 class LogWeighter(LossBalancer):
     def __init__(self, **kwargs):
@@ -110,7 +110,7 @@ class LogWeighter(LossBalancer):
         losses = self.reduce(*losses)
         #w = [torch.log(1+li).detach()/li for li in losses]
         w = torch.div(torch.log(1+losses) / losses)
-        return w
+        return w.detach()
     
 class LogTransformer(LogWeighter):
     def __init__(self, **kwargs):
@@ -133,7 +133,7 @@ class ParallelBalancer(LossBalancer):
         ws = try_stack([b.weigh(*losses) for b in self.balancers])
         #w = [math.prod(wsi) for wsi in zip(*ws)]
         w = torch.prod(ws, dim=0)
-        return w
+        return w.detach()
 
 class SequentialWeighter(LossBalancer):
     def __init__(self, balancers, **kwargs):
@@ -149,7 +149,7 @@ class SequentialWeighter(LossBalancer):
             losses = b(*losses)
         #w = [li/l0i for l0i, li in zip(losses0, losses)]
         w = torch.div(losses, losses0)
-        return w
+        return w.detach()
     
 class SequentialTransformer(SequentialWeighter):
     def __init__(self, *args, **kwargs):
