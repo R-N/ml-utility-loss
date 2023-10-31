@@ -26,6 +26,8 @@ class LossBalancer:
     
     def forward(self, *losses):
         w = self.weigh(*losses)
+        print(w)
+        print(losses)
         losses = [wi*li for wi, li in zip(w, losses)]
         return losses
     
