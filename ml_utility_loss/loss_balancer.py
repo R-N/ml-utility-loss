@@ -108,7 +108,7 @@ class ParallelBalancer(LossBalancer):
 
     def weigh(self, *losses):
         losses = self.reduce(*losses)
-        ws = [b(*losses) for b in self.balancers]
+        ws = [b.weigh(*losses) for b in self.balancers]
         w = [math.prod(wsi) for wsi in zip(ws)]
         return w
 
@@ -123,7 +123,7 @@ class SequentialBalancer(LossBalancer):
     def weigh(self, *losses):
         losses = losses0 = self.reduce(*losses)
         for b in self.balancers:
-            losses = b(losses)
+            losses = b(*losses)
         w = [li/l0i for l0i, li in zip(losses0, losses)]
         return w
 
@@ -134,7 +134,7 @@ class MyLossBalancer(ParallelBalancer):
                 SequentialBalancer([
                     Log(reduction=None) if log else None,
                     MetaBalance(beta=beta, r=r, reduction=None),
-                ]),
+                ], reduction=None),
                 LBTW(reduction=None),
             ],
             reduction=reduction,

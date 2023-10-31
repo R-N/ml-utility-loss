@@ -362,7 +362,7 @@ def train_epoch(
         if timer:
             timer.check_time()
 
-        non_role_model_embed_loss = 0
+        non_role_model_embed_loss = torch.Tensor([0]).squeeze()
         if len(computes) > 1:
             # Calculate role model adapter embedding as the correct one as it has lowest error
             # dim 0 is batch, dim 1 is size, not sure which to use but size I guess
@@ -421,7 +421,7 @@ def train_epoch(
         if timer:
             timer.check_time()
 
-        non_role_model_g_loss = 0
+        non_role_model_g_loss = torch.Tensor([0]).squeeze()
         # Now we calculate the gradient penalty
         # We do this only for "train" input because test is supposedly the real dataset
         if gradient_penalty:
