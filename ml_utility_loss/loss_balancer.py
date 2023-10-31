@@ -112,7 +112,7 @@ class ParallelBalancer(LossBalancer):
     def weigh(self, *losses):
         losses = self.reduce(*losses)
         ws = [b.weigh(*losses) for b in self.balancers]
-        w = [math.prod(wsi) for wsi in zip(ws)]
+        w = [math.prod(wsi) for wsi in zip(*ws)]
         print("par w", w)
         return w
 
