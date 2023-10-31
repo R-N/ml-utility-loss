@@ -8,7 +8,7 @@ DEFAULT_R = 1.0
 
 def reduce_losses(reduction, *losses):
     if reduction:
-        return [reduction(li).detach().item() for li in losses]
+        return [reduction(li).detach() for li in losses]
     return losses
     
 class LossBalancer:
@@ -73,7 +73,7 @@ class LBTW(LossBalancer):
         
     def weigh(self, *losses):
         losses = self.reduce(*losses)
-        w = [(li/l0i).detach().item() for l0i, li in zip(self.l0, losses)]
+        w = [(li/l0i).detach() for l0i, li in zip(self.l0, losses)]
         return w
     
     def forward(self, *losses):
@@ -90,7 +90,7 @@ class Log(LossBalancer):
 
     def weigh(self, *losses):
         losses = self.reduce(*losses)
-        w = [torch.log(1+li).detach().item()/li for li in losses]
+        w = [torch.log(1+li).detach()/li for li in losses]
         return w
     
     def forward(self, *losses):
