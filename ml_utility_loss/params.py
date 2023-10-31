@@ -4,6 +4,7 @@ import catboost.metrics
 import sklearn.metrics
 from entmax import sparsemax, entmax15, Sparsemax, Entmax15
 from alpharelu import relu15, ReLU15
+from .activations import AlphaSigmoid, AlphaTanh, AlphaReLU15
 import torch.nn.functional as F
 
 class HeadFinalMul:
@@ -140,6 +141,10 @@ RELUS = {
     "swish": torch.nn.SiLU,
     "mish": torch.nn.Mish,
 }
+SIGMOIDS = {
+    "alphasigmoid": AlphaSigmoid,
+    "alphatanh": AlphaTanh,
+}
 ACTIVATIONS = {
     None: torch.nn.Identity,
     "identity": torch.nn.Identity,
@@ -147,6 +152,7 @@ ACTIVATIONS = {
     "relu": torch.nn.ReLU,
     "tanh": torch.nn.Tanh,
     "sigmoid": torch.nn.Sigmoid,
+    **SIGMOIDS,
     **RELUS,
 }
 BOOLEAN = ("categorical", [True, False])
@@ -175,6 +181,8 @@ ACTIVATIONS_INVERSE = {
     None: "linear",
     torch.nn.Identity: "linear",
     torch.nn.LeakyReLU: "leaky_relu",
+    AlphaSigmoid: "sigmoid",
+    AlphaTanh: "tanh",
 }
 GRADIENT_PENALTY_MODES = GradientPenaltyMode.DICT
 PARAM_MAP = {
