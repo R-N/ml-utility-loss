@@ -75,6 +75,7 @@ class PretrainingScheduler:
         if epoch is None:
             epoch = self.last_epoch + 1
         elif epoch == self.last_epoch:
+            print("Skipping because same epoch", self.last_epoch)
             return False
 
         if self.is_better(current, self.best):
