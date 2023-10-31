@@ -8,7 +8,7 @@ PARAM_SPACE = {
     "batch_size": ("int_exp_2", 2, 4),
     # Training args
     "epochs": ("log_int", 70, 100),
-    "lr": ("log_float", 5e-5, 2e-4),
+    "lr": ("log_float", 1e-7, 1e-4),
     "Optim": ("optimizer", ["adamw", "sgd"]),
     # Training args
     #"non_role_model_mul": ("float", 0.75, 1.0), #almost random
