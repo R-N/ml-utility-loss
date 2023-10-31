@@ -490,7 +490,7 @@ def train_epoch(
                     g_loss = clamp_tensor(g_loss, loss_clamp=loss_clamp)
                 g_loss = reduction(g_loss)
                 # weight the gradient penalty
-                g_loss = grad_loss_mul * g_loss
+                #g_loss = grad_loss_mul * g_loss
                 # add to compute
                 # Okay so apparently for non role model, the g_loss is always 0
                 # This needs to be fixed
@@ -536,8 +536,8 @@ def train_epoch(
             role_model_loss, 
             role_model_std_loss, 
             role_model_g_loss, 
-            non_role_model_embed_loss, 
-            non_role_model_g_loss,
+            non_role_model_avg_mul * non_role_model_embed_loss, 
+            non_role_model_avg_mul * non_role_model_g_loss,
         )
         if batch == 0:
             loss_balancer.pre_weigh(*batch_loss)
