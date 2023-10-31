@@ -38,7 +38,7 @@ PARAM_SPACE = {
     #"softmax": ("softmax", "relu15"),
     #"flip": False,
     #"skip_small": False,
-    "loss_clamp": ("log_float", 0.5, 10.0),
+    #"loss_clamp": ("log_float", 0.5, 10.0),
     "layer_norm": BOOLEAN,
     # Transformer args
     "tf_num_inds": ("int_exp_2", 8, 64),

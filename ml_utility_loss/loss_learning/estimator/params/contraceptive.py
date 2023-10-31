@@ -16,7 +16,7 @@ PARAM_SPACE = {
     #"non_role_model_avg": True, # doesnt matter
     #"std_loss_mul": ("float", 0.5, 2.0),
     #"grad_loss_mul": ("float", 0.6, 1.0), #almost random
-    "loss_balancer_beta": ("float", 0.5, 1.0),
+    "loss_balancer_beta": ("float", 0.0, 1.0),
     "loss_balancer_r": ("float", 0.5, 1.0),
     #"loss_fn": ("loss", "mse"),
     #"loss_fn": ("loss", ["mse", "mae"]),
@@ -46,7 +46,7 @@ PARAM_SPACE = {
     #"flip": BOOLEAN, #doesn't matter
     #"skip_small": BOOLEAN,
     "skip_small": False,
-    "loss_clamp": ("log_float", 3.5, 4.5), #seems random
+    #"loss_clamp": ("log_float", 3.5, 4.5), #seems random
     #"layer_norm": BOOLEAN,
     "layer_norm": True,
     "bias": False,
