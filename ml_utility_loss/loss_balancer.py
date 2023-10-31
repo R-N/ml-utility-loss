@@ -51,7 +51,7 @@ class MetaBalance(LossBalancer):
 
     def weigh(self, *losses):
         losses = self.reduce(*losses)
-        m = m or losses
+        m = self.m or losses
         m = [(self.beta * mi + (1 - self.beta) * li) for mi, li in zip(m, losses)]
         self.m = m
         m0 = m[0]
