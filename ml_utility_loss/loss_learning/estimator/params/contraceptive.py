@@ -58,6 +58,8 @@ PARAM_SPACE = {
     "tf_activation": ("activation", [
         "tanh", 
         "sigmoid",
+        "alphatanh",
+        "alphasigmoid",
         "relu", 
         "leakyrelu", 
         "selu",
@@ -90,6 +92,8 @@ PARAM_SPACE = {
     "ada_activation": ("activation", [
         "tanh",  
         "sigmoid", 
+        "alphatanh",
+        "alphasigmoid",
         "relu",
         "leakyrelu", 
         "selu",
@@ -97,6 +101,8 @@ PARAM_SPACE = {
     "ada_activation_final": ("activation", [
         "tanh", 
         "sigmoid", 
+        "alphatanh",
+        "alphasigmoid",
         "identity",
     ]),
     #"ada_lora": ("conditional", {
@@ -111,6 +117,8 @@ PARAM_SPACE = {
     "head_activation": ("activation", [
         "tanh",  
         "sigmoid", 
+        "alphatanh",
+        "alphasigmoid",
         "relu",
         "leakyrelu", 
         "selu",
