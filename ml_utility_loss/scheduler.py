@@ -97,9 +97,11 @@ class PretrainingScheduler:
         self.best = current
         self.num_bad_epochs = 0
         self.best_epoch = epoch
+        print("Found new best")
         if self.model:
             if self.best_state is not None:
                 del self.best_state
+            print("Saving new best state")
             self.best_state = deepcopy(self.model.state_dict())
 
     def get_size(self):
