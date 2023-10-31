@@ -80,6 +80,7 @@ class PretrainingScheduler:
         if self.is_better(current, self.best):
             self.new_best(current, epoch=epoch)
         else:
+            print(current, "not better than", self.best)
             self.num_bad_epochs += 1
 
         if self.in_cooldown:
