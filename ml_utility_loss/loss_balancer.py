@@ -186,13 +186,10 @@ class MyLossTransformer(MyLossWeighter):
     
     def forward(self, *losses):
         losses = try_stack(losses)
-        print("A", type(losses))
         w_lbtw = self.lbtw.weigh(*losses)
         if self.log:
             losses = self.log(*losses)
-        print("B", type(losses))
         losses = self.meta(*losses)
-        print("C", type(losses))
         losses = torch.mul(w_lbtw, losses)
         return losses          
 
