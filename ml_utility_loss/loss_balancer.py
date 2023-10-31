@@ -16,7 +16,7 @@ def try_stack(x):
 def reduce_losses(reduction, *losses):
     if reduction:
         losses = [reduction(li).detach() for li in losses]
-    losses = try_stack(losses)
+    losses = try_stack(losses).detach()
     return losses
     
 class LossBalancer(nn.Module):
