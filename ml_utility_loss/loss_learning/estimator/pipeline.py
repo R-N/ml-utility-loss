@@ -21,7 +21,7 @@ from ...scheduler import PretrainingScheduler
 from ...params import ISABMode, LoRAMode, HeadFinalMul
 from torch.utils.tensorboard import SummaryWriter
 from copy import deepcopy
-from ...loss_balancer import FixedWeights, MyLossBalancer, LossBalancer, DEFAULT_BETA, DEFAULT_R
+from ...loss_balancer import FixedWeights, MyLossTransformer, LossBalancer, MyLossWeighter, DEFAULT_BETA, DEFAULT_R
 
 def augment(df, info, save_dir, n=1, test=0.2, augmenter=None):
     mkdir(save_dir)
@@ -458,7 +458,7 @@ def train(
         val_set = test_set
 
     if not loss_balancer:
-        loss_balancer = MyLossBalancer(beta=loss_balancer_beta, r=loss_balancer_r)
+        loss_balancer = MyLossTransformer(beta=loss_balancer_beta, r=loss_balancer_r)
 
     if optim:
         assert whole_model

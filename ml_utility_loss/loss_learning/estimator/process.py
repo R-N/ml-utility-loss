@@ -5,7 +5,7 @@ from torch.nn.utils import clip_grad_norm_
 from ...metrics import rmse, mae, mape
 import time
 import numpy as np
-from ...loss_balancer import FixedWeights, MyLossBalancer, LossBalancer
+from ...loss_balancer import FixedWeights, MyLossWeighter, LossBalancer, MyLossTransformer
 
 Tensor = torch.FloatTensor
 
