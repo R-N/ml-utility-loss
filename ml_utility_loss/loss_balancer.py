@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import math
+from .util import DEFAULT_DEVICE
 
 #They take input of n losses 
 DEFAULT_BETA = 0.9
@@ -12,9 +13,12 @@ def reduce_losses(reduction, *losses):
     losses = torch.stack(losses)
     return losses
     
-class LossBalancer:
-    def __init__(self, reduction=torch.mean):
+class LossBalancer(nn.Module):
+    def __init__(self, reduction=torch.mean, device=DEFAULT_DEVICE):
+        super().__init__()
         self.reduction = reduction
+        self.device = device
+        self.to(device)
 
     def reduce(self, *losses):
         return reduce_losses(self.reduction, *losses)
@@ -34,10 +38,15 @@ class LossBalancer:
     def __call__(self, *losses):
         return self.forward(*losses)
     
-class FixedWeights:
+class FixedWeights(LossBalancer):
     def __init__(self, weights, **kwargs):
         super().__init__(**kwargs)
         self.weights = torch.stack([torch.Tensor(w) for w in weights])
+        self.to(self.device)
+
+    #def to(self, device):
+    #    super().to(device)
+    #    self.weights = self.weights.to(device)
 
     def weigh(self, *losses):
         assert len(losses) == len(self.weights)
