@@ -15,6 +15,9 @@ class LossBalancer:
     def __init__(self, reduction=torch.mean):
         self.reduction = reduction
 
+    def reduce(self, *losses):
+        return reduce_losses(self.reduction, *losses)
+
     def pre_weigh(self, *losses):
         pass
 
@@ -64,9 +67,6 @@ class LBTW(LossBalancer):
         super().__init__(reduction=reduction)
         self.l0 = None
 
-    def reduce(self, *losses):
-        return reduce_losses(self.reduction, *losses)
-
     def pre_weigh(self, *losses):
         losses = self.reduce(*losses)
         self.l0 = losses
@@ -84,9 +84,6 @@ class LBTW(LossBalancer):
 class Log(LossBalancer):
     def __init__(self, reduction=torch.mean):
         super().__init__(reduction=reduction)
-
-    def reduce(self, *losses):
-        return reduce_losses(self.reduction, *losses)
 
     def pre_weigh(self, *losses):
         pass
