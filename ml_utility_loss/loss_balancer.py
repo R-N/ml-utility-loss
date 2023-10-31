@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import math
 from .util import DEFAULT_DEVICE
+from torch import nn
 
 #They take input of n losses 
 DEFAULT_BETA = 0.9
