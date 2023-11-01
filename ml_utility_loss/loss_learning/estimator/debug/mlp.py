@@ -33,7 +33,7 @@ class MLPRegressor(nn.Module):
         ada_d_hid=32, 
         ada_n_layers=2, 
         ada_activation=nn.ReLU,
-        ada_activation_final=nn.Tanh,
+        ada_activation_final=nn.ReLU,
         #ada_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
         ada_lora_mode=LoRAMode.FULL,
         ada_lora_rank=2,
@@ -42,7 +42,7 @@ class MLPRegressor(nn.Module):
         head_d_hid=32, 
         head_n_layers=2, 
         head_n_head=8,   
-        head_activation=nn.LeakyReLU,
+        head_activation=nn.ReLU,
         head_activation_final=nn.Sigmoid,
         head_final_mul=HeadFinalMul.IDENTITY,
         head_pma_rank=0,
