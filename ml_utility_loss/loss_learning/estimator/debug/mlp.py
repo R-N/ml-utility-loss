@@ -223,7 +223,7 @@ def train(
     model.load_state_dict(best_weights)
 
     history = pd.DataFrame()
-    history["train_loss"] = pd.Series(train_loss)
-    history["test_loss"] = pd.Series(test_loss)
+    history["train_loss"] = pd.Series(train_history)
+    history["test_loss"] = pd.Series(test_history)
 
     return best_epoch, best_loss, history
