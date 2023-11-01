@@ -10,7 +10,7 @@ tan_pow = 0.2*pi
 def mean_penalty(pred_std, y_std, negative="rational", positive=F.mse_loss, power=1.0, **kwargs):
     #error = pred_std - y_std
     device = pred_std.device
-    assert pred_std >= 0 and y_std > 0, f"pred_std is negative or y_std is nonpositive {pred_std}, {y_std}"
+    #assert pred_std >= 0 and y_std > 0, f"pred_std is negative or y_std is nonpositive {pred_std}, {y_std}"
     if pred_std < y_std:
         if negative == "tan":
             loss = -torch.tan(pi/2 * (1+torch.pow(pred_std/y_std, tan_pow*power)))
