@@ -157,7 +157,7 @@ class ScaledDotProductAttention(nn.Module):
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=Linear, mode=None, bias=False, init=True):
+    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=Linear, mode=None, bias=False, init=True, layer_norm=True, layer_norm_0=False, residual_2=False, activation=None):
         super().__init__()
 
         d_qk = d_qk or (d_O//n_head)
@@ -178,8 +178,14 @@ class MultiHeadAttention(nn.Module):
 
         self.attention = Attention(temperature=d_qk ** 0.5, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False)
 
+        self.residual_2 = residual_2
         self.dropout = nn.Dropout(dropout) if dropout else None
-        self.layer_norm = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False)
+        self.layer_norm = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm else None
+        self.layer_norm_0 = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm_0 else None
+
+        self.activation = activation
+        if self.activation and inspect.isclass(self.activation):
+            self.activation = self.activation()
 
         if init:
             self.init()
@@ -194,8 +200,11 @@ class MultiHeadAttention(nn.Module):
         init_linear(self.w_ks, activation=self.attention.softmax)
         init_linear(self.w_vs, activation=self.attention.softmax)
         self.attention.init(activation=self.attention.softmax)
-        init_linear(self.fc, activation=activation)
-        init_layer_norm(self.layer_norm, activation=activation)
+        init_linear(self.fc, activation=activation or self.activation)
+        if self.layer_norm:
+            init_layer_norm(self.layer_norm, activation=activation)
+        if self.layer_norm_0:
+            init_layer_norm(self.layer_norm_0, activation=activation)
 
 
     def lora(self, base=None, w_qs=None, w_ks=None, w_vs=None, fc=None, attention=None):
@@ -259,14 +268,21 @@ class MultiHeadAttention(nn.Module):
         # again, (1, 2) to (-3, -2)
         o = o.transpose(-3, -2).contiguous().view(*sz_b_arg, len_q, -1)
 
-        if self.d_Q != self.d_O:
+        if self.layer_norm_0:
+            o = self.layer_norm_0(o)
+
+        if self.d_Q != self.d_O or self.residual_2:
             residual = o
 
+        o = self.fc(o)
+        if self.activation:
+            o = self.activation(o)
         if self.dropout:
-            o = self.dropout(self.fc(o))
+            o = self.dropout(o)
         o = o + residual
 
-        o = self.layer_norm(o)
+        if self.layer_norm:
+            o = self.layer_norm(o)
 
         return o, attn
 
