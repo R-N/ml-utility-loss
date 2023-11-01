@@ -29,6 +29,10 @@ class LossBalancer(nn.Module):
     def reduce(self, *losses):
         return reduce_losses(self.reduction, *losses)
 
+    def to(self, device):
+        self.device = device
+        super().to(device)
+
     def pre_weigh(self, *losses):
         pass
 
@@ -51,9 +55,9 @@ class FixedWeights(LossBalancer):
         self.weights = try_stack([torch.Tensor(w) for w in weights])
         self.to(self.device)
 
-    #def to(self, device):
-    #    super().to(device)
-    #    self.weights = self.weights.to(device)
+    def to(self, device):
+        super().to(device)
+        self.weights = self.weights.to(device)
 
     def weigh(self, *losses):
         assert len(losses) == len(self.weights)
@@ -119,8 +123,8 @@ class LogTransformer(LogWeighter):
     def forward(self, *losses):
         losses = try_stack(losses)
         return torch.log(1+losses)
-
-class ParallelBalancer(LossBalancer):
+    
+class CompositeBalancer(LossBalancer):
     def __init__(self, balancers, **kwargs):
         super().__init__(**kwargs)
         self.balancers = [b for b in balancers if b]
@@ -129,6 +133,10 @@ class ParallelBalancer(LossBalancer):
 
     def pre_weigh(self, *losses):
         _ = [b.pre_weigh(*losses) for b in self.balancers]
+
+    def to(self, device):
+        super().to(device)
+        _ = [b.to(device) for b in self.balancers]
 
     def weigh(self, *losses):
         losses = self.reduce(*losses)
@@ -137,15 +145,12 @@ class ParallelBalancer(LossBalancer):
         w = torch.prod(ws, dim=0)
         return w.detach()
 
-class SequentialWeighter(LossBalancer):
-    def __init__(self, balancers, **kwargs):
-        super().__init__(**kwargs)
-        self.balancers = [b for b in balancers if b]
-        if not self.balancers:
-            self.balancers = [LossBalancer()]
+class ParallelBalancer(CompositeBalancer):
+    pass
 
-    def pre_weigh(self, *losses):
-        _ = [b.pre_weigh(*losses) for b in self.balancers]
+class SequentialWeighter(CompositeBalancer):
+    def __init__(self, balancers, **kwargs):
+        super().__init__(balancers=balancers, **kwargs)
 
     def weigh(self, *losses):
         losses = losses0 = self.reduce(*losses)
