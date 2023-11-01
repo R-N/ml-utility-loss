@@ -82,27 +82,33 @@ class MLPRegressor(nn.Module):
             "bias": bias,
             "bias_final": bias_final,
         }
+        print("A")
 
         self.d_input = d_input
         self.d_model = d_model
         self.adapter_args["d_model"] = d_model
         self.head_args["d_model"] = d_model
+        print("B")
 
         self.adapter = Adapter(
             **self.adapter_args,
             d_input=d_input,
             device=device,
         )
+        print("C")
         self.head = Head(
             device=device,
             **self.head_args,
         )
+        print("D")
         self.device = device
+        print("E")
         self.to(device)
+        print("F")
 
     def forward(self, x):
         x = self.adapter(x)
-        y = self.head(y)
+        y = self.head(x)
 
         return y
     
