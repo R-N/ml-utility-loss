@@ -497,7 +497,7 @@ class DoubleFeedForward(nn.Module):
         if inspect.isclass(self.activation):
             self.activation = self.activation()
         self.layer_norm = LayerNorm(d_in, eps=1e-6, bias=bias)
-        self.dropout = nn.Dropout(dropout)
+        self.dropout = nn.Dropout(dropout) if dropout else None
 
         self.init()
 
@@ -517,7 +517,8 @@ class DoubleFeedForward(nn.Module):
         x = self.w_1(x)
         x = self.activation(x)
         x = self.w_2(x)
-        x = self.dropout(x)
+        if self.dropout:
+            x = self.dropout(x)
         x = x + residual
 
         x = self.layer_norm(x)
