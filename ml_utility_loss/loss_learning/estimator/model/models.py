@@ -401,7 +401,7 @@ class Head(nn.Module):
             Linear=Linear,
             rank=pma_rank,
             bias=bias,
-        )
+        ) if n_seeds else None
         self.lora_mode = lora_mode
         self.lora_rank = lora_rank
         Linear = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
@@ -427,7 +427,7 @@ class Head(nn.Module):
                 bias=bias,
             )
         self.linear = nn.Sequential(*[
-            Linear_(n_seeds*d_model, d_hid),
+            Linear_(max(1, n_seeds)*d_model, d_hid),
             *[Linear_(d_hid, d_hid) for i in range(n_layers-2)],
             Linear_(d_hid, 1, activation=activation_final, layer_norm=False, residual=False, bias=bias_final),
         ])
@@ -458,8 +458,9 @@ class Head(nn.Module):
         
 
     def forward(self, x, return_attns=False):
-        x, pma_attn = self.pma(x)
-        x = x.flatten(-2, -1)
+        if self.pma:
+            x, pma_attn = self.pma(x)
+            x = x.flatten(-2, -1)
         try:
             y = self.linear(x)
         except RuntimeError:
