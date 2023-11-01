@@ -3,7 +3,7 @@ import torch
 from torch import nn
 from ....params import ISABMode, LoRAMode, HeadFinalMul
 from alpharelu import relu15, ReLU15
-from ....util import DEFAULT_DEVICE
+from ....util import DEFAULT_DEVICE, stack_samples
 from sklearn.datasets import fetch_california_housing
 import torch.nn as nn
 import torch.optim as optim
@@ -166,8 +166,8 @@ def train(
     optimizer = Optim(model.parameters(), lr=lr)
 
     train_set, test_set = datasets
-    train_loader = DataLoader(train_set, batch_size=batch_size)
-    test_loader = DataLoader(test_set, batch_size=batch_size)
+    train_loader = DataLoader(train_set, batch_size=batch_size, collate_fn=stack_samples)
+    test_loader = DataLoader(test_set, batch_size=batch_size, collate_fn=stack_samples)
     
     # Hold the best model
     best_loss = np.inf   # init to infinity
