@@ -14,7 +14,7 @@ import tqdm
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 #taken straight out of https://machinelearningmastery.com/building-a-regression-model-in-pytorch/
 
@@ -155,7 +155,7 @@ def load_data():
     # Standardizing data
     scaler = StandardScaler()
     scaler.fit(X_train)
-    scaler_y = StandardScaler()
+    scaler_y = MinMaxScaler()
     scaler_y.fit(y_train)
 
     train_set = Data(X_train, y_train, scaler, scaler_y)
