@@ -523,7 +523,7 @@ def train_epoch(
             # whole_model.non_adapter_zero_grad()
 
         # Now we backward the role model
-        role_model_g_loss = reduction(role_model_compute["g_loss"]) if gradient_penalty else 0
+        role_model_g_loss = reduction(role_model_compute["g_loss"]) if gradient_penalty else torch.Tensor([0]).squeeze()
         assert isinstance(role_model_g_loss, int) or not torch.isnan(role_model_g_loss).any(), f"role_model_g_loss has nan"
         assert isinstance(role_model_loss, int) or not torch.isnan(role_model_loss).any(), f"role_model_loss has nan"
         #role_model_total_loss = role_model_loss + role_model_std_loss + role_model_g_loss
