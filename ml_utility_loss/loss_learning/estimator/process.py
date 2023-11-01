@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 from ...util import stack_samples, stack_sample_dicts, clear_memory, clear_cuda_memory, zero_tensor
 from torch.nn.utils import clip_grad_norm_
-from ...metrics import rmse, mae, mape, mean_penalty
+from ...metrics import rmse, mae, mape, mean_penalty, mean_penalty_rational, mean_penalty_rational_half
 import time
 import numpy as np
 from ...loss_balancer import FixedWeights, MyLossWeighter, LossBalancer, MyLossTransformer
@@ -615,7 +615,7 @@ def eval(
     whole_model, 
     eval_loader, 
     loss_fn=F.mse_loss,
-    std_loss_fn=None,
+    std_loss_fn=mean_penalty_rational,
     grad_loss_fn=F.mse_loss, #for RMSE,
     reduction=torch.mean,
     models=None,

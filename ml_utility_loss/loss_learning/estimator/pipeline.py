@@ -22,6 +22,7 @@ from ...params import ISABMode, LoRAMode, HeadFinalMul
 from torch.utils.tensorboard import SummaryWriter
 from copy import deepcopy
 from ...loss_balancer import FixedWeights, MyLossTransformer, LossBalancer, MyLossWeighter, DEFAULT_BETA, DEFAULT_R
+from ...metrics import mean_penalty, mean_penalty_rational, mean_penalty_rational_half
 
 def augment(df, info, save_dir, n=1, test=0.2, augmenter=None):
     mkdir(save_dir)
@@ -428,7 +429,7 @@ def train(
     # Training args
     non_role_model_avg=True,
     loss_fn=F.mse_loss,
-    std_loss_fn=None,
+    std_loss_fn=mean_penalty_rational,
     grad_loss_fn=F.huber_loss,
     adapter_loss_fn=F.huber_loss,
     loss_balancer=None,
