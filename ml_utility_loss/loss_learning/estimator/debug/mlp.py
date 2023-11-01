@@ -125,15 +125,18 @@ class DefaultModel(nn.Module):
        return self.model(x)    
 
 class Data(Dataset):
-  def __init__(self, X, y, scaler=None):
+  def __init__(self, X, y, scaler=None, scaler_y=None):
     # need to convert float64 to float32 else
     # will get the following error
     # RuntimeError: expected scalar type Double but found Float
     self.scaler = scaler
     if self.scaler:
        X = self.scaler.transform(X)
+    self.scaler_y = scaler_y
+    if self.scaler_y:
+       y = self.scaler_y.transform(y)
     self.X = torch.from_numpy(X.astype(np.float32))
-    self.y = torch.from_numpy(y.astype(np.float32)).reshape(-1, 1)
+    self.y = torch.from_numpy(y.astype(np.float32))
     self.len = self.X.shape[0]
 
   def __getitem__(self, index):
@@ -145,15 +148,18 @@ class Data(Dataset):
 def load_data():
     data = fetch_california_housing()
     X, y = data.data, data.target
+    y = np.expand_dims(y, axis=len(y.shape))
     # train-test split of the dataset
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.7, shuffle=True)
     
     # Standardizing data
     scaler = StandardScaler()
     scaler.fit(X_train)
+    scaler_y = StandardScaler()
+    scaler_y.fit(y_train)
 
-    train_set = Data(X_train, y_train, scaler)
-    test_set = Data(X_test, y_test, scaler)
+    train_set = Data(X_train, y_train, scaler, scaler_y)
+    test_set = Data(X_test, y_test, scaler, scaler_y)
     return train_set, test_set
 
 def train(
