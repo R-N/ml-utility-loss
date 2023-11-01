@@ -23,14 +23,14 @@ class MLPRegressor(nn.Module):
         self,
         d_input,
         # Common model args
-        d_model=64, 
+        d_model=12, 
         dropout=0, 
         softmax=ReLU15,
-        layer_norm=True,
-        bias=False,
+        layer_norm=False,
+        bias=True,
         bias_final=True,
         # Adapter args
-        ada_d_hid=32, 
+        ada_d_hid=24, 
         ada_n_layers=2, 
         ada_activation=nn.ReLU,
         ada_activation_final=nn.ReLU,
@@ -39,7 +39,7 @@ class MLPRegressor(nn.Module):
         ada_lora_rank=2,
         # Head args
         head_n_seeds=0, #1,
-        head_d_hid=32, 
+        head_d_hid=6, 
         head_n_layers=2, 
         head_n_head=8,   
         head_activation=nn.ReLU,
@@ -50,7 +50,7 @@ class MLPRegressor(nn.Module):
         head_lora_mode=LoRAMode.FULL,
         head_lora_rank=2,
         device=DEFAULT_DEVICE,
-        residual=True,
+        residual=False,
     ): 
         super().__init__()
         
