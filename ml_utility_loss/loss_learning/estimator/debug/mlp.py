@@ -188,7 +188,7 @@ def train(
         for i, batch in enumerate(loader):
             X_batch, y_batch = batch
             X_batch = X_batch.to(model.device)
-            y_batch = X_batch.to(model.device)
+            y_batch = y_batch.to(model.device)
             b = len(X_batch)
             if not val:
                 optimizer.zero_grad()
