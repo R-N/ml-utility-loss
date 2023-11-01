@@ -211,6 +211,7 @@ def train(
         
         train_loss = train_(model, train_loader, val=False)
         test_loss = train_(model, test_loader, val=False)
+        print(epoch, train_loss, test_loss)
         train_history.append(train_loss)
         test_history.append(test_loss)
         if test_loss < best_loss:
