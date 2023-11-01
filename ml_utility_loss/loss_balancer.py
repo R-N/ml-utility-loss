@@ -33,7 +33,7 @@ class LossBalancer(nn.Module):
         pass
 
     def weigh(self, *losses):
-        return torch.ones([len(losses)])
+        return torch.ones([len(losses)]).to(self.device)
     
     def forward(self, *losses):
         losses = try_stack(losses)
