@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from ...util import stack_samples, stack_sample_dicts, clear_memory, clear_cuda_memory
+from ...util import stack_samples, stack_sample_dicts, clear_memory, clear_cuda_memory, zero_tensor
 from torch.nn.utils import clip_grad_norm_
 from ...metrics import rmse, mae, mape
 import time
@@ -362,7 +362,7 @@ def train_epoch(
         if timer:
             timer.check_time()
 
-        non_role_model_embed_loss = torch.Tensor([0]).squeeze().to(whole_model.device)
+        non_role_model_embed_loss = zero_tensor(whole_model.device)
         if len(computes) > 1:
             # Calculate role model adapter embedding as the correct one as it has lowest error
             # dim 0 is batch, dim 1 is size, not sure which to use but size I guess
@@ -421,7 +421,7 @@ def train_epoch(
         if timer:
             timer.check_time()
 
-        non_role_model_g_loss = torch.Tensor([0]).squeeze().to(whole_model.device)
+        non_role_model_g_loss = zero_tensor(whole_model.device)
         # Now we calculate the gradient penalty
         # We do this only for "train" input because test is supposedly the real dataset
         if gradient_penalty:
@@ -523,7 +523,7 @@ def train_epoch(
             # whole_model.non_adapter_zero_grad()
 
         # Now we backward the role model
-        role_model_g_loss = reduction(role_model_compute["g_loss"]) if gradient_penalty else torch.Tensor([0]).squeeze()
+        role_model_g_loss = reduction(role_model_compute["g_loss"]) if gradient_penalty else zero_tensor(whole_model.device)
         assert isinstance(role_model_g_loss, int) or not torch.isnan(role_model_g_loss).any(), f"role_model_g_loss has nan"
         assert isinstance(role_model_loss, int) or not torch.isnan(role_model_loss).any(), f"role_model_loss has nan"
         #role_model_total_loss = role_model_loss + role_model_std_loss + role_model_g_loss
