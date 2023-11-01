@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 from functools import partial
-from .util import zero_tensor
+from .util import zero_tensor, DEFAULT_DEVICE
 
 pi = np.pi
 tan_pow = 0.2*pi
