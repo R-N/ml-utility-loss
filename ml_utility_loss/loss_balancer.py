@@ -24,7 +24,7 @@ class LossBalancer(nn.Module):
         super().__init__()
         self.reduction = reduction
         self.device = device
-        self.to(device)
+        LossBalancer.to(self, device)
 
     def reduce(self, *losses):
         return reduce_losses(self.reduction, *losses)
@@ -53,7 +53,7 @@ class FixedWeights(LossBalancer):
     def __init__(self, weights, **kwargs):
         super().__init__(**kwargs)
         self.weights = try_stack([torch.Tensor(w) for w in weights])
-        self.to(self.device)
+        FixedWeights.to(self, self.device)
 
     def to(self, device):
         super().to(device)
@@ -130,13 +130,15 @@ class CompositeBalancer(LossBalancer):
         self.balancers = [b for b in balancers if b]
         if not self.balancers:
             self.balancers = [LossBalancer()]
+        CompositeBalancer.to(self, self.device)
 
     def pre_weigh(self, *losses):
         _ = [b.pre_weigh(*losses) for b in self.balancers]
 
     def to(self, device):
         super().to(device)
-        _ = [b.to(device) for b in self.balancers]
+        if self.balancers:
+            _ = [b.to(device) for b in self.balancers]
 
     def weigh(self, *losses):
         losses = self.reduce(*losses)
