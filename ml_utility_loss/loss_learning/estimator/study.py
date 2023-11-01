@@ -11,6 +11,7 @@ def objective(
     trial=None,
     std_loss_mul=0.5,
     g_loss_mul=0.5,
+    allow_same_prediction=False,
     **kwargs
 ):
     try:
@@ -19,6 +20,7 @@ def objective(
             checkpoint_dir=checkpoint_dir,
             log_dir=log_dir,
             trial=trial,
+            allow_same_prediction=allow_same_prediction,
             **kwargs
         )
         eval_loss = train_results["eval_loss"]
@@ -48,6 +50,7 @@ def objective_2(
     trial=None,
     g_loss_mul=0.5,
     std_loss_mul=0.5,
+    allow_same_prediction=False,
     **kwargs
 ):
     try:
@@ -66,6 +69,7 @@ def objective_2(
             checkpoint_dir=checkpoint_dir,
             log_dir=log_dir,
             trial=trial,
+            allow_same_prediction=allow_same_prediction,
             **kwargs
         )
         eval_loss = train_results["eval_loss"]
