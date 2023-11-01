@@ -4,11 +4,12 @@ import numpy as np
 from functools import partial
 from .util import zero_tensor
 
-pi = torch.Tensor([np.pi]).squeeze()
+pi = np.pi
 tan_pow = 0.2*pi
 
 def mean_penalty(pred_std, y_std, negative="rational", positive=F.mse_loss, power=1.0, **kwargs):
     #error = pred_std - y_std
+    device = pred_std.device
     if pred_std < y_std:
         if negative == "tan":
             return torch.tan(pi/2 * (1+torch.pow(pred_std, tan_pow*power)/y_std))
