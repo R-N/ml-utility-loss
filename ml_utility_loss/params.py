@@ -8,6 +8,7 @@ from .activations import AlphaSigmoid, AlphaTanh, AlphaReLU15, LearnableLeakyReL
 import torch.nn.functional as F
 from .Padam import Padam
 from functools import partial
+from .metrics import mean_penalty, mean_penalty_tan, mean_penalty_tan_half, mean_penalty_rational, mean_penalty_rational_half
 
 class HeadFinalMul:
     IDENTITY = "identity"
@@ -122,12 +123,19 @@ CATBOOST_METRICS = {
 }
 CATBOOST_METRICS["TotalF1"] = catboost.metrics.TotalF1(average="Macro")
 CATBOOST_METRICS["Huber"] = catboost.metrics.Huber(delta=2)
+MEAN_PENALTIES = {
+    "mean_penalty_tan": mean_penalty_tan, 
+    "mean_penalty_tan_half": mean_penalty_tan_half, 
+    "mean_penalty_rational": mean_penalty_rational, 
+    "mean_penalty_rational_half": mean_penalty_rational_half,
+}
 LOSSES = {
     "mse": F.mse_loss,
     "mae": F.l1_loss,
     "kl": F.kl_div,
     "kl_div": F.kl_div,
     "huber": F.huber_loss,
+    **MEAN_PENALTIES,
 }
 OPTIMS = {
     "adam": torch.optim.Adam,

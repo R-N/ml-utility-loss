@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 from ...util import stack_samples, stack_sample_dicts, clear_memory, clear_cuda_memory, zero_tensor
 from torch.nn.utils import clip_grad_norm_
-from ...metrics import rmse, mae, mape
+from ...metrics import rmse, mae, mape, mean_penalty
 import time
 import numpy as np
 from ...loss_balancer import FixedWeights, MyLossWeighter, LossBalancer, MyLossTransformer
@@ -160,7 +160,7 @@ def train_epoch(
     loss_balancer=LossBalancer(),
     non_role_model_avg=True,
     loss_fn=F.mse_loss,
-    std_loss_fn=None,
+    std_loss_fn=mean_penalty,
     grad_loss_fn=F.huber_loss, # It's fine as long as loss_fn is MSE
     adapter_loss_fn=F.l1_loss, # Values can get very large and MSE loss will result in infinity, or maybe use kl_div
     reduction=torch.mean,

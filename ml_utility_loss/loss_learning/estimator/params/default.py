@@ -23,8 +23,9 @@ PARAM_SPACE = {
     "loss_balancer_beta": ("float", 0.5, 1.0),
     "loss_balancer_r": ("float", 0.5, 1.0),
     #"loss_fn": ("loss", "mse"),
-    "grad_loss_fn": ("loss", ["mse", "mae", "huber"]),
-    "adapter_loss_fn": ("loss", ["mse", "huber"]),
+    "std_loss_fn": ("loss", ["mean_penalty_tan", "mean_penalty_tan_half", "mean_penalty_rational", "mean_penalty_rational_half"]),
+    "grad_loss_fn": ("loss", ["mse", "mae", "huber", "msle"]),
+    "adapter_loss_fn": ("loss", ["mse", "mae", "huber", "msle"]),
     "fixed_role_model": ("categorical", [
         #None, 
         "tvae", 
