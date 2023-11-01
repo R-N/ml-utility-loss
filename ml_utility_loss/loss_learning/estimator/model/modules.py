@@ -6,7 +6,7 @@ from alpharelu import relu15, ReLU15
 import inspect
 from ....util import DEFAULT_DEVICE, check_cuda
 from ....params import ISABMode
-from .init import init, init_linear, init_layer_norm
+from .init import init_linear, init_layer_norm
 import numpy as np
 
 Tensor = torch.Tensor
@@ -36,9 +36,13 @@ class PositionalEncoding(nn.Module):
 
     def forward(self, x):
         return x + self.pos_table[:, :x.size(1)].clone().detach()
+    
+class Linear(nn.Linear):
+    def __init__(self, *args, init=True, **kwargs):
+        super().__init__(*args, **kwargs)
 
 class LayerNorm(nn.LayerNorm):
-    def __init__(self, *args, bias=True, **kwargs):
+    def __init__(self, *args, bias=True, init=True, **kwargs):
         super().__init__(*args, **kwargs)
         if not bias:
             self.bias = None
@@ -52,13 +56,14 @@ class LayerNorm(nn.LayerNorm):
                 torch.nn.init.zeros_(self.bias)
 
 class LowRankLinear(nn.Module):
-    def __init__(self, in_features, out_features, rank, device=DEFAULT_DEVICE, bias=False, **kwargs):
+    def __init__(self, in_features, out_features, rank, device=DEFAULT_DEVICE, bias=False, init=True, **kwargs):
         super().__init__()
         assert rank > 0
-        self.lin_1 = nn.Linear(in_features, rank, bias=False, **kwargs)
-        self.lin_2 = nn.Linear(rank, out_features, bias=bias, **kwargs)
+        self.lin_1 = Linear(in_features, rank, bias=False, init=False, **kwargs)
+        self.lin_2 = Linear(rank, out_features, bias=bias, init=False, **kwargs)
 
-        self.init()
+        if init:
+            self.init()
 
         self.device = device
         self.to(device)
@@ -85,12 +90,13 @@ def LowRankLinearFactory(rank):
     return f
 
 class LoRALinear(nn.Module):
-    def __init__(self, base, adaptation):
+    def __init__(self, base, adaptation, init=True):
         super().__init__()
         self.base = base
         self.adaptation = adaptation
 
-        self.init()
+        if init:
+            self.init()
 
     def init(self, activation=None):
         init_linear(self.base, activation=activation)
@@ -109,7 +115,7 @@ def LoRALinearFactory(base, rank):
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
 
-    def __init__(self, temperature, attn_dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, d_H=None, Linear=None, bias=False):
+    def __init__(self, temperature, attn_dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, d_H=None, Linear=None, bias=False, init=True):
         super().__init__()
         self.temperature = temperature
         self.dropout = nn.Dropout(attn_dropout)
@@ -149,7 +155,7 @@ class ScaledDotProductAttention(nn.Module):
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=nn.Linear, mode=None, bias=False):
+    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=Linear, mode=None, bias=False, init=True):
         super().__init__()
 
         d_qk = d_qk or (d_O//n_head)
@@ -163,17 +169,18 @@ class MultiHeadAttention(nn.Module):
         self.d_H = n_head * d_qk
         self.d_O = n_head * d_v
 
-        self.w_qs = Linear(self.d_Q, self.d_H, bias=False)
-        self.w_ks = Linear(self.d_KV, self.d_H, bias=False)
-        self.w_vs = Linear(self.d_KV, self.d_O, bias=False)
-        self.fc = Linear(self.d_O, self.d_O, bias=False)
+        self.w_qs = Linear(self.d_Q, self.d_H, bias=False, init=False)
+        self.w_ks = Linear(self.d_KV, self.d_H, bias=False, init=False)
+        self.w_vs = Linear(self.d_KV, self.d_O, bias=False, init=False)
+        self.fc = Linear(self.d_O, self.d_O, bias=False, init=False)
 
-        self.attention = Attention(temperature=d_qk ** 0.5, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear)
+        self.attention = Attention(temperature=d_qk ** 0.5, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False)
 
-        self.dropout = nn.Dropout(dropout)
-        self.layer_norm = LayerNorm(self.d_O, eps=1e-6, bias=bias)
+        self.dropout = nn.Dropout(dropout) if dropout else None
+        self.layer_norm = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False)
 
-        self.init()
+        if init:
+            self.init()
 
         self.device = device
         self.to(device)
@@ -252,7 +259,8 @@ class MultiHeadAttention(nn.Module):
         if self.d_Q != self.d_O:
             residual = o
 
-        o = self.dropout(self.fc(o))
+        if self.dropout:
+            o = self.dropout(self.fc(o))
         o = o + residual
 
         o = self.layer_norm(o)
@@ -278,14 +286,17 @@ def scale_inds_to_batch(I, q):
 
 
 class InducedSetAttentionMini(nn.Module):
-    def __init__(self, d_H=None, Linear=nn.Linear, bias=False, **kwargs):
+    def __init__(self, d_H=None, Linear=Linear, bias=False, init=True, **kwargs):
         super().__init__()
         self.w = None
         self.d_H = d_H
         if self.d_H:
-            self.w = Linear(self.d_H, self.d_H, bias=False)
+            self.w = Linear(self.d_H, self.d_H, bias=False, init=False)
         self.attn0 = ScaledDotProductAttention(**kwargs)
         self.attn1 = self.attn0
+
+        if init:
+            self.init()
 
     @property
     def softmax(self):
@@ -350,7 +361,7 @@ class LowRankInductionPoint(nn.Module):
         return torch.matmul(self.a, self.b)
 
 class InducedSetAttention(nn.Module):
-    def __init__(self, num_inds, d_I, d_H, n_head, d_Q, d_KV, d_O, skip_small=False, mode=ISABMode.MINI, rank=0, device=DEFAULT_DEVICE, **kwargs):
+    def __init__(self, num_inds, d_I, d_H, n_head, d_Q, d_KV, d_O, skip_small=False, mode=ISABMode.MINI, rank=0, device=DEFAULT_DEVICE, init=True, **kwargs):
         super().__init__()
         self.skip_small = skip_small
         self.d_I = d_I
@@ -376,6 +387,7 @@ class InducedSetAttention(nn.Module):
             d_Q, d_H, d_O, 
             Attention=Attention,
             device=device,
+            init=False,
             **kwargs,
         )
 
@@ -386,13 +398,15 @@ class InducedSetAttention(nn.Module):
                 d_I, d_KV, d_H, 
                 #Attention=Attention,
                 device=device,
+                init=False,
                 **kwargs,
             )
         elif mode == ISABMode.SHARED:
             assert d_Q == d_KV == d_I == d_H == d_O, f"for ISAB to share attention, all dims must be equal {d_Q} == {d_KV} == {d_I} == {d_H} == {d_O}"
             self.mab0 = self.mab1
 
-        self.init()
+        if init:
+            self.init()
 
         self.device = device
         self.to(device)
@@ -445,7 +459,7 @@ class SimpleInducedSetAttention(InducedSetAttention):
         )
 
 class PoolingByMultiheadAttention(nn.Module):
-    def __init__(self, num_seeds, n_head, d_model, skip_small=False, rank=0, device=DEFAULT_DEVICE, **kwargs):
+    def __init__(self, num_seeds, n_head, d_model, skip_small=False, rank=0, device=DEFAULT_DEVICE, init=True, **kwargs):
         super().__init__()
         self.num_seeds = num_seeds
         self.skip_small = skip_small
@@ -460,10 +474,12 @@ class PoolingByMultiheadAttention(nn.Module):
             n_head, 
             d_model, 
             device=device,
+            init=False,
             **kwargs
         )
 
-        self.init()
+        if init:
+            self.init()
 
         self.device = device
         self.to(device)
@@ -489,17 +505,18 @@ class PoolingByMultiheadAttention(nn.Module):
 class DoubleFeedForward(nn.Module):
     ''' A two-feed-forward-layer module '''
 
-    def __init__(self, d_in, d_hid, dropout=0, activation=nn.ReLU, device=DEFAULT_DEVICE, Linear=nn.Linear, bias=False):
+    def __init__(self, d_in, d_hid, dropout=0, activation=nn.ReLU, device=DEFAULT_DEVICE, Linear=Linear, bias=False, init=True):
         super().__init__()
-        self.w_1 = Linear(d_in, d_hid, bias=bias) # position-wise
-        self.w_2 = Linear(d_hid, d_in, bias=bias) # position-wise
+        self.w_1 = Linear(d_in, d_hid, bias=bias, init=False) # position-wise
+        self.w_2 = Linear(d_hid, d_in, bias=bias, init=False) # position-wise
         self.activation = activation
         if inspect.isclass(self.activation):
             self.activation = self.activation()
-        self.layer_norm = LayerNorm(d_in, eps=1e-6, bias=bias)
+        self.layer_norm = LayerNorm(d_in, eps=1e-6, bias=bias, init=False)
         self.dropout = nn.Dropout(dropout) if dropout else None
 
-        self.init()
+        if init:
+            self.init()
 
         self.device = device
         self.to(device)
@@ -538,17 +555,18 @@ class DoubleFeedForward(nn.Module):
 
 class FeedForward(nn.Module):
 
-    def __init__(self, d_in, d_out, activation=nn.Sigmoid, dropout=0, layer_norm=True, residual=True, device=DEFAULT_DEVICE, Linear=nn.Linear, bias=False):
+    def __init__(self, d_in, d_out, activation=nn.Sigmoid, dropout=0, layer_norm=True, residual=True, device=DEFAULT_DEVICE, Linear=Linear, bias=False, init=True):
         super().__init__()
-        self.w = Linear(d_in, d_out, bias=bias) # position-wise
+        self.w = Linear(d_in, d_out, bias=bias, init=False) # position-wise
         self.residual = residual and d_in == d_out
         self.activation = activation
         if inspect.isclass(self.activation):
             self.activation = self.activation()
         self.dropout = nn.Dropout(dropout) if dropout else None
-        self.layer_norm = LayerNorm(d_out, eps=1e-6, bias=bias) if layer_norm else None
+        self.layer_norm = LayerNorm(d_out, eps=1e-6, bias=bias, init=False) if layer_norm else None
 
-        self.init()
+        if init:
+            self.init()
 
         self.device = device
         self.to(device)

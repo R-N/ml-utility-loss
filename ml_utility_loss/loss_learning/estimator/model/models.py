@@ -5,7 +5,7 @@ from entmax import sparsemax, entmax15, Sparsemax, Entmax15
 from alpharelu import relu15, ReLU15
 import math
 from .layers import EncoderLayer, DecoderLayer
-from .modules import PoolingByMultiheadAttention, FeedForward, LowRankLinearFactory
+from .modules import PoolingByMultiheadAttention, FeedForward, LowRankLinearFactory, Linear
 import inspect
 from ....util import DEFAULT_DEVICE, Cache, check_cuda
 from ....params import ISABMode, LoRAMode, HeadFinalMul
@@ -54,8 +54,7 @@ def calc_pma_steps(
     assert len(pma_steps) == n_layers
     return pma_steps
 
-def TryLoRA(lora_mode, lora_rank):
-    Linear = nn.Linear
+def TryLoRA(lora_mode, lora_rank, Linear=Linear):
     assert (not lora_mode) or (lora_mode in LoRAMode.__ALL__), f"Invalid LoRA mode {lora_mode}"
     if lora_mode and lora_mode != LoRAMode.FULL and lora_rank:
         Linear = LowRankLinearFactory(lora_rank)
@@ -75,6 +74,8 @@ class Encoder(nn.Module):
         lora_rank=2,
         device=DEFAULT_DEVICE,
         bias=False,
+        Linear=Linear,
+        init=True,
         **kwargs,
     ):
         super().__init__()
@@ -94,15 +95,16 @@ class Encoder(nn.Module):
 
         self.lora_mode = lora_mode
         self.lora_rank = lora_rank
-        Linear = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
+        LinearLora = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
 
-        def EncoderLayer_(pma=0, Linear=Linear, bias=bias):
+        def EncoderLayer_(pma=0, Linear=LinearLora, bias=bias):
             return EncoderLayer(
                 d_model=d_model, 
                 pma=pma,
                 device=device,
                 Linear=Linear,
                 bias=bias,
+                init=False,
                 **kwargs,
             )
 
@@ -113,13 +115,14 @@ class Encoder(nn.Module):
         if lora_mode == LoRAMode.LORA:
             # The encoder_0 is not actually used
             # It's just a full layer for lora
-            encoder_0 = EncoderLayer_(pma=0, Linear=nn.Linear)
+            encoder_0 = EncoderLayer_(pma=0, Linear=Linear)
             for layer in self.layer_stack:
                 layer.lora(base=encoder_0)
 
         self.d_model = d_model
 
-        self.init()
+        if init:
+            self.init()
 
         self.device = device
         self.to(device)
@@ -165,6 +168,8 @@ class Decoder(nn.Module):
         lora_rank=2,
         device=DEFAULT_DEVICE,
         bias=False,
+        Linear=Linear,
+        init=True,
         **kwargs,
     ):
         super().__init__()
@@ -185,15 +190,16 @@ class Decoder(nn.Module):
 
         self.lora_mode = lora_mode
         self.lora_rank = lora_rank
-        Linear = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
+        LinearLora = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
 
-        def DecoderLayer_(pma, Linear=Linear, bias=bias):
+        def DecoderLayer_(pma, Linear=LinearLora, bias=bias):
             return DecoderLayer(
                 d_model=d_model, 
                 pma=pma,
                 device=device,
                 Linear=Linear,
                 bias=bias,
+                init=False,
                 **kwargs,
             )
 
@@ -204,13 +210,14 @@ class Decoder(nn.Module):
         if lora_mode == LoRAMode.LORA:
             # The encoder_0 is not actually used
             # It's just a full layer for lora
-            decoder_0 = DecoderLayer_(pma=0, Linear=nn.Linear)
+            decoder_0 = DecoderLayer_(pma=0, Linear=Linear)
             for layer in self.layer_stack:
                 layer.lora(base=decoder_0)
 
         self.d_model = d_model
 
-        self.init()
+        if init:
+            self.init()
 
         self.device = device
         self.to(device)
@@ -255,6 +262,8 @@ class Adapter(nn.Module):
         device=DEFAULT_DEVICE,
         residual=True,
         bias=False,
+        Linear=Linear,
+        init=True,
         **kwargs,
     ):
         super().__init__()
@@ -263,13 +272,13 @@ class Adapter(nn.Module):
 
         self.lora_mode = lora_mode
         self.lora_rank = lora_rank
-        Linear = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
+        LinearLora = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
 
         def Linear_(
             d_input,
             d_output,
             activation=activation,
-            Linear=Linear,
+            Linear=LinearLora,
             residual=residual,
             bias=bias,
         ):
@@ -282,6 +291,7 @@ class Adapter(nn.Module):
                 Linear=Linear,
                 residual=residual,
                 bias=bias,
+                init=False,
                 **kwargs,
             )
         self.linear = nn.Sequential(*[
@@ -293,11 +303,12 @@ class Adapter(nn.Module):
             #assert n_layers > 3, "too few layers for lora {n_layers}"
             # The encoder_0 is not actually used
             # It's just a full layer for lora
-            linear_0 = Linear_(Linear=nn.Linear)
+            linear_0 = Linear_(Linear=Linear)
             for layer in self.layer_stack[1:-1]: # skip first and last layer because different dim
                 layer.lora(base=linear_0)
 
-        self.init()
+        if init:
+            self.init()
 
         self.device = device
         self.to(device)
@@ -326,6 +337,7 @@ class AdapterAutoencoder(nn.Module):
         d_input,
         d_model, 
         device=DEFAULT_DEVICE,
+        init=True,
         **kwargs
     ):
         super().__init__()
@@ -333,16 +345,19 @@ class AdapterAutoencoder(nn.Module):
             d_input,
             d_model,
             device=device,
+            init=False,
             **kwargs
         )
         self.decoder = Adapter(
             d_model,
             d_input,
             device=device,
+            init=False,
             **kwargs
         )
 
-        self.init()
+        if init:
+            self.init()
 
         self.device = device
         self.to(device)
@@ -381,6 +396,8 @@ class Head(nn.Module):
         bias=False,
         bias_final=True,
         residual=True,
+        Linear=Linear,
+        init=True,
     ):
         super().__init__()
         assert n_layers >= 2
@@ -388,7 +405,6 @@ class Head(nn.Module):
         
         self.final_mul = final_mul
 
-        Linear = nn.Linear
         self.pma = PoolingByMultiheadAttention(
             n_seeds, 
             n_head, 
@@ -401,16 +417,17 @@ class Head(nn.Module):
             Linear=Linear,
             rank=pma_rank,
             bias=bias,
+            init=False,
         ) if n_seeds else None
         self.lora_mode = lora_mode
         self.lora_rank = lora_rank
-        Linear = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
+        LinearLora = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
 
         def Linear_(
             d_input,
             d_output,
             activation=activation,
-            Linear=Linear,
+            Linear=LinearLora,
             layer_norm=layer_norm,
             residual=residual,
             bias=bias,
@@ -425,6 +442,7 @@ class Head(nn.Module):
                 layer_norm=layer_norm,
                 residual=residual,
                 bias=bias,
+                init=False,
             )
         self.linear = nn.Sequential(*[
             Linear_(max(1, n_seeds)*d_model, d_hid),
@@ -435,11 +453,12 @@ class Head(nn.Module):
             #assert n_layers > 3, "too few layers for lora {n_layers}"
             # The encoder_0 is not actually used
             # It's just a full layer for lora
-            linear_0 = Linear_(Linear=nn.Linear)
+            linear_0 = Linear_(Linear=Linear)
             for layer in self.layer_stack[1:-1]: # skip first and last layer because different dim
                 layer.lora(base=linear_0)
 
-        self.init()
+        if init:
+            self.init()
 
         self.device = device
         self.to(device)
@@ -495,6 +514,7 @@ class Transformer(nn.Module):
         n_layers_dec=2, 
         flip=False,
         device=DEFAULT_DEVICE,
+        init=True,
         **kwargs,
     ):
         super().__init__()
@@ -505,6 +525,7 @@ class Transformer(nn.Module):
             d_model=d_model,
             n_layers=n_layers_enc,
             device=device,
+            init=False,
             **kwargs,
         )
 
@@ -512,6 +533,7 @@ class Transformer(nn.Module):
             d_model=d_model,
             n_layers=n_layers_dec,
             device=device,
+            init=False,
             **kwargs,
         )
 
@@ -521,7 +543,8 @@ class Transformer(nn.Module):
 
         self.flip = flip
 
-        self.init()
+        if init:
+            self.init()
 
         self.device = device
         self.to(device)
@@ -634,6 +657,7 @@ class MLUtilityWhole(nn.Module):
         objectives=None,
         name="whole",
         device=DEFAULT_DEVICE,
+        init=True,
     ):
         super().__init__()
         self.name = name
@@ -650,6 +674,7 @@ class MLUtilityWhole(nn.Module):
                 **adapter_args,
                 d_input=d_input,
                 device=device,
+                init=False,
             )
             for model, d_input in adapters.items()
         }
@@ -658,6 +683,7 @@ class MLUtilityWhole(nn.Module):
         self.heads = {
             head: Head(
                 device=device,
+                init=False,
                 **head_args,
             )
             for head in heads
@@ -668,7 +694,8 @@ class MLUtilityWhole(nn.Module):
         self.objectives = objectives or list(self.heads.keys())
         self.objectives = [x for x in self.objectives if x in self.heads]
 
-        self.init()
+        if init:
+            self.init()
 
         self.device = device
         self.to(device)

@@ -2,7 +2,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
-from .modules import SimpleInducedSetAttention, DoubleFeedForward, PoolingByMultiheadAttention, SimpleMultiHeadAttention
+from .modules import SimpleInducedSetAttention, DoubleFeedForward, PoolingByMultiheadAttention, SimpleMultiHeadAttention, Linear
 from ....util import DEFAULT_DEVICE, check_cuda
 from ....params import ISABMode
 from .init import init, init_linear, init_layer_norm
@@ -31,8 +31,9 @@ class EncoderLayer(nn.Module):
         isab_rank=0, 
         pma_rank=0, 
         device=DEFAULT_DEVICE, 
-        Linear=nn.Linear, 
-        bias=False
+        Linear=Linear, 
+        bias=False,
+        init=True,
     ):
         super().__init__()
         Attention = SimpleInducedSetAttention if num_inds else SimpleMultiHeadAttention
@@ -49,6 +50,7 @@ class EncoderLayer(nn.Module):
             Linear=Linear,
             rank=isab_rank,
             bias=bias,
+            init=False,
         )
         self.pos_ffn = DoubleFeedForward(
             d_model, 
@@ -58,6 +60,7 @@ class EncoderLayer(nn.Module):
             device=device,
             Linear=Linear,
             bias=bias,
+            init=False,
         )
         self.pma = None
         self.share_ffn = share_ffn
@@ -75,6 +78,7 @@ class EncoderLayer(nn.Module):
                 Linear=Linear,
                 rank=pma_rank,
                 bias=bias,
+                init=False,
             )
             self.pos_ffn_pma = self.pos_ffn
             if not share_ffn: 
@@ -86,10 +90,12 @@ class EncoderLayer(nn.Module):
                     device=device,
                     Linear=Linear,
                     bias=bias,
+                    init=False,
                 )
 
         if type(self) is EncoderLayer:
-            self.init()
+            if init:
+                self.init()
 
             self.device = device
             self.to(device)
@@ -157,8 +163,9 @@ class DecoderLayer(EncoderLayer):
         isab_mode=ISABMode.MINI, 
         isab_rank=0, 
         device=DEFAULT_DEVICE, 
-        Linear=nn.Linear, 
+        Linear=Linear, 
         bias=False,
+        init=True,
         **kwargs,
     ):
         super().__init__(
@@ -174,6 +181,7 @@ class DecoderLayer(EncoderLayer):
             device=device, 
             Linear=Linear, 
             bias=bias,
+            init=False,
             **kwargs,
         )
         Attention = SimpleInducedSetAttention if num_inds else SimpleMultiHeadAttention
@@ -190,9 +198,11 @@ class DecoderLayer(EncoderLayer):
             Linear=Linear,
             rank=isab_rank,
             bias=bias,
+            init=False,
         )
 
-        self.init()
+        if init:
+            self.init()
 
         self.device = device
         self.to(device)

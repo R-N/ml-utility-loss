@@ -53,6 +53,7 @@ class MLPRegressor(nn.Module):
         residual=False,
         adapter=None,
         head=None,
+        init=False,
     ): 
         super().__init__()
         
@@ -97,13 +98,25 @@ class MLPRegressor(nn.Module):
             **self.adapter_args,
             d_input=d_input,
             device=device,
+            init=False,
         )
         self.head = head or Head(
             device=device,
+            init=False,
             **self.head_args,
         )
+
+        if init:
+           self.init()
+
         self.device = device
         self.to(device)
+
+    def init(self, activation=None):
+        if hasattr(self.adapter, "init"):
+            self.adapter.init(activation=None)
+        if hasattr(self.head, "init"):
+            self.head.init(activation=activation)
 
     def forward(self, x):
         x = self.adapter(x)
