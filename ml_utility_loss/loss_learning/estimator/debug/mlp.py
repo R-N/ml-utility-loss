@@ -63,7 +63,7 @@ class MLPRegressor(nn.Module):
             "lora_rank":ada_lora_rank,
             "layer_norm": layer_norm,
             "bias": bias,
-        },
+        }
         self.head_args={
             "n_seeds": head_n_seeds,
             "d_hid": head_d_hid, 
