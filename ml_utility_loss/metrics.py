@@ -10,14 +10,16 @@ tan_pow = 0.2*pi
 def mean_penalty(pred_std, y_std, negative="rational", positive=F.mse_loss, power=1.0, **kwargs):
     #error = pred_std - y_std
     device = pred_std.device
-    assert pred_std >= 0 and y_std > 0
+    assert pred_std >= 0 and y_std > 0, f"pred_std is negative or y_std is nonpositive {pred_std}, {y_std}"
     if pred_std < y_std:
         if negative == "tan":
-            return torch.tan(pi/2 * (1+torch.pow(pred_std, tan_pow*power)/y_std))
+            loss = -torch.tan(pi/2 * (1+torch.pow(pred_std, tan_pow*power)/y_std))
         elif negative == "rational":
-            return y_std/torch.pow(pred_std, power) - 1
+            loss = y_std/torch.pow(pred_std, power) - 1
         else:
             raise ValueError(f"Invalid negative option: {negative}")
+        assert loss >= 0, f"mean penalty is negative {negative}, {power}, {loss}"
+        return loss
     else:
         if positive:
             return positive(pred_std, y_std, **kwargs)
