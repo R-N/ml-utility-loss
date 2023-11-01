@@ -97,6 +97,8 @@ class MLPRegressor(nn.Module):
             device=device,
             **self.head_args,
         )
+        self.device = device
+        self.to(device)
 
     def forward(self, x):
         x = self.adapter(x)

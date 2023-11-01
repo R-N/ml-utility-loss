@@ -449,7 +449,8 @@ class Head(nn.Module):
     def init(self, activation=None):
         childs = list(self.linear.children())
         #activation_ = activation or childs[0].activation
-        self.pma.init(activation=None)
+        if self.pma:
+            self.pma.init(activation=None)
         lin = None
         for lin in childs:
             lin.init(activation=None)
