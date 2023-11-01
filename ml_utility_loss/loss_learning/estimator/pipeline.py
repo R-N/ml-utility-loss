@@ -428,6 +428,8 @@ def train(
     loss_balancer=None,
     loss_balancer_beta=DEFAULT_BETA,
     loss_balancer_r=DEFAULT_R,
+    loss_balancer_meta=True,
+    loss_balancer_log=True,
     fixed_role_model="tab_ddpm_concat",
     gradient_penalty_mode=GradientPenaltyMode.AVERAGE_MUL,
     loss_clamp=None,
@@ -461,7 +463,12 @@ def train(
         val_set = test_set
 
     if not loss_balancer:
-        loss_balancer = MyLossTransformer(beta=loss_balancer_beta, r=loss_balancer_r)
+        loss_balancer = MyLossTransformer(
+            beta=loss_balancer_beta, 
+            r=loss_balancer_r,
+            meta=loss_balancer_meta,
+            log=loss_balancer_log,
+        )
 
     if optim:
         assert whole_model
