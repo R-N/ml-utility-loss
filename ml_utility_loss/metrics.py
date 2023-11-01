@@ -18,7 +18,7 @@ def mean_penalty(pred_std, y_std, negative="rational", positive=F.mse_loss, powe
             loss = y_std/torch.pow(pred_std, power) - 1
         else:
             raise ValueError(f"Invalid negative option: {negative}")
-        assert loss >= 0, f"mean penalty is negative {negative}, {power}, {loss}"
+        assert loss >= 0, f"mean penalty is negative {negative}, {power}, {pred_std}, {y_std} {loss}"
         return loss
     else:
         if positive:
