@@ -109,6 +109,9 @@ class MLPRegressor(nn.Module):
         x = self.adapter(x)
         y = self.head(x)
 
+        if y.dim() < 2:
+           y.unsqueeze(-1)
+
         return y
     
 class DefaultModel(nn.Module):
