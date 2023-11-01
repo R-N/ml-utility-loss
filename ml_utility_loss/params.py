@@ -6,6 +6,8 @@ from entmax import sparsemax, entmax15, Sparsemax, Entmax15
 from alpharelu import relu15, ReLU15
 from .activations import AlphaSigmoid, AlphaTanh, AlphaReLU15, LearnableLeakyReLU
 import torch.nn.functional as F
+from .Padam import Padam
+from functools import partial
 
 class HeadFinalMul:
     IDENTITY = "identity"
@@ -131,6 +133,12 @@ OPTIMS = {
     "adam": torch.optim.Adam,
     "adamw": torch.optim.AdamW,
     "sgd": torch.optim.SGD,
+    "padam": Padam,
+    "nadam": torch.optim.NAdam,
+    "adadelta": torch.optim.Adadelta,
+    "amsgrad": partial(torch.optim.Adam, amsgrad=True),
+    "amsgradw": partial(torch.optim.AdamW, amsgrad=True),
+    "sgdmomentum": partial(torch.optim.SGD, momentum=0.9),
 }
 RELUS = {
     "leakyrelu": torch.nn.LeakyReLU,

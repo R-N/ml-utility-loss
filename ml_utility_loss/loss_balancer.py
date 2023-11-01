@@ -162,7 +162,7 @@ class SequentialTransformer(SequentialWeighter):
         return losses
 
 class MyLossWeighter(ParallelBalancer):
-    def __init__(self, beta=DEFAULT_BETA, r=DEFAULT_R, log=False, Sequential=SequentialWeighter, Log=LogWeighter, **kwargs):
+    def __init__(self, beta=DEFAULT_BETA, r=DEFAULT_R, log=True, Sequential=SequentialWeighter, Log=LogWeighter, **kwargs):
         super().__init__(
             balancers=[
                 Sequential([

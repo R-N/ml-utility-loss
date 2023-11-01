@@ -7,7 +7,14 @@ PARAM_SPACE = {
     # Training args
     "epochs": ("log_int", 20, 1000),
     "lr": ("log_float", 1e-5, 1e-3),
-    "Optim": ("optimizer", ["adam", "adamw"]),
+    "Optim": ("optimizer", [
+        "adamw", 
+        "sgdmomentum", 
+        "amsgradw",
+        "adadelta", 
+        "padam", 
+        "nadam"
+    ]),
     # Training args
     #"non_role_model_mul": ("float", 0.3, 1.0),
     #"non_role_model_avg": True,

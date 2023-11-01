@@ -9,7 +9,14 @@ PARAM_SPACE = {
     # Training args
     "epochs": ("log_int", 70, 100),
     "lr": ("log_float", 1e-7, 1e-4),
-    "Optim": ("optimizer", ["adamw", "sgd"]),
+    "Optim": ("optimizer", [
+        "adamw", 
+        "sgdmomentum", 
+        "amsgradw",
+        "adadelta", 
+        "padam", 
+        "nadam"
+    ]),
     # Training args
     #"non_role_model_mul": ("float", 0.75, 1.0), #almost random
     #"non_role_model_avg": BOOLEAN,
