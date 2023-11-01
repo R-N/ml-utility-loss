@@ -265,7 +265,7 @@ def create_model(
     adapters,
     # Common model args
     d_model=64, 
-    dropout=0.15, 
+    dropout=0, 
     softmax=ReLU15,
     flip=False,
     skip_small=False,
@@ -318,6 +318,8 @@ def create_model(
         ada_lora_mode = LoRAMode.FULL
     if not head_lora:
         head_lora_mode = LoRAMode.FULL
+    if layer_norm:
+        dropout=0
     body = Transformer(
         num_inds=tf_num_inds,
         d_model=d_model, 

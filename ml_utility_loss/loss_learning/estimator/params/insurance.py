@@ -58,7 +58,8 @@ PARAM_SPACE = {
     #"loss_clamp": ("log_float", 0.6, 1.0), #almost random
     #"layer_norm": BOOLEAN,
     "layer_norm": True,
-    "bias": False,
+    "bias": BOOLEAN,
+    #"bias": False,
     "bias_final": BOOLEAN,
     # Transformer args
     "tf_num_inds": ("int_exp_2", 64, 128),
