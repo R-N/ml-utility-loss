@@ -8,7 +8,7 @@ PARAM_SPACE = {
     "batch_size": ("int_exp_2", 2, 4),
     # Training args
     "epochs": ("log_int", 80, 200), # seems like random after 20
-    "lr": ("log_float", 1e-7, 1e-4),
+    "lr": ("log_float", 5e-7, 5e-4),
     "Optim": ("optimizer", [
         "adamw", 
         "sgdmomentum", 
