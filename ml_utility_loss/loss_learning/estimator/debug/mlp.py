@@ -185,7 +185,8 @@ def train(
         avg_loss = 0
         n = 0
 
-        for i, (X_batch, y_batch) in enumerate(loader):
+        for i, batch in enumerate(loader):
+            X_batch, y_batch = batch
             b = len(X_batch)
             if not val:
                 optimizer.zero_grad()
