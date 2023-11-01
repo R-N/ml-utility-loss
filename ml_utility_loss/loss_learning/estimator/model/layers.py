@@ -101,6 +101,7 @@ class EncoderLayer(nn.Module):
             self.to(device)
 
     def init(self, activation=None):
+        print("Initing", type(self))
         self.slf_attn.init(activation=None)
         if self.pma:
             self.pos_ffn.init(activation=None)
@@ -208,6 +209,7 @@ class DecoderLayer(EncoderLayer):
         self.to(device)
 
     def init(self, activation=None):
+        print("Initing", type(self))
         super().init(activation=activation)
         if self.enc_attn:
             self.enc_attn.init(activation=None)

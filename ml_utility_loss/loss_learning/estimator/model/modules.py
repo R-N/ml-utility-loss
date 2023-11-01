@@ -69,6 +69,7 @@ class LowRankLinear(nn.Module):
         self.to(device)
 
     def init(self, activation=None):
+        print("Initing", type(self))
         init_linear(self.lin_1, activation=None)
         init_linear(self.lin_2, activation=activation)
 
@@ -99,6 +100,7 @@ class LoRALinear(nn.Module):
             self.init()
 
     def init(self, activation=None):
+        print("Initing", type(self))
         init_linear(self.base, activation=activation)
         init_linear(self.adaptation, activation=activation)
 
@@ -187,6 +189,7 @@ class MultiHeadAttention(nn.Module):
 
 
     def init(self, activation=None):
+        print("Initing", type(self))
         init_linear(self.w_qs, activation=self.attention.softmax)
         init_linear(self.w_ks, activation=self.attention.softmax)
         init_linear(self.w_vs, activation=self.attention.softmax)
@@ -307,6 +310,7 @@ class InducedSetAttentionMini(nn.Module):
         return self.attn1.activation
 
     def init(self, activation=None):
+        print("Initing", type(self))
         if self.w:
             init_linear(self.w, activation=self.activation)
 
@@ -412,6 +416,7 @@ class InducedSetAttention(nn.Module):
         self.to(device)
 
     def init(self, activation=None):
+        print("Initing", type(self))
         self.mab1.init(activation=activation)
         if self.mab0:
             self.mab0.init(activation=None)
@@ -485,6 +490,7 @@ class PoolingByMultiheadAttention(nn.Module):
         self.to(device)
 
     def init(self, activation=None):
+        print("Initing", type(self))
         self.mab.init(activation=activation)
 
     def forward(self, X):
@@ -522,6 +528,7 @@ class DoubleFeedForward(nn.Module):
         self.to(device)
 
     def init(self, activation=None):
+        print("Initing", type(self))
         activation_ = self.activation if not isinstance(activation, torch.nn.Identity) else None
         init_linear(self.w_1, activation=activation_)
         init_linear(self.w_2, activation=activation)
@@ -572,6 +579,7 @@ class FeedForward(nn.Module):
         self.to(device)
 
     def init(self, activation=None):
+        print("Initing", type(self))
         activation_ = self.activation if not isinstance(activation, torch.nn.Identity) else None
         activation = activation_ or activation
         init_linear(self.w, activation=activation)
