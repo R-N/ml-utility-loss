@@ -272,6 +272,7 @@ def create_model(
     layer_norm=True,
     bias=False,
     bias_final=True,
+    residual=True,
     # Transformer args
     tf_num_inds=32,
     tf_d_inner=64,
@@ -356,6 +357,7 @@ def create_model(
             "lora_rank":ada_lora_rank,
             "layer_norm": layer_norm,
             "bias": bias,
+            "residual": residual,
         },
         head_args={
             "n_seeds": head_n_seeds,
@@ -374,6 +376,7 @@ def create_model(
             "layer_norm": layer_norm,
             "bias": bias,
             "bias_final": bias_final,
+            "residual": residual,
         }
     )
     return whole_model

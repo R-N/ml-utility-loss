@@ -50,6 +50,7 @@ class MLPRegressor(nn.Module):
         head_lora_mode=LoRAMode.FULL,
         head_lora_rank=2,
         device=DEFAULT_DEVICE,
+        residual=True,
     ): 
         super().__init__()
         
@@ -63,6 +64,7 @@ class MLPRegressor(nn.Module):
             "lora_rank":ada_lora_rank,
             "layer_norm": layer_norm,
             "bias": bias,
+            "residual": residual,
         }
         self.head_args={
             "n_seeds": head_n_seeds,
@@ -81,6 +83,7 @@ class MLPRegressor(nn.Module):
             "layer_norm": layer_norm,
             "bias": bias,
             "bias_final": bias_final,
+            "residual": residual,
         }
 
         self.d_input = d_input
