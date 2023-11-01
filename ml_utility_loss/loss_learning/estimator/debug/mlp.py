@@ -194,6 +194,7 @@ def train(
                 optimizer.zero_grad()
             # forward pass
             y_pred = model(X_batch)
+            print(y_pred.shape, y_batch.shape)
             loss = loss_fn(y_pred, y_batch)
             if not val:
                 # backward pass
