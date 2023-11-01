@@ -544,7 +544,7 @@ class FeedForward(nn.Module):
         self.activation = activation
         if inspect.isclass(self.activation):
             self.activation = self.activation()
-        self.dropout = nn.Dropout(dropout)
+        self.dropout = nn.Dropout(dropout) if dropout else None
         self.layer_norm = LayerNorm(d_out, eps=1e-6, bias=bias) if layer_norm else None
 
         self.init()
@@ -564,7 +564,8 @@ class FeedForward(nn.Module):
 
         x = self.w(x)
         x = self.activation(x)
-        x = self.dropout(x)
+        if self.dropout:
+            x = self.dropout(x)
 
         if self.residual:
             x = x + residual
