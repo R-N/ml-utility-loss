@@ -51,6 +51,8 @@ class MLPRegressor(nn.Module):
         head_lora_rank=2,
         device=DEFAULT_DEVICE,
         residual=False,
+        adapter=None,
+        head=None,
     ): 
         super().__init__()
         
@@ -91,12 +93,12 @@ class MLPRegressor(nn.Module):
         self.adapter_args["d_model"] = d_model
         self.head_args["d_model"] = d_model
 
-        self.adapter = Adapter(
+        self.adapter = adapter or Adapter(
             **self.adapter_args,
             d_input=d_input,
             device=device,
         )
-        self.head = Head(
+        self.head = head or Head(
             device=device,
             **self.head_args,
         )
@@ -112,11 +114,13 @@ class MLPRegressor(nn.Module):
 class DefaultModel(nn.Module):
     def __init__(self, device=DEFAULT_DEVICE):
         super().__init__()
-        self.model = nn.Sequential(
+        self.adapter = nn.Sequential(
             nn.Linear(8, 24),
             nn.ReLU(),
             nn.Linear(24, 12),
-            nn.ReLU(),
+            nn.ReLU()
+        )
+        self.head = nn.Sequential(
             nn.Linear(12, 6),
             nn.ReLU(),
             nn.Linear(6, 1)
@@ -125,7 +129,9 @@ class DefaultModel(nn.Module):
         self.to(device)
 
     def forward(self, x):
-       return self.model(x)    
+       x = self.adapter(x)    
+       y = self.head(x)
+       return y
 
 class Data(Dataset):
   def __init__(self, X, y, scaler=None, scaler_y=None):
