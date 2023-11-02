@@ -16,7 +16,7 @@ class EncoderLayer(nn.Module):
 
     def __init__(
         self, 
-        num_inds=16, 
+        num_inds=0, 
         d_model=64, 
         d_inner=64, 
         n_head=8, 
@@ -27,14 +27,16 @@ class EncoderLayer(nn.Module):
         pma_skip_small=False,
         isab_skip_small=False, 
         activation=nn.ReLU, 
-        softmax=ReLU15, 
+        #softmax=ReLU15, 
+        softmax=nn.Softmax, 
         isab_mode=ISABMode.MINI, 
         isab_rank=0, 
         pma_rank=0, 
         device=DEFAULT_DEVICE, 
         Linear=Linear, 
-        bias=False,
+        bias=True,
         init=True,
+        **kwargs,
     ):
         super().__init__()
         Attention = SimpleInducedSetAttention if num_inds else SimpleMultiHeadAttention
@@ -52,6 +54,7 @@ class EncoderLayer(nn.Module):
             rank=isab_rank,
             bias=bias,
             init=False,
+            **kwargs,
         )
         self.pos_ffn = DoubleFeedForward(
             d_model, 
@@ -62,6 +65,7 @@ class EncoderLayer(nn.Module):
             Linear=Linear,
             bias=bias,
             init=False,
+            **kwargs,
         )
         self.pma = None
         self.share_ffn = share_ffn
@@ -80,6 +84,7 @@ class EncoderLayer(nn.Module):
                 rank=pma_rank,
                 bias=bias,
                 init=False,
+                **kwargs,
             )
             self.pos_ffn_pma = self.pos_ffn
             if not share_ffn: 
@@ -92,6 +97,7 @@ class EncoderLayer(nn.Module):
                     Linear=Linear,
                     bias=bias,
                     init=False,
+                    **kwargs,
                 )
 
         if type(self) is EncoderLayer:
@@ -155,19 +161,20 @@ class DecoderLayer(EncoderLayer):
 
     def __init__(
         self, 
-        num_inds=16, 
+        num_inds=0, 
         d_model=64, 
         n_head=8, 
         d_qk=None, 
         dropout=0, 
         pma_skip_small=False,
         isab_skip_small=False, 
-        softmax=ReLU15, 
+        #softmax=ReLU15, 
+        softmax=nn.Softmax,
         isab_mode=ISABMode.MINI, 
         isab_rank=0, 
         device=DEFAULT_DEVICE, 
         Linear=Linear, 
-        bias=False,
+        bias=True,
         init=True,
         **kwargs,
     ):

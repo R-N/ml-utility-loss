@@ -162,7 +162,31 @@ class ScaledDotProductAttention(nn.Module):
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=Linear, mode=None, bias=False, init=True, layer_norm=True, layer_norm_0=False, residual_2=False, activation=None, num_inds=0, skip_small=False, attn_bias=False, attn_residual=False, big_temperature=False):
+    def __init__(
+        self, 
+        n_head, 
+        d_Q, d_KV, d_O, 
+        d_qk=None, 
+        dropout=0, 
+        #softmax=ReLU15, 
+        softmax=nn.Softmax, 
+        device=DEFAULT_DEVICE, 
+        Attention=ScaledDotProductAttention, 
+        rank=0, 
+        Linear=Linear, 
+        mode=None, 
+        bias=True, 
+        init=True, 
+        layer_norm=True, layer_norm_0=False, 
+        residual_2=False, 
+        activation=None, 
+        num_inds=0, 
+        skip_small=False, 
+        attn_bias=False, 
+        attn_residual=False, 
+        big_temperature=False,
+        **kwargs,
+    ):
         super().__init__()
 
         d_qk = d_qk or (d_O//n_head)
@@ -183,7 +207,7 @@ class MultiHeadAttention(nn.Module):
 
         temperature = d_KV if big_temperature else d_qk
         temperature = temperature ** 0.5
-        self.attention = Attention(temperature=temperature, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False, attn_bias=attn_bias, attn_residual=attn_residual)
+        self.attention = Attention(temperature=temperature, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False, attn_bias=attn_bias, attn_residual=attn_residual, **kwargs)
 
         self.residual_2 = residual_2
         self.dropout = nn.Dropout(dropout) if dropout else None
@@ -318,7 +342,7 @@ def scale_inds_to_batch(I, q):
 
 
 class InducedSetAttentionMini(nn.Module):
-    def __init__(self, d_H=None, Linear=Linear, bias=False, init=True, attn_bias=False, **kwargs):
+    def __init__(self, d_H=None, Linear=Linear, bias=True, init=True, attn_bias=True, **kwargs):
         super().__init__()
         self.w = None
         self.d_H = d_H
@@ -373,9 +397,9 @@ class InducedSetAttentionMini(nn.Module):
         return O, (I_attn, O_attn)
     
 class TensorInductionPoint(nn.Module):
-    def __init__(self, num_inds, d_I, rank=None, device=DEFAULT_DEVICE):
+    def __init__(self, num_inds, d_I, rank=None, device=DEFAULT_DEVICE, **kwargs):
         super().__init__()
-        self.tensor = nn.Parameter(Tensor(num_inds, d_I))
+        self.tensor = nn.Parameter(Tensor(num_inds, d_I, **kwargs))
         nn.init.xavier_uniform_(self.tensor)
         self.device = device
         self.to(device)
@@ -384,11 +408,11 @@ class TensorInductionPoint(nn.Module):
         return self.tensor
 
 class LowRankInductionPoint(nn.Module):
-    def __init__(self, num_inds, d_I, rank, device=DEFAULT_DEVICE):
+    def __init__(self, num_inds, d_I, rank, device=DEFAULT_DEVICE, **kwargs):
         super().__init__()
         assert rank > 0
-        self.a = nn.Parameter(Tensor(num_inds, rank))
-        self.b = nn.Parameter(Tensor(rank, d_I))
+        self.a = nn.Parameter(Tensor(num_inds, rank, **kwargs))
+        self.b = nn.Parameter(Tensor(rank, d_I, **kwargs))
         nn.init.xavier_uniform_(self.a)
         nn.init.xavier_uniform_(self.b)
         self.device = device
@@ -398,7 +422,31 @@ class LowRankInductionPoint(nn.Module):
         return torch.matmul(self.a, self.b)
 
 class InducedSetAttention(nn.Module):
-    def __init__(self, num_inds, d_I, d_H, n_head, d_Q, d_KV, d_O, skip_small=False, mode=ISABMode.MINI, rank=0, device=DEFAULT_DEVICE, init=True, **kwargs):
+    def __init__(
+        self, 
+        num_inds, 
+        d_I, d_H, 
+        n_head, 
+        d_Q, d_KV, d_O, 
+        skip_small=False, 
+        #mode=ISABMode.MINI, 
+        #softmax=ReLU15,
+        rank=0, 
+        Attention=ScaledDotProductAttention,
+        device=DEFAULT_DEVICE, 
+        init=True, 
+        mode=ISABMode.SEPARATE, 
+        layer_norm=False,
+        layer_norm_0=False,
+        residual_2=True,
+        dropout=0,
+        activation=F.relu,
+        softmax=nn.Softmax,
+        attn_bias=True,
+        attn_residual=True,
+        big_temperature=True,
+        **kwargs
+    ):
         super().__init__()
         self.skip_small = skip_small
         self.d_I = d_I
@@ -414,28 +462,45 @@ class InducedSetAttention(nn.Module):
         assert mode in ISABMode.__ALL__
         self.mode = mode
 
-        Attention = ScaledDotProductAttention
+        ISABAttention = Attention
         if mode == ISABMode.MINI:
             assert d_Q == d_KV == d_I == d_H == d_O, f"for ISAB to operate in optimized mini mode, all dims must be equal {d_Q} == {d_KV} == {d_I} == {d_H} == {d_O}"
-            Attention = InducedSetAttentionMini
+            ISABAttention = InducedSetAttentionMini
 
-        self.mab1 = MultiHeadAttention(
+        def MAB_(
+            *args,
+            **kwargs
+        ):
+            return MultiHeadAttention(
+                *args,
+                mode=mode, 
+                layer_norm=layer_norm,
+                layer_norm_0=layer_norm_0,
+                residual_2=residual_2,
+                dropout=dropout,
+                activation=activation,
+                softmax=softmax,
+                attn_bias=attn_bias,
+                attn_residual=attn_residual,
+                big_temperature=big_temperature,
+                device=device,
+                init=False,
+                **kwargs,
+            )
+
+        self.mab1 = MAB_(
             n_head, 
             d_Q, d_H, d_O, 
-            Attention=Attention,
-            device=device,
-            init=False,
+            Attention=ISABAttention,
             **kwargs,
         )
 
         self.mab0 = None
         if mode == ISABMode.SEPARATE: 
-            self.mab0 = MultiHeadAttention(
+            self.mab0 = MAB_(
                 n_head, 
                 d_I, d_KV, d_H, 
-                #Attention=Attention,
-                device=device,
-                init=False,
+                Attention=Attention,
                 **kwargs,
             )
         elif mode == ISABMode.SHARED:
@@ -544,10 +609,20 @@ class PoolingByMultiheadAttention(nn.Module):
 class DoubleFeedForward(nn.Module):
     ''' A two-feed-forward-layer module '''
 
-    def __init__(self, d_in, d_hid, dropout=0, activation=nn.ReLU, device=DEFAULT_DEVICE, Linear=Linear, bias=False, init=True):
+    def __init__(
+        self, 
+        d_in, d_hid, 
+        dropout=0, 
+        activation=nn.ReLU, 
+        device=DEFAULT_DEVICE, 
+        Linear=Linear, 
+        bias=True, 
+        init=True,
+        **kwargs,
+    ):
         super().__init__()
-        self.w_1 = Linear(d_in, d_hid, bias=bias, init=False) # position-wise
-        self.w_2 = Linear(d_hid, d_in, bias=bias, init=False) # position-wise
+        self.w_1 = Linear(d_in, d_hid, bias=bias, init=False, **kwargs)
+        self.w_2 = Linear(d_hid, d_in, bias=bias, init=False, **kwargs)
         self.activation = activation
         if inspect.isclass(self.activation):
             self.activation = self.activation()
@@ -595,9 +670,21 @@ class DoubleFeedForward(nn.Module):
 
 class FeedForward(nn.Module):
 
-    def __init__(self, d_in, d_out, activation=nn.Sigmoid, dropout=0, layer_norm=True, residual=True, device=DEFAULT_DEVICE, Linear=Linear, bias=False, init=True):
+    def __init__(
+        self, 
+        d_in, d_out, 
+        activation=nn.Sigmoid, 
+        dropout=0, 
+        layer_norm=True, 
+        residual=True, 
+        device=DEFAULT_DEVICE, 
+        Linear=Linear, 
+        bias=False, 
+        init=True,
+        **kwargs,
+    ):
         super().__init__()
-        self.w = Linear(d_in, d_out, bias=bias, init=False) # position-wise
+        self.w = Linear(d_in, d_out, bias=bias, init=False, **kwargs)
         print("FF residual", residual)
         self.residual = residual and d_in == d_out
         self.activation = activation

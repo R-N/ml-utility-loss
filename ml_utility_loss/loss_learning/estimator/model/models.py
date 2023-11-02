@@ -403,6 +403,7 @@ class Head(nn.Module):
         Linear=Linear,
         init=True,
         pma_skip_small=False,
+        **kwargs,
     ):
         super().__init__()
         assert n_layers >= 2
@@ -423,6 +424,7 @@ class Head(nn.Module):
             rank=pma_rank,
             bias=bias,
             init=False,
+            **kwargs,
         ) if n_seeds else None
         self.lora_mode = lora_mode
         self.lora_rank = lora_rank
@@ -448,6 +450,7 @@ class Head(nn.Module):
                 residual=residual,
                 bias=bias,
                 init=False,
+                **kwargs,
             )
         self.linear = nn.Sequential(*[
             Linear_(max(1, n_seeds)*d_model, d_hid),
@@ -666,6 +669,7 @@ class MLUtilityWhole(nn.Module):
         name="whole",
         device=DEFAULT_DEVICE,
         init=True,
+        **kwargs,
     ):
         super().__init__()
         self.name = name
@@ -679,10 +683,11 @@ class MLUtilityWhole(nn.Module):
 
         self.adapters = {
             model: Adapter(
-                **adapter_args,
                 d_input=d_input,
                 device=device,
                 init=False,
+                **adapter_args,
+                **kwargs,
             )
             for model, d_input in adapters.items()
         }
@@ -693,6 +698,7 @@ class MLUtilityWhole(nn.Module):
                 device=device,
                 init=False,
                 **head_args,
+                **kwargs,
             )
             for head in heads
         }
