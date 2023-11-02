@@ -56,8 +56,9 @@ PARAM_SPACE = {
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
     #"flip": BOOLEAN, #doesn't matter
-    #"skip_small": BOOLEAN,
-    "skip_small": False,
+    "pma_skip_small": BOOLEAN,
+    "isab_skip_small": BOOLEAN,
+    #"skip_small": False,
     #"loss_clamp": ("log_float", 3.5, 4.5), #seems random
     #"layer_norm": BOOLEAN,
     "layer_norm": True,

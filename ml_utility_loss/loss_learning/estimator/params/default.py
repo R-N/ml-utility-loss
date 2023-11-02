@@ -48,6 +48,8 @@ PARAM_SPACE = {
     "dropout": ("float", 0.02, 0.2), 
     #"softmax": ("softmax", "relu15"),
     #"flip": False,
+    "pma_skip_small": BOOLEAN,
+    "isab_skip_small": BOOLEAN,
     #"skip_small": False,
     #"loss_clamp": ("log_float", 0.5, 10.0),
     "layer_norm": BOOLEAN,

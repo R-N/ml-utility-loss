@@ -402,6 +402,7 @@ class Head(nn.Module):
         residual=True,
         Linear=Linear,
         init=True,
+        pma_skip_small=False,
     ):
         super().__init__()
         assert n_layers >= 2
@@ -415,7 +416,7 @@ class Head(nn.Module):
             d_model, 
             d_qk=d_qk, 
             dropout=dropout, 
-            skip_small=False,
+            skip_small=pma_skip_small,
             softmax=softmax,
             device=device,
             Linear=Linear,
