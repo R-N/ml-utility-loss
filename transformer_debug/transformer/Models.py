@@ -58,6 +58,7 @@ class Encoder(nn.Module):
         self.src_word_emb = nn.Embedding(n_src_vocab, d_word_vec, padding_idx=pad_idx)
         self.position_enc = PositionalEncoding(d_word_vec, n_position=n_position)
         self.dropout = nn.Dropout(p=dropout)
+        print("enc", d_model, d_inner, n_head, d_k, d_v)
         self.layer_stack = nn.ModuleList([
             EncoderLayer(
                 d_model=d_model, 
@@ -114,6 +115,7 @@ class Decoder(nn.Module):
         self.trg_word_emb = nn.Embedding(n_trg_vocab, d_word_vec, padding_idx=pad_idx)
         self.position_enc = PositionalEncoding(d_word_vec, n_position=n_position)
         self.dropout = nn.Dropout(p=dropout)
+        print("dec", d_model, d_inner, n_head, d_k, d_v)
         self.layer_stack = nn.ModuleList([
             DecoderLayer(
                 d_model=d_model, 
