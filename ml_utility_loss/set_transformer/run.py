@@ -14,6 +14,8 @@ from models import SetTransformer, DeepSet
 from mixture_of_mvns import MixtureOfMVNs
 from mvn_diag import MultivariateNormalDiag
 from torchinfo import summary
+torch.manual_seed(0)
+np.random.seed(0)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--mode', type=str, default='train')

@@ -117,15 +117,16 @@ def LoRALinearFactory(base, rank):
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
 
-    def __init__(self, temperature, attn_dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, d_H=None, Linear=None, bias=False, init=True, attn_bias=False):
+    def __init__(self, temperature, attn_dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, d_H=None, Linear=None, bias=False, init=True, attn_bias=False, attn_residual=False):
         super().__init__()
         self.temperature = temperature
-        self.dropout = nn.Dropout(attn_dropout)
+        self.dropout = nn.Dropout(attn_dropout) if attn_dropout else None
         self.softmax = softmax or ReLU15
         self.softmax_args = {"dim": -1}
         if inspect.isclass(self.softmax):
             self.softmax = self.softmax(**self.softmax_args)
             self.softmax_args = {}
+        self.attn_residual = attn_residual
 
         self.device = device
         self.to(device)
@@ -149,15 +150,19 @@ class ScaledDotProductAttention(nn.Module):
         if mask is not None:
             attn = attn.masked_fill(mask == 0, -1e9)
 
-        attn = self.dropout(self.softmax(attn, **self.softmax_args))
+        attn = self.softmax(attn, **self.softmax_args)
+        if self.dropout:
+            attn = self.dropout(attn)
         output = torch.matmul(attn, v)
+        if self.attn_residual:
+            output = output + q
 
         return output, [attn]
     
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=Linear, mode=None, bias=False, init=True, layer_norm=True, layer_norm_0=False, residual_2=False, activation=None, num_inds=0, skip_small=False, attn_bias=False):
+    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=Linear, mode=None, bias=False, init=True, layer_norm=True, layer_norm_0=False, residual_2=False, activation=None, num_inds=0, skip_small=False, attn_bias=False, attn_residual=False):
         super().__init__()
 
         d_qk = d_qk or (d_O//n_head)
@@ -176,12 +181,15 @@ class MultiHeadAttention(nn.Module):
         self.w_vs = Linear(self.d_KV, self.d_O, bias=attn_bias, init=False)
         self.fc = Linear(self.d_O, self.d_O, bias=attn_bias, init=False)
 
-        self.attention = Attention(temperature=d_qk ** 0.5, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False, attn_bias=attn_bias)
+        self.attention = Attention(temperature=d_qk ** 0.5, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False, attn_bias=attn_bias, attn_residual=attn_residual)
 
         self.residual_2 = residual_2
         self.dropout = nn.Dropout(dropout) if dropout else None
-        self.layer_norm = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm else None
+
+        print("mab layernorm", layer_norm_0, layer_norm)
+        print("mab residual_2", residual_2)
         self.layer_norm_0 = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm_0 else None
+        self.layer_norm = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm else None
 
         self.activation = activation
         if self.activation and inspect.isclass(self.activation):
@@ -268,6 +276,8 @@ class MultiHeadAttention(nn.Module):
         # again, (1, 2) to (-3, -2)
         o = o.transpose(-3, -2).contiguous().view(*sz_b_arg, len_q, -1)
 
+        print("Attn dim", q.shape, k.shape, v.shape, o.shape, self.attention.temperature)
+
         if self.layer_norm_0:
             o = self.layer_norm_0(o)
 
@@ -324,6 +334,10 @@ class InducedSetAttentionMini(nn.Module):
     @property
     def activation(self):
         return self.attn1.activation
+    
+    @property
+    def temperature(self):
+        return self.attn0.temperature
 
     def init(self, activation=None):
         print("Initing", type(self))
