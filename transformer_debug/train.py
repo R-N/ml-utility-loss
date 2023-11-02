@@ -21,6 +21,8 @@ import transformer.Constants as Constants
 from transformer.Models import Transformer
 from transformer.Optim import ScheduledOptim
 from torchinfo import summary
+torch.manual_seed(0)
+np.random.seed(0)
 
 __author__ = "Yu-Hsiang Huang"
 
