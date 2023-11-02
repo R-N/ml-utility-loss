@@ -68,6 +68,7 @@ class ISAB(nn.Module):
 
     def forward(self, X):
         O, attn = self.isab(X, X, X)
+        print("ISAB DONE")
         return O
 
 class PMA(nn.Module):
