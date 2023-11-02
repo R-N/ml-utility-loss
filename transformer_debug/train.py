@@ -299,7 +299,7 @@ def main():
     batch = next(training_data)
     src_seq = patch_src(batch.src, opt.src_pad_idx).to(device)
     trg_seq, gold = map(lambda x: x.to(device), patch_trg(batch.trg, opt.trg_pad_idx))
-    print(summary(transformer, (src_seq.shape, trg_seq.shape)))
+    print(summary(transformer, (src_seq.shape, trg_seq.shape), depth=6))
 
     optimizer = ScheduledOptim(
         optim.Adam(transformer.parameters(), betas=(0.9, 0.98), eps=1e-09),

@@ -91,7 +91,7 @@ def train():
         N = np.random.randint(N_min, N_max)
         X = mog.sample(B, N, K)
         if t == 1:
-            print(summary(net, X.shape))
+            print(summary(net, X.shape, depth=6))
         ll = mog.log_prob(X, *mvn.parse(net(X)))
         loss = -ll
         loss.backward()
