@@ -18,13 +18,13 @@ class MAB(nn.Module):
             d_O=dim_V,
             bias=True,
             init=False,
-            layer_norm=ln, # Convergence speed decrease a bit when true, but it's a lot more stable
+            layer_norm=True, # Convergence speed decrease a bit when true, but it's a lot more stable
             layer_norm_0=False, # Definitely False
             residual_2=True,
             dropout=0,
             activation=F.relu,
             softmax=nn.Softmax, #relu15 results in nan
-            attn_bias=False,
+            attn_bias=False,  # False is better
             attn_residual=True, # False won't converge
             big_temperature=True,
         )
@@ -51,14 +51,14 @@ class ISAB(nn.Module):
             d_Q=dim_in, d_KV=dim_in, d_O=dim_out,
             bias=True,
             init=False,
-            layer_norm=ln,
+            layer_norm=True,
             layer_norm_0=False,
             residual_2=True,
             dropout=0,
             activation=F.relu,
             softmax=nn.Softmax, #relu15 results in nan
             mode=mode, #SHARED is crap, MINI has lower performance
-            attn_bias=False,
+            attn_bias=False, # False is better
             attn_residual=True, # False won't converge
             big_temperature=True,
         )
@@ -80,14 +80,14 @@ class PMA(nn.Module):
             d_model=dim,
             bias=True,
             init=False,
-            layer_norm=False, #Definitely False
+            layer_norm=True, #Definitely False
             layer_norm_0=False, #Definitely False
             residual_2=True,
             dropout=0,
             activation=F.relu,
             softmax=nn.Softmax, #Relu15 doesn't converge
             skip_small=False,
-            attn_bias=False,
+            attn_bias=False, # False is better
             attn_residual=True, # False is fine
             big_temperature=True,
         )
