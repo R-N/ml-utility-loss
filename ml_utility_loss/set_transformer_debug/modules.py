@@ -6,7 +6,7 @@ from ml_utility_loss.loss_learning.estimator.model.modules import MultiHeadAtten
 from ml_utility_loss.params import ISABMode
 
 class MAB(nn.Module):
-    def __init__(self, dim_Q, dim_K, dim_V, num_heads, ln=False):
+    def __init__(self, dim_Q, dim_K, dim_V, num_heads, ln=True):
         super(MAB, self).__init__()
         self.dim_V = dim_V
         self.num_heads = num_heads
@@ -41,7 +41,7 @@ class SAB(nn.Module):
         return self.mab(X, X)
 
 class ISAB(nn.Module):
-    def __init__(self, dim_in, dim_out, num_heads, num_inds, ln=False):
+    def __init__(self, dim_in, dim_out, num_heads, num_inds, ln=True):
         super(ISAB, self).__init__()
         self.isab = InducedSetAttention(
             num_inds=num_inds,
@@ -71,7 +71,7 @@ class ISAB(nn.Module):
         return O
 
 class PMA(nn.Module):
-    def __init__(self, dim, num_heads, num_seeds, ln=False):
+    def __init__(self, dim, num_heads, num_seeds, ln=True):
         super(PMA, self).__init__()
         self.pma = PoolingByMultiheadAttention(
             num_seeds=num_seeds,
