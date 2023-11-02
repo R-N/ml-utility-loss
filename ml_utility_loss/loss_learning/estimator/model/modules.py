@@ -202,12 +202,14 @@ class MultiHeadAttention(nn.Module):
         self.w_qs = Linear(self.d_Q, self.d_H, bias=attn_bias, init=False)
         self.w_ks = Linear(self.d_KV, self.d_H, bias=attn_bias, init=False)
         self.w_vs = Linear(self.d_KV, self.d_O, bias=attn_bias, init=False)
-        self.fc = Linear(self.d_O, self.d_O, bias=attn_bias, init=False)
+
+        fc_bias = attn_bias or (bias and not layer_norm and not layer_norm_0)
+        self.fc = Linear(self.d_O, self.d_O, bias=fc_bias, init=False)
 
         self.skip_small = skip_small
         temperature = d_KV if big_temperature else d_qk
         temperature = temperature ** 0.5
-        self.attention = Attention(temperature=temperature, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False, attn_bias=attn_bias, attn_residual=attn_residual, skip_small=skip_small, **kwargs)
+        self.attention = Attention(temperature=temperature, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False, attn_bias=fc_bias, attn_residual=attn_residual, skip_small=skip_small, **kwargs)
 
         self.residual_2 = residual_2
         self.dropout = nn.Dropout(dropout) if dropout else None
