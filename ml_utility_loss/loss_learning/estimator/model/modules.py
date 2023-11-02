@@ -157,7 +157,7 @@ class ScaledDotProductAttention(nn.Module):
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=Linear, mode=None, bias=False, init=True, layer_norm=True, layer_norm_0=False, residual_2=False, activation=None, num_inds=0, skip_small=False):
+    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=Linear, mode=None, bias=False, init=True, layer_norm=True, layer_norm_0=False, residual_2=False, activation=None, num_inds=0, skip_small=False, attn_bias=False):
         super().__init__()
 
         d_qk = d_qk or (d_O//n_head)
@@ -171,10 +171,10 @@ class MultiHeadAttention(nn.Module):
         self.d_H = n_head * d_qk
         self.d_O = n_head * d_v
 
-        self.w_qs = Linear(self.d_Q, self.d_H, bias=False, init=False)
-        self.w_ks = Linear(self.d_KV, self.d_H, bias=False, init=False)
-        self.w_vs = Linear(self.d_KV, self.d_O, bias=False, init=False)
-        self.fc = Linear(self.d_O, self.d_O, bias=False, init=False)
+        self.w_qs = Linear(self.d_Q, self.d_H, bias=attn_bias, init=False)
+        self.w_ks = Linear(self.d_KV, self.d_H, bias=attn_bias, init=False)
+        self.w_vs = Linear(self.d_KV, self.d_O, bias=attn_bias, init=False)
+        self.fc = Linear(self.d_O, self.d_O, bias=attn_bias, init=False)
 
         self.attention = Attention(temperature=d_qk ** 0.5, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False)
 
@@ -305,12 +305,12 @@ def scale_inds_to_batch(I, q):
 
 
 class InducedSetAttentionMini(nn.Module):
-    def __init__(self, d_H=None, Linear=Linear, bias=False, init=True, **kwargs):
+    def __init__(self, d_H=None, Linear=Linear, bias=False, init=True, attn_bias=False, **kwargs):
         super().__init__()
         self.w = None
         self.d_H = d_H
         if self.d_H:
-            self.w = Linear(self.d_H, self.d_H, bias=False, init=False)
+            self.w = Linear(self.d_H, self.d_H, bias=attn_bias, init=False)
         self.attn0 = ScaledDotProductAttention(**kwargs)
         self.attn1 = self.attn0
 
