@@ -93,7 +93,7 @@ class Encoder(nn.Module):
             enc_output, (enc_slf_attn, pma_attn) = enc_layer(
                 enc_output, 
                 slf_attn_mask=src_mask,
-                return_attns=True,
+                #return_attns=True,
             )
             enc_slf_attn_list += [enc_slf_attn] if return_attns else []
 
@@ -149,7 +149,7 @@ class Decoder(nn.Module):
             dec_output, (dec_slf_attn, dec_enc_attn, pma_attn) = dec_layer(
                 dec_output, enc_output, 
                 slf_attn_mask=trg_mask, dec_enc_attn_mask=src_mask,
-                return_attns=True,
+                #return_attns=True,
             )
             dec_slf_attn_list += [dec_slf_attn] if return_attns else []
             dec_enc_attn_list += [dec_enc_attn] if return_attns else []
