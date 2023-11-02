@@ -130,7 +130,6 @@ class Encoder(nn.Module):
         #print("Encoder.check_cuda", check_cuda(self))
 
     def init(self, activation=None):
-        print("Initing", type(self))
         enc_layer = None
         for enc_layer in self.layer_stack:
             enc_layer.init(activation=None)
@@ -226,7 +225,6 @@ class Decoder(nn.Module):
         #print("Decoder.check_cuda", check_cuda(self))
 
     def init(self, activation=None):
-        print("Initing", type(self))
         dec_layer = None
         for dec_layer in self.layer_stack:
             dec_layer.init(activation=None)
@@ -318,7 +316,6 @@ class Adapter(nn.Module):
         #print("Adapter.check_cuda", check_cuda(self))
 
     def init(self, activation=None):
-        print("Initing", type(self))
         lin = None
         for lin in self.linear.children():
             lin.init(activation=None)
@@ -368,7 +365,6 @@ class AdapterAutoencoder(nn.Module):
         #print("AdapterAutoencoder.check_cuda", check_cuda(self))
 
     def init(self, activation=None):
-        print("Initing", type(self))
         self.encoder.init(activation=None)
         self.decoder.init(activation=activation)
         
@@ -474,7 +470,6 @@ class Head(nn.Module):
         #print("Head.check_cuda", check_cuda(self))
 
     def init(self, activation=None):
-        print("Initing", type(self))
         childs = list(self.linear.children())
         #activation_ = activation or childs[0].activation
         if self.pma:
@@ -561,7 +556,6 @@ class Transformer(nn.Module):
         #print("Transformer.check_cuda", check_cuda(self))
 
     def init(self, activation=None):
-        print("Initing", type(self))
         self.encoder.init(activation=None)
         self.decoder.init(activation=activation)
 
@@ -610,7 +604,6 @@ class MLUtilitySingle(nn.Module):
         #print("MLUtilitySingle.check_cuda", check_cuda(self))
 
     def init(self, activation=None):
-        print("Initing", type(self))
         self.adapter.init(activation=None)
         self.body.init(activation=None)
         self.head.init(activation=activation)
@@ -717,7 +710,6 @@ class MLUtilityWhole(nn.Module):
         #print("MLUtilityWhole.check_cuda", check_cuda(self))
 
     def init(self, activation=None):
-        print("Initing", type(self))
         for adapter in self.adapter_list:
             adapter.init(activation=None)
         self.body.init(activation=None)
