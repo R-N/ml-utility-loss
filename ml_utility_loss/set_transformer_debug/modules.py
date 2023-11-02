@@ -14,6 +14,7 @@ class MAB(nn.Module):
             n_head=num_heads,
             d_Q=dim_Q,
             d_KV=dim_K,
+            d_O=dim_V,
             bias=True,
             init=False,
             layer_norm=ln,
