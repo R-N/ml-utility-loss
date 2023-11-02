@@ -209,9 +209,11 @@ class MultiHeadAttention(nn.Module):
         self.skip_small = skip_small
         temperature = d_KV if big_temperature else d_qk
         temperature = temperature ** 0.5
+        self.residual_2 = residual_2
+        if self.residual_2:
+            attn_residual=True
         self.attention = Attention(temperature=temperature, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False, attn_bias=fc_bias, attn_residual=attn_residual, skip_small=skip_small, **kwargs)
 
-        self.residual_2 = residual_2
         self.dropout = nn.Dropout(dropout) if dropout else None
 
         self.layer_norm_0 = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm_0 else None
