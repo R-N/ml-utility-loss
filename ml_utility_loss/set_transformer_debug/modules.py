@@ -25,7 +25,7 @@ class MAB(nn.Module):
             activation=F.relu,
             softmax=nn.Softmax, #relu15 results in nan
             attn_bias=True,
-            attn_residual=True,
+            attn_residual=False, # False won't converge
             big_temperature=True,
         )
 
@@ -59,7 +59,7 @@ class ISAB(nn.Module):
             softmax=nn.Softmax, #relu15 results in nan
             mode=mode, #SHARED is crap, MINI has lower performance
             attn_bias=True,
-            attn_residual=True,
+            attn_residual=False, # False won't converge
             big_temperature=True,
         )
         #d_I, d_KV, d_H, 
@@ -88,7 +88,7 @@ class PMA(nn.Module):
             softmax=nn.Softmax, #Relu15 doesn't converge
             skip_small=False,
             attn_bias=True,
-            attn_residual=False,
+            attn_residual=True,
             big_temperature=True,
         )
 
