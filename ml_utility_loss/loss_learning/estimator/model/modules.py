@@ -443,7 +443,7 @@ class InducedSetAttention(nn.Module):
         dropout=0,
         activation=F.relu,
         softmax=nn.Softmax,
-        attn_bias=True,
+        attn_bias=False,
         attn_residual=True,
         big_temperature=True,
         **kwargs
@@ -591,7 +591,7 @@ class PoolingByMultiheadAttention(nn.Module):
         dropout=0,
         activation=F.relu,
         softmax=nn.Softmax,
-        attn_bias=True,
+        attn_bias=False,
         attn_residual=True,
         big_temperature=True,
         **kwargs
@@ -615,7 +615,7 @@ class PoolingByMultiheadAttention(nn.Module):
             device=device,
             init=False,
             layer_norm=layer_norm, # PMA must not use layernorm
-            layer_norm_0=False, # PMA must not use layernorm
+            layer_norm_0=layer_norm_0, # PMA must not use layernorm
             residual_2=residual_2,
             dropout=dropout,
             activation=activation,

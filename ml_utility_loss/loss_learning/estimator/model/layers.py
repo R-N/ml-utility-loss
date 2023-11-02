@@ -87,7 +87,7 @@ class EncoderLayer(nn.Module):
                 rank=pma_rank,
                 bias=bias,
                 init=False,
-                #layer_norm=layer_norm,
+                layer_norm=layer_norm,
                 **kwargs,
             )
             self.pos_ffn_pma = self.pos_ffn
