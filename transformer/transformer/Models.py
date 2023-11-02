@@ -57,7 +57,6 @@ class Encoder(nn.Module):
         self.src_word_emb = nn.Embedding(n_src_vocab, d_word_vec, padding_idx=pad_idx)
         self.position_enc = PositionalEncoding(d_word_vec, n_position=n_position)
         self.dropout = nn.Dropout(p=dropout)
-        print("enc", d_model, d_inner, n_head, d_k, d_v)
         self.layer_stack = nn.ModuleList([
             EncoderLayer(d_model, d_inner, n_head, d_k, d_v, dropout=dropout)
             for _ in range(n_layers)])
@@ -66,12 +65,6 @@ class Encoder(nn.Module):
         self.d_model = d_model
 
     def forward(self, src_seq, src_mask, return_attns=False):
-
-        print(
-            "enc", 
-            src_seq.shape, 
-            src_mask.shape if src_mask is not None else None,
-        )
 
         enc_slf_attn_list = []
 
@@ -103,7 +96,6 @@ class Decoder(nn.Module):
         self.trg_word_emb = nn.Embedding(n_trg_vocab, d_word_vec, padding_idx=pad_idx)
         self.position_enc = PositionalEncoding(d_word_vec, n_position=n_position)
         self.dropout = nn.Dropout(p=dropout)
-        print("dec", d_model, d_inner, n_head, d_k, d_v)
         self.layer_stack = nn.ModuleList([
             DecoderLayer(d_model, d_inner, n_head, d_k, d_v, dropout=dropout)
             for _ in range(n_layers)])
@@ -112,14 +104,6 @@ class Decoder(nn.Module):
         self.d_model = d_model
 
     def forward(self, trg_seq, trg_mask, enc_output, src_mask, return_attns=False):
-
-        print(
-            "dec", 
-            trg_seq.shape, 
-            enc_output.shape, 
-            trg_mask.shape if trg_mask is not None else None,
-            src_mask.shape if src_mask is not None else None,
-        )
 
         dec_slf_attn_list, dec_enc_attn_list = [], []
 
@@ -201,8 +185,6 @@ class Transformer(nn.Module):
 
 
     def forward(self, src_seq, trg_seq):
-
-        print("tf", src_seq.shape, trg_seq.shape)
 
         src_mask = get_pad_mask(src_seq, self.src_pad_idx)
         trg_mask = get_pad_mask(trg_seq, self.trg_pad_idx) & get_subsequent_mask(trg_seq)
