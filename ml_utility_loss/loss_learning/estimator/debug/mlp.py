@@ -128,18 +128,18 @@ class MLPRegressor(nn.Module):
         return y
     
 class DefaultModel(nn.Module):
-    def __init__(self, device=DEFAULT_DEVICE):
+    def __init__(self, d_input=8, ada_d_hid=24, d_model=12, head_d_hid=6, d_output=1, device=DEFAULT_DEVICE):
         super().__init__()
         self.adapter = nn.Sequential(
-            nn.Linear(8, 24),
+            nn.Linear(d_input, ada_d_hid),
             nn.ReLU(),
-            nn.Linear(24, 12),
+            nn.Linear(ada_d_hid, d_model),
             nn.ReLU()
         )
         self.head = nn.Sequential(
-            nn.Linear(12, 6),
+            nn.Linear(d_model, head_d_hid),
             nn.ReLU(),
-            nn.Linear(6, 1)
+            nn.Linear(head_d_hid, d_output)
         )
         self.device = device
         self.to(device)
