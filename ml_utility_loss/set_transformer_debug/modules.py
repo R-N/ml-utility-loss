@@ -80,7 +80,7 @@ class PMA(nn.Module):
             bias=True,
             init=False,
             layer_norm=False,
-            layer_norm_0=False,
+            layer_norm_0=True,
             residual_2=True,
             dropout=0,
             activation=F.relu,
