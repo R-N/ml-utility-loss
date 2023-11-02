@@ -61,7 +61,8 @@ class ISAB(nn.Module):
         #self.mab1 = MAB(dim_in, dim_out, dim_out, num_heads, ln=ln)
 
     def forward(self, X):
-        return self.isab(X, X, X)
+        O, attn = self.isab(X, X, X)
+        return O
 
 class PMA(nn.Module):
     def __init__(self, dim, num_heads, num_seeds, ln=False):
@@ -82,4 +83,5 @@ class PMA(nn.Module):
         )
 
     def forward(self, X):
-        return self.pma(X)
+        O, attn = self.pma(X)
+        return O
