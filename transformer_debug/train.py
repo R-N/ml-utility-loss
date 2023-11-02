@@ -296,7 +296,7 @@ def main():
         dropout=opt.dropout,
         scale_emb_or_prj=opt.scale_emb_or_prj).to(device)
     
-    batch = next(training_data)
+    batch = next(iter(training_data))
     src_seq = patch_src(batch.src, opt.src_pad_idx).to(device)
     trg_seq, gold = map(lambda x: x.to(device), patch_trg(batch.trg, opt.trg_pad_idx))
     print(summary(transformer, (src_seq.shape, trg_seq.shape), depth=6))
