@@ -80,9 +80,9 @@ class PMA(nn.Module):
             d_model=dim,
             bias=True,
             init=False,
-            layer_norm=True, #Definitely False. Okay it's pretty alright True without attn bias
+            layer_norm=False, #Definitely False. Okay it's pretty alright True without attn bias
             layer_norm_0=False, #Definitely False
-            residual_2=False,
+            residual_2=True,
             dropout=0,
             activation=F.relu,
             softmax=nn.Softmax, #Relu15 doesn't converge
