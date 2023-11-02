@@ -50,7 +50,7 @@ class ISAB(nn.Module):
             d_Q=dim_in, d_KV=dim_in, d_O=dim_out,
             bias=True,
             init=False,
-            layer_norm=ln,
+            layer_norm=True,
             layer_norm_0=ln,
             residual_2=True,
             dropout=0,
