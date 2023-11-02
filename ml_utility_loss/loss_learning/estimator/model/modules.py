@@ -115,7 +115,7 @@ def LoRALinearFactory(base, rank):
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
 
-    def __init__(self, temperature, attn_dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, d_H=None, Linear=None, bias=False, init=True, attn_bias=False, attn_residual=False):
+    def __init__(self, temperature, attn_dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, d_H=None, Linear=None, bias=False, init=True, attn_bias=False, attn_residual=False, skip_small=False):
         super().__init__()
         self.temperature = temperature
         self.dropout = nn.Dropout(attn_dropout) if attn_dropout else None
@@ -165,6 +165,7 @@ class MultiHeadAttention(nn.Module):
         n_head, 
         d_Q, d_KV, d_O, 
         d_qk=None, 
+        d_H=None,
         dropout=0, 
         #softmax=ReLU15, 
         softmax=nn.Softmax, 
@@ -195,7 +196,7 @@ class MultiHeadAttention(nn.Module):
         assert d_O % n_head == 0, f"Invalid attention dim and n_head: {(d_O, n_head)}"
         d_v = d_O // n_head
         self.d_v = d_v
-        self.d_H = n_head * d_qk
+        self.d_H = d_H or (n_head * d_qk)
         self.d_O = n_head * d_v
 
         self.w_qs = Linear(self.d_Q, self.d_H, bias=attn_bias, init=False)
@@ -203,9 +204,10 @@ class MultiHeadAttention(nn.Module):
         self.w_vs = Linear(self.d_KV, self.d_O, bias=attn_bias, init=False)
         self.fc = Linear(self.d_O, self.d_O, bias=attn_bias, init=False)
 
+        self.skip_small = skip_small
         temperature = d_KV if big_temperature else d_qk
         temperature = temperature ** 0.5
-        self.attention = Attention(temperature=temperature, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False, attn_bias=attn_bias, attn_residual=attn_residual, **kwargs)
+        self.attention = Attention(temperature=temperature, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False, attn_bias=attn_bias, attn_residual=attn_residual, skip_small=skip_small, **kwargs)
 
         self.residual_2 = residual_2
         self.dropout = nn.Dropout(dropout) if dropout else None
@@ -339,12 +341,13 @@ def scale_inds_to_batch(I, q):
 
 
 class InducedSetAttentionMini(nn.Module):
-    def __init__(self, d_H=None, Linear=Linear, bias=True, init=True, attn_bias=True, **kwargs):
+    def __init__(self, d_H=None, Linear=Linear, bias=True, init=True, attn_bias=True, skip_small=False, **kwargs):
         super().__init__()
         self.w = None
         self.d_H = d_H
         if self.d_H:
             self.w = Linear(self.d_H, self.d_H, bias=attn_bias, init=False)
+        self.skip_small = skip_small
         self.attn0 = ScaledDotProductAttention(**kwargs)
         self.attn1 = self.attn0
 
@@ -376,7 +379,7 @@ class InducedSetAttentionMini(nn.Module):
         return self
 
     def forward(self, q, k, v, mask=None, I=None):
-        if I is None:
+        if I is None or (self.skip_small and I.shape[-2] > k.shape[-2]):
             I_attn = None
             O, O_attn = self.attn1(q, k, v, mask=mask)
         else:
@@ -483,25 +486,34 @@ class InducedSetAttention(nn.Module):
                 init=False,
                 **kwargs,
             )
-
-        self.mab1 = MAB_(
-            n_head, 
-            d_Q, d_H, d_O, 
-            Attention=ISABAttention,
-            **kwargs,
-        )
-
-        self.mab0 = None
-        if mode == ISABMode.SEPARATE: 
+        
+        if mode == ISABMode.MINI:
             self.mab0 = MAB_(
                 n_head, 
-                d_I, d_KV, d_H, 
-                Attention=Attention,
+                d_Q, d_KV, d_O, 
+                d_H=d_H,
+                Attention=ISABAttention,
                 **kwargs,
             )
-        elif mode == ISABMode.SHARED:
-            assert d_Q == d_KV == d_I == d_H == d_O, f"for ISAB to share attention, all dims must be equal {d_Q} == {d_KV} == {d_I} == {d_H} == {d_O}"
-            self.mab0 = self.mab1
+        else:
+            self.mab1 = MAB_(
+                n_head, 
+                d_Q, d_H, d_O, 
+                Attention=ISABAttention,
+                **kwargs,
+            )
+
+            self.mab0 = None
+            if mode == ISABMode.SEPARATE: 
+                self.mab0 = MAB_(
+                    n_head, 
+                    d_I, d_KV, d_H, 
+                    Attention=Attention,
+                    **kwargs,
+                )
+            elif mode == ISABMode.SHARED:
+                assert d_Q == d_KV == d_I == d_H == d_O, f"for ISAB to share attention, all dims must be equal {d_Q} == {d_KV} == {d_I} == {d_H} == {d_O}"
+                self.mab0 = self.mab1
 
         if init:
             self.init()
@@ -516,14 +528,17 @@ class InducedSetAttention(nn.Module):
 
     def forward(self, q, k, v, mask=None):
         # This just uses MultiheadAttention
-        if self.skip_small and self.num_inds > k.shape[-2] and self.d_H == k.shape[-1]:
-            return self.mab1(q, k, v, mask=mask)
+        if self.skip_small and self.mode != ISABMode.MINI and self.num_inds > k.shape[-2]:
+            if self.d_H == k.shape[-1]:
+                return self.mab1(q, k, v, mask=mask)
+            if self.d_K == k.shape[-1]:
+                return self.mab0(q, k, v, mask=mask)
         # Ok so this is actually a problem
         # It expects batched input so I is repeated to the batch dimension
         # So it has to be handled
         I = scale_inds_to_batch(self.I(), q)
         if self.mode == ISABMode.MINI:
-            O, (I_attn, O_attn) = self.mab1(q, k, v, mask=mask, I=I)
+            O, (I_attn, O_attn) = self.mab0(q, k, v, mask=mask, I=I)
         else:
             #(32, 128), (500, 2), (500, 2)
             H, I_attn = self.mab0(I, k, v, mask=None) #yes it's none
