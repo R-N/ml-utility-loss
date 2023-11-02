@@ -557,7 +557,26 @@ class SimpleInducedSetAttention(InducedSetAttention):
         )
 
 class PoolingByMultiheadAttention(nn.Module):
-    def __init__(self, num_seeds, n_head, d_model, skip_small=False, rank=0, device=DEFAULT_DEVICE, init=True, **kwargs):
+    def __init__(
+        self, 
+        num_seeds, 
+        n_head, 
+        d_model, 
+        skip_small=False, 
+        rank=0, 
+        device=DEFAULT_DEVICE, 
+        init=True, 
+        layer_norm=False,
+        layer_norm_0=False,
+        residual_2=True,
+        dropout=0,
+        activation=F.relu,
+        softmax=nn.Softmax,
+        attn_bias=True,
+        attn_residual=True,
+        big_temperature=True,
+        **kwargs
+    ):
         super().__init__()
         self.num_seeds = num_seeds
         self.skip_small = skip_small
@@ -573,6 +592,15 @@ class PoolingByMultiheadAttention(nn.Module):
             d_model, 
             device=device,
             init=False,
+            layer_norm=layer_norm,
+            layer_norm_0=layer_norm_0,
+            residual_2=residual_2,
+            dropout=dropout,
+            activation=activation,
+            softmax=softmax,
+            attn_bias=attn_bias,
+            attn_residual=attn_residual,
+            big_temperature=big_temperature,
             **kwargs
         )
 
