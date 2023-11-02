@@ -432,7 +432,7 @@ class InducedSetAttention(nn.Module):
         device=DEFAULT_DEVICE, 
         init=True, 
         mode=ISABMode.SEPARATE, 
-        layer_norm=False,
+        layer_norm=True,
         layer_norm_0=False,
         residual_2=True,
         dropout=0,
@@ -592,8 +592,8 @@ class PoolingByMultiheadAttention(nn.Module):
             d_model, 
             device=device,
             init=False,
-            layer_norm=layer_norm,
-            layer_norm_0=layer_norm_0,
+            layer_norm=False, # PMA must not use layernorm
+            layer_norm_0=False, # PMA must not use layernorm
             residual_2=residual_2,
             dropout=dropout,
             activation=activation,
