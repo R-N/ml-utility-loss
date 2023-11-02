@@ -9,6 +9,9 @@ import transformer.Constants as Constants
 from torchtext.data import Dataset
 from transformer.Models import Transformer
 from transformer.Translator import Translator
+import numpy as np
+torch.manual_seed(0)
+np.random.seed(0)
 
 
 def load_model(opt, device):

@@ -16,6 +16,9 @@ from torchtext.datasets import TranslationDataset
 import transformer.Constants as Constants
 from learn_bpe import learn_bpe
 from apply_bpe import BPE
+import numpy as np
+torch.manual_seed(0)
+np.random.seed(0)
 
 
 __author__ = "Yu-Hsiang Huang"
