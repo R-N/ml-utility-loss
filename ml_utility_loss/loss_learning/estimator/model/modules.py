@@ -260,7 +260,7 @@ class MultiHeadAttention(nn.Module):
             I = I.transpose(-3, -2)
 
         if mask is not None:
-            mask = mask.unsqueeze(-2)   # For head axis broadcasting.
+            mask = mask.unsqueeze(-3)   # For head axis broadcasting.
 
         o, attn = self.attention(q, k, v, mask=mask, I=I)
 
