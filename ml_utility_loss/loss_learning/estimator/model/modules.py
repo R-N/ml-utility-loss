@@ -525,7 +525,9 @@ class InducedSetAttention(nn.Module):
         if self.mode == ISABMode.MINI:
             O, (I_attn, O_attn) = self.mab1(q, k, v, mask=mask, I=I)
         else:
+            print("A", I.shape, k.shape, v.shape)
             H, I_attn = self.mab0(I, k, v, mask=None) #yes it's none
+            print("B", q.shape, H.shape, H.shape)
             O, O_attn = self.mab1(q, H, H, mask=mask) #mask is applied to the query, since query is from decoder
         return O, (I_attn, O_attn)
 

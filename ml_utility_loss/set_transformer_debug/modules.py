@@ -56,7 +56,7 @@ class ISAB(nn.Module):
             dropout=0,
             activation=F.relu,
             softmax=nn.Softmax,
-            mode=ISABMode.MINI,
+            mode=ISABMode.SEPARATE,
             attn_bias=True,
             attn_residual=True,
             big_temperature=True,
