@@ -23,7 +23,7 @@ class MAB(nn.Module):
             residual_2=True,
             dropout=0,
             activation=F.relu,
-            softmax=ReLU15,
+            softmax=nn.Softmax,
             attn_bias=True,
             attn_residual=True,
             big_temperature=True,
@@ -56,7 +56,7 @@ class ISAB(nn.Module):
             residual_2=True,
             dropout=0,
             activation=F.relu,
-            softmax=ReLU15,
+            softmax=nn.Softmax,
             mode=mode, #SHARED is crap, MINI has lower performance
             attn_bias=True,
             attn_residual=True,
