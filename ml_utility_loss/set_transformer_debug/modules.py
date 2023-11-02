@@ -56,7 +56,7 @@ class ISAB(nn.Module):
             dropout=0,
             activation=F.relu,
             softmax=nn.Softmax,
-            mode=ISABMode.SEPARATE,
+            mode=ISABMode.MINI,
             attn_bias=True,
             attn_residual=True,
             big_temperature=True,
@@ -79,8 +79,8 @@ class PMA(nn.Module):
             d_model=dim,
             bias=True,
             init=False,
-            layer_norm=ln, #Definitely False
-            layer_norm_0=ln, #Definitely False
+            layer_norm=False, #Definitely False
+            layer_norm_0=False, #Definitely False
             residual_2=True,
             dropout=0,
             activation=F.relu,
