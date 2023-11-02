@@ -439,7 +439,7 @@ class InducedSetAttention(nn.Module):
         device=DEFAULT_DEVICE, 
         init=True, 
         mode=ISABMode.SEPARATE, 
-        layer_norm=True,
+        layer_norm=False,
         layer_norm_0=False,
         residual_2=False,
         dropout=0,
