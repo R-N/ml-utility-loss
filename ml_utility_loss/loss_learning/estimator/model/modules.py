@@ -581,6 +581,7 @@ class FeedForward(nn.Module):
     def __init__(self, d_in, d_out, activation=nn.Sigmoid, dropout=0, layer_norm=True, residual=True, device=DEFAULT_DEVICE, Linear=Linear, bias=False, init=True):
         super().__init__()
         self.w = Linear(d_in, d_out, bias=bias, init=False) # position-wise
+        print("FF residual", residual)
         self.residual = residual and d_in == d_out
         self.activation = activation
         if inspect.isclass(self.activation):
