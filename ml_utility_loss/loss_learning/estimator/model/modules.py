@@ -157,7 +157,7 @@ class ScaledDotProductAttention(nn.Module):
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=Linear, mode=None, bias=False, init=True, layer_norm=True, layer_norm_0=False, residual_2=False, activation=None, num_inds=0):
+    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=Linear, mode=None, bias=False, init=True, layer_norm=True, layer_norm_0=False, residual_2=False, activation=None, num_inds=0, skip_small=False):
         super().__init__()
 
         d_qk = d_qk or (d_O//n_head)
