@@ -41,7 +41,7 @@ class SAB(nn.Module):
         return self.mab(X, X)
 
 class ISAB(nn.Module):
-    def __init__(self, dim_in, dim_out, num_heads, num_inds, ln=False):
+    def __init__(self, dim_in, dim_out, num_heads, num_inds, ln=False, mode=ISABMode.SEPARATE):
         super(ISAB, self).__init__()
         self.isab = InducedSetAttention(
             num_inds=num_inds,
@@ -56,7 +56,7 @@ class ISAB(nn.Module):
             dropout=0,
             activation=F.relu,
             softmax=nn.Softmax,
-            mode=ISABMode.MINI,
+            mode=mode,
             attn_bias=True,
             attn_residual=True,
             big_temperature=True,

@@ -1,4 +1,5 @@
 from modules import *
+from ml_utility_loss.params import ISABMode
 
 class DeepSet(nn.Module):
     def __init__(self, dim_input, num_outputs, dim_output, dim_hidden=128):
@@ -32,8 +33,8 @@ class SetTransformer(nn.Module):
             num_inds=32, dim_hidden=128, num_heads=4, ln=False):
         super(SetTransformer, self).__init__()
         self.enc = nn.Sequential(
-                ISAB(dim_input, dim_hidden, num_heads, num_inds, ln=ln),
-                ISAB(dim_hidden, dim_hidden, num_heads, num_inds, ln=ln))
+                ISAB(dim_input, dim_hidden, num_heads, num_inds, ln=ln, mode=ISABMode.SEPARATE),
+                ISAB(dim_hidden, dim_hidden, num_heads, num_inds, ln=ln, mode=ISABMode.SHARED))
         self.dec = nn.Sequential(
                 PMA(dim_hidden, num_heads, num_outputs, ln=ln),
                 SAB(dim_hidden, dim_hidden, num_heads, ln=ln),
