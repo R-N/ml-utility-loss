@@ -117,7 +117,7 @@ def LoRALinearFactory(base, rank):
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
 
-    def __init__(self, temperature, attn_dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, d_H=None, Linear=None, bias=False, init=True):
+    def __init__(self, temperature, attn_dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, d_H=None, Linear=None, bias=False, init=True, attn_bias=False):
         super().__init__()
         self.temperature = temperature
         self.dropout = nn.Dropout(attn_dropout)
@@ -176,7 +176,7 @@ class MultiHeadAttention(nn.Module):
         self.w_vs = Linear(self.d_KV, self.d_O, bias=attn_bias, init=False)
         self.fc = Linear(self.d_O, self.d_O, bias=attn_bias, init=False)
 
-        self.attention = Attention(temperature=d_qk ** 0.5, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False)
+        self.attention = Attention(temperature=d_qk ** 0.5, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False, attn_bias=attn_bias)
 
         self.residual_2 = residual_2
         self.dropout = nn.Dropout(dropout) if dropout else None
