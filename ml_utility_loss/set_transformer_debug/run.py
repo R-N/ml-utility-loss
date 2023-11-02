@@ -54,7 +54,7 @@ benchfile = os.path.join('benchmark', 'mog_{:d}.pkl'.format(K))
 def generate_benchmark():
     if not os.path.isdir('benchmark'):
         os.makedirs('benchmark')
-    N_list = np.random.randint(N_min, N_max, args.num_bench)
+    N_list = np.random.randint(N_min, N_max, args.num_bench) if N_min != N_max else np.full(args.num_bench, N_min)
     data = []
     ll = 0.
     for N in tqdm(N_list):
@@ -88,7 +88,7 @@ def train():
             optimizer.param_groups[0]['lr'] *= 0.1
         net.train()
         optimizer.zero_grad()
-        N = np.random.randint(N_min, N_max)
+        N = np.random.randint(N_min, N_max) if N_min != N_max else N_min
         X = mog.sample(B, N, K)
         if t == 1:
             print(summary(net, X.shape, depth=6))
