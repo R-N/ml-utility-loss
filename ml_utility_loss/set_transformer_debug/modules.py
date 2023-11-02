@@ -17,8 +17,8 @@ class MAB(nn.Module):
             d_O=dim_V,
             bias=True,
             init=False,
-            layer_norm=True, # Convergence speed decrease a bit when true, but it's a lot more stable
-            layer_norm_0=ln, # Definitely False
+            layer_norm=ln, # Convergence speed decrease a bit when true, but it's a lot more stable
+            layer_norm_0=False, # Definitely False
             residual_2=True,
             dropout=0,
             activation=F.relu,
@@ -50,8 +50,8 @@ class ISAB(nn.Module):
             d_Q=dim_in, d_KV=dim_in, d_O=dim_out,
             bias=True,
             init=False,
-            layer_norm=True,
-            layer_norm_0=ln,
+            layer_norm=ln,
+            layer_norm_0=False,
             residual_2=True,
             dropout=0,
             activation=F.relu,
