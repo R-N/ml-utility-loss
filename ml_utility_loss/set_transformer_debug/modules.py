@@ -79,7 +79,7 @@ class PMA(nn.Module):
             d_model=dim,
             bias=True,
             init=False,
-            layer_norm=ln, #Definitely False
+            layer_norm=True, #Definitely False
             layer_norm_0=ln, #Definitely False
             residual_2=True,
             dropout=0,
