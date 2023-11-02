@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from models import SetTransformer, DeepSet
 from mixture_of_mvns import MixtureOfMVNs
 from mvn_diag import MultivariateNormalDiag
+from torchinfo import summary
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--mode', type=str, default='train')
@@ -89,6 +90,8 @@ def train():
         optimizer.zero_grad()
         N = np.random.randint(N_min, N_max)
         X = mog.sample(B, N, K)
+        if t == 1:
+            print(summary(net, X.shape))
         ll = mog.log_prob(X, *mvn.parse(net(X)))
         loss = -ll
         loss.backward()

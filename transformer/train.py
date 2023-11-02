@@ -21,6 +21,8 @@ import transformer.Constants as Constants
 from transformer.Models import Transformer
 from transformer.Optim import ScheduledOptim
 
+from torchinfo import summary
+
 __author__ = "Yu-Hsiang Huang"
 
 def cal_performance(pred, gold, trg_pad_idx, smoothing=False):
@@ -294,6 +296,11 @@ def main():
         n_head=opt.n_head,
         dropout=opt.dropout,
         scale_emb_or_prj=opt.scale_emb_or_prj).to(device)
+    
+    batch = next(training_data)
+    src_seq = patch_src(batch.src, opt.src_pad_idx).to(device)
+    trg_seq, gold = map(lambda x: x.to(device), patch_trg(batch.trg, opt.trg_pad_idx))
+    print(summary(transformer, (src_seq.shape, trg_seq.shape)))
 
     optimizer = ScheduledOptim(
         optim.Adam(transformer.parameters(), betas=(0.9, 0.98), eps=1e-09),
