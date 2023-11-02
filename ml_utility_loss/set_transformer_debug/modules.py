@@ -88,7 +88,7 @@ class PMA(nn.Module):
             softmax=nn.Softmax, #Relu15 doesn't converge
             skip_small=False,
             attn_bias=False, # False is better
-            attn_residual=False, # False is fine
+            attn_residual=True, # False is fine
             big_temperature=True,
         )
 
