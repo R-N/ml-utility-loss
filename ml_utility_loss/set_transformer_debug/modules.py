@@ -25,6 +25,7 @@ class MAB(nn.Module):
             softmax=nn.Softmax,
             attn_bias=True,
             attn_residual=True,
+            big_temperature=True,
         )
 
     def forward(self, Q, K):
@@ -58,6 +59,7 @@ class ISAB(nn.Module):
             mode=ISABMode.SEPARATE,
             attn_bias=True,
             attn_residual=True,
+            big_temperature=True,
         )
         #d_I, d_KV, d_H, 
         #self.mab0 = MAB(dim_out, dim_in, dim_out, num_heads, ln=ln)
@@ -86,6 +88,7 @@ class PMA(nn.Module):
             skip_small=False,
             attn_bias=True,
             attn_residual=True,
+            big_temperature=True,
         )
 
     def forward(self, X):

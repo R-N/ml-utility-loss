@@ -162,7 +162,7 @@ class ScaledDotProductAttention(nn.Module):
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=Linear, mode=None, bias=False, init=True, layer_norm=True, layer_norm_0=False, residual_2=False, activation=None, num_inds=0, skip_small=False, attn_bias=False, attn_residual=False):
+    def __init__(self, n_head, d_Q, d_KV, d_O, d_qk=None, dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, Attention=ScaledDotProductAttention, rank=0, Linear=Linear, mode=None, bias=False, init=True, layer_norm=True, layer_norm_0=False, residual_2=False, activation=None, num_inds=0, skip_small=False, attn_bias=False, attn_residual=False, big_temperature=False):
         super().__init__()
 
         d_qk = d_qk or (d_O//n_head)
@@ -181,7 +181,9 @@ class MultiHeadAttention(nn.Module):
         self.w_vs = Linear(self.d_KV, self.d_O, bias=attn_bias, init=False)
         self.fc = Linear(self.d_O, self.d_O, bias=attn_bias, init=False)
 
-        self.attention = Attention(temperature=d_qk ** 0.5, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False, attn_bias=attn_bias, attn_residual=attn_residual)
+        temperature = d_KV if big_temperature else d_qk
+        temperature = temperature ** 0.5
+        self.attention = Attention(temperature=temperature, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False, attn_bias=attn_bias, attn_residual=attn_residual)
 
         self.residual_2 = residual_2
         self.dropout = nn.Dropout(dropout) if dropout else None
