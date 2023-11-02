@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import math
 from ml_utility_loss.loss_learning.estimator.model.modules import MultiHeadAttention, InducedSetAttention, PoolingByMultiheadAttention
 from ml_utility_loss.params import ISABMode
+from alpharelu import relu15, ReLU15
 
 class MAB(nn.Module):
     def __init__(self, dim_Q, dim_K, dim_V, num_heads, ln=False):
@@ -22,7 +23,7 @@ class MAB(nn.Module):
             residual_2=True,
             dropout=0,
             activation=F.relu,
-            softmax=nn.Softmax,
+            softmax=ReLU15,
             attn_bias=True,
             attn_residual=True,
             big_temperature=True,
@@ -55,8 +56,8 @@ class ISAB(nn.Module):
             residual_2=True,
             dropout=0,
             activation=F.relu,
-            softmax=nn.Softmax,
-            mode=mode,
+            softmax=ReLU15,
+            mode=mode, #SHARED is crap, MINI has lower performance
             attn_bias=True,
             attn_residual=True,
             big_temperature=True,
@@ -84,7 +85,7 @@ class PMA(nn.Module):
             residual_2=True,
             dropout=0,
             activation=F.relu,
-            softmax=nn.Softmax,
+            softmax=ReLU15,
             skip_small=False,
             attn_bias=True,
             attn_residual=True,
