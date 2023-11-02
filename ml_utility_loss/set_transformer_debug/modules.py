@@ -18,9 +18,9 @@ class MAB(nn.Module):
             d_O=dim_V,
             bias=True,
             init=False,
-            layer_norm=True, # Convergence speed decrease a bit when true, but it's a lot more stable
+            layer_norm=False, # Convergence speed decrease a bit when true, but it's a lot more stable
             layer_norm_0=False, # Definitely False
-            residual_2=False,
+            residual_2=False, #False is fine
             dropout=0,
             activation=F.relu,
             softmax=nn.Softmax, #relu15 results in nan
@@ -51,9 +51,9 @@ class ISAB(nn.Module):
             d_Q=dim_in, d_KV=dim_in, d_O=dim_out,
             bias=True,
             init=False,
-            layer_norm=True,
+            layer_norm=False,
             layer_norm_0=False,
-            residual_2=False,
+            residual_2=False, #False is fine
             dropout=0,
             activation=F.relu,
             softmax=nn.Softmax, #relu15 results in nan
@@ -82,7 +82,7 @@ class PMA(nn.Module):
             init=False,
             layer_norm=False, #Definitely False. Okay it's pretty alright True without attn bias
             layer_norm_0=False, #Definitely False
-            residual_2=True,
+            residual_2=True, # False converges slowly
             dropout=0,
             activation=F.relu,
             softmax=nn.Softmax, #Relu15 doesn't converge

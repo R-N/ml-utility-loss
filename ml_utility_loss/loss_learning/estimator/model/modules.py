@@ -441,7 +441,7 @@ class InducedSetAttention(nn.Module):
         mode=ISABMode.SEPARATE, 
         layer_norm=True,
         layer_norm_0=False,
-        residual_2=True,
+        residual_2=False,
         dropout=0,
         activation=F.relu,
         softmax=nn.Softmax,
