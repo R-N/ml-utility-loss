@@ -90,7 +90,11 @@ class Encoder(nn.Module):
         enc_output = self.layer_norm(enc_output)
 
         for enc_layer in self.layer_stack:
-            enc_output, enc_slf_attn = enc_layer(enc_output, slf_attn_mask=src_mask)
+            enc_output, (enc_slf_attn, pma_attn) = enc_layer(
+                enc_output, 
+                slf_attn_mask=src_mask,
+                return_attns=True,
+            )
             enc_slf_attn_list += [enc_slf_attn] if return_attns else []
 
         if return_attns:
@@ -142,8 +146,11 @@ class Decoder(nn.Module):
         dec_output = self.layer_norm(dec_output)
 
         for dec_layer in self.layer_stack:
-            dec_output, dec_slf_attn, dec_enc_attn = dec_layer(
-                dec_output, enc_output, slf_attn_mask=trg_mask, dec_enc_attn_mask=src_mask)
+            dec_output, (dec_slf_attn, dec_enc_attn, pma_attn) = dec_layer(
+                dec_output, enc_output, 
+                slf_attn_mask=trg_mask, dec_enc_attn_mask=src_mask,
+                return_attns=True,
+            )
             dec_slf_attn_list += [dec_slf_attn] if return_attns else []
             dec_enc_attn_list += [dec_enc_attn] if return_attns else []
 
