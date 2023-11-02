@@ -227,6 +227,8 @@ def train(
                 optimizer.zero_grad()
             # forward pass
             y_pred = model(X_batch)
+            if y_pred.dim() < y_batch.dim():
+               y_pred = y_pred.unsqueeze(-1)
             loss = loss_fn(y_pred, y_batch)
             if not val:
                 # backward pass
