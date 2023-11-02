@@ -188,8 +188,6 @@ class MultiHeadAttention(nn.Module):
         self.residual_2 = residual_2
         self.dropout = nn.Dropout(dropout) if dropout else None
 
-        print("mab layernorm", layer_norm_0, layer_norm)
-        print("mab residual_2", residual_2)
         self.layer_norm_0 = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm_0 else None
         self.layer_norm = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm else None
 
