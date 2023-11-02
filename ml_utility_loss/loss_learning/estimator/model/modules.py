@@ -460,7 +460,7 @@ class InducedSetAttention(nn.Module):
 
         ISABAttention = Attention
         if mode == ISABMode.MINI:
-            assert d_Q == d_KV == d_I == d_H == d_O, f"for ISAB to operate in optimized mini mode, all dims must be equal {d_Q} == {d_KV} == {d_I} == {d_H} == {d_O}"
+            #assert d_Q == d_KV == d_I == d_H == d_O, f"for ISAB to operate in optimized mini mode, all dims must be equal {d_Q} == {d_KV} == {d_I} == {d_H} == {d_O}"
             ISABAttention = InducedSetAttentionMini
 
         def MAB_(
@@ -500,7 +500,7 @@ class InducedSetAttention(nn.Module):
                 **kwargs,
             )
         elif mode == ISABMode.SHARED:
-            #assert d_Q == d_KV == d_I == d_H == d_O, f"for ISAB to share attention, all dims must be equal {d_Q} == {d_KV} == {d_I} == {d_H} == {d_O}"
+            assert d_Q == d_KV == d_I == d_H == d_O, f"for ISAB to share attention, all dims must be equal {d_Q} == {d_KV} == {d_I} == {d_H} == {d_O}"
             self.mab0 = self.mab1
 
         if init:
