@@ -447,7 +447,7 @@ class InducedSetAttention(nn.Module):
         softmax=nn.Softmax,
         attn_bias=False,
         attn_residual=True,
-        big_temperature=True,
+        big_temperature=False,
         **kwargs
     ):
         super().__init__()
@@ -595,7 +595,7 @@ class PoolingByMultiheadAttention(nn.Module):
         softmax=nn.Softmax,
         attn_bias=False,
         attn_residual=True,
-        big_temperature=True,
+        big_temperature=False,
         **kwargs
     ):
         super().__init__()
