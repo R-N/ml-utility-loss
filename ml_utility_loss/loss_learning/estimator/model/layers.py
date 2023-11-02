@@ -36,6 +36,7 @@ class EncoderLayer(nn.Module):
         Linear=Linear, 
         bias=True,
         init=True,
+        layer_norm=True,
         **kwargs,
     ):
         super().__init__()
@@ -54,6 +55,7 @@ class EncoderLayer(nn.Module):
             rank=isab_rank,
             bias=bias,
             init=False,
+            layer_norm=layer_norm,
             **kwargs,
         )
         self.pos_ffn = DoubleFeedForward(
@@ -65,6 +67,7 @@ class EncoderLayer(nn.Module):
             Linear=Linear,
             bias=bias,
             init=False,
+            layer_norm=layer_norm,
             **kwargs,
         )
         self.pma = None
@@ -84,6 +87,7 @@ class EncoderLayer(nn.Module):
                 rank=pma_rank,
                 bias=bias,
                 init=False,
+                #layer_norm=layer_norm,
                 **kwargs,
             )
             self.pos_ffn_pma = self.pos_ffn
@@ -97,6 +101,7 @@ class EncoderLayer(nn.Module):
                     Linear=Linear,
                     bias=bias,
                     init=False,
+                    layer_norm=layer_norm,
                     **kwargs,
                 )
 
@@ -175,6 +180,7 @@ class DecoderLayer(EncoderLayer):
         Linear=Linear, 
         bias=True,
         init=True,
+        layer_norm=True,
         **kwargs,
     ):
         super().__init__(
@@ -192,6 +198,7 @@ class DecoderLayer(EncoderLayer):
             Linear=Linear, 
             bias=bias,
             init=False,
+            layer_norm=layer_norm,
             **kwargs,
         )
         Attention = SimpleInducedSetAttention if num_inds else SimpleMultiHeadAttention
@@ -209,6 +216,7 @@ class DecoderLayer(EncoderLayer):
             rank=isab_rank,
             bias=bias,
             init=False,
+            layer_norm=layer_norm,
         )
 
         if init:

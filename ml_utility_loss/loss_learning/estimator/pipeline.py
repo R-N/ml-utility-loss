@@ -287,6 +287,7 @@ def create_model(
     tf_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
     tf_lora_mode=LoRAMode.FULL,
     tf_lora_rank=2,
+    tf_layer_norm=False,
     # Transformer PMA args
     tf_pma_start=-4,
     tf_pma_high=512,
@@ -348,6 +349,7 @@ def create_model(
         lora_rank=tf_lora_rank,
         bias=bias,
         init=False, #will be inited in MLUWhole
+        layer_norm=tf_layer_norm,
     )
     whole_model = MLUtilityWhole(
         body=body,
