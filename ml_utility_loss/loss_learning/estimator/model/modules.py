@@ -606,12 +606,15 @@ class PoolingByMultiheadAttention(nn.Module):
             InductionPoint = LowRankInductionPoint
         self.S = InductionPoint(num_seeds, d_model, rank=rank, device=device)
 
+        if attn_bias:
+            layer_norm = False
+            layer_norm_0 = False
         self.mab = SimpleMultiHeadAttention(
             n_head, 
             d_model, 
             device=device,
             init=False,
-            layer_norm=False, # PMA must not use layernorm
+            layer_norm=layer_norm, # PMA must not use layernorm
             layer_norm_0=False, # PMA must not use layernorm
             residual_2=residual_2,
             dropout=dropout,
