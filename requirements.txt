@@ -5,7 +5,7 @@
 #realtabformer @ git+https://github.com/R-N/REaLTabFormer@main
 alpharelu # @ git+https://github.com/MaxatTezekbayev/alpha-relu@main
 entmax # @ git+https://github.com/deep-spin/entmax@master
-
+torchtext @ git+https://github.com/R-N/torchtext@0.6.1
 accelerate>=0.20.3
 catboost>=1.0.3
 category-encoders>=2.3.0
