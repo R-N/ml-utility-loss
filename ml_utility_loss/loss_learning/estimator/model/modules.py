@@ -278,7 +278,10 @@ class MultiHeadAttention(nn.Module):
         # again, (1, 2) to (-3, -2)
         o = o.transpose(-3, -2).contiguous().view(*sz_b_arg, len_q, -1)
 
-        print("Attn dim", q.shape, k.shape, v.shape, o.shape, self.attention.temperature)
+        #After transpose, this MAB has q, k, v dim of (batch, num_head, len, dim)
+        #Meanwhile the original ISAB has q, k, v dim of (batch * num_head, len, dim)
+        #Also, original ISAB has big temperature not divided by num_head beforehand
+        #print("Attn dim", q.shape, k.shape, v.shape, o.shape, self.attention.temperature)
 
         if self.layer_norm_0:
             o = self.layer_norm_0(o)

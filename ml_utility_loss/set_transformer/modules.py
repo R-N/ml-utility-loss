@@ -30,7 +30,7 @@ class MAB(nn.Module):
         O = Q_ + A.bmm(V_)
         O = torch.cat(O.split(Q.size(0), 0), 2)
 
-        print("Attn dim", Q_.shape, K_.shape, V_.shape, O.shape, temperature)
+        #print("Attn dim", Q_.shape, K_.shape, V_.shape, O.shape, temperature)
 
         O = O if getattr(self, 'ln0', None) is None else self.ln0(O)
         O = O + F.relu(self.fc_o(O))
