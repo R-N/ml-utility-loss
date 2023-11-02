@@ -26,7 +26,7 @@ class MAB(nn.Module):
             softmax=nn.Softmax, #relu15 results in nan
             attn_bias=False,  # False is better
             attn_residual=True, # False won't converge with residual2, or slowly without it
-            big_temperature=True,
+            big_temperature=False,
         )
 
     def forward(self, Q, K):
@@ -60,7 +60,7 @@ class ISAB(nn.Module):
             mode=mode, #SHARED is crap, MINI has lower performance
             attn_bias=False, # False is better
             attn_residual=True, # False won't converge with residual2, or slowly without it
-            big_temperature=True,
+            big_temperature=False,
         )
         #d_I, d_KV, d_H, 
         #self.mab0 = MAB(dim_out, dim_in, dim_out, num_heads, ln=ln)
@@ -89,7 +89,7 @@ class PMA(nn.Module):
             skip_small=False,
             attn_bias=False, # False is better
             attn_residual=True, # False is fine
-            big_temperature=True,
+            big_temperature=False,
         )
 
     def forward(self, X):
