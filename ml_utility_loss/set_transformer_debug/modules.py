@@ -23,9 +23,9 @@ class MAB(nn.Module):
             residual_2=True,
             dropout=0,
             activation=F.relu,
-            softmax=ReLU15,
+            softmax=nn.Softmax, #relu15 results in nan
             attn_bias=True,
-            attn_residual=True,
+            attn_residual=False,
             big_temperature=True,
         )
 
@@ -56,10 +56,10 @@ class ISAB(nn.Module):
             residual_2=True,
             dropout=0,
             activation=F.relu,
-            softmax=ReLU15,
+            softmax=nn.Softmax, #relu15 results in nan
             mode=mode, #SHARED is crap, MINI has lower performance
             attn_bias=True,
-            attn_residual=True,
+            attn_residual=False,
             big_temperature=True,
         )
         #d_I, d_KV, d_H, 
@@ -85,10 +85,10 @@ class PMA(nn.Module):
             residual_2=True,
             dropout=0,
             activation=F.relu,
-            softmax=nn.Softmax,
+            softmax=nn.Softmax, #Relu15 doesn't converge
             skip_small=False,
             attn_bias=True,
-            attn_residual=True,
+            attn_residual=False,
             big_temperature=True,
         )
 
