@@ -104,7 +104,7 @@ class PMA(nn.Module):
             init=False,
             layer_norm=False, #Definitely False. Okay it's pretty alright True without attn bias
             layer_norm_0=False, #Definitely False
-            residual_2=True, # False converges slowly
+            residual_2=False, # False converges slowly
             dropout=0,
             activation=nn.ReLU, #None is fine, Leaky better, Tanh is fine, Sigmoid better
             softmax=nn.Softmax, #Relu15 doesn't converge
