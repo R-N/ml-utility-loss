@@ -173,6 +173,8 @@ def update_params_2(params, dataset_sizes):
     params.pop("tf_isab_mode", None)
     params.pop("tf_lora", None)
     params.pop("tf_lora_mode", None)
+    params.pop("tf_lora_rank", None)
+    params.pop("tf_lora_rank_exp_2", None)
     params.pop("tf_isab_rank", None)
     params.pop("tf_isab_rank_exp_2", None)
     params.pop("tf_pma_rank", None)
