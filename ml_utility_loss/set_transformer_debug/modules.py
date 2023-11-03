@@ -106,11 +106,11 @@ class PMA(nn.Module):
             layer_norm_0=False, #Definitely False
             residual_2=False, # False converges slowly. It's alright now actually. 1.55
             dropout=0,
-            activation=None, #None is fine, Leaky better, Tanh is fine, Sigmoid better
+            activation=nn.ReLU, #None is fine, Leaky better, Tanh is fine, Sigmoid better
             softmax=nn.Softmax, #Relu15 doesn't converge
             skip_small=False,
             attn_bias=False, # False is better
-            attn_residual=False, # False is fine
+            attn_residual=True, # False is fine
             big_temperature=False, # Doesn't matter
         )
         self.linear = linear or DoubleFeedForward(
