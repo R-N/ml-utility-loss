@@ -132,10 +132,6 @@ class ScaledDotProductAttention(nn.Module):
     def init(self, activation=None):
         pass
 
-    @property
-    def activation(self):
-        return self.softmax
-
     def lora(self, base=None, w=None):
         return self
 
@@ -365,10 +361,6 @@ class InducedSetAttentionMini(nn.Module):
     @property
     def softmax(self):
         return self.attn0.softmax
-    
-    @property
-    def activation(self):
-        return self.attn1.activation
     
     @property
     def temperature(self):
