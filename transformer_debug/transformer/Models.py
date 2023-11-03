@@ -72,7 +72,7 @@ class Encoder(nn.Module):
                 init=False,
                 softmax=nn.Softmax,
                 activation=nn.ReLU,
-                attn_activation=None,
+                attn_activation=nn.ReLU,
                 attn_residual=True,
             ) for _ in range(n_layers)
         ])
@@ -130,8 +130,8 @@ class Decoder(nn.Module):
                 init=False,
                 softmax=nn.Softmax,
                 activation=nn.ReLU,
-                attn_activation=None,
-                attn_residual=False,
+                attn_activation=nn.ReLU,
+                attn_residual=True,
             ) for _ in range(n_layers)
         ])
         self.layer_norm = nn.LayerNorm(d_model, eps=1e-6)
