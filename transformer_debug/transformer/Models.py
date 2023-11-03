@@ -4,6 +4,7 @@ import torch.nn as nn
 import numpy as np
 #from transformer.Layers import EncoderLayer, DecoderLayer
 from ml_utility_loss.loss_learning.estimator.model.layers import EncoderLayer, DecoderLayer
+from alpharelu import relu15, ReLU15
 
 
 __author__ = "Yu-Hsiang Huang"
@@ -70,10 +71,11 @@ class Encoder(nn.Module):
                 num_inds=0,
                 bias=True,
                 init=False,
-                softmax=nn.Softmax,
+                softmax=ReLU15,
                 activation=nn.ReLU,
-                attn_activation=nn.ReLU,
-                attn_residual=False,
+                attn_activation=nn.ReLU, # This doesn't, because tensors are almost always positive here. But it doesn't degrade performance so it's fine.
+                attn_residual=True, # This improves performance
+                layer_norm=True, # This must be True for text
             ) for _ in range(n_layers)
         ])
         self.layer_norm = nn.LayerNorm(d_model, eps=1e-6)
@@ -128,10 +130,11 @@ class Decoder(nn.Module):
                 num_inds=0,
                 bias=True,
                 init=False,
-                softmax=nn.Softmax,
+                softmax=ReLU15,
                 activation=nn.ReLU,
-                attn_activation=nn.ReLU,
-                attn_residual=False,
+                attn_activation=nn.ReLU, # This doesn't, because tensors are almost always positive here. But it doesn't degrade performance so it's fine.
+                attn_residual=True, # This improves performance
+                layer_norm=True, # This must be True for text
             ) for _ in range(n_layers)
         ])
         self.layer_norm = nn.LayerNorm(d_model, eps=1e-6)
