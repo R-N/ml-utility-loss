@@ -104,7 +104,7 @@ class PMA(nn.Module):
             init=False,
             layer_norm=False, #Definitely False. Okay it's pretty alright True without attn bias.
             layer_norm_0=False, #Definitely False
-            residual_2=False, # False converges slowly. It's alright False with FFN. 1.55
+            residual_2=False, # False converges slowly. It's alright now actually. 1.55
             dropout=0,
             activation=nn.ReLU, #None is fine, Leaky better, Tanh is fine, Sigmoid better
             softmax=nn.Softmax, #Relu15 doesn't converge
@@ -120,7 +120,7 @@ class PMA(nn.Module):
             activation=nn.ReLU,
             bias=True,
             init=False,
-            layer_norm=False,
+            layer_norm=True,
         )
 
     def forward(self, X):
