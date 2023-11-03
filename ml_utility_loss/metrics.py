@@ -29,6 +29,8 @@ mean_penalty_tan = partial(mean_penalty, negative="tan")
 mean_penalty_rational = partial(mean_penalty, negative="rational")
 mean_penalty_tan_half = partial(mean_penalty_tan, power=0.5)
 mean_penalty_rational_half = partial(mean_penalty_rational, power=0.5)
+mean_penalty_tan_double = partial(mean_penalty_tan, power=2.0)
+mean_penalty_rational_double = partial(mean_penalty_rational, power=2.0)
 
 def msle(pred, y, **kwargs):
     return F.mse_loss(torch.log(1+pred), torch.log(1+y), **kwargs)
