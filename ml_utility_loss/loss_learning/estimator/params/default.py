@@ -1,4 +1,4 @@
-from ....params import BOOLEAN, ISABMode, LoRAMode
+from ....params import BOOLEAN, ISABMode, LoRAMode, PMAFFNMode
 
 PARAM_SPACE = {
     # Dataset args
@@ -53,6 +53,21 @@ PARAM_SPACE = {
     #"skip_small": False,
     #"loss_clamp": ("log_float", 0.5, 10.0),
     "layer_norm": BOOLEAN,
+    "pma_layer_norm": False,
+    #"pma_layer_norm": BOOLEAN,
+    "attn_activation": ("activation", [
+        "tanh",  
+        "sigmoid", 
+        "alphatanh",
+        "alphasigmoid",
+        "relu",
+        "leakyrelu", 
+        "selu",
+        "learnableleakyrelu",
+        #"identity",
+    ]),
+    "attn_residual": True,
+    #"attn_residual": BOOLEAN,
     # Transformer args
     "tf_num_inds": ("int_exp_2", 8, 64),
     "tf_d_inner": ("int_exp_2", 128, 256),
@@ -73,6 +88,7 @@ PARAM_SPACE = {
         )),
         "tf_lora_rank": ("int_exp_2", 2, 16),
     }),
+    "tf_layer_norm": BOOLEAN,
     # Transformer PMA args
     "tf_pma": ("conditional", {
         "tf_pma_start": ("int", -2, -1),
@@ -80,7 +96,12 @@ PARAM_SPACE = {
         "tf_pma_low": ("int_exp_2", 2, 32),
         "tf_pma_rank": ("int_exp_2", 2, 16),
     }),
-    "tf_share_ffn": BOOLEAN,
+    "pma_ffn_mode": ("categorical", (
+        PMAFFNMode.NONE,
+        PMAFFNMode.SEPARATE,
+        PMAFFNMode.SHARED,
+    )),
+    #"tf_share_ffn": BOOLEAN,
     # Adapter args
     "ada_d_hid": ("int_exp_2", 8, 64), 
     "ada_n_layers": ("int", 2, 4), 

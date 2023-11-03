@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import torch
 from .modules import SimpleInducedSetAttention, DoubleFeedForward, PoolingByMultiheadAttention, SimpleMultiHeadAttention, Linear
 from ....util import DEFAULT_DEVICE, check_cuda
-from ....params import ISABMode
+from ....params import ISABMode, PMAFFNMode
 from .init import init, init_linear, init_layer_norm
 from entmax import sparsemax, entmax15, Sparsemax, Entmax15
 from alpharelu import relu15, ReLU15
@@ -23,7 +23,7 @@ class EncoderLayer(nn.Module):
         d_qk=None, 
         dropout=0, 
         pma=0, 
-        share_ffn=True, 
+        pma_ffn_mode=PMAFFNMode.SHARED, 
         pma_skip_small=False,
         isab_skip_small=False, 
         activation=nn.ReLU, 
@@ -37,6 +37,9 @@ class EncoderLayer(nn.Module):
         bias=True,
         init=True,
         layer_norm=True,
+        attn_activation=None,
+        attn_residual=False,
+        pma_layer_norm=False,
         **kwargs,
     ):
         super().__init__()
@@ -56,8 +59,13 @@ class EncoderLayer(nn.Module):
             bias=bias,
             init=False,
             layer_norm=layer_norm,
+            activation=attn_activation,
+            attn_residual=attn_residual,
             **kwargs,
         )
+        ffn_layer_norm = layer_norm
+        if pma_ffn_mode == PMAFFNMode.SHARED:
+            ffn_layer_norm = pma_layer_norm
         self.pos_ffn = DoubleFeedForward(
             d_model, 
             d_inner, 
@@ -67,11 +75,11 @@ class EncoderLayer(nn.Module):
             Linear=Linear,
             bias=bias,
             init=False,
-            layer_norm=layer_norm,
+            layer_norm=ffn_layer_norm,
             **kwargs,
         )
         self.pma = None
-        self.share_ffn = share_ffn
+        self.pma_ffn_mode = pma_ffn_mode
         self.pos_ffn_pma = None
         if pma:
             self.pma = PoolingByMultiheadAttention(
@@ -87,11 +95,13 @@ class EncoderLayer(nn.Module):
                 rank=pma_rank,
                 bias=bias,
                 init=False,
-                #layer_norm=layer_norm,
+                activation=attn_activation,
+                attn_residual=attn_residual,
+                layer_norm=pma_layer_norm,
                 **kwargs,
             )
-            self.pos_ffn_pma = self.pos_ffn
-            if not share_ffn: 
+            self.pos_ffn_pma = None
+            if pma_ffn_mode == PMAFFNMode.SEPARATE: 
                 self.pos_ffn_pma = DoubleFeedForward(
                     d_model, 
                     d_inner, 
@@ -101,9 +111,11 @@ class EncoderLayer(nn.Module):
                     Linear=Linear,
                     bias=bias,
                     init=False,
-                    layer_norm=layer_norm,
+                    layer_norm=pma_layer_norm,
                     **kwargs,
                 )
+            elif pma_ffn_mode == PMAFFNMode.SHARED:
+                self.pos_ffn_pma = self.pos_ffn
 
         if type(self) is EncoderLayer:
             if init:
@@ -152,7 +164,7 @@ class EncoderLayer(nn.Module):
         if self.pma:
             if pma is not None and pma is not self.pma:
                 self.pma.lora(pma)
-            if not self.share_ffn:
+            if self.pma_ffn_mode != PMAFFNMode.SHARED:
                 if pos_ffn_pma is not None and pos_ffn_pma is not self.pos_ffn_pma:
                     self.pos_ffn_pma.lora(pos_ffn_pma)
 
@@ -181,6 +193,8 @@ class DecoderLayer(EncoderLayer):
         bias=True,
         init=True,
         layer_norm=True,
+        attn_activation=None,
+        attn_residual=False,
         **kwargs,
     ):
         super().__init__(
@@ -199,6 +213,8 @@ class DecoderLayer(EncoderLayer):
             bias=bias,
             init=False,
             layer_norm=layer_norm,
+            activation=attn_activation,
+            attn_residual=attn_residual,
             **kwargs,
         )
         Attention = SimpleInducedSetAttention if num_inds else SimpleMultiHeadAttention
@@ -217,6 +233,8 @@ class DecoderLayer(EncoderLayer):
             bias=bias,
             init=False,
             layer_norm=layer_norm,
+            activation=attn_activation,
+            attn_residual=attn_residual,
         )
 
         if init:

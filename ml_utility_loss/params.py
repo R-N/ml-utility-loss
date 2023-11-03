@@ -41,6 +41,18 @@ class ISABMode:
         "MINI": MINI,
     }
 
+class PMAFFNMode:
+    SEPARATE = "separate"
+    SHARED = "shared"
+    NONE = "none"
+
+    __ALL__ = (SEPARATE, SHARED, NONE)
+    DICT = {
+        "SEPARATE": SEPARATE,
+        "SHARED": SHARED,
+        "NONE": NONE,
+    }
+
 class GradientPenaltyMode:
     NONE = {
         "gradient_penalty": False,

@@ -1,4 +1,4 @@
-from ....params import BOOLEAN, ISABMode, LoRAMode, OPTIMS, ACTIVATIONS, LOSSES, SOFTMAXES, GRADIENT_PENALTY_MODES
+from ....params import BOOLEAN, ISABMode, LoRAMode, OPTIMS, ACTIVATIONS, LOSSES, SOFTMAXES, GRADIENT_PENALTY_MODES, PMAFFNMode
 from torch import nn, optim
 from torch.nn import functional as F
 
@@ -64,6 +64,21 @@ PARAM_SPACE = {
     "bias": BOOLEAN,
     #"bias": False,
     "bias_final": BOOLEAN,
+    "pma_layer_norm": False,
+    #"pma_layer_norm": BOOLEAN,
+    "attn_activation": ("activation", [
+        "tanh",  
+        "sigmoid", 
+        "alphatanh",
+        "alphasigmoid",
+        "relu",
+        "leakyrelu", 
+        "selu",
+        "learnableleakyrelu",
+        #"identity",
+    ]),
+    "attn_residual": True,
+    #"attn_residual": BOOLEAN,
     # Transformer args
     "tf_num_inds": ("int_exp_2", 32, 64),
     "tf_d_inner": ("int_exp_2", 64, 128),
@@ -81,27 +96,33 @@ PARAM_SPACE = {
         "learnableleakyrelu",
     ]),
     "tf_isab_mode": ("categorical", (
-        #ISABMode.SEPARATE, #best
-        #ISABMode.SHARED,
+        ISABMode.SEPARATE, #best
+        ISABMode.SHARED,
         ISABMode.MINI, 
     )),
-    "tf_isab_rank": ("int_exp_2", 2, 8), #doesn't matter much
-    #"tf_lora": ("conditional", { #true is better
-    "tf_lora_mode": ("categorical", ( #doesn't matter
-        #LoRAMode.LOW_RANK, 
-        LoRAMode.LORA,
-    )),
-    "tf_lora_rank": ("int_exp_2", 4, 8), #Mustn't be bool int
-    #}),
+    "tf_isab_rank": ("bool_int_exp_2", 2, 8), #doesn't matter much
+    "tf_lora": ("conditional", { #true is better
+        "tf_lora_mode": ("categorical", ( #doesn't matter
+            #LoRAMode.LOW_RANK, 
+            LoRAMode.LORA,
+        )),
+        "tf_lora_rank": ("int_exp_2", 4, 8), #Mustn't be bool int
+    }),
+    "tf_layer_norm": BOOLEAN,
     # Transformer PMA args
     "tf_pma": ("conditional", { # doesn't matter
         "tf_pma_start": ("int", -2, -1),
         "tf_pma_high": ("int_exp_2", 32, 64),
         "tf_pma_low": ("int_exp_2", 16, 16),
-        "tf_pma_rank": ("int_exp_2", 16, 32), #doesn't matter so true it is
+        "tf_pma_rank": ("bool_int_exp_2", 16, 32), #doesn't matter so true it is
     }),
+    "pma_ffn_mode": ("categorical", (
+        PMAFFNMode.NONE,
+        PMAFFNMode.SEPARATE,
+        PMAFFNMode.SHARED,
+    )),
     #"tf_share_ffn": BOOLEAN, 
-    "tf_share_ffn": True, #true is better
+    #"tf_share_ffn": True, #true is better
     # Adapter args
     "ada_d_hid": ("int_exp_2", 32, 256), 
     "ada_n_layers": ("int", 2, 3), 
@@ -141,7 +162,7 @@ PARAM_SPACE = {
         "selu", 
         "learnableleakyrelu",
     ]),
-    "head_pma_rank": ("int_exp_2", 4, 8), #doesn't matter so lora it is
+    #"head_pma_rank": ("bool_int_exp_2", 4, 8), #doesn't matter so lora it is
     #"head_lora": ("conditional", {
     #    "head_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
     #    "head_lora_rank": ("int_exp_2", 2, 16),

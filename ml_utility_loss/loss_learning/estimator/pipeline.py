@@ -6,7 +6,7 @@ from entmax import sparsemax, entmax15, Sparsemax, Entmax15
 from alpharelu import relu15, ReLU15
 from ...util import mkdir, filter_dict, split_df_kfold, Timer, clear_memory
 from ..ml_utility.pipeline import eval_ml_utility
-from ...params import GradientPenaltyMode
+from ...params import GradientPenaltyMode, PMAFFNMode
 from .model.models import Transformer, MLUtilityWhole
 #from torch.utils.data import DataLoader
 from ...data import FastDataLoader as DataLoader
@@ -275,6 +275,9 @@ def create_model(
     bias=False,
     bias_final=True,
     residual=True,
+    pma_layer_norm=False,
+    attn_activation=nn.ReLU,
+    attn_residual=True,
     # Transformer args
     tf_num_inds=32,
     tf_d_inner=64,
@@ -292,7 +295,7 @@ def create_model(
     tf_pma_start=-4,
     tf_pma_high=512,
     tf_pma_low=32,
-    tf_share_ffn=True,
+    pma_ffn_mode=PMAFFNMode.NONE,
     tf_pma_rank=0,
     # Adapter args
     ada_d_hid=32, 
@@ -339,7 +342,6 @@ def create_model(
         pma_start=tf_pma_start,
         pma_high=tf_pma_high,
         pma_low=tf_pma_low,
-        share_ffn=tf_share_ffn,
         isab_skip_small=isab_skip_small,
         pma_skip_small=pma_skip_small,
         isab_mode=tf_isab_mode,
@@ -350,6 +352,10 @@ def create_model(
         bias=bias,
         init=False, #will be inited in MLUWhole
         layer_norm=tf_layer_norm,
+        attn_activation=attn_activation,
+        attn_residual=attn_residual,
+        pma_layer_norm=pma_layer_norm,
+        pma_ffn_mode=pma_ffn_mode,
     )
     whole_model = MLUtilityWhole(
         body=body,
@@ -384,6 +390,9 @@ def create_model(
             "bias": bias,
             "bias_final": bias_final,
             "residual": residual,
+            "attn_activation": attn_activation,
+            "attn_residual": attn_residual,
+            "pma_layer_norm": pma_layer_norm,
         },
         init=init,
     )
