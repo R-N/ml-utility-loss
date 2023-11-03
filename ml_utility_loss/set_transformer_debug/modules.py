@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-from ml_utility_loss.loss_learning.estimator.model.modules import MultiHeadAttention, InducedSetAttention, PoolingByMultiheadAttention
+from ml_utility_loss.loss_learning.estimator.model.modules import MultiHeadAttention, InducedSetAttention, PoolingByMultiheadAttention, DoubleFeedForward
 from ml_utility_loss.params import ISABMode
 from alpharelu import relu15, ReLU15
 
@@ -18,19 +18,29 @@ class MAB(nn.Module):
             d_O=dim_V,
             bias=True,
             init=False,
-            layer_norm=False, # Convergence speed decrease a bit when true, but it's a lot more stable
+            layer_norm=True, # Convergence speed decrease a bit when true, but it's a lot more stable
             layer_norm_0=False, # Definitely False
             residual_2=False, #False is fine
             dropout=0,
-            activation=nn.ReLU, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly
+            activation=None, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly
             softmax=nn.Softmax, #relu15 results in nan
             attn_bias=False,  # False is better
-            attn_residual=True, # False won't converge with residual2, or slowly without it
+            attn_residual=False, # False won't converge with residual2, or slowly without it
             big_temperature=False,
+        )
+        self.linear = DoubleFeedForward(
+            dim_V, 
+            dim_V, 
+            dropout=0, 
+            activation=nn.ReLU,
+            bias=True,
+            init=False,
+            layer_norm=True,
         )
 
     def forward(self, Q, K):
         O, attn = self.mab(Q, K, K)
+        O = self.linear(O)
         return O
 
 class SAB(nn.Module):
@@ -51,16 +61,25 @@ class ISAB(nn.Module):
             d_Q=dim_in, d_KV=dim_in, d_O=dim_out,
             bias=True,
             init=False,
-            layer_norm=False,
+            layer_norm=True,
             layer_norm_0=False,
             residual_2=False, #False is fine
             dropout=0,
-            activation=nn.ReLU, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly
+            activation=None, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly
             softmax=nn.Softmax, #relu15 results in nan
             mode=mode, #SHARED is crap, MINI has lower performance
             attn_bias=False, # False is better
-            attn_residual=True, # False won't converge with residual2, or slowly without it
+            attn_residual=False, # False won't converge with residual2, or slowly without it
             big_temperature=False,
+        )
+        self.linear = DoubleFeedForward(
+            dim_out, 
+            dim_out, 
+            dropout=0, 
+            activation=nn.ReLU,
+            bias=True,
+            init=False,
+            layer_norm=True,
         )
         #d_I, d_KV, d_H, 
         #self.mab0 = MAB(dim_out, dim_in, dim_out, num_heads, ln=ln)
@@ -69,10 +88,11 @@ class ISAB(nn.Module):
 
     def forward(self, X):
         O, attn = self.isab(X, X, X)
+        O = self.linear(O)
         return O
 
 class PMA(nn.Module):
-    def __init__(self, dim, num_heads, num_seeds, ln=False):
+    def __init__(self, dim, num_heads, num_seeds, ln=False, linear=None):
         super(PMA, self).__init__()
         self.pma = PoolingByMultiheadAttention(
             num_seeds=num_seeds,
@@ -84,14 +104,24 @@ class PMA(nn.Module):
             layer_norm_0=False, #Definitely False
             residual_2=True, # False converges slowly
             dropout=0,
-            activation=nn.Sigmoid, #None is fine, Leaky better, Tanh is fine,
+            activation=nn.ReLU, #None is fine, Leaky better, Tanh is fine, Sigmoid better
             softmax=nn.Softmax, #Relu15 doesn't converge
             skip_small=False,
             attn_bias=False, # False is better
             attn_residual=True, # False is fine
             big_temperature=False,
         )
+        self.linear = linear or DoubleFeedForward(
+            dim, 
+            dim, 
+            dropout=0, 
+            activation=nn.ReLU,
+            bias=True,
+            init=False,
+            layer_norm=True,
+        )
 
     def forward(self, X):
         O, attn = self.pma(X)
+        #O = self.linear(O)
         return O
