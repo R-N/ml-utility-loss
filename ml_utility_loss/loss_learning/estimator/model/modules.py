@@ -6,7 +6,7 @@ from alpharelu import relu15, ReLU15
 import inspect
 from ....util import DEFAULT_DEVICE, check_cuda
 from ....params import ISABMode
-from .init import init_linear, init_layer_norm
+from .init import init_linear, init_layer_norm, init_attn
 import numpy as np
 
 Tensor = torch.Tensor
@@ -229,11 +229,11 @@ class MultiHeadAttention(nn.Module):
 
 
     def init(self, activation=None):
-        init_linear(self.w_qs, activation=self.attention.softmax)
-        init_linear(self.w_ks, activation=self.attention.softmax)
-        init_linear(self.w_vs, activation=self.attention.softmax)
+        init_attn(self.w_qs, activation=self.attention.softmax)
+        init_attn(self.w_ks, activation=self.attention.softmax)
+        init_attn(self.w_vs, activation=self.attention.softmax)
         self.attention.init(activation=self.attention.softmax)
-        init_linear(self.fc, activation=self.activation or activation)
+        init_attn(self.fc, activation=self.activation or activation)
         if self.layer_norm:
             init_layer_norm(self.layer_norm, activation=activation)
         if self.layer_norm_0:
@@ -371,7 +371,7 @@ class InducedSetAttentionMini(nn.Module):
 
     def init(self, activation=None):
         if self.w:
-            init_linear(self.w, activation=self.activation or self.softmax or activation)
+            init_attn(self.w, activation=self.activation or self.softmax or activation)
 
     def lora(self, base=None, w=None):
         if base is not None and base is not self:
