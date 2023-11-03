@@ -110,14 +110,14 @@ class PMA(nn.Module):
             softmax=nn.Softmax, #Relu15 doesn't converge
             skip_small=False,
             attn_bias=False, # False is better
-            attn_residual=True, # False is fine
+            attn_residual=False, # False is fine
             big_temperature=False, # Doesn't matter
         )
         self.linear = linear or DoubleFeedForward(
             dim, 
             dim, 
             dropout=0, 
-            activation=nn.LeakyReLU,
+            activation=nn.ReLU,
             bias=True,
             init=False,
             layer_norm=True,#But here is fine
