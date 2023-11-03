@@ -398,6 +398,7 @@ class Head(nn.Module):
         init=True,
         pma_skip_small=False,
         attn_activation=nn.ReLU,
+        pma_layer_norm=False,
         **kwargs,
     ):
         super().__init__()
@@ -420,6 +421,7 @@ class Head(nn.Module):
             bias=bias,
             init=False,
             activation=attn_activation,
+            layer_norm=pma_layer_norm,
             **kwargs,
         ) if n_seeds else None
         self.lora_mode = lora_mode

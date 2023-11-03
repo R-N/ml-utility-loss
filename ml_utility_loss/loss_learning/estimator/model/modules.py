@@ -600,6 +600,7 @@ class PoolingByMultiheadAttention(nn.Module):
         attn_residual=True,
         big_temperature=False,
         #attn_activation=nn.ReLU,
+        #pma_layer_norm=False,
         **kwargs
     ):
         super().__init__()
