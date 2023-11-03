@@ -18,14 +18,14 @@ class MAB(nn.Module):
             d_O=dim_V,
             bias=True,
             init=False,
-            layer_norm=True, # Convergence speed decrease a bit when true, but it's a lot more stable
+            layer_norm=False, # Convergence speed decrease a bit when true, but it's a lot more stable
             layer_norm_0=False, # Definitely False
             residual_2=False, #False is fine
             dropout=0,
-            activation=nn.ReLU, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly. None is fine with FFN
+            activation=None, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly. None is fine with FFN, but having activation still converges way better
             softmax=nn.Softmax, #relu15 results in nan
             attn_bias=False,  # False is better
-            attn_residual=False, # False won't converge with residual2, or slowly without it
+            attn_residual=False, # False won't converge with residual2, or slowly without it. True is still better even with FFN
             big_temperature=False,
         )
         self.linear = DoubleFeedForward(
@@ -61,15 +61,15 @@ class ISAB(nn.Module):
             d_Q=dim_in, d_KV=dim_in, d_O=dim_out,
             bias=True,
             init=False,
-            layer_norm=True,
+            layer_norm=False,
             layer_norm_0=False,
             residual_2=False, #False is fine
             dropout=0,
-            activation=nn.ReLU, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly. None is fine with FFN
+            activation=None, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly. None is fine with FFN, but having activation still converges way better
             softmax=nn.Softmax, #relu15 results in nan
             mode=mode, #SHARED is crap, MINI has lower performance
             attn_bias=False, # False is better
-            attn_residual=False, # False won't converge with residual2, or slowly without it
+            attn_residual=False, # False won't converge with residual2, or slowly without it. True is still better even with FFN
             big_temperature=False,
         )
         self.linear = DoubleFeedForward(
