@@ -36,7 +36,7 @@ class MAB(nn.Module):
             dropout=0, 
             activation=nn.ReLU,
             bias=True,
-            init=False,
+            init=True,
             layer_norm=False,
             #Linear=LowRankLinearFactory(2), #Linear low rank makes training time longer and performance drops significantly
         )
@@ -84,7 +84,7 @@ class ISAB(nn.Module):
             dropout=0, 
             activation=nn.ReLU,
             bias=True,
-            init=False,
+            init=True,
             layer_norm=False,
             #Linear=LowRankLinearFactory(2), #Linear low rank makes training time longer and performance drops significantly
         )
@@ -106,7 +106,7 @@ class PMA(nn.Module):
             n_head=num_heads,
             d_model=dim,
             bias=True,
-            init=True,
+            init=False, 
             layer_norm=False, #Definitely False. Even without attn bias or FFN
             layer_norm_0=False, #Definitely False
             residual_2=False, # False converges slowly. It's alright now actually. 1.55
@@ -126,7 +126,7 @@ class PMA(nn.Module):
             dropout=0, 
             activation=nn.ReLU,
             bias=True,
-            init=False,
+            init=True,
             layer_norm=False,#Definitely False
             #Linear=LowRankLinearFactory(2), #Linear low rank makes training time longer and performance drops significantly
         )
