@@ -22,7 +22,7 @@ class MAB(nn.Module):
             layer_norm_0=False, # Definitely False
             residual_2=False, #False is fine
             dropout=0,
-            activation=None,
+            activation=F.relu,
             softmax=nn.Softmax, #relu15 results in nan
             attn_bias=False,  # False is better
             attn_residual=True, # False won't converge with residual2, or slowly without it
@@ -55,7 +55,7 @@ class ISAB(nn.Module):
             layer_norm_0=False,
             residual_2=False, #False is fine
             dropout=0,
-            activation=None,
+            activation=F.relu,
             softmax=nn.Softmax, #relu15 results in nan
             mode=mode, #SHARED is crap, MINI has lower performance
             attn_bias=False, # False is better
@@ -84,7 +84,7 @@ class PMA(nn.Module):
             layer_norm_0=False, #Definitely False
             residual_2=True, # False converges slowly
             dropout=0,
-            activation=None,
+            activation=F.relu,
             softmax=nn.Softmax, #Relu15 doesn't converge
             skip_small=False,
             attn_bias=False, # False is better
