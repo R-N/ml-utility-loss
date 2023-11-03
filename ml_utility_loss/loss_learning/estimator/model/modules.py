@@ -533,9 +533,10 @@ class InducedSetAttention(nn.Module):
         self.to(device)
 
     def init(self, activation=None):
-        self.mab1.init(activation=activation)
+        if self.mab1:
+            self.mab1.init(activation=activation)
         if self.mab0:
-            self.mab0.init(activation=None)
+            self.mab0.init(activation=activation)
 
     def forward(self, q, k, v, mask=None):
         # This just uses MultiheadAttention
