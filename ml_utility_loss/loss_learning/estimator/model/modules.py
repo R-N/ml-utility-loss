@@ -72,9 +72,13 @@ class LowRankLinear(nn.Module):
 
     def forward(self, x):
         try:
+            if torch.isnan(x).any():
+                raise RuntimeError("LowRank Linear Input x has nan")
             x0 = x
             x1 = x = self.lin_1(x0)
             x2 = x = self.lin_2(x1)
+            if torch.isnan(x).any():
+                raise RuntimeError("LowRank Linear Output x has nan")
             return x
         except IndexError as ex:
             msg = str(ex)
