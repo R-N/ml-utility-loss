@@ -20,7 +20,7 @@ class MAB(nn.Module):
             init=False,
             layer_norm=False, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn. This parameter has no effect with FFN, it seems. Yes it must have no layer norm at all to have effect
             layer_norm_0=False, # Definitely False
-            residual_2=True, #False is fine
+            residual_2=False, #False is fine. Doesn't improve even True
             dropout=0,
             activation=nn.ReLU, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly. None is fine with FFN, but having activation still converges way better
             softmax=nn.Softmax, #relu15 results in nan
@@ -64,7 +64,7 @@ class ISAB(nn.Module):
             init=False,
             layer_norm=False, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn. This parameter has no effect with FFN, it seems. Yes it must have no layer norm at all to have effect
             layer_norm_0=False,
-            residual_2=True, #False is fine
+            residual_2=False, #False is fine. Doesn't improve even True
             dropout=0,
             activation=nn.ReLU, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly. None is fine with FFN, but having activation still converges way better
             softmax=nn.Softmax, #relu15 results in nan
@@ -120,10 +120,10 @@ class PMA(nn.Module):
             activation=nn.ReLU,
             bias=True,
             init=False,
-            layer_norm=True,
+            layer_norm=False,
         )
 
     def forward(self, X):
         O, attn = self.pma(X)
-        #O = self.linear(O)
+        O = self.linear(O)
         return O
