@@ -126,7 +126,8 @@ class EncoderLayer(nn.Module):
         if self.pma:
             self.pos_ffn.init(activation=None)
             self.pma.init(activation=None)
-            self.pos_ffn_pma.init(activation=activation)
+            if self.pos_ffn_pma is not None:
+                self.pos_ffn_pma.init(activation=activation)
         else:
             self.pos_ffn.init(activation=activation)
 
@@ -161,7 +162,7 @@ class EncoderLayer(nn.Module):
         if self.pma:
             if pma is not None and pma is not self.pma:
                 self.pma.lora(pma)
-            if self.pma_ffn_mode != PMAFFNMode.SHARED:
+            if self.pos_ffn_pma is not None and self.pma_ffn_mode != PMAFFNMode.SHARED:
                 if pos_ffn_pma is not None and pos_ffn_pma is not self.pos_ffn_pma:
                     self.pos_ffn_pma.lora(pos_ffn_pma)
 
