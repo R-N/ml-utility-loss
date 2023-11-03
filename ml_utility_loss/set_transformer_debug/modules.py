@@ -102,7 +102,7 @@ class PMA(nn.Module):
             d_model=dim,
             bias=True,
             init=False,
-            layer_norm=False, #Definitely False. Okay it's pretty alright True without attn bias.
+            layer_norm=True, #Definitely False. Okay it's pretty alright True without attn bias.
             layer_norm_0=False, #Definitely False
             residual_2=False, # False converges slowly. It's alright now actually. 1.55
             dropout=0,
