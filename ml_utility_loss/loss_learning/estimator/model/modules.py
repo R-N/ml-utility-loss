@@ -599,12 +599,15 @@ class PoolingByMultiheadAttention(nn.Module):
         attn_bias=False,
         attn_residual=True,
         big_temperature=False,
+        #attn_activation=nn.ReLU,
         **kwargs
     ):
         super().__init__()
         self.num_seeds = num_seeds
         self.skip_small = skip_small
         self.rank = rank
+
+        #activation = activation or attn_activation
 
         InductionPoint = TensorInductionPoint
         if rank:

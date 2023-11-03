@@ -397,6 +397,7 @@ class Head(nn.Module):
         Linear=Linear,
         init=True,
         pma_skip_small=False,
+        attn_activation=nn.ReLU,
         **kwargs,
     ):
         super().__init__()
@@ -418,6 +419,7 @@ class Head(nn.Module):
             rank=pma_rank,
             bias=bias,
             init=False,
+            activation=attn_activation,
             **kwargs,
         ) if n_seeds else None
         self.lora_mode = lora_mode
