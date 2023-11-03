@@ -498,7 +498,7 @@ class InducedSetAttention(nn.Module):
             )
         
         self.mab0 = None
-        self.mab0 = None
+        self.mab1 = None
         if mode == ISABMode.MINI:
             self.mab0 = MAB_(
                 n_head, 
