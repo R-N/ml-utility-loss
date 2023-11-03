@@ -18,7 +18,7 @@ class MAB(nn.Module):
             d_O=dim_V,
             bias=True,
             init=False,
-            layer_norm=True, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn
+            layer_norm=False, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn. This parameter has no effect with FFN, it seems.
             layer_norm_0=False, # Definitely False
             residual_2=False, #False is fine
             dropout=0,
@@ -28,6 +28,7 @@ class MAB(nn.Module):
             attn_residual=True, # False won't converge with residual2, or slowly without it. True is still better even with FFN
             big_temperature=False, # Doesn't matter
         )
+        # FFN doesn't improve the loss
         self.linear = DoubleFeedForward(
             dim_V, 
             dim_V, 
@@ -35,7 +36,7 @@ class MAB(nn.Module):
             activation=nn.ReLU,
             bias=True,
             init=False,
-            layer_norm=True,
+            layer_norm=False,
         )
 
     def forward(self, Q, K):
@@ -61,7 +62,7 @@ class ISAB(nn.Module):
             d_Q=dim_in, d_KV=dim_in, d_O=dim_out,
             bias=True,
             init=False,
-            layer_norm=True, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn
+            layer_norm=False, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn. This parameter has no effect with FFN, it seems.
             layer_norm_0=False,
             residual_2=False, #False is fine
             dropout=0,
@@ -72,6 +73,7 @@ class ISAB(nn.Module):
             attn_residual=True, # False won't converge with residual2, or slowly without it. True is still better even with FFN
             big_temperature=False, # Doesn't matter
         )
+        # FFN doesn't improve the loss
         self.linear = DoubleFeedForward(
             dim_out, 
             dim_out, 
@@ -79,7 +81,7 @@ class ISAB(nn.Module):
             activation=nn.ReLU,
             bias=True,
             init=False,
-            layer_norm=True,
+            layer_norm=False,
         )
         #d_I, d_KV, d_H, 
         #self.mab0 = MAB(dim_out, dim_in, dim_out, num_heads, ln=ln)
