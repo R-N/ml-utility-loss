@@ -120,7 +120,7 @@ class PMA(nn.Module):
             activation=nn.ReLU,
             bias=True,
             init=False,
-            layer_norm=True,#But here is fine
+            layer_norm=False,#Definitely False
         )
 
     def forward(self, X):
