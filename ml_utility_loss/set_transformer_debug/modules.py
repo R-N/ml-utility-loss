@@ -84,7 +84,7 @@ class PMA(nn.Module):
             layer_norm_0=False, #Definitely False
             residual_2=True, # False converges slowly
             dropout=0,
-            activation=nn.Tanh, #None is fine, Leaky better
+            activation=nn.Sigmoid, #None is fine, Leaky better, Tanh is fine,
             softmax=nn.Softmax, #Relu15 doesn't converge
             skip_small=False,
             attn_bias=False, # False is better
