@@ -33,8 +33,8 @@ class SetTransformer(nn.Module):
             num_inds=32, dim_hidden=128, num_heads=4, ln=False):
         super(SetTransformer, self).__init__()
         self.enc = nn.Sequential(
-                ISAB(dim_input, dim_hidden, num_heads, num_inds, ln=ln, mode=ISABMode.MINI),
-                ISAB(dim_hidden, dim_hidden, num_heads, num_inds, ln=ln, mode=ISABMode.MINI))
+                ISAB(dim_input, dim_hidden, num_heads, num_inds, ln=ln, mode=ISABMode.SEPARATE),
+                ISAB(dim_hidden, dim_hidden, num_heads, num_inds, ln=ln, mode=ISABMode.SEPARATE))
         self.dec = nn.Sequential(
                 PMA(dim_hidden, num_heads, num_outputs, ln=ln),
                 SAB(dim_hidden, dim_hidden, num_heads, ln=ln),

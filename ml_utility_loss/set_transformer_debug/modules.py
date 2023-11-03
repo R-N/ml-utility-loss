@@ -72,6 +72,7 @@ class ISAB(nn.Module):
             attn_bias=False, # False is better
             attn_residual=True, # False won't converge with residual2, or slowly without it. True is still better even with FFN
             big_temperature=False, # Doesn't matter
+            rank=2,
         )
         # FFN doesn't improve the loss
         self.linear = DoubleFeedForward(
@@ -112,6 +113,7 @@ class PMA(nn.Module):
             attn_bias=False, # False is better
             attn_residual=True, # False is fine
             big_temperature=False, # Doesn't matter
+            rank=2,
         )
         self.linear = linear or DoubleFeedForward(
             dim, 
