@@ -14,7 +14,7 @@ def init_linear(linear, activation=None):
     t = type(activation) if isinstance(activation, torch.nn.Module) else activation
     nonlinearity = ACTIVATIONS_INVERSE[t]
     #torch.nn.init.kaiming_uniform_(linear.weight, a=a, nonlinearity=nonlinearity)
-    torch.nn.init.xavier_normal_(linear.weight)
+    torch.nn.init.xavier_uniform_(linear.weight)
     if linear.bias is not None:
         torch.nn.init.zeros_(linear.bias)
 
