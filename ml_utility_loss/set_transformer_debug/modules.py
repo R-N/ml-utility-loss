@@ -125,5 +125,5 @@ class PMA(nn.Module):
 
     def forward(self, X):
         O, attn = self.pma(X)
-        #O = self.linear(O)
+        O = self.linear(O)
         return O
