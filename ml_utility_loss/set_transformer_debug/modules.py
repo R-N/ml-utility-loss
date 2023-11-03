@@ -17,7 +17,7 @@ class MAB(nn.Module):
             d_KV=dim_K,
             d_O=dim_V,
             bias=True,
-            init=True,
+            init=False,
             layer_norm=False, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn. This parameter has no effect with FFN, it seems. Yes it must have no layer norm at all to have effect
             layer_norm_0=False, # Definitely False
             residual_2=False, #False is fine. Doesn't improve even True
@@ -63,7 +63,7 @@ class ISAB(nn.Module):
             n_head=num_heads,
             d_Q=dim_in, d_KV=dim_in, d_O=dim_out,
             bias=True,
-            init=True,
+            init=False,
             layer_norm=False, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn. This parameter has no effect with FFN, it seems. Yes it must have no layer norm at all to have effect
             layer_norm_0=False,
             residual_2=False, #False is fine. Doesn't improve even True
@@ -106,7 +106,7 @@ class PMA(nn.Module):
             n_head=num_heads,
             d_model=dim,
             bias=True,
-            init=True,
+            init=False,
             layer_norm=False, #Definitely False. Even without attn bias or FFN
             layer_norm_0=False, #Definitely False
             residual_2=False, # False converges slowly. It's alright now actually. 1.55
