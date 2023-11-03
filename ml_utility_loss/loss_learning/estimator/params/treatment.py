@@ -8,13 +8,13 @@ PARAM_SPACE = {
     "batch_size": ("int_exp_2", 2, 4),
     # Training args
     "epochs": ("log_int", 70, 200),
-    "lr": ("log_float", 5e-7, 5e-4),
+    "lr": ("log_float", 5e-6, 5e-4),
     "Optim": ("optimizer", [
         "adamw", 
         "sgdmomentum", 
         "amsgradw",
-        "adadelta", 
-        "padam", 
+        #"adadelta", 
+        #"padam", 
         "nadam"
     ]),
     # Training args
@@ -57,7 +57,7 @@ PARAM_SPACE = {
         "AVERAGE_MUL"
     ]),
     # Common model args
-    "d_model": ("int_exp_2", 32, 128), 
+    "d_model": ("int_exp_2", 64, 128), 
     "dropout": ("bool_float", 0.15, 0.5), 
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
@@ -89,7 +89,7 @@ PARAM_SPACE = {
     # Transformer args
     "tf_num_inds": ("int_exp_2", 16, 64),
     "tf_d_inner": ("int_exp_2", 64, 128),
-    "tf_n_layers_enc": ("int", 2, 4), 
+    "tf_n_layers_enc": ("int", 3, 4), 
     "tf_n_layers_dec": ("int", 2, 3), 
     "tf_n_head": ("int_exp_2", 4, 8), 
     "tf_activation": ("activation", [
@@ -113,7 +113,7 @@ PARAM_SPACE = {
             #LoRAMode.LOW_RANK, 
             LoRAMode.LORA,
         )),
-        "tf_lora_rank": ("int_exp_2", 4, 16), #Mustn't be bool int
+        "tf_lora_rank": ("int_exp_2", 2, 16), #Mustn't be bool int
     }),
     "tf_layer_norm": BOOLEAN,
     # Transformer PMA args
@@ -121,7 +121,7 @@ PARAM_SPACE = {
         "tf_pma_start": ("int", -2, -1),
         "tf_pma_high": ("int_exp_2", 16, 64),
         "tf_pma_low": ("int_exp_2", 8, 16),
-        "tf_pma_rank": ("bool_int_exp_2", 8, 32), #doesn't matter so true it is
+        "tf_pma_rank": ("bool_int_exp_2", 2, 32), #doesn't matter so true it is
     }),
     "pma_ffn_mode": ("categorical", (
         PMAFFNMode.NONE,
@@ -132,7 +132,7 @@ PARAM_SPACE = {
     #"tf_share_ffn": True, #true is better
     # Adapter args
     "ada_d_hid": ("int_exp_2", 32, 256), 
-    "ada_n_layers": ("int", 2, 3), 
+    "ada_n_layers": ("int", 2, 4), 
     "ada_activation": ("activation", [
         "tanh",  
         "sigmoid", 
@@ -157,7 +157,7 @@ PARAM_SPACE = {
     # Head args
     "head_n_seeds": ("int_exp_2", 2, 8),
     "head_d_hid": ("int_exp_2", 32, 64), 
-    "head_n_layers": ("int", 2, 3), 
+    "head_n_layers": ("int", 2, 4), 
     "head_n_head": ("int_exp_2", 8, 16), #16 was never sampled but 8 was top
     "head_activation": ("activation", [
         "tanh",  
@@ -181,53 +181,51 @@ PARAM_SPACE_2 = {
     "dataset_size_high": ("int_exp_2", 1024, 4096),
     "batch_size_low": ("int_exp_2", 4, 4),
     "batch_size_high": ("int_exp_2", 4, 4), 
-    "patience": ("log_int", 3, 5)
+    "patience": ("log_int", 3, 10),
 }
 
-#0.3032189720168267
+#21185.595063190336
 BEST = {
-    'epochs': 97,
-    'lr': 5.870071839569503e-05,
+    'epochs': 149,
+    'lr': 3.4224594138757544e-05,
     'Optim': 'adamw',
-    #'non_role_model_mul': 0.9132757442755526,
-    #'std_loss_mul': 0.9854376101847944,
-    #'grad_loss_mul': 0.6653103019271617,
-    'grad_loss_fn': 'huber',
-    'adapter_loss_fn': 'huber',
-    'fixed_role_model': 'lct_gan',
-    'gradient_penalty_mode': 'ESTIMATE',
-    'd_model_exp_2': 6,
-    'dropout': 0.15,
-    #'loss_clamp': 3.3592741505316392,
-    'bias_final': False,
+    'loss_balancer_meta_boolc': True,
+    'loss_balancer_beta': 0.5842647121994429,
+    'loss_balancer_r': 0.8873121372335885,
+    'loss_balancer_log': True,
+    'std_loss_fn': 'mean_penalty_rational',
+    'grad_loss_fn': 'msle',
+    'adapter_loss_fn': 'mse',
+    'fixed_role_model': 'tab_ddpm_concat',
+    'gradient_penalty_mode': 'AVERAGE_MUL',
+    'd_model_exp_2': 7,
+    'dropout': 0.0,
+    'bias': True,
+    'bias_final': True,
     'tf_num_inds_exp_2': 6,
-    'tf_d_inner_exp_2': 7,
-    'tf_n_layers_enc': 2,
-    'tf_n_layers_dec': 3,
+    'tf_d_inner_exp_2': 6,
+    'tf_n_layers_enc': 4,
+    'tf_n_layers_dec': 2,
     'tf_n_head_exp_2': 2,
-    'tf_activation': 'relu',
+    'tf_activation': 'selu',
     'tf_isab_mode': 'mini',
     'tf_isab_rank_exp_2': 1,
     'tf_lora_mode': 'lora',
-    'tf_lora_rank_exp_2': 3,
-    'tf_pma_boolc': True,
-    'tf_pma_start': -2,
-    'tf_pma_high_exp_2': 6,
-    'tf_pma_low_exp_2': 4,
-    'tf_pma_rank_exp_2': 4,
-    'ada_d_hid_exp_2': 7,
-    'ada_n_layers': 2,
-    'ada_activation': 'relu',
-    'ada_activation_final': 'tanh',
-    'head_n_seeds_exp_2': 1,
+    'tf_lora_rank_exp_2': 2,
+    'tf_pma_boolc': False,
+    'ada_d_hid_exp_2': 6,
+    'ada_n_layers': 3,
+    'ada_activation': 'tanh',
+    'ada_activation_final': 'alphatanh',
+    'head_n_seeds_exp_2': 2,
     'head_d_hid_exp_2': 6,
-    'head_n_layers': 2,
-    'head_n_head_exp_2': 3,
-    'head_activation': 'leakyrelu',
+    'head_n_layers': 3,
+    'head_n_head_exp_2': 4,
+    'head_activation': 'selu',
     'head_pma_rank_exp_2': 2,
-    'dataset_size_low_exp_2': 12,
+    'dataset_size_low_exp_2': 10,
     'dataset_size_high_exp_2': 12,
-    'batch_size_low_exp_2': 1,
-    'batch_size_high_exp_2': 3,
-    'patience': 4
+    'batch_size_low_exp_2': 2,
+    'batch_size_high_exp_2': 2,
+    'patience': 5
 }

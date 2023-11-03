@@ -8,13 +8,13 @@ PARAM_SPACE = {
     "batch_size": ("int_exp_2", 2, 4),
     # Training args
     "epochs": ("log_int", 70, 200),
-    "lr": ("log_float", 5e-7, 5e-4),
+    "lr": ("log_float", 5e-6, 5e-4),
     "Optim": ("optimizer", [
         "adamw", 
         "sgdmomentum", 
         "amsgradw",
-        "adadelta", 
-        "padam", 
+        #"adadelta", 
+        #"padam", 
         "nadam"
     ]),
     # Training args
@@ -114,7 +114,7 @@ PARAM_SPACE = {
             #LoRAMode.LOW_RANK, 
             LoRAMode.LORA,
         )),
-        "tf_lora_rank": ("int_exp_2", 4, 32), #Mustn't be bool int
+        "tf_lora_rank": ("int_exp_2", 2, 32), #Mustn't be bool int
     }),
     "tf_layer_norm": BOOLEAN,
     # Transformer PMA args
@@ -122,7 +122,7 @@ PARAM_SPACE = {
         "tf_pma_start": ("int", -2, -1),
         "tf_pma_high": ("int_exp_2", 16, 64),
         "tf_pma_low": ("int_exp_2", 8, 16),
-        "tf_pma_rank": ("bool_int_exp_2", 8, 32), #true better
+        "tf_pma_rank": ("bool_int_exp_2", 2, 32), #true better
     }),
     "pma_ffn_mode": ("categorical", (
         PMAFFNMode.NONE,
@@ -133,7 +133,7 @@ PARAM_SPACE = {
     #"tf_share_ffn": True,
     # Adapter args
     "ada_d_hid": ("int_exp_2", 32, 256), 
-    "ada_n_layers": ("int", 2, 3), 
+    "ada_n_layers": ("int", 2, 4), 
     "ada_activation": ("activation", [
         "tanh",  
         "sigmoid", 
@@ -158,7 +158,7 @@ PARAM_SPACE = {
     # Head args
     "head_n_seeds": ("int_exp_2", 2, 16), # 1 was never sampled or always pruned
     "head_d_hid": ("int_exp_2", 32, 64), 
-    "head_n_layers": ("int", 2, 3), 
+    "head_n_layers": ("int", 2, 4), 
     "head_n_head": ("int_exp_2", 8, 16),
     "head_activation": ("activation", [
         "tanh",  
@@ -189,59 +189,55 @@ PARAM_SPACE = {
 }
 
 PARAM_SPACE_2 = {
-    "dataset_size_low": ("int_exp_2", 1024, 2048),
+    "dataset_size_low": ("int_exp_2", 256, 2048),
     "dataset_size_high": ("int_exp_2", 2048, 2048), # param must exist
     "batch_size_low": ("int_exp_2", 4, 4),
     "batch_size_high": ("int_exp_2", 4, 4),
-    "patience": ("log_int", 3, 6)
+    "patience": ("log_int", 3, 10),
 }
 
-#0.008677485501178183
+#42.92428432263434
 BEST = {
-    'epochs': 87,
-    'lr': 0.0004980156627268574,
-    'Optim': 'adamw',
-    #'non_role_model_mul': 0.7676267660491811,
-    #'std_loss_mul': 0.7731247806409278,
-    #'grad_loss_mul': 0.840326703781865,
-    'grad_loss_fn': 'huber',
-    'adapter_loss_fn': 'huber',
-    'fixed_role_model': 'realtabformer',
+    'epochs': 108,
+    'lr': 1.836560557678621e-05,
+    'Optim': 'nadam',
+    'loss_balancer_meta_boolc': False,
+    'loss_balancer_log': False,
+    'std_loss_fn': 'mean_penalty_rational',
+    'grad_loss_fn': 'msle',
+    'adapter_loss_fn': 'mse',
+    'fixed_role_model': 'lct_gan_latent',
     'gradient_penalty_mode': 'ONCE',
-    'd_model_exp_2': 7,
-    'dropout': 0.15,
-    #'loss_clamp': 0.77883557595489,
+    'd_model_exp_2': 5,
+    'dropout': 0.0,
+    'bias': True,
     'bias_final': False,
-    'tf_num_inds_exp_2': 6,
+    'tf_num_inds_exp_2': 7,
     'tf_d_inner_exp_2': 6,
-    'tf_n_layers_enc': 2,
+    'tf_n_layers_enc': 4,
     'tf_n_layers_dec': 3,
     'tf_n_head_exp_2': 3,
-    'tf_activation': 'leakyrelu',
+    'tf_activation': 'selu',
     'tf_isab_mode': 'mini',
-    'tf_isab_rank_exp_2': 5,
+    'tf_isab_rank_exp_2': 3,
     'tf_lora_mode': 'lora',
     'tf_lora_rank_exp_2': 5,
-    'tf_pma_boolc': True,
-    'tf_pma_start': -1,
-    'tf_pma_high_exp_2': 6,
-    'tf_pma_low_exp_2': 3,
-    'tf_pma_rank_exp_2': 5,
+    'tf_pma_boolc': False,
     'ada_d_hid_exp_2': 8,
-    'ada_n_layers': 2,
-    'ada_activation': 'leakyrelu',
-    'ada_activation_final': 'identity',
-    'head_n_seeds_exp_2': 4,
-    'head_d_hid_exp_2': 5,
+    'ada_n_layers': 3,
+    'ada_activation': 'alphasigmoid',
+    'ada_activation_final': 'alphatanh',
+    'head_n_seeds_exp_2': 3,
+    'head_d_hid_exp_2': 6,
     'head_n_layers': 3,
     'head_n_head_exp_2': 3,
-    'head_activation': 'leakyrelu',
-    'head_activation_final': 'tanh',
-    'head_final_mul': 'minus',
+    'head_activation': 'alphasigmoid',
+    'head_activation_final': 'alphatanh',
+    'head_final_mul': 'oneminus',
     'head_pma_rank_exp_2': 2,
-    'dataset_size_low_exp_2': 11,
+    'dataset_size_low_exp_2': 10,
     'dataset_size_high_exp_2': 11,
     'batch_size_low_exp_2': 2,
-    'batch_size_high_exp_2': 3,
-    'patience': 6
+    'batch_size_high_exp_2': 2,
+    'patience': 4
 }
