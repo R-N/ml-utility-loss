@@ -115,7 +115,7 @@ def LoRALinearFactory(base, rank):
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
 
-    def __init__(self, temperature, attn_dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, d_H=None, Linear=None, bias=False, init=True, attn_bias=False, attn_residual=False, skip_small=False):
+    def __init__(self, temperature, attn_dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, d_H=None, Linear=None, bias=False, init=True, attn_bias=False, attn_residual=False, skip_small=False, residual=False, activation=None):
         super().__init__()
         self.temperature = temperature
         self.dropout = nn.Dropout(attn_dropout) if attn_dropout else None
@@ -173,6 +173,7 @@ class MultiHeadAttention(nn.Module):
         bias=True, 
         init=True, 
         layer_norm=True, layer_norm_0=False, 
+        residual=True,
         residual_2=False, 
         activation=None, 
         num_inds=0, 
@@ -205,19 +206,20 @@ class MultiHeadAttention(nn.Module):
         self.skip_small = skip_small
         temperature = d_KV if big_temperature else d_qk
         temperature = temperature ** 0.5
+        self.residual = residual
         self.residual_2 = residual_2
         if self.residual_2:
             attn_residual=True
-        self.attention = Attention(temperature=temperature, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False, attn_bias=fc_bias, attn_residual=attn_residual, skip_small=skip_small, **kwargs)
+        self.activation = activation
+        if self.activation and inspect.isclass(self.activation):
+            self.activation = self.activation()
+
+        self.attention = Attention(temperature=temperature, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False, attn_bias=fc_bias, attn_residual=attn_residual, skip_small=skip_small, residual=residual, activation=activation, **kwargs)
 
         self.dropout = nn.Dropout(dropout) if dropout else None
 
         self.layer_norm_0 = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm_0 else None
         self.layer_norm = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm else None
-
-        self.activation = activation
-        if self.activation and inspect.isclass(self.activation):
-            self.activation = self.activation()
 
         if init:
             self.init()
@@ -231,7 +233,7 @@ class MultiHeadAttention(nn.Module):
         init_linear(self.w_ks, activation=self.attention.softmax)
         init_linear(self.w_vs, activation=self.attention.softmax)
         self.attention.init(activation=self.attention.softmax)
-        init_linear(self.fc, activation=activation or self.activation)
+        init_linear(self.fc, activation=self.activation or activation)
         if self.layer_norm:
             init_layer_norm(self.layer_norm, activation=activation)
         if self.layer_norm_0:
@@ -315,7 +317,8 @@ class MultiHeadAttention(nn.Module):
             o = self.activation(o)
         if self.dropout:
             o = self.dropout(o)
-        o = o + residual
+        if self.residual:
+            o = o + residual
 
         if self.layer_norm:
             o = self.layer_norm(o)
@@ -341,7 +344,7 @@ def scale_inds_to_batch(I, q):
 
 
 class InducedSetAttentionMini(nn.Module):
-    def __init__(self, d_H=None, Linear=Linear, bias=True, init=True, attn_bias=True, skip_small=False, residual=False, activation=nn.ReLU, **kwargs):
+    def __init__(self, d_H=None, Linear=Linear, bias=True, init=True, attn_bias=True, skip_small=False, residual=True, activation=nn.ReLU, **kwargs):
         super().__init__()
         self.w = None
         self.d_H = d_H
@@ -368,7 +371,7 @@ class InducedSetAttentionMini(nn.Module):
 
     def init(self, activation=None):
         if self.w:
-            init_linear(self.w, activation=self.activation)
+            init_linear(self.w, activation=self.activation or self.softmax or activation)
 
     def lora(self, base=None, w=None):
         if base is not None and base is not self:
@@ -442,6 +445,7 @@ class InducedSetAttention(nn.Module):
         mode=ISABMode.SEPARATE, 
         layer_norm=False,
         layer_norm_0=False,
+        residual=True,
         residual_2=False,
         dropout=0,
         activation=F.relu,
@@ -489,6 +493,7 @@ class InducedSetAttention(nn.Module):
                 big_temperature=big_temperature,
                 device=device,
                 init=False,
+                residual=residual,
                 **kwargs,
             )
         
