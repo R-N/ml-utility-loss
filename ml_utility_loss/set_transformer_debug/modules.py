@@ -18,15 +18,15 @@ class MAB(nn.Module):
             d_O=dim_V,
             bias=True,
             init=False,
-            layer_norm=False, # Convergence speed decrease a bit when true, but it's a lot more stable
+            layer_norm=False, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn
             layer_norm_0=False, # Definitely False
             residual_2=False, #False is fine
             dropout=0,
-            activation=None, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly. None is fine with FFN, but having activation still converges way better
+            activation=nn.ReLU, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly. None is fine with FFN, but having activation still converges way better
             softmax=nn.Softmax, #relu15 results in nan
             attn_bias=False,  # False is better
-            attn_residual=False, # False won't converge with residual2, or slowly without it. True is still better even with FFN
-            big_temperature=False,
+            attn_residual=True, # False won't converge with residual2, or slowly without it. True is still better even with FFN
+            big_temperature=False, # Doesn't matter
         )
         self.linear = DoubleFeedForward(
             dim_V, 
@@ -61,16 +61,16 @@ class ISAB(nn.Module):
             d_Q=dim_in, d_KV=dim_in, d_O=dim_out,
             bias=True,
             init=False,
-            layer_norm=False,
+            layer_norm=False, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn
             layer_norm_0=False,
             residual_2=False, #False is fine
             dropout=0,
-            activation=None, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly. None is fine with FFN, but having activation still converges way better
+            activation=nn.ReLU, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly. None is fine with FFN, but having activation still converges way better
             softmax=nn.Softmax, #relu15 results in nan
             mode=mode, #SHARED is crap, MINI has lower performance
             attn_bias=False, # False is better
-            attn_residual=False, # False won't converge with residual2, or slowly without it. True is still better even with FFN
-            big_temperature=False,
+            attn_residual=True, # False won't converge with residual2, or slowly without it. True is still better even with FFN
+            big_temperature=False, # Doesn't matter
         )
         self.linear = DoubleFeedForward(
             dim_out, 
@@ -109,7 +109,7 @@ class PMA(nn.Module):
             skip_small=False,
             attn_bias=False, # False is better
             attn_residual=True, # False is fine
-            big_temperature=False,
+            big_temperature=False, # Doesn't matter
         )
         self.linear = linear or DoubleFeedForward(
             dim, 
