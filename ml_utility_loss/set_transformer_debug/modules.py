@@ -18,7 +18,7 @@ class MAB(nn.Module):
             d_O=dim_V,
             bias=True,
             init=False,
-            layer_norm=False, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn
+            layer_norm=True, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn
             layer_norm_0=False, # Definitely False
             residual_2=False, #False is fine
             dropout=0,
@@ -61,7 +61,7 @@ class ISAB(nn.Module):
             d_Q=dim_in, d_KV=dim_in, d_O=dim_out,
             bias=True,
             init=False,
-            layer_norm=False, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn
+            layer_norm=True, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn
             layer_norm_0=False,
             residual_2=False, #False is fine
             dropout=0,
