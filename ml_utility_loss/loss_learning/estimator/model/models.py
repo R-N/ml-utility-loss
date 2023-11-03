@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from entmax import sparsemax, entmax15, Sparsemax, Entmax15
-from alpharelu import relu15, ReLU15
 import math
 from .layers import EncoderLayer, DecoderLayer
 from .modules import PoolingByMultiheadAttention, FeedForward, LowRankLinearFactory, Linear
@@ -388,7 +386,7 @@ class Head(nn.Module):
         activation_final=nn.Sigmoid,
         final_mul=HeadFinalMul.IDENTITY,
         pma_rank=0,
-        softmax=ReLU15,
+        softmax=nn.Softmax,
         lora_mode=LoRAMode.FULL,
         lora_rank=2,
         layer_norm=True,

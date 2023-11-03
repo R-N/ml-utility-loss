@@ -6,8 +6,6 @@ from .modules import SimpleInducedSetAttention, DoubleFeedForward, PoolingByMult
 from ....util import DEFAULT_DEVICE, check_cuda
 from ....params import ISABMode, PMAFFNMode
 from .init import init, init_linear, init_layer_norm
-from entmax import sparsemax, entmax15, Sparsemax, Entmax15
-from alpharelu import relu15, ReLU15
 
 __author__ = "Yu-Hsiang Huang"
 
@@ -23,13 +21,12 @@ class EncoderLayer(nn.Module):
         d_qk=None, 
         dropout=0, 
         pma=0, 
-        pma_ffn_mode=PMAFFNMode.SHARED, 
+        pma_ffn_mode=PMAFFNMode.NONE, 
         pma_skip_small=False,
         isab_skip_small=False, 
         activation=nn.ReLU, 
-        #softmax=ReLU15, 
         softmax=nn.Softmax, 
-        isab_mode=ISABMode.MINI, 
+        isab_mode=ISABMode.SEPARATE, 
         isab_rank=0, 
         pma_rank=0, 
         device=DEFAULT_DEVICE, 
@@ -37,8 +34,8 @@ class EncoderLayer(nn.Module):
         bias=True,
         init=True,
         layer_norm=True,
-        attn_activation=None,
-        attn_residual=False,
+        attn_activation=nn.ReLU,
+        attn_residual=True,
         pma_layer_norm=False,
         **kwargs,
     ):
@@ -184,17 +181,16 @@ class DecoderLayer(EncoderLayer):
         dropout=0, 
         pma_skip_small=False,
         isab_skip_small=False, 
-        #softmax=ReLU15, 
         softmax=nn.Softmax,
-        isab_mode=ISABMode.MINI, 
+        isab_mode=ISABMode.SEPARATE, 
         isab_rank=0, 
         device=DEFAULT_DEVICE, 
         Linear=Linear, 
         bias=True,
         init=True,
         layer_norm=True,
-        attn_activation=None,
-        attn_residual=False,
+        attn_activation=nn.ReLU,
+        attn_residual=True,
         **kwargs,
     ):
         super().__init__(

@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from entmax import sparsemax, entmax15, Sparsemax, Entmax15
-from alpharelu import relu15, ReLU15
 import inspect
 from ....util import DEFAULT_DEVICE, check_cuda
 from ....params import ISABMode
@@ -115,11 +113,11 @@ def LoRALinearFactory(base, rank):
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
 
-    def __init__(self, temperature, attn_dropout=0, softmax=ReLU15, device=DEFAULT_DEVICE, d_H=None, Linear=None, bias=False, init=True, attn_bias=False, attn_residual=False, skip_small=False, residual=False, activation=None):
+    def __init__(self, temperature, attn_dropout=0, softmax=nn.Softmax, device=DEFAULT_DEVICE, d_H=None, Linear=None, bias=False, init=True, attn_bias=False, attn_residual=False, skip_small=False, residual=False, activation=None):
         super().__init__()
         self.temperature = temperature
         self.dropout = nn.Dropout(attn_dropout) if attn_dropout else None
-        self.softmax = softmax or ReLU15
+        self.softmax = softmax or nn.Softmax
         self.softmax_args = {"dim": -1}
         if inspect.isclass(self.softmax):
             self.softmax = self.softmax(**self.softmax_args)
@@ -163,7 +161,6 @@ class MultiHeadAttention(nn.Module):
         d_qk=None, 
         d_H=None,
         dropout=0, 
-        #softmax=ReLU15, 
         softmax=nn.Softmax, 
         device=DEFAULT_DEVICE, 
         Attention=ScaledDotProductAttention, 
@@ -175,11 +172,11 @@ class MultiHeadAttention(nn.Module):
         layer_norm=True, layer_norm_0=False, 
         residual=True,
         residual_2=False, 
-        activation=None, 
+        activation=nn.ReLU, 
         num_inds=0, 
         skip_small=False, 
         attn_bias=False, 
-        attn_residual=False, 
+        attn_residual=True, 
         big_temperature=False,
         **kwargs,
     ):
@@ -436,8 +433,6 @@ class InducedSetAttention(nn.Module):
         n_head, 
         d_Q, d_KV, d_O, 
         skip_small=False, 
-        #mode=ISABMode.MINI, 
-        #softmax=ReLU15,
         rank=0, 
         Attention=ScaledDotProductAttention,
         device=DEFAULT_DEVICE, 
@@ -448,7 +443,7 @@ class InducedSetAttention(nn.Module):
         residual=True,
         residual_2=False,
         dropout=0,
-        activation=F.relu,
+        activation=nn.ReLU,
         softmax=nn.Softmax,
         attn_bias=False,
         attn_residual=True,
@@ -599,7 +594,7 @@ class PoolingByMultiheadAttention(nn.Module):
         layer_norm_0=False,
         residual_2=True,
         dropout=0,
-        activation=F.relu,
+        activation=nn.ReLU,
         softmax=nn.Softmax,
         attn_bias=False,
         attn_residual=True,

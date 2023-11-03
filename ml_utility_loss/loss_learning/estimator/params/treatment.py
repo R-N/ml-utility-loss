@@ -51,7 +51,7 @@ PARAM_SPACE = {
     ]),
     # Common model args
     "d_model": ("int_exp_2", 32, 128), 
-    "dropout": ("float", 0, 0), 
+    "dropout": ("bool_float", 0.15, 0.5), 
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
     #"flip": False,
@@ -59,8 +59,8 @@ PARAM_SPACE = {
     "isab_skip_small": BOOLEAN,
     #"skip_small": False,
     #"loss_clamp": ("log_float", 2.5, 5.0), #almost random
-    #"layer_norm": BOOLEAN,
-    "layer_norm": True,
+    "layer_norm": BOOLEAN,
+    #"layer_norm": True,
     "bias": BOOLEAN,
     #"bias": False,
     "bias_final": BOOLEAN,
@@ -75,12 +75,12 @@ PARAM_SPACE = {
         "leakyrelu", 
         "selu",
         "learnableleakyrelu",
-        #"identity",
+        "identity",
     ]),
     "attn_residual": True,
     #"attn_residual": BOOLEAN,
     # Transformer args
-    "tf_num_inds": ("int_exp_2", 32, 64),
+    "tf_num_inds": ("int_exp_2", 16, 64),
     "tf_d_inner": ("int_exp_2", 64, 128),
     "tf_n_layers_enc": ("int", 2, 4), 
     "tf_n_layers_dec": ("int", 2, 3), 
@@ -100,21 +100,21 @@ PARAM_SPACE = {
         ISABMode.SHARED,
         ISABMode.MINI, 
     )),
-    "tf_isab_rank": ("bool_int_exp_2", 2, 8), #doesn't matter much
+    "tf_isab_rank": ("bool_int_exp_2", 1, 8), #doesn't matter much
     "tf_lora": ("conditional", { #true is better
         "tf_lora_mode": ("categorical", ( #doesn't matter
             #LoRAMode.LOW_RANK, 
             LoRAMode.LORA,
         )),
-        "tf_lora_rank": ("int_exp_2", 4, 8), #Mustn't be bool int
+        "tf_lora_rank": ("int_exp_2", 4, 16), #Mustn't be bool int
     }),
     "tf_layer_norm": BOOLEAN,
     # Transformer PMA args
     "tf_pma": ("conditional", { # doesn't matter
         "tf_pma_start": ("int", -2, -1),
-        "tf_pma_high": ("int_exp_2", 32, 64),
-        "tf_pma_low": ("int_exp_2", 16, 16),
-        "tf_pma_rank": ("bool_int_exp_2", 16, 32), #doesn't matter so true it is
+        "tf_pma_high": ("int_exp_2", 16, 64),
+        "tf_pma_low": ("int_exp_2", 8, 16),
+        "tf_pma_rank": ("bool_int_exp_2", 8, 32), #doesn't matter so true it is
     }),
     "pma_ffn_mode": ("categorical", (
         PMAFFNMode.NONE,
@@ -148,7 +148,7 @@ PARAM_SPACE = {
     #    "ada_lora_rank": ("int_exp_2", 2, 16),
     #}),
     # Head args
-    "head_n_seeds": ("int_exp_2", 2, 4),
+    "head_n_seeds": ("int_exp_2", 2, 8),
     "head_d_hid": ("int_exp_2", 32, 64), 
     "head_n_layers": ("int", 2, 3), 
     "head_n_head": ("int_exp_2", 8, 16), #16 was never sampled but 8 was top

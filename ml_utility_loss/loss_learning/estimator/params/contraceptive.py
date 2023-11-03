@@ -52,7 +52,7 @@ PARAM_SPACE = {
     ]),
     # Common model args
     "d_model": ("int_exp_2", 32, 128), 
-    "dropout": ("float", 0, 0), 
+    "dropout": ("bool_float", 0.15, 0.5), 
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
     #"flip": BOOLEAN, #doesn't matter
@@ -60,8 +60,8 @@ PARAM_SPACE = {
     "isab_skip_small": BOOLEAN,
     #"skip_small": False,
     #"loss_clamp": ("log_float", 3.5, 4.5), #seems random
-    #"layer_norm": BOOLEAN,
-    "layer_norm": True,
+    "layer_norm": BOOLEAN,
+    #"layer_norm": True,
     "bias": BOOLEAN,
     #"bias": False,
     "bias_final": BOOLEAN,
@@ -76,7 +76,7 @@ PARAM_SPACE = {
         "leakyrelu", 
         "selu",
         "learnableleakyrelu",
-        #"identity",
+        "identity",
     ]),
     "attn_residual": True,
     #"attn_residual": BOOLEAN,
@@ -101,20 +101,20 @@ PARAM_SPACE = {
         ISABMode.SHARED,
         ISABMode.MINI, # best
     )),
-    "tf_isab_rank": ("bool_int_exp_2", 1, 4), #true is better
+    "tf_isab_rank": ("bool_int_exp_2", 1, 8), #true is better
     "tf_lora": ("conditional", {
         "tf_lora_mode": ("categorical", (
             #LoRAMode.LOW_RANK, 
             LoRAMode.LORA,
         )),
-        "tf_lora_rank": ("int_exp_2", 8, 16), #Mustn't be bool int
+        "tf_lora_rank": ("int_exp_2", 4, 16), #Mustn't be bool int
     }),
     "tf_layer_norm": BOOLEAN,
     # Transformer PMA args
     "tf_pma": ("conditional", { # better true
         "tf_pma_start": ("int", -2, -1),
-        "tf_pma_high": ("int_exp_2", 32, 128),
-        "tf_pma_low": ("int_exp_2", 32, 64),
+        "tf_pma_high": ("int_exp_2", 16, 128),
+        "tf_pma_low": ("int_exp_2", 8, 64),
         "tf_pma_rank": ("bool_int_exp_2", 8, 16), # better true
     }),
     "pma_ffn_mode": ("categorical", (
@@ -149,7 +149,7 @@ PARAM_SPACE = {
     #    "ada_lora_rank": ("int_exp_2", 2, 16),
     #}),
     # Head args
-    "head_n_seeds": ("int", 14, 15),
+    "head_n_seeds": ("int_exp_2", 2, 16),
     "head_d_hid": ("int_exp_2", 32, 64), 
     "head_n_layers": ("int", 2, 3), 
     "head_n_head": ("int_exp_2", 8, 16),
