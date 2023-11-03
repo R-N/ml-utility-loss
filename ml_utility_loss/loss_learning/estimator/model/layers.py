@@ -64,7 +64,7 @@ class EncoderLayer(nn.Module):
             **kwargs,
         )
         ffn_layer_norm = layer_norm
-        if pma_ffn_mode == PMAFFNMode.SHARED:
+        if pma and pma_ffn_mode == PMAFFNMode.SHARED:
             ffn_layer_norm = pma_layer_norm
         self.pos_ffn = DoubleFeedForward(
             d_model, 
