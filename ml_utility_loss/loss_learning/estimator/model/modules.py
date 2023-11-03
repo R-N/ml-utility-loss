@@ -233,7 +233,7 @@ class MultiHeadAttention(nn.Module):
         init_linear(self.w_ks, activation=self.attention.softmax)
         init_linear(self.w_vs, activation=self.attention.softmax)
         self.attention.init(activation=self.attention.softmax)
-        #init_linear(self.fc, activation=self.activation or activation)
+        init_linear(self.fc, activation=self.activation or activation)
         if self.layer_norm:
             init_layer_norm(self.layer_norm, activation=activation)
         if self.layer_norm_0:
