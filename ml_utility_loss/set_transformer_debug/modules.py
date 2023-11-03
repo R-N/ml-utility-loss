@@ -74,7 +74,7 @@ class ISAB(nn.Module):
             attn_bias=False, # False is better
             attn_residual=True, # False won't converge with residual2, or slowly without it. True is still better even with FFN
             big_temperature=False, # Doesn't matter
-            #rank=2,
+            #rank=2, # Low rank induction point doesn't reduce time yet performance drops a little
             #Linear=LowRankLinearFactory(2), #Linear low rank makes training time longer and performance drops significantly
         )
         # FFN doesn't improve the loss
@@ -117,7 +117,7 @@ class PMA(nn.Module):
             attn_bias=False, # False is better
             attn_residual=True, # False is fine
             big_temperature=False, # Doesn't matter
-            #rank=2,
+            #rank=2, # Low rank induction point doesn't reduce time yet performance drops a little
             #Linear=LowRankLinearFactory(2), #Linear low rank makes training time longer and performance drops significantly
         )
         self.linear = linear or DoubleFeedForward(
