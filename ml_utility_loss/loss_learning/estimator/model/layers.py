@@ -213,7 +213,7 @@ class DecoderLayer(EncoderLayer):
             bias=bias,
             init=False,
             layer_norm=layer_norm,
-            activation=attn_activation,
+            attn_activation=attn_activation,
             attn_residual=attn_residual,
             **kwargs,
         )
