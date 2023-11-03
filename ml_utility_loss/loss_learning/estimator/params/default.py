@@ -174,6 +174,7 @@ def update_params_2(params, dataset_sizes):
     params.pop("tf_lora", None)
     params.pop("tf_lora_mode", None)
     params.pop("tf_isab_rank", None)
+    print("popped isab rank")
     params.pop("tf_pma_rank", None)
     params.pop("head_pma_rank", None)
     params = {
