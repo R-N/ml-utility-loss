@@ -69,8 +69,8 @@ class Encoder(nn.Module):
                 dropout=dropout,
                 pma=None,
                 num_inds=0,
-                bias=False,
-                init=False,
+                bias=True, # No bias is fine
+                init=True,
                 softmax=nn.Softmax, #Relu15 reduces performance
                 activation=nn.ReLU,
                 attn_activation=nn.ReLU, # This doesn't, because tensors are almost always positive here. But it doesn't degrade performance so it's fine.
@@ -128,8 +128,8 @@ class Decoder(nn.Module):
                 dropout=dropout,
                 pma=None,
                 num_inds=0,
-                bias=False,
-                init=False,
+                bias=True, # No bias is fine
+                init=True,
                 softmax=nn.Softmax,
                 activation=nn.ReLU,
                 attn_activation=nn.ReLU, # This doesn't, because tensors are almost always positive here. But it doesn't degrade performance so it's fine.
