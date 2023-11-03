@@ -22,7 +22,7 @@ def init_attn(linear, activation=None):
         return
     if hasattr(linear, "init"):
         return linear.init(activation=activation)
-    torch.nn.init.xavier_normal_(linear.weight)
+    #torch.nn.init.xavier_normal_(linear.weight)
     if linear.bias is not None:
         torch.nn.init.zeros_(linear.bias)
 
