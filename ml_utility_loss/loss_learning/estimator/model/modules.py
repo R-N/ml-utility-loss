@@ -497,6 +497,8 @@ class InducedSetAttention(nn.Module):
                 **kwargs,
             )
         
+        self.mab0 = None
+        self.mab0 = None
         if mode == ISABMode.MINI:
             self.mab0 = MAB_(
                 n_head, 
@@ -513,7 +515,6 @@ class InducedSetAttention(nn.Module):
                 **kwargs,
             )
 
-            self.mab0 = None
             if mode == ISABMode.SEPARATE: 
                 self.mab0 = MAB_(
                     n_head, 
@@ -539,9 +540,9 @@ class InducedSetAttention(nn.Module):
     def forward(self, q, k, v, mask=None):
         # This just uses MultiheadAttention
         if self.skip_small and self.mode != ISABMode.MINI and self.num_inds > k.shape[-2]:
-            if self.d_H == k.shape[-1]:
+            if self.d_H == k.shape[-1] and self.mab1:
                 return self.mab1(q, k, v, mask=mask)
-            if self.d_K == k.shape[-1]:
+            if self.d_K == k.shape[-1] and self.mab0:
                 return self.mab0(q, k, v, mask=mask)
         # Ok so this is actually a problem
         # It expects batched input so I is repeated to the batch dimension
