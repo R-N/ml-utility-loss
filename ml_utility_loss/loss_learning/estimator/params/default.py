@@ -174,12 +174,17 @@ def update_params_2(params, dataset_sizes):
     params.pop("tf_lora", None)
     params.pop("tf_lora_mode", None)
     params.pop("tf_isab_rank", None)
+    params.pop("tf_isab_rank_exp_2", None)
     params.pop("tf_pma_rank", None)
+    params.pop("tf_pma_rank_exp_2", None)
     params.pop("head_pma_rank", None)
+    params.pop("head_pma_rank_exp_2", None)
     params = {
         **params,
         "dataset_size_high": dataset_sizes[-1],
     }
     params.pop("dataset_size", None)
     params.pop("batch_size", None)
+    params.pop("dataset_size_exp_2", None)
+    params.pop("batch_size_exp_2", None)
     return params
