@@ -22,7 +22,7 @@ class MAB(nn.Module):
             layer_norm_0=False, # Definitely False
             residual_2=False, #False is fine
             dropout=0,
-            activation=None, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly
+            activation=nn.ReLU, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly. None is fine with FFN
             softmax=nn.Softmax, #relu15 results in nan
             attn_bias=False,  # False is better
             attn_residual=False, # False won't converge with residual2, or slowly without it
@@ -35,7 +35,7 @@ class MAB(nn.Module):
             activation=nn.ReLU,
             bias=True,
             init=False,
-            #layer_norm=True,
+            layer_norm=True,
         )
 
     def forward(self, Q, K):
@@ -65,7 +65,7 @@ class ISAB(nn.Module):
             layer_norm_0=False,
             residual_2=False, #False is fine
             dropout=0,
-            activation=None, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly
+            activation=nn.ReLU, #None converges to nan what the hell, leaky better, Sigmoid converges, Tanh slowly. None is fine with FFN
             softmax=nn.Softmax, #relu15 results in nan
             mode=mode, #SHARED is crap, MINI has lower performance
             attn_bias=False, # False is better
@@ -79,7 +79,7 @@ class ISAB(nn.Module):
             activation=nn.ReLU,
             bias=True,
             init=False,
-            #layer_norm=True,
+            layer_norm=True,
         )
         #d_I, d_KV, d_H, 
         #self.mab0 = MAB(dim_out, dim_in, dim_out, num_heads, ln=ln)
@@ -118,7 +118,7 @@ class PMA(nn.Module):
             activation=nn.ReLU,
             bias=True,
             init=False,
-            #layer_norm=True,
+            layer_norm=True,
         )
 
     def forward(self, X):
