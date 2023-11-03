@@ -341,7 +341,7 @@ def scale_inds_to_batch(I, q):
 
 
 class InducedSetAttentionMini(nn.Module):
-    def __init__(self, d_H=None, Linear=Linear, bias=True, init=True, attn_bias=True, skip_small=False, residual=True, activation=nn.ReLU, **kwargs):
+    def __init__(self, d_H=None, Linear=Linear, bias=True, init=True, attn_bias=True, skip_small=False, residual=False, activation=nn.ReLU, **kwargs):
         super().__init__()
         self.w = None
         self.d_H = d_H
