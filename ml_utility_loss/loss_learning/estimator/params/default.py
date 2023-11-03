@@ -101,7 +101,7 @@ PARAM_SPACE = {
         "tf_pma_start": ("int", -2, -1),
         "tf_pma_high": ("int_exp_2", 8, 64),
         "tf_pma_low": ("int_exp_2", 2, 32),
-        "tf_pma_rank": ("int_exp_2", 2, 16),
+        "tf_pma_rank": ("bool_int_exp_2", 2, 16),
     }),
     "pma_ffn_mode": ("categorical", (
         PMAFFNMode.NONE,
@@ -135,7 +135,7 @@ PARAM_SPACE = {
         "leakyrelu", 
         "selu", 
     ]),
-    "head_pma_rank": ("int_exp_2", 2, 16),
+    #"head_pma_rank": ("bool_int_exp_2", 2, 16),
     #"head_lora": ("conditional", {
     #    "head_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
     #    "head_lora_rank": ("int_exp_2", 2, 16),
@@ -170,6 +170,12 @@ def update_param_space_2(param_space, dataset_sizes):
     return param_space
     
 def update_params_2(params, dataset_sizes):
+    params.pop("tf_isab_mode", None)
+    params.pop("tf_lora", None)
+    params.pop("tf_lora_mode", None)
+    params.pop("tf_isab_rank", None)
+    params.pop("tf_pma_rank", None)
+    params.pop("head_pma_rank", None)
     params = {
         **params,
         "dataset_size_high": dataset_sizes[-1],
