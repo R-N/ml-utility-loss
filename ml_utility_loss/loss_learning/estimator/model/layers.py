@@ -143,7 +143,8 @@ class EncoderLayer(nn.Module):
         pma_attn = None
         if self.pma:
             enc_output, pma_attn = self.pma(enc_output)
-            enc_output = self.pos_ffn_pma(enc_output)
+            if self.pos_ffn_pma:
+                enc_output = self.pos_ffn_pma(enc_output)
         return enc_output, (enc_slf_attn, pma_attn)
 
     def lora(self, base=None, slf_attn=None, pos_ffn=None, pma=None, pos_ffn_pma=None):
@@ -267,7 +268,8 @@ class DecoderLayer(EncoderLayer):
         pma_attn = None
         if self.pma:
             dec_output, pma_attn = self.pma(dec_output)
-            dec_output = self.pos_ffn_pma(dec_output)
+            if self.pos_ffn_pma:
+                dec_output = self.pos_ffn_pma(dec_output)
         return dec_output, (dec_slf_attn, dec_enc_attn, pma_attn)
     
     
