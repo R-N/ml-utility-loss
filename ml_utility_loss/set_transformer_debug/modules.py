@@ -27,7 +27,7 @@ class MAB(nn.Module):
             attn_bias=False,  # False is better
             attn_residual=True, # False won't converge with residual2, or slowly without it. True is still better even with FFN
             big_temperature=False, # Doesn't matter
-            #Linear=LowRankLinearFactory(2),
+            #Linear=LowRankLinearFactory(2), #Linear low rank makes training time longer and performance drops significantly
         )
         # FFN doesn't improve the loss
         self.linear = DoubleFeedForward(
@@ -38,7 +38,7 @@ class MAB(nn.Module):
             bias=True,
             init=False,
             layer_norm=False,
-            #Linear=LowRankLinearFactory(2),
+            #Linear=LowRankLinearFactory(2), #Linear low rank makes training time longer and performance drops significantly
         )
 
     def forward(self, Q, K):
@@ -74,8 +74,8 @@ class ISAB(nn.Module):
             attn_bias=False, # False is better
             attn_residual=True, # False won't converge with residual2, or slowly without it. True is still better even with FFN
             big_temperature=False, # Doesn't matter
-            rank=2,
-            #Linear=LowRankLinearFactory(2),
+            #rank=2,
+            #Linear=LowRankLinearFactory(2), #Linear low rank makes training time longer and performance drops significantly
         )
         # FFN doesn't improve the loss
         self.linear = DoubleFeedForward(
@@ -86,7 +86,7 @@ class ISAB(nn.Module):
             bias=True,
             init=False,
             layer_norm=False,
-            #Linear=LowRankLinearFactory(2),
+            #Linear=LowRankLinearFactory(2), #Linear low rank makes training time longer and performance drops significantly
         )
         #d_I, d_KV, d_H, 
         #self.mab0 = MAB(dim_out, dim_in, dim_out, num_heads, ln=ln)
@@ -117,8 +117,8 @@ class PMA(nn.Module):
             attn_bias=False, # False is better
             attn_residual=True, # False is fine
             big_temperature=False, # Doesn't matter
-            rank=2,
-            #Linear=LowRankLinearFactory(2),
+            #rank=2,
+            #Linear=LowRankLinearFactory(2), #Linear low rank makes training time longer and performance drops significantly
         )
         self.linear = linear or DoubleFeedForward(
             dim, 
@@ -128,7 +128,7 @@ class PMA(nn.Module):
             bias=True,
             init=False,
             layer_norm=False,#Definitely False
-            #Linear=LowRankLinearFactory(2),
+            #Linear=LowRankLinearFactory(2), #Linear low rank makes training time longer and performance drops significantly
         )
 
     def forward(self, X):
