@@ -345,7 +345,7 @@ def scale_inds_to_batch(I, q):
 
 
 class InducedSetAttentionMini(nn.Module):
-    def __init__(self, d_H=None, Linear=Linear, bias=True, init=True, attn_bias=True, skip_small=False, residual=True, **kwargs):
+    def __init__(self, d_H=None, Linear=Linear, bias=True, init=True, attn_bias=True, skip_small=False, residual=True, activation=nn.ReLU, **kwargs):
         super().__init__()
         self.w = None
         self.d_H = d_H
@@ -355,6 +355,9 @@ class InducedSetAttentionMini(nn.Module):
         self.attn0 = ScaledDotProductAttention(**kwargs)
         self.attn1 = self.attn0
         self.residual = residual
+        self.activation = activation
+        if self.activation and inspect.isclass(self.activation):
+            self.activation = self.activation()
 
         if init:
             self.init()
@@ -394,10 +397,12 @@ class InducedSetAttentionMini(nn.Module):
                 #I = I.transpose(-3, -2)
                 *sz_b_arg, n_head, len_I, d_qk = I.shape
                 H = H.transpose(-3, -2).contiguous().view(*sz_b_arg, len_I, -1)
+                H0 = H
+                H = self.w(H)
+                if self.activation:
+                    H = self.activation(H)
                 if self.residual:
-                    H = H + self.w(H)
-                else:
-                    H = self.w(H)
+                    H = H + H0
                 H = H.view(*sz_b_arg, len_I, n_head, d_qk)
                 H = H.transpose(-3, -2)
             O, O_attn = self.attn1(q, H, H, mask=mask) #mask is applied to the query, since query is from decoder
