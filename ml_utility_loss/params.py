@@ -10,6 +10,15 @@ from .Padam import Padam
 from functools import partial
 from .metrics import msle, mean_penalty, mean_penalty_tan, mean_penalty_tan_half, mean_penalty_tan_double, mean_penalty_rational, mean_penalty_rational_half, mean_penalty_rational_double
 
+class CombineMode:
+    CONCAT = "concat"
+    DIFF_LEFT = "diff_left"
+    DIFF_RIGHT = "diff_right"
+    MEAN = "mean"
+    PROD = "prod"
+
+    __ALL__ = (CONCAT, DIFF_LEFT, DIFF_RIGHT, MEAN, PROD)
+
 class HeadFinalMul:
     IDENTITY = "identity"
     MINUS = "minus"

@@ -1,4 +1,4 @@
-from ....params import BOOLEAN, ISABMode, LoRAMode, PMAFFNMode
+from ....params import BOOLEAN, ISABMode, LoRAMode, PMAFFNMode, CombineMode
 
 PARAM_SPACE = {
     # Dataset args
@@ -77,7 +77,7 @@ PARAM_SPACE = {
     "tf_num_inds": ("int_exp_2", 8, 64),
     "tf_d_inner": ("int_exp_2", 128, 256),
     "tf_n_layers_enc": ("int", 3, 5), 
-    "tf_n_layers_dec": ("int", 2, 4), 
+    "tf_n_layers_dec": ("bool_int", 2, 4), 
     "tf_n_head": ("int_exp_2", 2, 8), 
     "tf_activation": ("activation", ["relu", "leakyrelu"]),
     "tf_isab_mode": ("categorical", (
@@ -94,13 +94,20 @@ PARAM_SPACE = {
         "tf_lora_rank": ("int_exp_2", 2, 16),
     }),
     "tf_layer_norm": BOOLEAN,
+    "combine_mode": ("categorical", [
+        CombineMode.CONCAT,
+        CombineMode.DIFF_LEFT,
+        CombineMode.DIFF_RIGHT,
+        CombineMode.MEAN,
+        CombineMode.PROD
+    ]),
     # Transformer PMA args
-    "tf_pma": ("conditional", {
-        "tf_pma_start": ("int", -2, -1),
-        "tf_pma_high": ("int_exp_2", 8, 64),
-        "tf_pma_low": ("int_exp_2", 2, 32),
-        "tf_pma_rank": ("bool_int_exp_2", 2, 16),
-    }),
+    #"tf_pma": ("conditional", {
+    "tf_pma_start": ("int", -2, -1),
+    "tf_pma_high": ("int_exp_2", 8, 64),
+    "tf_pma_low": ("int", 1, 1),
+    "tf_pma_rank": ("bool_int_exp_2", 2, 16),
+    #}),
     "pma_ffn_mode": ("categorical", (
         PMAFFNMode.NONE,
         PMAFFNMode.SEPARATE,
@@ -121,7 +128,7 @@ PARAM_SPACE = {
         "sigmoid", 
     ]),
     # Head args
-    "head_n_seeds": ("int", 1, 8),
+    "head_n_seeds": ("int", 0, 0),
     "head_d_hid": ("int_exp_2", 8, 128), 
     "head_n_layers": ("int", 2, 8), 
     "head_n_head": ("int_exp_2", 2, 16),

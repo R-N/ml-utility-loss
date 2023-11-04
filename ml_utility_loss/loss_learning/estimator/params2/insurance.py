@@ -90,7 +90,7 @@ PARAM_SPACE = {
     "tf_num_inds": ("int_exp_2", 16, 128),
     "tf_d_inner": ("int_exp_2", 64, 128),
     "tf_n_layers_enc": ("int", 2, 4), 
-    "tf_n_layers_dec": ("int", 2, 3), 
+    "tf_n_layers_dec": ("bool_int", 2, 3), 
     "tf_n_head": ("int_exp_2", 4, 8), 
     "tf_activation": ("activation", [
         "tanh", 
@@ -114,12 +114,12 @@ PARAM_SPACE = {
     }),
     "tf_layer_norm": BOOLEAN,
     # Transformer PMA args
-    "tf_pma": ("conditional", { #better true
-        "tf_pma_start": ("int", -2, -1),
-        "tf_pma_high": ("int_exp_2", 16, 64),
-        "tf_pma_low": ("int_exp_2", 8, 16),
-        "tf_pma_rank": ("bool_int_exp_2", 2, 32), #true better
-    }),
+    #"tf_pma": ("conditional", { #better true
+    "tf_pma_start": ("int", -2, -1),
+    "tf_pma_high": ("int_exp_2", 16, 64),
+    "tf_pma_low": ("int", 1, 1),
+    "tf_pma_rank": ("bool_int_exp_2", 2, 32), #true better
+    #}),
     "pma_ffn_mode": ("categorical", (
         PMAFFNMode.NONE,
         PMAFFNMode.SEPARATE,
@@ -143,7 +143,7 @@ PARAM_SPACE = {
         "identity",
     ]),
     # Head args
-    "head_n_seeds": ("int_exp_2", 2, 16), # 1 was never sampled or always pruned
+    "head_n_seeds": ("int", 0, 0), # 1 was never sampled or always pruned
     "head_d_hid": ("int_exp_2", 32, 64), 
     "head_n_layers": ("int", 2, 4), 
     "head_n_head": ("int_exp_2", 8, 16),

@@ -6,6 +6,7 @@ from ...util import mkdir, filter_dict, split_df_kfold, Timer, clear_memory
 from ..ml_utility.pipeline import eval_ml_utility
 from ...params import GradientPenaltyMode, PMAFFNMode
 from .model.models import Transformer, MLUtilityWhole
+from .model.pipeline import create_model
 #from torch.utils.data import DataLoader
 from ...data import FastDataLoader as DataLoader
 from .data import collate_fn
@@ -260,143 +261,6 @@ def augment_2(dataset_name, save_dir, dataset_dir="datasets", augmenter=None, si
         )
 
 
-def create_model(
-    adapters,
-    # Common model args
-    d_model=64, 
-    dropout=0, 
-    softmax=nn.Softmax,
-    flip=False,
-    isab_skip_small=False,
-    pma_skip_small=False,
-    layer_norm=True,
-    bias=False,
-    bias_final=True,
-    residual=True,
-    pma_layer_norm=False,
-    attn_activation=nn.ReLU,
-    attn_residual=True,
-    models=None,
-    # Transformer args
-    tf_num_inds=32,
-    tf_d_inner=64,
-    tf_n_layers_enc=4, 
-    tf_n_layers_dec=2, 
-    tf_n_head=8, 
-    tf_activation=nn.ReLU,
-    tf_isab_mode=ISABMode.SEPARATE,
-    tf_isab_rank=0,
-    tf_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
-    tf_lora_mode=LoRAMode.FULL,
-    tf_lora_rank=2,
-    tf_layer_norm=False,
-    # Transformer PMA args
-    tf_pma_start=-4,
-    tf_pma_high=512,
-    tf_pma_low=32,
-    pma_ffn_mode=PMAFFNMode.NONE,
-    tf_pma_rank=0,
-    # Adapter args
-    ada_d_hid=32, 
-    ada_n_layers=2, 
-    ada_activation=nn.ReLU,
-    ada_activation_final=nn.Tanh,
-    ada_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
-    ada_lora_mode=LoRAMode.FULL,
-    ada_lora_rank=2,
-    # Head args
-    head_n_seeds=1,
-    head_d_hid=32, 
-    head_n_layers=2, 
-    head_n_head=8,   
-    head_activation=nn.LeakyReLU,
-    head_activation_final=nn.Sigmoid,
-    head_final_mul=HeadFinalMul.IDENTITY,
-    head_pma_rank=0,
-    head_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
-    head_lora_mode=LoRAMode.FULL,
-    head_lora_rank=2,
-    init=True,
-    **kwargs
-): 
-    if not tf_lora:
-        tf_lora_mode = LoRAMode.FULL
-    if not ada_lora:
-        ada_lora_mode = LoRAMode.FULL
-    if not head_lora:
-        head_lora_mode = LoRAMode.FULL
-    if layer_norm:
-        dropout=0
-    body = Transformer(
-        num_inds=tf_num_inds,
-        d_model=d_model, 
-        d_inner=tf_d_inner,
-        n_layers_enc=tf_n_layers_enc, 
-        n_layers_dec=tf_n_layers_dec, 
-        n_head=tf_n_head, 
-        dropout=dropout, 
-        activation=tf_activation,
-        softmax=softmax,
-        flip=flip,
-        pma_start=tf_pma_start,
-        pma_high=tf_pma_high,
-        pma_low=tf_pma_low,
-        isab_skip_small=isab_skip_small,
-        pma_skip_small=pma_skip_small,
-        isab_mode=tf_isab_mode,
-        isab_rank=tf_isab_rank,
-        pma_rank=tf_pma_rank,
-        lora_mode=tf_lora_mode,
-        lora_rank=tf_lora_rank,
-        bias=bias,
-        init=False, #will be inited in MLUWhole
-        layer_norm=tf_layer_norm,
-        attn_activation=attn_activation,
-        attn_residual=attn_residual,
-        pma_layer_norm=pma_layer_norm,
-        pma_ffn_mode=pma_ffn_mode,
-    )
-    whole_model = MLUtilityWhole(
-        body=body,
-        adapters=adapters,
-        models=models,
-        adapter_args={
-            "d_hid":ada_d_hid, 
-            "n_layers":ada_n_layers, 
-            "dropout":dropout, 
-            "activation":ada_activation,
-            "activation_final": ada_activation_final,
-            "lora_mode":ada_lora_mode,
-            "lora_rank":ada_lora_rank,
-            "layer_norm": layer_norm,
-            "bias": bias,
-            "residual": residual,
-        },
-        head_args={
-            "n_seeds": head_n_seeds,
-            "d_hid": head_d_hid, 
-            "n_layers": head_n_layers, 
-            "n_head": head_n_head,  
-            "dropout": dropout, 
-            "activation": head_activation,
-            "activation_final": head_activation_final,
-            "final_mul": head_final_mul,
-            #"pma_skip_small": pma_skip_small,
-            "pma_rank":head_pma_rank,
-            "softmax": softmax,
-            "lora_mode":head_lora_mode,
-            "lora_rank":head_lora_rank,
-            "layer_norm": layer_norm,
-            "bias": bias,
-            "bias_final": bias_final,
-            "residual": residual,
-            "attn_activation": attn_activation,
-            "attn_residual": attn_residual,
-            "pma_layer_norm": pma_layer_norm,
-        },
-        init=init,
-    )
-    return whole_model
 
 def log(writer, i, train_loss, val_loss, train_set=None, val_set=None, size_scheduler=None):
     """
@@ -472,6 +336,7 @@ def train(
     allow_same_prediction=True,
     allow_same_prediction_eval=None,
     eval_val=False,
+    create_model=create_model,
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval

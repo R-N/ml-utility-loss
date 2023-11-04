@@ -141,10 +141,6 @@ PARAM_SPACE = {
         "sigmoid", 
         "identity",
     ]),
-    #"ada_lora": ("conditional", {
-    #    "ada_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
-    #    "ada_lora_rank": ("int_exp_2", 2, 16),
-    #}),
     # Head args
     "head_n_seeds": ("int_exp_2", 2, 8),
     "head_d_hid": ("int_exp_2", 32, 64), 
@@ -157,11 +153,6 @@ PARAM_SPACE = {
         "leakyrelu", 
         "selu", 
     ]),
-    #"head_pma_rank": ("bool_int_exp_2", 4, 8), #doesn't matter so lora it is
-    #"head_lora": ("conditional", {
-    #    "head_lora_mode": ("categorical", (LoRAMode.LOW_RANK, LoRAMode.LORA)),
-    #    "head_lora_rank": ("int_exp_2", 2, 16),
-    #}),
 }
 
 PARAM_SPACE_2 = {
