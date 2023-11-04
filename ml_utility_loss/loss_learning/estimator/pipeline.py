@@ -537,9 +537,6 @@ def train(
         models = list(adapters.keys())
     adapters = filter_dict(adapters, models)
 
-    print("models", models)
-    print("adapters", adapters)
-
     if not whole_model:
         whole_model = create_model(
             adapters=adapters,
