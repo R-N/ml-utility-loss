@@ -748,7 +748,7 @@ def eval(
         reduction="none"
     ) for k, v in ys.items()}
     losses = {k: loss_fn(
-        preds, 
+        preds[k], 
         v,
         reduction="none"
     ) for k, v in ys.items()}
