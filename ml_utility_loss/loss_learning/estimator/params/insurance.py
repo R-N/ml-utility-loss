@@ -39,6 +39,7 @@ PARAM_SPACE = {
         "mean_penalty_rational", 
         "mean_penalty_rational_half",
         "mean_penalty_rational_double", 
+        "mse", "mae", "huber", "msle",
     ]),
     "grad_loss_fn": ("loss", ["mse", "mae", "huber", "msle"]),
     "adapter_loss_fn": ("loss", ["mse", "mae", "huber", "msle"]),
