@@ -199,7 +199,7 @@ def train_epoch(
     n_batch = 0
 
     non_role_model_count = len(models) - 1
-    non_role_model_avg_mul = 1.0/non_role_model_count if non_role_model_avg else 1.0
+    non_role_model_avg_mul = 0.0 if non_role_model_count == 0 else (1.0/non_role_model_count if non_role_model_avg else 1.0)
 
     loss_balancer.to(whole_model.device)
 
