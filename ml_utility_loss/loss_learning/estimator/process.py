@@ -276,14 +276,13 @@ def train_epoch(
             y = y.to(torch.float32)
             compute["y"] = y
 
-        model_2 = [m for m in models if m != role_model][0]
 
         # We calculate average m of non role models to do one forward pass for all of them
         avg_compute = {}
         computes_1 = computes
         if forward_once and role_model and avg_non_role_model_m:
             compute = avg_compute
-            compute["y"] = computes[model_2]["y"]
+            compute["y"] = computes[models[0]]["y"] #any, even role model
             non_role_model_computes = [v for k, v in computes.items() if k != role_model]
             m_s = [c["m"] for c in non_role_model_computes]
             m_test_s = [c["m_test"] for c in non_role_model_computes]
@@ -359,7 +358,7 @@ def train_epoch(
                 computes.items(), 
                 key=lambda item: reduction(item[-1]["loss"]).item()
             )
-            model_2 = [m for m in models if m != role_model][0]
+            #model_2 = [m for m in models if m != role_model][0]
 
         role_model_loss = reduction(role_model_compute["loss"])
         role_model_std_loss = role_model_compute["std_loss"]
