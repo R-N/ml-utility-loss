@@ -337,6 +337,8 @@ def train(
     allow_same_prediction_eval=None,
     eval_val=False,
     create_model=create_model,
+    train_epoch=train_epoch,
+    _eval=_eval,
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
@@ -540,6 +542,7 @@ def train(
         DataLoader=DataLoader,
         multiprocessing_context=multiprocessing_context,
         allow_same_prediction=allow_same_prediction_eval,
+        _eval=_eval,
     )
     if eval_val and val_set is not test_set:
         val_set.set_size(None)
@@ -553,6 +556,7 @@ def train(
             multiprocessing_context=multiprocessing_context,
             allow_same_prediction=allow_same_prediction_eval,
             models=models,
+            _eval=_eval,
         )
     if verbose:
         print("Eval loss", eval_loss)
@@ -585,6 +589,7 @@ def eval(
     persistent_workers=False,
     DataLoader=DataLoader,
     multiprocessing_context=None,
+    _eval=_eval,
     **kwargs
 ):
     loader = DataLoader(
