@@ -76,12 +76,9 @@ PARAM_SPACE = {
     "attn_activation": ("activation", [
         "tanh",  
         "sigmoid", 
-        "alphatanh",
-        "alphasigmoid",
         "relu",
         "leakyrelu", 
         "selu",
-        "learnableleakyrelu",
         "identity",
     ]),
     "attn_residual": True,
@@ -95,12 +92,9 @@ PARAM_SPACE = {
     "tf_activation": ("activation", [
         "tanh", 
         "sigmoid",
-        "alphatanh",
-        "alphasigmoid",
         "relu", 
         "leakyrelu", 
         "selu",
-        "learnableleakyrelu",
     ]),
     "tf_isab_mode": ("categorical", (
         ISABMode.SEPARATE, #best
@@ -136,18 +130,13 @@ PARAM_SPACE = {
     "ada_activation": ("activation", [
         "tanh",  
         "sigmoid", 
-        "alphatanh",
-        "alphasigmoid",
         "relu",
         "leakyrelu", 
         "selu",
-        "learnableleakyrelu",
     ]),
     "ada_activation_final": ("activation", [
         "tanh", 
         "sigmoid", 
-        "alphatanh",
-        "alphasigmoid",
         "identity",
     ]),
     #"ada_lora": ("conditional", {
@@ -162,12 +151,9 @@ PARAM_SPACE = {
     "head_activation": ("activation", [
         "tanh",  
         "sigmoid", 
-        "alphatanh",
-        "alphasigmoid",
         "relu",
         "leakyrelu", 
         "selu", 
-        "learnableleakyrelu",
     ]),
     #"head_pma_rank": ("bool_int_exp_2", 4, 8), #doesn't matter so lora it is
     #"head_lora": ("conditional", {
@@ -216,7 +202,7 @@ BEST = {
     'ada_d_hid_exp_2': 6,
     'ada_n_layers': 3,
     'ada_activation': 'tanh',
-    'ada_activation_final': 'alphatanh',
+    'ada_activation_final': 'tanh',
     'head_n_seeds_exp_2': 2,
     'head_d_hid_exp_2': 6,
     'head_n_layers': 3,

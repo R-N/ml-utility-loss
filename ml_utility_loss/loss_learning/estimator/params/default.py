@@ -65,12 +65,9 @@ PARAM_SPACE = {
     "attn_activation": ("activation", [
         "tanh",  
         "sigmoid", 
-        "alphatanh",
-        "alphasigmoid",
         "relu",
         "leakyrelu", 
         "selu",
-        "learnableleakyrelu",
         #"identity",
     ]),
     "attn_residual": True,
