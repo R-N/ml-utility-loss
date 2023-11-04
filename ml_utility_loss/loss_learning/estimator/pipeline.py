@@ -276,6 +276,7 @@ def create_model(
     pma_layer_norm=False,
     attn_activation=nn.ReLU,
     attn_residual=True,
+    models=None,
     # Transformer args
     tf_num_inds=32,
     tf_d_inner=64,
@@ -358,6 +359,7 @@ def create_model(
     whole_model = MLUtilityWhole(
         body=body,
         adapters=adapters,
+        models=models,
         adapter_args={
             "d_hid":ada_d_hid, 
             "n_layers":ada_n_layers, 
