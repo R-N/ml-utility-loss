@@ -173,14 +173,14 @@ class SequentialTransformer(SequentialWeighter):
         return losses.to(losses[0].device)
 
 class MyLossWeighter(ParallelBalancer):
-    def __init__(self, beta=DEFAULT_BETA, r=DEFAULT_R, meta=True, log=True, weights=None, Sequential=SequentialWeighter, Log=LogWeighter, **kwargs):
+    def __init__(self, beta=DEFAULT_BETA, r=DEFAULT_R, meta=True, log=True, lbtw=True, weights=None, Sequential=SequentialWeighter, Log=LogWeighter, **kwargs):
         super().__init__(
             balancers=[
                 Sequential([
                     Log(reduction=None) if log else None,
                     MetaBalance(beta=beta, r=r, reduction=None) if meta else None,
                 ], reduction=None),
-                LBTW(reduction=None),
+                LBTW(reduction=None) if lbtw else None,
                 FixedWeights(weights) if weights is not None else None,
             ],
             **kwargs,

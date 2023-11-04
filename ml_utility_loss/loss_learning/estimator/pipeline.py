@@ -448,6 +448,7 @@ def train(
     loss_balancer_r=DEFAULT_R,
     loss_balancer_meta=True,
     loss_balancer_log=True,
+    loss_balancer_lbtw=True,
     fixed_role_model="tab_ddpm_concat",
     gradient_penalty_mode=GradientPenaltyMode.AVERAGE_MUL,
     loss_clamp=None,
@@ -486,6 +487,7 @@ def train(
             r=loss_balancer_r,
             meta=loss_balancer_meta,
             log=loss_balancer_log,
+            lbtw=loss_balancer_lbtw,
         )
 
     if optim:

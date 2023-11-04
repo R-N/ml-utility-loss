@@ -25,6 +25,7 @@ PARAM_SPACE = {
         "loss_balancer_r": ("float", 0.5, 1.0),
     }),
     "loss_balancer_log": BOOLEAN,
+    "loss_balancer_lbtw": BOOLEAN,
     #"loss_fn": ("loss", "mse"),
     "std_loss_fn": ("loss", [
         "mean_penalty_tan", 
