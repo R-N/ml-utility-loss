@@ -543,6 +543,7 @@ def train(
     if not whole_model:
         whole_model = create_model(
             adapters=adapters,
+            models=models,
             **model_args
         )
     if not optim:
@@ -571,6 +572,7 @@ def train(
             grad_clip=grad_clip,
             head=head,
             allow_same_prediction=allow_same_prediction,
+            models=models,
             **gradient_penalty_mode,
         )
         return loss
@@ -688,6 +690,7 @@ def train(
             DataLoader=DataLoader,
             multiprocessing_context=multiprocessing_context,
             allow_same_prediction=allow_same_prediction_eval,
+            models=models,
         )
     if verbose:
         print("Eval loss", eval_loss)
