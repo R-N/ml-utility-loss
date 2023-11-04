@@ -160,6 +160,7 @@ def train_epoch(
     loss_balancer=LossBalancer(),
     non_role_model_avg=True,
     loss_fn=F.mse_loss,
+    mean_pred_loss_fn=None,
     std_loss_fn=mean_penalty,
     grad_loss_fn=F.huber_loss, # It's fine as long as loss_fn is MSE
     adapter_loss_fn=F.l1_loss, # Values can get very large and MSE loss will result in infinity, or maybe use kl_div
@@ -184,6 +185,7 @@ def train_epoch(
     size = len(train_loader.dataset)
 
     std_loss_fn = std_loss_fn or loss_fn
+    mean_pred_loss_fn = mean_pred_loss_fn or loss_fn
 
     models = models or whole_model.models
 
@@ -192,6 +194,7 @@ def train_epoch(
     avg_loss = 0
     avg_role_model_loss = 0
     avg_role_model_std_loss = 0
+    avg_role_model_mean_pred_loss = 0
     avg_role_model_g_loss = 0
     avg_non_role_model_g_loss = 0
     avg_non_role_model_embed_loss = 0
@@ -350,6 +353,22 @@ def train_epoch(
                 avg_pred_stds[model] = 0
             avg_pred_stds[model] += pred_std_
 
+            y_mean = torch.mean(y).item()
+            y_mean_loss = loss_fn(
+                torch.full(pred.shape, y_mean).to(whole_model.device),
+                y,
+                reduction="none"
+            ).detach()
+            #mean_pred_loss = torch.clamp(loss - y_mean_loss, min=-y_mean_loss)
+            #mean_pred_loss = loss - y_mean_loss
+            mean_pred_loss = torch.clamp(loss - y_mean_loss, min=0)
+            mean_pred_loss = mean_pred_loss_fn(
+                mean_pred_loss, 
+                torch.zeros(mean_pred_loss.shape).to(whole_model.device),
+                reduction="none"
+            )
+            compute["mean_pred_loss"] = mean_pred_loss
+
         if role_model and (fixed_role_model or forward_once):
             role_model_compute = computes[role_model]
         else:
@@ -361,6 +380,7 @@ def train_epoch(
             #model_2 = [m for m in models if m != role_model][0]
 
         role_model_loss = reduction(role_model_compute["loss"])
+        role_model_mean_pred_loss = reduction(role_model_compute["mean_pred_loss"])
         role_model_std_loss = role_model_compute["std_loss"]
         if timer:
             timer.check_time()
@@ -538,6 +558,7 @@ def train_epoch(
         batch_loss = (
             role_model_loss, 
             role_model_std_loss, 
+            role_model_mean_pred_loss, # or not
             role_model_g_loss, 
             non_role_model_avg_mul * non_role_model_embed_loss, 
             non_role_model_avg_mul * non_role_model_g_loss,
@@ -564,6 +585,7 @@ def train_epoch(
         n_mul = (batch_size if reduction == torch.mean else 1)
         avg_role_model_loss += try_tensor_item(role_model_loss) * n_mul
         avg_role_model_std_loss += try_tensor_item(role_model_std_loss) * n_mul
+        avg_role_model_mean_pred_loss += try_tensor_item(role_model_mean_pred_loss) * n_mul
         avg_role_model_g_loss += try_tensor_item(role_model_g_loss) * n_mul
         avg_non_role_model_g_loss += try_tensor_item(non_role_model_g_loss) * n_mul
         avg_non_role_model_embed_loss += try_tensor_item(non_role_model_embed_loss) * n_mul
@@ -587,6 +609,7 @@ def train_epoch(
 
     avg_role_model_loss /= n
     avg_role_model_std_loss /= n_batch
+    avg_role_model_mean_pred_loss /= n
     avg_role_model_g_loss /= n
     avg_non_role_model_g_loss /= n
     avg_non_role_model_embed_loss /= n
@@ -598,6 +621,7 @@ def train_epoch(
     return {
         "avg_role_model_loss": avg_role_model_loss, 
         "avg_role_model_std_loss": avg_role_model_std_loss,
+        "avg_role_model_mean_pred_loss": avg_role_model_mean_pred_loss,
         "avg_role_model_g_loss": avg_role_model_g_loss,
         "avg_non_role_model_g_loss": avg_non_role_model_g_loss,
         "avg_non_role_model_embed_loss": avg_non_role_model_embed_loss,
@@ -616,6 +640,7 @@ def eval(
     whole_model, 
     eval_loader, 
     loss_fn=F.mse_loss,
+    mean_pred_loss_fn=None,
     std_loss_fn=mean_penalty_rational,
     grad_loss_fn=F.mse_loss, #for RMSE,
     reduction=torch.mean,
@@ -625,6 +650,7 @@ def eval(
     size = len(eval_loader.dataset)
 
     std_loss_fn = std_loss_fn or loss_fn
+    mean_pred_loss_fn = mean_pred_loss_fn or loss_fn
 
     models = models or whole_model.models
 
@@ -633,7 +659,6 @@ def eval(
     n_size = 0
     n_batch = 0
     
-
     avg_losses = {model: 0 for model in models}
     avg_g_losses = {model: 0 for model in models}
     pred_duration = {model: 0 for model in models}
@@ -716,6 +741,22 @@ def eval(
     y_stds = {k: torch.std(v).detach() for k, v in ys.items()}
     std_losses = {model: std_loss_fn(pred_stds[model], y_stds[model]).item() for model in models}
     pred_stds = {k: v.item() for k, v in pred_stds.items()}
+
+    y_mean_loss = {k: loss_fn(
+        torch.full(v.shape, torch.mean(v).item()).to(v.device), 
+        v,
+        reduction="none"
+    ) for k, v in ys.items()}
+    losses = {k: loss_fn(
+        preds, 
+        v,
+        reduction="none"
+    ) for k, v in ys.items()}
+    mean_pred_losses = {model: torch.clamp(losses[model] - y_mean_loss[model], min=0) for model in models}
+    mean_pred_losses = {k: mean_pred_loss_fn(
+        v,
+        torch.zeros(v.shape).to(v.device)
+    ) for k, v in mean_pred_losses.items()}
     
     for k, pred_std in pred_stds.items():
         assert allow_same_prediction or batch_size == 1 or pred_std, f"model predicts the same for every input, {k}, {pred_std}, {preds[k][0].item()}"
@@ -747,6 +788,7 @@ def eval(
     avg_total_duration = sum(total_duration.values()) / len(models)
     avg_pred_std = mean(pred_stds.values())
     avg_std_loss = mean(std_losses.values())
+    avg_mean_pred_loss = mean(mean_pred_losses.values())
 
     model_metrics = {
         model: {
@@ -757,6 +799,7 @@ def eval(
             "total_duration": total_duration[model],
             "pred_std": pred_stds[model],
             "std_loss": std_losses[model],
+            "mean_pred_loss": mean_pred_losses[model],
             **pred_metrics[model],
             **grad_metrics[model],
         }
@@ -771,6 +814,7 @@ def eval(
         "avg_std_loss": avg_std_loss,
         "avg_g_loss": avg_g_loss,
         "avg_pred_std": avg_pred_std,
+        "avg_mean_pred_loss": avg_mean_pred_loss,
         "n_size": n_size,
         "n_batch": n_batch,
         "avg_pred_duration": avg_pred_duration,
