@@ -5,7 +5,7 @@ import math
 from .layers import EncoderLayer, DecoderLayer
 from .modules import PoolingByMultiheadAttention, FeedForward, LowRankLinearFactory, Linear
 import inspect
-from ....util import DEFAULT_DEVICE, Cache, check_cuda
+from ....util import DEFAULT_DEVICE, Cache, check_cuda, filter_dict
 from ....params import ISABMode, LoRAMode, HeadFinalMul
 from .init import init, init_linear, init_layer_norm
 
@@ -677,6 +677,9 @@ class MLUtilityWhole(nn.Module):
 
         adapter_args["d_model"] = body.d_model
         head_args["d_model"] = body.d_model
+
+        if models:
+            adapters = filter_dict(adapters, models)
 
         self.adapters = {
             model: Adapter(
