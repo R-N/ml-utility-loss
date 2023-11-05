@@ -75,7 +75,7 @@ class Encoder(nn.Module):
                 activation=nn.ReLU,
                 attn_activation=nn.ReLU, # This doesn't, because tensors are almost always positive here. But it doesn't degrade performance so it's fine.
                 attn_residual=True, # This improves performance
-                norm_first=True,
+                norm_first=False,
                 layer_norm=True, # This must be True for text
             ) for _ in range(n_layers)
         ])
@@ -135,7 +135,7 @@ class Decoder(nn.Module):
                 activation=nn.ReLU,
                 attn_activation=nn.ReLU, # This doesn't, because tensors are almost always positive here. But it doesn't degrade performance so it's fine.
                 attn_residual=True, # This improves performance
-                norm_first=True,
+                norm_first=False,
                 layer_norm=True, # This must be True for text
             ) for _ in range(n_layers)
         ])
