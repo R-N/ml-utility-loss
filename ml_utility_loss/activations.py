@@ -38,3 +38,20 @@ class LearnableLeakyReLU(nn.Module):
     def forward(self, x):
         return self.f(x)
     
+class Hardsigmoid(nn.Module):
+    def __init__(self, range=6):
+        super().__init__()
+        self.range = range
+    
+    def forward(self, x):
+        return torch.clamp(x/self.range + 0.5, min=0, max=1)
+
+class Hardtanh(nn.Module):
+    def __init__(self, min_val=-1.0, max_val=1.0, range=1):
+        super().__init__()
+        self.min_val = min_val
+        self.max_val = max_val
+        self.range=range
+    
+    def forward(self, x):
+        return torch.clamp(x/self.range, min=self.min_val, max=self.max_val)
