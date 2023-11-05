@@ -53,6 +53,19 @@ class LayerNorm(nn.LayerNorm):
             if self.bias is not None:
                 torch.nn.init.zeros_(self.bias)
 
+
+class ScaleNorm(nn.Module):
+    """ScaleNorm"""
+    def __init__(self, scale, eps=1e-5):
+        super(ScaleNorm, self).__init__()
+        self.scale = nn.Parameter(torch.tensor(scale))
+        self.eps = eps
+
+    def forward(self, x):
+        norm = self.scale / torch.norm(x, dim=-1, keepdim=True).clamp(min=self.eps)
+        return x * norm
+
+
 class LowRankLinear(nn.Module):
     def __init__(self, in_features, out_features, rank, device=DEFAULT_DEVICE, bias=False, init=True, **kwargs):
         super().__init__()
