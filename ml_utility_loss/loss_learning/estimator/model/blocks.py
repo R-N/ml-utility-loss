@@ -82,7 +82,7 @@ class Encoder(nn.Module):
         if n_layers < 2 and lora_mode == LoRAMode.LORA:
             lora_mode = LoRAMode.FULL
 
-        if pma_start is not None:
+        if pma_start:
             pma_steps = calc_pma_steps(
                 n_layers=n_layers,
                 pma_start=pma_start,
@@ -176,7 +176,7 @@ class Decoder(nn.Module):
         if n_layers < 2 and lora_mode == LoRAMode.LORA:
             lora_mode = LoRAMode.FULL
 
-        if pma_start is not None:
+        if pma_start:
             pma_steps = calc_pma_steps(
                 n_layers=n_layers,
                 pma_start=pma_start,
