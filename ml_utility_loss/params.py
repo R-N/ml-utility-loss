@@ -23,8 +23,9 @@ class HeadFinalMul:
     IDENTITY = "identity"
     MINUS = "minus"
     ONEMINUS = "oneminus"
+    ONEPLUS = "oneplus"
 
-    __ALL__ = (IDENTITY, MINUS, ONEMINUS)
+    __ALL__ = (IDENTITY, MINUS, ONEMINUS, ONEPLUS)
 
 class LoRAMode:
     FULL = "full"
@@ -172,31 +173,49 @@ OPTIMS = {
     "amsgradw": partial(torch.optim.AdamW, amsgrad=True),
     "sgdmomentum": partial(torch.optim.SGD, momentum=0.9),
 }
-RELUS = {
+IDENTITIES = {
+    None: torch.nn.Identity,
+    "identity": torch.nn.Identity,
+    "linear": torch.nn.Identity,
+}
+LEAKY_RELUS = {
     "leakyrelu": torch.nn.LeakyReLU,
+    "learnableleakyrelu": LearnableLeakyReLU,
+}
+RELUS = {
+    # leakyrelu but no negative slope member
+    "prelu": torch.nn.PReLU,
+    "rrelu": torch.nn.RReLU,
+    # relus
+    "relu": torch.nn.ReLU,
     "elu": torch.nn.ELU,
     "selu": torch.nn.SELU,
     "gelu": torch.nn.GELU,
     "silu": torch.nn.SiLU,
     "swish": torch.nn.SiLU,
     "mish": torch.nn.Mish,
+    "relu": torch.nn.ReLU,
+    "relu6": torch.nn.ReLU6,
 }
 SIGMOIDS = {
     "alphasigmoid": AlphaSigmoid,
+    "hardsigmoid": torch.nn.Hardsigmoid,
+    "sigmoid": torch.nn.Sigmoid,
+}
+TANHS = {
     "alphatanh": AlphaTanh,
+    "tanh": torch.nn.Tanh,
+    "hardtanh": torch.nn.Hardtanh,
+    "softsign": torch.nn.Softsign,
 }
 ACTIVATIONS = {
-    None: torch.nn.Identity,
-    "identity": torch.nn.Identity,
-    "linear": torch.nn.Identity,
-    "relu": torch.nn.ReLU,
-    "tanh": torch.nn.Tanh,
-    "sigmoid": torch.nn.Sigmoid,
-    "learnableleakyrelu": LearnableLeakyReLU,
+    **IDENTITIES,
     **SIGMOIDS,
+    **TANHS,
     **RELUS,
+    **LEAKY_RELUS,
+    "logsigmoid": torch.nn.LogSigmoid,
 }
-BOOLEAN = ("categorical", [True, False])
 SOFTMAXES = {
     "softmax": F.softmax,
     "sparsemax": sparsemax,
@@ -213,19 +232,20 @@ ACTIVATIONS = {**SOFTMAXES, **ACTIVATIONS}
 ACTIVATIONS_INVERSE = {v: k for k, v in ACTIVATIONS.items()}
 ACTIVATIONS_INVERSE = {
     **ACTIVATIONS_INVERSE, 
+    **{v: "linear" for v in IDENTITIES.values()},
+    **{v: "sigmoid" for v in SIGMOIDS.values()},
+    **{v: "tanh" for v in TANHS.values()},
+    **{v: "relu" for v in RELUS.values()},
+    **{v: "leaky_relu" for v in LEAKY_RELUS.values()},
     **{v: "sigmoid" for v in SOFTMAXES.values()},
     **{v: "sigmoid" for v in SOFTMAXES2.values()},
-    **{v: "relu" for v in RELUS.values()},
 }
 ACTIVATIONS_INVERSE = {
     **ACTIVATIONS_INVERSE,
     None: "linear",
-    torch.nn.Identity: "linear",
-    torch.nn.LeakyReLU: "leaky_relu",
-    AlphaSigmoid: "sigmoid",
-    AlphaTanh: "tanh",
-    LearnableLeakyReLU: "leaky_relu",
+    torch.nn.LogSigmoid: "linear",
 }
+BOOLEAN = ("categorical", [True, False])
 GRADIENT_PENALTY_MODES = GradientPenaltyMode.DICT
 PARAM_MAP = {
     "loss": LOSSES,

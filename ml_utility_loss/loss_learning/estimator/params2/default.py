@@ -11,8 +11,8 @@ PARAM_SPACE = {
         "adamw", 
         "sgdmomentum", 
         "amsgradw",
-        "adadelta", 
-        "padam", 
+        #"adadelta", 
+        #"padam", 
         "nadam"
     ]),
     # Training args
@@ -69,6 +69,12 @@ PARAM_SPACE = {
         "relu",
         "leakyrelu", 
         "selu",
+        "prelu",
+        "rrelu",
+        "relu6",
+        "hardtanh",
+        "hardsigmoid",
+        "softsign",
         #"identity",
     ]),
     "attn_residual": True,

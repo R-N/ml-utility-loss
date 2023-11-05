@@ -6,7 +6,7 @@ from .layers import EncoderLayer, DecoderLayer
 from .modules import PoolingByMultiheadAttention, FeedForward, LowRankLinearFactory, Linear
 import inspect
 from ....util import DEFAULT_DEVICE, Cache, check_cuda, filter_dict
-from ....params import ISABMode, LoRAMode, HeadFinalMul
+from ....params import ISABMode, LoRAMode, HeadFinalMul, ACTIVATIONS_INVERSE
 from .init import init, init_linear, init_layer_norm
 
 
@@ -362,9 +362,24 @@ class Head(nn.Module):
     ):
         super().__init__()
         assert n_layers >= 2
-        assert final_mul in HeadFinalMul.__ALL__
         
+        #assert final_mul in HeadFinalMul.__ALL__
+
         self.final_mul = final_mul
+        if self.final_mul == HeadFinalMul.IDENTITY:
+            t = ACTIVATIONS_INVERSE[activation_final]
+            if activation_final == torch.nn.LogSigmoid:
+                self.final_mul = HeadFinalMul.ONEPLUS
+            if t == "linear":
+                t = ACTIVATIONS_INVERSE[activation]
+            if t == "leaky_relu":
+                self.final_mul = HeadFinalMul.MINUS
+            if t == "relu":
+                if activation in (torch.nn.PReLU, torch.nn.RReLU):
+                    self.final_mul = HeadFinalMul.MINUS
+                else:
+                    self.final_mul = HeadFinalMul.ONEMINUS
+
         self.lora_mode = lora_mode
         self.lora_rank = lora_rank
         LinearLora = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
@@ -464,6 +479,8 @@ class Head(nn.Module):
             y = -y
         elif self.final_mul == HeadFinalMul.ONEMINUS:
             y = 1 - y
+        elif self.final_mul == HeadFinalMul.ONEPLUS:
+            y = 1 + y
 
         if return_attns:
             return y, pma_attn
