@@ -68,7 +68,8 @@ class Encoder(nn.Module):
                 #d_v, 
                 dropout=dropout,
                 pma=None,
-                num_inds=d_model,
+                num_inds=0,
+                #num_inds=32,
                 bias=True, # No bias is fine
                 init=True,#fine
                 softmax=nn.Softmax, #Relu15 reduces performance
@@ -128,7 +129,8 @@ class Decoder(nn.Module):
                 #d_v, 
                 dropout=dropout,
                 pma=None,
-                num_inds=d_model,
+                num_inds=0,
+                #num_inds=32,
                 bias=True, # No bias is fine
                 init=True, #fine
                 softmax=nn.Softmax,
