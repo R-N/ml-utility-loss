@@ -132,8 +132,8 @@ class PMA(nn.Module):
             activation=nn.ReLU,
             bias=True,
             init=True,
-            norm_first=True,
-            layer_norm=True,#Definitely False
+            norm_first=False,
+            layer_norm=False,#Definitely False
             #Linear=LowRankLinearFactory(2), #Linear low rank makes training time longer and performance drops significantly
         )
 
