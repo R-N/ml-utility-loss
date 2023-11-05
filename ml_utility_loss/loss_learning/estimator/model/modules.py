@@ -211,7 +211,13 @@ class MultiHeadAttention(nn.Module):
             self.norm_vs = LayerNorm(self.d_KV, eps=1e-6, bias=bias, init=False)
             #self.norm_I = LayerNorm(self.d_H, eps=1e-6, bias=bias, init=False)
 
-        fc_bias = attn_bias or (bias and not layer_norm and not layer_norm_0)
+        self.layer_norm = None
+        self.layer_norm_0 = None
+        if not norm_first:
+            self.layer_norm_0 = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm_0 else None
+            self.layer_norm = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm else None
+
+        fc_bias = attn_bias or (bias and not self.layer_norm and not self.layer_norm_0)
         self.fc = Linear(self.d_O, self.d_O, bias=fc_bias, init=False)
 
         self.skip_small = skip_small
@@ -228,13 +234,6 @@ class MultiHeadAttention(nn.Module):
         self.attention = Attention(temperature=temperature, softmax=softmax, device=device, d_H=self.d_H, Linear=Linear, init=False, attn_bias=fc_bias, attn_residual=attn_residual, skip_small=skip_small, residual=residual, activation=activation, **kwargs)
 
         self.dropout = nn.Dropout(dropout) if dropout else None
-
-        self.layer_norm = None
-        self.layer_norm_0 = None
-        if not norm_first:
-            self.layer_norm_0 = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm_0 else None
-            self.layer_norm = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm else None
-
         if init:
             self.init()
 
@@ -718,6 +717,7 @@ class DoubleFeedForward(nn.Module):
         bias=True, 
         init=True,
         layer_norm=True,
+        norm_first=True,
         **kwargs,
     ):
         super().__init__()
@@ -726,6 +726,8 @@ class DoubleFeedForward(nn.Module):
         self.activation = activation
         if inspect.isclass(self.activation):
             self.activation = self.activation()
+
+        self.norm_first = norm_first
         self.layer_norm = LayerNorm(d_in, eps=1e-6, bias=bias, init=False) if layer_norm else None
         self.dropout = nn.Dropout(dropout) if dropout else None
 
@@ -745,6 +747,8 @@ class DoubleFeedForward(nn.Module):
 
         residual = x
 
+        if self.norm_first:
+            x = self.layer_norm(x)
         x = self.w_1(x)
         x = self.activation(x)
         x = self.w_2(x)
@@ -752,7 +756,7 @@ class DoubleFeedForward(nn.Module):
             x = self.dropout(x)
         x = x + residual
 
-        if self.layer_norm:
+        if self.layer_norm and not self.norm_first:
             x = self.layer_norm(x)
 
         return x
@@ -781,6 +785,7 @@ class FeedForward(nn.Module):
         Linear=Linear, 
         bias=False, 
         init=True,
+        norm_first=True,
         **kwargs,
     ):
         super().__init__()
@@ -790,6 +795,7 @@ class FeedForward(nn.Module):
         if inspect.isclass(self.activation):
             self.activation = self.activation()
         self.dropout = nn.Dropout(dropout) if dropout else None
+        self.norm_first = norm_first
         self.layer_norm = LayerNorm(d_out, eps=1e-6, bias=bias, init=False) if layer_norm else None
 
         if init:
@@ -808,6 +814,8 @@ class FeedForward(nn.Module):
     def forward(self, x):
         residual = x
 
+        if self.norm_first:
+            x = self.layer_norm(x)
         x = self.w(x)
         x = self.activation(x)
         if self.dropout:
@@ -816,7 +824,7 @@ class FeedForward(nn.Module):
         if self.residual:
             x = x + residual
 
-        if self.layer_norm:
+        if self.layer_norm and not self.norm_first:
             x = self.layer_norm(x)
 
         return x
