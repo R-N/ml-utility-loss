@@ -430,7 +430,7 @@ class InducedSetAttentionMini(nn.Module):
             I_attn = None
             O, O_attn = self.attn1(q, k, v, mask=mask)
         else:
-            H, I_attn = self.attn0(I, k, v, mask=mask) #yes it's none
+            H, I_attn = self.attn0(I, k, v, mask=None) #yes it's none
             if self.w:
                 #I = I.view(*sz_b_arg, len_I, n_head, d_qk)
                 #I = I.transpose(-3, -2)
@@ -444,7 +444,7 @@ class InducedSetAttentionMini(nn.Module):
                     H = H + H0
                 H = H.view(*sz_b_arg, len_I, n_head, d_qk)
                 H = H.transpose(-3, -2)
-            O, O_attn = self.attn1(q, H, H, mask=None) #mask is applied to the query, since query is from decoder
+            O, O_attn = self.attn1(q, H, H, mask=mask) #mask is applied to the query, since query is from decoder
         return O, (I_attn, O_attn)
     
 class TensorInductionPoint(nn.Module):
@@ -608,9 +608,9 @@ class InducedSetAttention(nn.Module):
             O, (I_attn, O_attn) = self.mab0(q, k, v, mask=mask, I=I)
         else:
             #(32, 128), (500, 2), (500, 2)
-            H, I_attn = self.mab0(I, k, v, mask=mask) #yes it's none
+            H, I_attn = self.mab0(I, k, v, mask=None) #yes it's none
             #(500, 2), (32, 128), (32, 128)
-            O, O_attn = self.mab1(q, H, H, mask=None) #mask is applied to the query, since query is from decoder
+            O, O_attn = self.mab1(q, H, H, mask=mask) #mask is applied to the query, since query is from decoder
         return O, (I_attn, O_attn)
 
     def lora(self, base=None, mab0=None, mab1=None):
