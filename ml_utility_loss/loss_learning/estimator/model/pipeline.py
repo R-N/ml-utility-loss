@@ -54,6 +54,8 @@ def create_body(
     if isinstance(Model, str):
         Model = ModelBody.__DICT__[Model]
 
+    print("Creating model of type", Model)
+
     #tf_n_layers_dec = tf_n_layers_dec or tf_n_layers_enc
 
     if Model == Transformer:

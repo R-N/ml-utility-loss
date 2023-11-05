@@ -1,4 +1,4 @@
-from ....params import BOOLEAN, ISABMode, LoRAMode, OPTIMS, ACTIVATIONS, LOSSES, SOFTMAXES, GRADIENT_PENALTY_MODES, PMAFFNMode
+from ....params import BOOLEAN, ISABMode, LoRAMode, OPTIMS, ACTIVATIONS, LOSSES, SOFTMAXES, GRADIENT_PENALTY_MODES, PMAFFNMode, CombineMode
 from torch import nn, optim
 from torch.nn import functional as F
 
@@ -112,6 +112,13 @@ PARAM_SPACE = {
         "tf_lora_rank": ("int_exp_2", 2, 16), #Mustn't be bool int
     }),
     "tf_layer_norm": BOOLEAN,
+    "combine_mode": ("categorical", [
+        CombineMode.CONCAT,
+        CombineMode.DIFF_LEFT,
+        CombineMode.DIFF_RIGHT,
+        CombineMode.MEAN,
+        CombineMode.PROD
+    ]),
     # Transformer PMA args
     #"tf_pma": ("conditional", { # doesn't matter
     "tf_pma_start": ("int", -2, -1),
