@@ -52,7 +52,7 @@ def create_body(
     if not tf_lora:
         tf_lora_mode = LoRAMode.FULL
     if isinstance(Model, str):
-        Body = ModelBody.__DICT__[Body]
+        Model = ModelBody.__DICT__[Model]
 
     #tf_n_layers_dec = tf_n_layers_dec or tf_n_layers_enc
 
