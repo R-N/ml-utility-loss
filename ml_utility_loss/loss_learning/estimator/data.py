@@ -54,6 +54,8 @@ def to_tensor(x, Tensor=None):
         return to_tensor(x.to_numpy())
     if isinstance(x, pd.Series):
         return to_tensor(x.to_numpy())
+    if isinstance(x, np.ndarray):
+        return torch.from_numpy(x)
     if torch.is_tensor(x):
         return x.to(Tensor.dtype)
     if hasattr(x, "__iter__"):
