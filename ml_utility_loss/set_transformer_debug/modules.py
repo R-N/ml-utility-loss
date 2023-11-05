@@ -7,7 +7,7 @@ from ml_utility_loss.params import ISABMode
 from alpharelu import relu15, ReLU15
 
 class MAB(nn.Module):
-    def __init__(self, dim_Q, dim_K, dim_V, num_heads, ln=False):
+    def __init__(self, dim_Q, dim_K, dim_V, num_heads, ln=False, norm_first=True):
         super(MAB, self).__init__()
         self.dim_V = dim_V
         self.num_heads = num_heads
@@ -18,8 +18,8 @@ class MAB(nn.Module):
             d_O=dim_V,
             bias=True,
             init=True,
-            norm_first=True,
-            layer_norm=True, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn. This parameter has no effect with FFN, it seems. Yes it must have no layer norm at all to have effect
+            norm_first=norm_first,
+            layer_norm=ln, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn. This parameter has no effect with FFN, it seems. Yes it must have no layer norm at all to have effect
             layer_norm_0=False, # Definitely False
             residual_2=False, #False is fine. Doesn't improve even True
             dropout=0,
@@ -38,8 +38,8 @@ class MAB(nn.Module):
             activation=nn.ReLU,
             bias=True,
             init=True,
-            norm_first=True,
-            layer_norm=True,
+            norm_first=norm_first,
+            layer_norm=ln,
             #Linear=LowRankLinearFactory(2), #Linear low rank makes training time longer and performance drops significantly
         )
 
@@ -57,7 +57,7 @@ class SAB(nn.Module):
         return self.mab(X, X)
 
 class ISAB(nn.Module):
-    def __init__(self, dim_in, dim_out, num_heads, num_inds, ln=False, mode=ISABMode.SEPARATE):
+    def __init__(self, dim_in, dim_out, num_heads, num_inds, ln=False, mode=ISABMode.SEPARATE, norm_first=True):
         super(ISAB, self).__init__()
         self.isab = InducedSetAttention(
             num_inds=num_inds,
@@ -66,8 +66,8 @@ class ISAB(nn.Module):
             d_Q=dim_in, d_KV=dim_in, d_O=dim_out,
             bias=True,
             init=True,
-            norm_first=True,
-            layer_norm=True, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn. This parameter has no effect with FFN, it seems. Yes it must have no layer norm at all to have effect
+            norm_first=norm_first,
+            layer_norm=ln, #Convergence speed decrease a bit when true, but it's a lot more stable. False doesn't work when attn residual false and attention none even with ffn. This parameter has no effect with FFN, it seems. Yes it must have no layer norm at all to have effect
             layer_norm_0=False,
             residual_2=False, #False is fine. Doesn't improve even True
             dropout=0,
@@ -88,8 +88,8 @@ class ISAB(nn.Module):
             activation=nn.ReLU,
             bias=True,
             init=True,
-            norm_first=True,
-            layer_norm=True,
+            norm_first=norm_first,
+            layer_norm=ln,
             #Linear=LowRankLinearFactory(2), #Linear low rank makes training time longer and performance drops significantly
         )
         #d_I, d_KV, d_H, 
@@ -103,7 +103,7 @@ class ISAB(nn.Module):
         return O
 
 class PMA(nn.Module):
-    def __init__(self, dim, num_heads, num_seeds, ln=False, linear=None):
+    def __init__(self, dim, num_heads, num_seeds, ln=False, linear=None, norm_first=True):
         super(PMA, self).__init__()
         self.pma = PoolingByMultiheadAttention(
             num_seeds=num_seeds,
@@ -111,8 +111,8 @@ class PMA(nn.Module):
             d_model=dim,
             bias=True,
             init=True, 
-            norm_first=False,
-            layer_norm=False, #Definitely False. Even without attn bias or FFN
+            norm_first=norm_first,
+            layer_norm=ln, #Definitely False. Even without attn bias or FFN
             layer_norm_0=False, #Definitely False
             residual_2=False, # False converges slowly. It's alright now actually. 1.55
             dropout=0,
@@ -132,8 +132,8 @@ class PMA(nn.Module):
             activation=nn.ReLU,
             bias=True,
             init=True,
-            norm_first=False,
-            layer_norm=False,#Definitely False
+            norm_first=norm_first,
+            layer_norm=ln,#Definitely False
             #Linear=LowRankLinearFactory(2), #Linear low rank makes training time longer and performance drops significantly
         )
 
