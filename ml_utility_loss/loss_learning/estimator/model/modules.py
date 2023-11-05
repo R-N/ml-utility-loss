@@ -180,6 +180,7 @@ class MultiHeadAttention(nn.Module):
         attn_bias=False, 
         attn_residual=True, 
         big_temperature=False,
+        norm_first=True,
         **kwargs,
     ):
         super().__init__()
@@ -199,6 +200,17 @@ class MultiHeadAttention(nn.Module):
         self.w_ks = Linear(self.d_KV, self.d_H, bias=attn_bias, init=False)
         self.w_vs = Linear(self.d_KV, self.d_O, bias=attn_bias, init=False)
 
+        self.norm_first = norm_first and layer_norm
+        self.norm_qs = None
+        self.norm_ks = None
+        self.norm_vs = None
+        #self.norm_I = None
+        if self.norm_first:
+            self.norm_qs = LayerNorm(self.d_Q, eps=1e-6, bias=bias, init=False)
+            self.norm_ks = LayerNorm(self.d_KV, eps=1e-6, bias=bias, init=False)
+            self.norm_vs = LayerNorm(self.d_KV, eps=1e-6, bias=bias, init=False)
+            #self.norm_I = LayerNorm(self.d_H, eps=1e-6, bias=bias, init=False)
+
         fc_bias = attn_bias or (bias and not layer_norm and not layer_norm_0)
         self.fc = Linear(self.d_O, self.d_O, bias=fc_bias, init=False)
 
@@ -217,8 +229,11 @@ class MultiHeadAttention(nn.Module):
 
         self.dropout = nn.Dropout(dropout) if dropout else None
 
-        self.layer_norm_0 = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm_0 else None
-        self.layer_norm = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm else None
+        self.layer_norm = None
+        self.layer_norm_0 = None
+        if not norm_first:
+            self.layer_norm_0 = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm_0 else None
+            self.layer_norm = LayerNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm else None
 
         if init:
             self.init()
@@ -237,6 +252,15 @@ class MultiHeadAttention(nn.Module):
             init_layer_norm(self.layer_norm, activation=activation)
         if self.layer_norm_0:
             init_layer_norm(self.layer_norm_0, activation=activation)
+        if self.norm_qs:
+            init_layer_norm(self.norm_qs, activation=activation)
+        if self.norm_ks:
+            init_layer_norm(self.norm_ks, activation=activation)
+        if self.norm_vs:
+            init_layer_norm(self.norm_vs, activation=activation)
+        #if self.norm_I:
+        #    init_layer_norm(self.norm_I, activation=activation)
+            
 
 
     def lora(self, base=None, w_qs=None, w_ks=None, w_vs=None, fc=None, attention=None):
@@ -269,6 +293,13 @@ class MultiHeadAttention(nn.Module):
             len_I = I.size(-2)
 
         residual = q
+
+        if self.norm_first:
+            q = self.norm_qs(q)
+            k = self.norm_ks(k)
+            v = self.norm_vs(v)
+            #if I is not None:
+            #    I = self.norm_I(I)
 
         # Pass through the pre-attention projection: b x lq x (n*dv)
         q = self.w_qs(q)
@@ -440,6 +471,7 @@ class InducedSetAttention(nn.Module):
         device=DEFAULT_DEVICE, 
         init=True, 
         mode=ISABMode.SEPARATE, 
+        norm_first=True,
         layer_norm=False,
         layer_norm_0=False,
         residual=True,
@@ -450,6 +482,7 @@ class InducedSetAttention(nn.Module):
         attn_bias=False,
         attn_residual=True,
         big_temperature=False,
+        bias=True,
         **kwargs
     ):
         super().__init__()
@@ -463,6 +496,11 @@ class InducedSetAttention(nn.Module):
         if rank:
             InductionPoint = LowRankInductionPoint
         self.I = InductionPoint(num_inds, d_I, rank=rank, device=device)
+
+        self.norm_first = layer_norm and norm_first
+        self.norm_I = None
+        if self.norm_first:
+            self.norm_I = LayerNorm(self.d_I, eps=1e-6, bias=bias, init=False)
 
         assert mode in ISABMode.__ALL__
         self.mode = mode
@@ -479,6 +517,7 @@ class InducedSetAttention(nn.Module):
             return MultiHeadAttention(
                 *args,
                 mode=mode, 
+                norm_first=norm_first,
                 layer_norm=layer_norm,
                 layer_norm_0=layer_norm_0,
                 residual_2=residual_2,
@@ -491,6 +530,7 @@ class InducedSetAttention(nn.Module):
                 device=device,
                 init=False,
                 residual=residual,
+                bias=bias,
                 **kwargs,
             )
         
@@ -534,6 +574,8 @@ class InducedSetAttention(nn.Module):
             self.mab1.init(activation=activation)
         if self.mab0:
             self.mab0.init(activation=activation)
+        if self.norm_I:
+            init_layer_norm(self.norm_I, activation=activation)
 
     def forward(self, q, k, v, mask=None):
         # This just uses MultiheadAttention
@@ -546,6 +588,8 @@ class InducedSetAttention(nn.Module):
         # It expects batched input so I is repeated to the batch dimension
         # So it has to be handled
         I = scale_inds_to_batch(self.I(), q)
+        if self.norm_first:
+            I = self.norm_I(I)
         if self.mode == ISABMode.MINI:
             O, (I_attn, O_attn) = self.mab0(q, k, v, mask=mask, I=I)
         else:
