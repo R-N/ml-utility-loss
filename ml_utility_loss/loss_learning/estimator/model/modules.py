@@ -740,7 +740,7 @@ class DoubleFeedForward(nn.Module):
         if inspect.isclass(self.activation):
             self.activation = self.activation()
 
-        self.norm_first = norm_first
+        self.norm_first = norm_first and layer_norm
         self.layer_norm = LayerNorm(d_in, eps=1e-6, bias=bias, init=False) if layer_norm else None
         self.dropout = nn.Dropout(dropout) if dropout else None
 
@@ -808,7 +808,7 @@ class FeedForward(nn.Module):
         if inspect.isclass(self.activation):
             self.activation = self.activation()
         self.dropout = nn.Dropout(dropout) if dropout else None
-        self.norm_first = norm_first
+        self.norm_first = norm_first and layer_norm
         self.layer_norm = LayerNorm(d_out, eps=1e-6, bias=bias, init=False) if layer_norm else None
 
         if init:
