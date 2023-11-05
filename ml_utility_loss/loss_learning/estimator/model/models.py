@@ -321,7 +321,7 @@ class MLUtilityWhole(nn.Module):
         if models:
             adapters = filter_dict(adapters, models)
 
-        self.adapters = {
+        self.adapters = nn.ModuleDict({
             model: Adapter(
                 d_input=d_input,
                 device=device,
@@ -330,10 +330,10 @@ class MLUtilityWhole(nn.Module):
                 **kwargs,
             )
             for model, d_input in adapters.items()
-        }
-        self.adapter_list = nn.ModuleList(list(self.adapters.values()))
+        })
+        #self.adapter_list = nn.ModuleList(list(self.adapters.values()))
         self.body = body
-        self.heads = {
+        self.heads = nn.ModuleDict({
             head: Head(
                 device=device,
                 init=False,
@@ -341,8 +341,8 @@ class MLUtilityWhole(nn.Module):
                 **kwargs,
             )
             for head in heads
-        }
-        self.head_list = nn.ModuleList(list(self.heads.values()))
+        })
+        #self.head_list = nn.ModuleList(list(self.heads.values()))
         self.models = models or list(self.adapters.keys())
         self.models = [x for x in self.models if x in self.adapters]
         self.objectives = objectives or list(self.heads.keys())
@@ -357,10 +357,10 @@ class MLUtilityWhole(nn.Module):
         #print("MLUtilityWhole.check_cuda", check_cuda(self))
 
     def init(self, activation=None):
-        for adapter in self.adapter_list:
+        for adapter in self.adapters.values():
             adapter.init(activation=None)
         self.body.init(activation=None)
-        for head in self.head_list:
+        for head in self.heads.values():
             head.init(activation=activation)
 
     def non_adapter_zero_grad(self):
