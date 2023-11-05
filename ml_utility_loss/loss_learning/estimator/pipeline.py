@@ -339,6 +339,7 @@ def train(
     create_model=create_model,
     train_epoch=train_epoch,
     _eval=_eval,
+    wandb=None,
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
@@ -513,6 +514,12 @@ def train(
                 train_loss=train_loss,
                 val_loss=val_loss,
             )
+
+        if wandb:
+            wandb.log({
+                **{f"{k}_train": v for k, v in train_loss.items()}, 
+                **{f"{k}_test": v for k, v in val_loss.items()},
+            })
 
         if early_stopping:
             early_stopping.step(train_value, val_value, epoch=i)
