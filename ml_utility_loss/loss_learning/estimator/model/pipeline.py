@@ -27,6 +27,7 @@ def create_body(
     #flip=False,
     #isab_skip_small=False,
     #pma_skip_small=False,
+    #norm_first=True,
     # Transformer args
     tf_num_inds=32,
     tf_d_inner=64,
@@ -95,6 +96,7 @@ def create_body(
         #attn_residual=attn_residual,
         #pma_layer_norm=pma_layer_norm,
         #pma_ffn_mode=pma_ffn_mode,
+        #norm_first=norm_first,
         **kwargs,
     )
     return body
@@ -112,6 +114,7 @@ def create_model(
     attn_activation=nn.ReLU,
     attn_residual=True,
     models=None,
+    norm_first=True,
     # Adapter args
     ada_d_hid=32, 
     ada_n_layers=2, 
@@ -152,6 +155,7 @@ def create_model(
         attn_activation=attn_activation,
         attn_residual=attn_residual,
         Model=Body,
+        norm_first=norm_first,
         **kwargs,
     )
     whole_model = MLUtilityWhole(
@@ -170,6 +174,7 @@ def create_model(
             "layer_norm": layer_norm,
             "bias": bias,
             "residual": residual,
+            "norm_first": norm_first,
         },
         head_args={
             "d_model": body.d_output,
@@ -193,6 +198,7 @@ def create_model(
             "attn_activation": attn_activation,
             "attn_residual": attn_residual,
             "pma_layer_norm": pma_layer_norm,
+            "norm_first": norm_first,
         },
         init=init,
     )
