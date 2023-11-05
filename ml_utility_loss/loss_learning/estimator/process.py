@@ -179,6 +179,8 @@ def train_epoch(
     eps=1e-6,
     timer=None,
     allow_same_prediction=True,
+    backward_mean_pred_loss=True,
+    backward_std_loss=True,
 ):
     assert optim or val, "Optimizer must be provided if val is false"
     #torch.autograd.set_detect_anomaly(True)
@@ -557,12 +559,14 @@ def train_epoch(
         #batch_loss = role_model_total_loss + non_role_model_loss
         batch_loss = (
             role_model_loss, 
-            role_model_std_loss, 
-            role_model_mean_pred_loss, # or not
             role_model_g_loss, 
             non_role_model_avg_mul * non_role_model_embed_loss, 
             non_role_model_avg_mul * non_role_model_g_loss,
         )
+        if backward_std_loss:
+            batch_loss = (*batch_loss, role_model_std_loss)
+        if backward_mean_pred_loss:
+            batch_loss = (*batch_loss, role_model_mean_pred_loss)
         if batch == 0:
             loss_balancer.pre_weigh(*batch_loss)
         batch_loss = sum(loss_balancer(*batch_loss))
