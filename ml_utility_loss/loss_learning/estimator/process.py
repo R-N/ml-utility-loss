@@ -883,5 +883,5 @@ def pred(
     }
 
 def pred_2(whole_model, batch_dict, **kwargs):
-    batch_dict = filter_dict(whole_model.models)
+    batch_dict = filter_dict(batch_dict, whole_model.models)
     return {m: pred(whole_model[m], s, **kwargs) for m, s in batch_dict.items()}
