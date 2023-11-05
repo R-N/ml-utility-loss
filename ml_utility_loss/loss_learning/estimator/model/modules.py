@@ -155,6 +155,7 @@ class ScaledDotProductAttention(nn.Module):
         attn = torch.matmul(q / self.temperature, k.transpose(-2, -1))
 
         if mask is not None:
+            print(attn.shape, mask.shape)
             attn = attn.masked_fill(mask == 0, -1e9)
 
         attn = self.softmax(attn, **self.softmax_args)
