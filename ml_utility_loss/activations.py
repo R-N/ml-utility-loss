@@ -47,7 +47,7 @@ class Hardsigmoid(nn.Module):
         return torch.clamp(x/self.range + 0.5, min=0, max=1)
 
 class Hardtanh(nn.Module):
-    def __init__(self, min_val=-1.0, max_val=1.0, range=6):
+    def __init__(self, min_val=-1.0, max_val=1.0, range=1):
         super().__init__()
         self.min_val = min_val
         self.max_val = max_val
