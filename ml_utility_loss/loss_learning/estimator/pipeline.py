@@ -565,7 +565,10 @@ def train(
     if checkpoint_dir:
         #print("[INFO] Saving checkpoint", i, torch.cuda.mem_get_info())
         mkdir(checkpoint_dir)
-        torch.save(whole_model, os.path.join(checkpoint_dir, "model.pt"))
+        try:
+            torch.save(whole_model, os.path.join(checkpoint_dir, "model.pt"))
+        except AttributeError as ex:
+            print("Failed to save", ex)
         torch.save(deepcopy(whole_model.state_dict()), os.path.join(checkpoint_dir, "states.pt"))
 
     return {
