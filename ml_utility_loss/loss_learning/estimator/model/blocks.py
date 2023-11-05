@@ -263,6 +263,7 @@ class Adapter(nn.Module):
         bias=False,
         Linear=Linear,
         init=True,
+        layer_norm=True,
         **kwargs,
     ):
         super().__init__()
@@ -280,6 +281,7 @@ class Adapter(nn.Module):
             Linear=LinearLora,
             residual=residual,
             bias=bias,
+            layer_norm=layer_norm,
         ):
             # Feedforward already defaults bias to False
             return FeedForward(
@@ -291,10 +293,11 @@ class Adapter(nn.Module):
                 residual=residual,
                 bias=bias,
                 init=False,
+                layer_norm=layer_norm,
                 **kwargs,
             )
         self.linear = nn.Sequential(*[
-            Linear_(d_input, d_hid),
+            Linear_(d_input, d_hid, layer_norm=False),
             *[Linear_(d_hid, d_hid) for i in range(n_layers-2)],
             Linear_(d_hid, d_model, activation=activation_final, residual=False),
         ])
