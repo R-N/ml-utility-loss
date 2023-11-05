@@ -7,8 +7,8 @@ from ..ml_utility.pipeline import eval_ml_utility
 from ...params import GradientPenaltyMode, PMAFFNMode
 from .model.models import Transformer, MLUtilityWhole
 from .model.pipeline import create_model
-#from torch.utils.data import DataLoader
-from ...data import FastDataLoader as DataLoader
+from torch.utils.data import DataLoader
+#from ...data import FastDataLoader as DataLoader
 from .data import collate_fn
 import torch
 from .process import train_epoch, eval as _eval
