@@ -39,53 +39,19 @@ class Linear(nn.Linear):
     def __init__(self, *args, init=True, **kwargs):
         super().__init__(*args, **kwargs)
 
-class Norm(nn.Module):
-    def __init__(self, normalized_shape=None, num_groups=2, bias=True, init=True, Norm=nn.LayerNorm, **kwargs):
-        super().__init__()
-        if isinstance(Norm, str):
-            Norm = NORMS[Norm]
-        self.permute = False
-        if Norm == nn.GroupNorm:
-            self.norm = Norm(num_channels=normalized_shape, num_groups=num_groups, **kwargs)
-            self.permute = True
-        elif Norm == nn.LayerNorm:
-            self.norm = Norm(normalized_shape=normalized_shape, **kwargs)
-        else:
-            self.norm = Norm(**kwargs)
-        
-        if not bias and hasattr(self.norm, "bias"):
-            self.norm.bias = None
-            self.norm.register_parameter('bias', None)
+class LayerNorm(nn.LayerNorm):
+    def __init__(self, *args, bias=True, init=True, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not bias:
+            self.bias = None
+            self.register_parameter('bias', None)
             self.reset_parameters()
-
-        if not hasattr(self.norm, "weight"):
-            self.norm.weight = None
-        if not hasattr(self.norm, "bias"):
-            self.norm.bias = None
-
-    @property
-    def weight(self):
-        return self.norm.weight
-    
-    @property
-    def bias(self):
-        return self.norm.bias
         
     def reset_parameters(self):
-        if hasattr(self.norm, "weight") and self.norm.weight is not None:
-            torch.nn.init.ones_(self.norm.weight)
-        if hasattr(self.norm, "bias") and self.norm.bias is not None:
-            torch.nn.init.zeros_(self.norm.bias)
-
-    def forward(self, x):
-        if self.permute:
-            dim = list(range(x.dim()))
-            dim = [*dim[:-2], dim[-1], dim[-2]]
-            x = torch.permute(x, dim)
-        x = self.norm(x)
-        if self.permute:
-            x = torch.permute(x, dim)
-        return x
+        if self.elementwise_affine:
+            torch.nn.init.ones_(self.weight)
+            if self.bias is not None:
+                torch.nn.init.zeros_(self.bias)
 
 class ScaleNorm(nn.Module):
     """ScaleNorm"""
