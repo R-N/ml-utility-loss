@@ -48,16 +48,16 @@ class Norm(nn.Module):
             self.norm = Norm(num_channels=num_channels, **kwargs)
         else:
             self.norm = Norm(**kwargs)
+        
+        if not bias and hasattr(self.norm, "bias"):
+            self.norm.bias = None
+            self.norm.register_parameter('bias', None)
+            self.reset_parameters()
 
         if not hasattr(self.norm, "weight"):
             self.norm.weight = None
         if not hasattr(self.norm, "bias"):
             self.norm.bias = None
-        
-        if not bias:
-            self.norm.bias = None
-            self.norm.register_parameter('bias', None)
-            self.reset_parameters()
 
     @property
     def weight(self):
