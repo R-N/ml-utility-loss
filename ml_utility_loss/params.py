@@ -10,6 +10,13 @@ from .Padam import Padam
 from functools import partial
 from .metrics import msle, mean_penalty, mean_penalty_tan, mean_penalty_tan_half, mean_penalty_tan_double, mean_penalty_rational, mean_penalty_rational_half, mean_penalty_rational_double
 
+NORMS = {
+    "layer": torch.nn.LayerNorm,
+    "group": torch.nn.GroupNorm,
+    "instance": torch.nn.InstanceNorm1d,
+    #"batch": torch.nn.BatchNorm1d
+}
+
 class CombineMode:
     CONCAT = "concat"
     DIFF_LEFT = "diff_left"
