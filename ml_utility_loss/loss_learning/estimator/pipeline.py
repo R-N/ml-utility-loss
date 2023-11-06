@@ -342,6 +342,7 @@ def train(
     wandb=None,
     include_mean_pred_loss=False,
     include_std_loss=False,
+    grad_phase_2=False,
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
@@ -456,9 +457,9 @@ def train(
 
     
     #print("[INFO] Beginning epoch")
-    gradient_penalty_mode_ = GradientPenaltyMode.NONE
-    print("current gradient_penalty_mode_ ", gradient_penalty_mode_)
-    print("given gradient_penalty_mode ", gradient_penalty_mode)
+    gradient_penalty_mode_ = gradient_penalty_mode
+    if grad_phase_2:
+        gradient_penalty_mode_ = GradientPenaltyMode.NONE
     epochs = epochs or 1000
     for i in range(i, i+epochs):
 
