@@ -51,7 +51,7 @@ def train_epoch(
 
     loss_balancer.to(whole_model.device)
 
-    avg_pred_stds = {}
+    avg_pred_std = 0
 
     clear_memory()
 
@@ -116,9 +116,7 @@ def train_epoch(
         
         assert allow_same_prediction or batch_size == 1 or pred_std_ != 0, f"model predicts the same for every input, {model}, {pred[0].item()}, {pred_std_}"
 
-        if model not in avg_pred_stds:
-            avg_pred_stds[model] = 0
-        avg_pred_stds[model] += pred_std_
+        avg_pred_std += pred_std_
 
         y_mean = torch.mean(y).item()
         y_mean_loss = loss_fn(
@@ -194,9 +192,8 @@ def train_epoch(
     avg_role_model_std_loss /= n_batch
     avg_role_model_mean_pred_loss /= n
     avg_loss /= n
-    avg_pred_stds = {k: (v / n_batch) for k, v in avg_pred_stds.items()}
-    avg_pred_stds = {k: try_tensor_item(v) for k, v in avg_pred_stds.items()}
-    avg_pred_std = mean(avg_pred_stds.values())
+    avg_pred_std = avg_pred_std / n_batch
+    avg_pred_std = try_tensor_item(avg_pred_std) 
     clear_memory()
     return {
         "avg_role_model_loss": avg_role_model_loss, 
@@ -254,7 +251,7 @@ def eval(
 
         batch_size = y.shape[0] if y.dim() > 0 else 1
 
-        ys[model].extend(y.detach().cpu())
+        ys.extend(y.detach().cpu())
 
         time_0 = time.time()
 
@@ -272,13 +269,13 @@ def eval(
         # We reduce directly because no further need for shape
         loss = loss_fn(pred, y, reduction="none")
 
-        preds[model].extend(pred.detach().cpu())
+        preds.extend(pred.detach().cpu())
     
         n_mul = (batch_size if reduction == torch.mean else 1)
         loss = reduction(loss).item()
         avg_loss += loss * n_mul
 
-        pred_duration[model] += time_1 - time_0
+        pred_duration += time_1 - time_0
 
         n_size += batch_size
         n_batch += 1
