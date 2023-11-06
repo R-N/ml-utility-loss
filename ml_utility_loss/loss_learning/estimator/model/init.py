@@ -36,7 +36,7 @@ def init_layer_norm(norm, activation=None):
         torch.nn.init.zeros_(norm.bias)
 
 def init_induction_point(tensor, activation=None, mode="torch"):
-    if mode=="xavier":
+    if mode=="xavier": # bad
         torch.nn.init.xavier_uniform_(tensor)
     elif mode=="fixnorm":
         torch.nn.init.uniform_(tensor, -0.01, 0.01) # fixnorm
