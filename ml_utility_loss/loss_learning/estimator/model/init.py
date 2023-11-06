@@ -28,7 +28,7 @@ def init_attn(linear, activation=None):
         a = activation.negative_slope
     t = type(activation) if isinstance(activation, torch.nn.Module) else activation
     nonlinearity = ACTIVATIONS_INVERSE[t]
-    torch.nn.init.kaiming_uniform_(linear.weight, a=math.sqrt(5)*a, nonlinearity=nonlinearity)
+    torch.nn.init.kaiming_uniform_(linear.weight, a=math.sqrt(5)+a, nonlinearity=nonlinearity)
     if linear.bias is not None:
         torch.nn.init.zeros_(linear.bias)
 
