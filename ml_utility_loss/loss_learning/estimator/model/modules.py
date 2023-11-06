@@ -40,12 +40,14 @@ class Linear(nn.Linear):
         super().__init__(*args, **kwargs)
 
 class Norm(nn.Module):
-    def __init__(self, num_groups=4, bias=True, init=True, Norm=nn.GroupNorm, **kwargs):
+    def __init__(self, normalized_shape=None, num_groups=4, bias=True, init=True, Norm=nn.GroupNorm, **kwargs):
         super().__init__()
         if isinstance(Norm, str):
             Norm = NORMS[Norm]
         if Norm == nn.GroupNorm:
             self.norm = Norm(num_groups=num_groups, **kwargs)
+        elif Norm == nn.LayerNorm:
+            self.norm = Norm(normalized_shape=normalized_shape, **kwargs)
         else:
             self.norm = Norm(**kwargs)
         
