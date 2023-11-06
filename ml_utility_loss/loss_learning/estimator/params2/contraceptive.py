@@ -49,7 +49,7 @@ PARAM_SPACE = {
         "lct_gan", 
         "lct_gan_latent", 
         "tab_ddpm_concat", 
-        "realtabformer"
+        #"realtabformer"
     ]),
     "gradient_penalty_mode": ("gradient_penalty_mode", [
         #"NONE",
