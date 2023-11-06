@@ -46,8 +46,8 @@ class LossBalancer(nn.Module):
         losses = torch.mul(w, losses)
         return losses.to(losses[0].device)
     
-    def __call__(self, *losses):
-        return self.forward(*losses)
+    def __call__(self, *losses, **kwargs):
+        return self.forward(*losses, **kwargs)
     
 class FixedWeights(LossBalancer):
     def __init__(self, weights, **kwargs):
