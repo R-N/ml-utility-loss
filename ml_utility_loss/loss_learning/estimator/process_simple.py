@@ -144,9 +144,9 @@ def train_epoch(
             loss, 
         )
         if include_std_loss:
-            batch_loss = (*batch_loss, 0.5*std_loss)
+            batch_loss = (*batch_loss, std_loss)
         if include_mean_pred_loss:
-            batch_loss = (*batch_loss, 0.5*mean_pred_loss)
+            batch_loss = (*batch_loss, mean_pred_loss)
         if batch == 0 and not val:
             loss_balancer.pre_weigh(*batch_loss, val=val)
         batch_loss = sum(loss_balancer(*batch_loss, val=val))

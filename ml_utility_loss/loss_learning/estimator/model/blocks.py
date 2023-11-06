@@ -263,7 +263,7 @@ class Adapter(nn.Module):
         bias=False,
         Linear=Linear,
         init=True,
-        layer_norm=True,
+        layer_norm=False,
         **kwargs,
     ):
         super().__init__()
@@ -350,7 +350,7 @@ class Head(nn.Module):
         softmax=nn.Softmax,
         lora_mode=LoRAMode.FULL,
         lora_rank=2,
-        layer_norm=True,
+        layer_norm=False,
         device=DEFAULT_DEVICE,
         bias=False,
         bias_final=True,

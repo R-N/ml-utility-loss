@@ -13,7 +13,7 @@ class PretrainingScheduler:
         min_size=32, max_size=inf, size_factor=2, 
         min_batch_size=4, max_batch_size=64, batch_size_factor=0.5,
         min_aug=0, max_aug=0, aug_step=0.1, aug_inc=1,
-        mode='min', patience=10, cooldown=0,
+        mode='min', patience=30, cooldown=0,
         threshold=1e-4, threshold_mode='rel', 
         eps=1e-8, 
         model=None,
@@ -217,7 +217,7 @@ class PretrainingScheduler:
 
 
 class ReduceLROnPlateau(_ReduceLROnPlateau):
-    def __init__(self, *args, factor=0.1, patience=10, cooldown=2, min_lr=1e-7, **kwargs):
+    def __init__(self, *args, factor=0.1, patience=30, cooldown=2, min_lr=1e-7, **kwargs):
         super().__init__(*args, factor=factor, patience=patience, cooldown=cooldown, min_lr=min_lr, **kwargs)
 
     def _reduce_lr(self, epoch):
