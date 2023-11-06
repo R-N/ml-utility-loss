@@ -194,7 +194,7 @@ class MultiHeadAttention(nn.Module):
         attn_bias=False, 
         attn_residual=True, 
         big_temperature=False,
-        norm_first=True,
+        norm_first=False,
         **kwargs,
     ):
         super().__init__()
@@ -485,7 +485,7 @@ class InducedSetAttention(nn.Module):
         device=DEFAULT_DEVICE, 
         init=True, 
         mode=ISABMode.SEPARATE, 
-        norm_first=True,
+        norm_first=False,
         layer_norm=False,
         layer_norm_0=False,
         residual=True,
@@ -732,7 +732,7 @@ class DoubleFeedForward(nn.Module):
         bias=True, 
         init=True,
         layer_norm=True,
-        norm_first=True,
+        norm_first=False,
         **kwargs,
     ):
         super().__init__()
@@ -800,7 +800,7 @@ class FeedForward(nn.Module):
         Linear=Linear, 
         bias=False, 
         init=True,
-        norm_first=True,
+        norm_first=False,
         **kwargs,
     ):
         super().__init__()

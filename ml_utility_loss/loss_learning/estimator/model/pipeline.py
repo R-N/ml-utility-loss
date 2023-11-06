@@ -27,7 +27,7 @@ def create_body(
     #flip=False,
     #isab_skip_small=False,
     #pma_skip_small=False,
-    #norm_first=True,
+    #norm_first=False,
     # Transformer args
     tf_num_inds=32,
     tf_d_inner=64,
@@ -114,7 +114,7 @@ def create_model(
     attn_activation=nn.ReLU,
     attn_residual=True,
     models=None,
-    norm_first=True,
+    norm_first=False,
     # Adapter args
     ada_d_hid=32, 
     ada_n_layers=2, 
