@@ -35,6 +35,12 @@ def init_layer_norm(norm, activation=None):
     if norm.bias is not None:
         torch.nn.init.zeros_(norm.bias)
 
+def init_induction_point(tensor, activation=None):
+    #torch.nn.init.xavier_uniform_(tensor)
+    #torch.nn.init.uniform_(tensor, -1, 1)
+    #torch.nn.init.ones_(tensor)
+    torch.nn.init.orthognal_(tensor)
+
 def init(module, activation=None):
     if module is None:
         return

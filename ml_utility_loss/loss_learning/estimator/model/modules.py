@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import inspect
 from ....util import DEFAULT_DEVICE, check_cuda
 from ....params import ISABMode
-from .init import init_linear, init_layer_norm, init_attn
+from .init import init_linear, init_layer_norm, init_attn, init_induction_point
 import numpy as np
 
 Tensor = torch.Tensor
@@ -451,9 +451,7 @@ class TensorInductionPoint(nn.Module):
     def __init__(self, num_inds, d_I, rank=None, device=DEFAULT_DEVICE, **kwargs):
         super().__init__()
         self.tensor = nn.Parameter(Tensor(num_inds, d_I, **kwargs))
-        #nn.init.xavier_uniform_(self.tensor)
-        nn.init.uniform_(self.tensor, -1, 1)
-        #nn.init.ones_(self.tensor)
+        init_induction_point(self.tensor)
         self.device = device
         self.to(device)
 
@@ -466,12 +464,8 @@ class LowRankInductionPoint(nn.Module):
         assert rank > 0
         self.a = nn.Parameter(Tensor(num_inds, rank, **kwargs))
         self.b = nn.Parameter(Tensor(rank, d_I, **kwargs))
-        #nn.init.xavier_uniform_(self.a)
-        #nn.init.xavier_uniform_(self.b)
-        nn.init.uniform_(self.a, -1, 1)
-        nn.init.uniform_(self.b, -1, 1)
-        #nn.init.ones_(self.a)
-        #nn.init.ones_(self.b)
+        init_induction_point(self.a)
+        init_induction_point(self.b)
         self.device = device
         self.to(device)
 
