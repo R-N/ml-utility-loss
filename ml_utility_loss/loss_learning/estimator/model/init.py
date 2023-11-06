@@ -47,7 +47,7 @@ def init_induction_point(tensor, activation=None):
     fill = math.sqrt(elements)
     #fill = math.sqrt(sum([x**2 for x in tensor.shape]))
     sparsity = fill/elements
-    torch.nn.init.sparse_(tensor, sparsity=fill)
+    #torch.nn.init.sparse_(tensor, sparsity=fill)
 
 def init(module, activation=None):
     if module is None:
