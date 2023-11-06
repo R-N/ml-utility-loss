@@ -72,6 +72,16 @@ class BaseDataset(Dataset):
         self.cache_dir = cache_dir
         self.create_cache(max_cache=max_cache, cache_dir=cache_dir, **kwargs)
 
+    def calculate_stats(self):
+        self.calculate_stats_()
+
+    def calculate_stats_(self):
+        self.mean = self.y.mean()
+        self.std = self.y.std()
+        self.range = self.y.max() - self.y.min()
+        quartiles = self.y.quantile([0.25, 0.75])
+        self.iqr = quartiles[0.75] - quartiles[0.25]
+
     def create_cache(self, max_cache=None, cache_dir="_cache", force=False, **kwargs):
         if not force and hasattr(self, "max_cache") and self.max_cache == max_cache:
             return
@@ -158,16 +168,17 @@ class DatasetDataset(BaseDataset):
         self.train = train
         self.test = test
         self.value = value
-        y = self.info_all[self.value]
-        self.mean = y.mean()
-        self.std = y.std()
-        self.range = y.max() - y.min()
-        quartiles = y.quantile([0.25, 0.75])
-        self.iqr = quartiles[0.75] - quartiles[0.25]
+        
         assert mode in ("shuffle", "sort")
         self.mode = mode
         self.drop_first_column = drop_first_column
         self.dtypes = dtypes
+
+        self.calculate_stats()
+
+    def calculate_stats(self):
+        self.y = y = self.info_all[self.value]
+        self.calculate_stats_()
 
     def set_size(self, size, force=False):
         return False
@@ -222,6 +233,12 @@ class WrapperDataset(BaseDataset):
         self.dataset = dataset.try_copy() if copy else dataset
         self.size = dataset.size
         self.wrapper_kwargs = kwargs
+        
+        self.calculate_stats()
+
+    def calculate_stats(self):
+        self.y = self.dataset.y
+        self.calculate_stats_()
 
     @property
     def index(self):
@@ -237,12 +254,14 @@ class WrapperDataset(BaseDataset):
         if self.dataset.set_size(size, **kwargs):
             self.size = self.dataset.size
             self.clear_cache()
+            self.calculate_stats()
             return True
         return False
     
     def set_aug_scale(self, aug_scale, **kwargs):
         if self.dataset.set_aug_scale(aug_scale, **kwargs):
             self.clear_cache()
+            self.calculate_stats()
             return True
         return False
     
@@ -264,6 +283,12 @@ class SubDataset(WrapperDataset):
         index = index.astype(int)
         self.sub_kwargs = kwargs
         self.index_ = index
+
+        self.calculate_stats()
+
+    def calculate_stats(self):
+        self.y = self.dataset.y.iloc[self.index]
+        self.calculate_stats_()
 
     @property
     def index(self):
@@ -293,9 +318,33 @@ class MultiSizeDatasetDataset(BaseDataset):
         #traceback.print_stack()
         self.set_size(size, force=True)
 
+    def calculate_stats(self):
+        self.y = self.dataset.y
+        self.calculate_stats_()
+
     @property
     def index(self):
         return self.dataset.index
+
+    @property
+    def y(self):
+        return self.dataset.y
+
+    @property
+    def mean(self):
+        return self.dataset.mean
+
+    @property
+    def std(self):
+        return self.dataset.std
+
+    @property
+    def range(self):
+        return self.dataset.range
+
+    @property
+    def iqr(self):
+        return self.dataset.iqr
 
     def set_size(self, size, force=False):
         size = size or self.all
@@ -533,6 +582,12 @@ class ConcatDataset(BaseDataset):
         self.cumulatives = np.cumsum(self.counts)
         self.count = sum(self.counts)
 
+        self.calculate_stats()
+
+    def calculate_stats(self):
+        self.y = pd.concat([d.y for d in self.datasets])
+        self.calculate_stats_()
+
     @property
     def index(self):
         return list(range(len(self)))
@@ -558,6 +613,7 @@ class ConcatDataset(BaseDataset):
             assert len(set([dataset.size for dataset in self.datasets])) == 1
             self.size = self.datasets[0].size
             self.clear_cache()
+            self.calculate_stats()
             return True
         return False
     
@@ -565,6 +621,7 @@ class ConcatDataset(BaseDataset):
         if np.array([dataset.set_aug_scale(aug_scale, **kwargs) for dataset in self.datasets]).any():
             self.aug_scale = aug_scale
             self.clear_cache()
+            self.calculate_stats()
             return True
         return False
     
