@@ -41,8 +41,11 @@ def init_induction_point(tensor, activation=None):
     #torch.nn.init.uniform_(tensor, -1, 1)
     #torch.nn.init.ones_(tensor)
     #torch.nn.init.orthogonal_(tensor)
-    #torch.nn.init.sparse_(tensor, sparsity=math.sqrt(math.prod(list(tensor.shape))))
-    torch.nn.init.sparse_(tensor, sparsity=math.sqrt(sum([x**2 for x in tensor.shape])))
+    elements = math.prod(list(tensor.shape))
+    fill = math.sqrt(elements)
+    sparsity = fill/elements
+    torch.nn.init.sparse_(tensor, sparsity=sparsity)
+    #torch.nn.init.sparse_(tensor, sparsity=math.sqrt(sum([x**2 for x in tensor.shape])))
 
 def init(module, activation=None):
     if module is None:
