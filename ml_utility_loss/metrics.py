@@ -85,5 +85,5 @@ class ScaledLoss:
     def forward(self, pred, y, **kwargs):
         return self.loss_fn(pred, y, **kwargs) / self.divider
     
-    def call(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs):
         return self.forward(*args, **kwargs)
