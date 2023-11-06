@@ -12,8 +12,8 @@ from .process import try_tensor_item, calc_metrics
 def train_epoch(
     whole_model, 
     train_loader, 
-    model,
     optim=None, 
+    model=None,
     loss_balancer=LossBalancer(),
     loss_fn=F.mse_loss,
     mean_pred_loss_fn=None,
@@ -28,11 +28,14 @@ def train_epoch(
     allow_same_prediction=False,
     backward_mean_pred_loss=False,
     backward_std_loss=False,
+    fixed_role_model=None,
     **kwargs,
 ):
     assert optim or val, "Optimizer must be provided if val is false"
     #torch.autograd.set_detect_anomaly(True)
     size = len(train_loader.dataset)
+
+    model = model or fixed_role_model
 
     std_loss_fn = std_loss_fn or loss_fn
     mean_pred_loss_fn = mean_pred_loss_fn or loss_fn
