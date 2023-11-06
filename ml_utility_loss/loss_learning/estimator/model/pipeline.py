@@ -14,6 +14,35 @@ class ModelBody:
     }
     __ALL__ = [TRANSFORMER, TWIN_ENCODER]
 
+
+NON_MODEL_PARAMS = (
+    'epochs', 
+    'lr', 
+    "Optim", 
+    "loss_balancer_beta",
+    "loss_balancer_r",
+    "loss_balancer_meta",
+    "loss_balancer_log",
+    "loss_balancer_lbtw",
+    "std_loss_fn",
+    "grad_loss_fn",
+    "adapter_loss_fn",
+    "fixed_role_model",
+    "gradient_penalty_mode",
+    "dataset_size_low",
+    "dataset_size_high",
+    "batch_size_low",
+    "batch_size_high",
+    "patience",
+)
+
+def remove_non_model_params(params, entries_to_remove=NON_MODEL_PARAMS):
+    params2 = dict(params)
+    for k in entries_to_remove:
+        params2.pop(k, None)
+    return params2
+
+
 def create_body(
     # Common model args
     #dropout=0, 

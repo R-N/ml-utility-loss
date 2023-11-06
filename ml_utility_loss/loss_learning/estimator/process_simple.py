@@ -28,6 +28,7 @@ def train_epoch(
     allow_same_prediction=False,
     backward_mean_pred_loss=False,
     backward_std_loss=False,
+    **kwargs,
 ):
     assert optim or val, "Optimizer must be provided if val is false"
     #torch.autograd.set_detect_anomaly(True)
@@ -215,6 +216,7 @@ def eval(
     std_loss_fn=mean_penalty_rational,
     reduction=torch.mean,
     allow_same_prediction=False,
+    **kwargs,
 ):
     size = len(eval_loader.dataset)
 
