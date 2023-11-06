@@ -343,7 +343,6 @@ def train(
     include_mean_pred_loss=False,
     include_std_loss=False,
     grad_phase_2=False,
-    grad_loss_scale="mean",
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
@@ -354,10 +353,6 @@ def train(
     elif len(datasets) == 2:
         train_set, test_set = datasets
         val_set = test_set
-
-    if grad_loss_scale:
-        grad_loss_scale = getattr(train_set, grad_loss_scale)
-        grad_loss_fn = ScaledLoss(grad_loss_fn, grad_loss_scale)
 
     if not loss_balancer:
         loss_balancer = MyLossTransformer(

@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 from ...util import stack_samples, stack_sample_dicts, clear_memory, clear_cuda_memory, zero_tensor, filter_dict
 from torch.nn.utils import clip_grad_norm_
-from ...metrics import rmse, mae, mape, mean_penalty, mean_penalty_rational, mean_penalty_rational_half
+from ...metrics import rmse, mae, mape, mean_penalty, mean_penalty_rational, mean_penalty_rational_half, ScaledLoss, SCALING
 import time
 import numpy as np
 from ...loss_balancer import FixedWeights, MyLossWeighter, LossBalancer, MyLossTransformer
@@ -163,6 +163,7 @@ def train_epoch(
     mean_pred_loss_fn=None,
     std_loss_fn=mean_penalty_rational_half,
     grad_loss_fn=F.huber_loss, # It's fine as long as loss_fn is MSE
+    grad_loss_scale="mean",
     adapter_loss_fn=F.l1_loss, # Values can get very large and MSE loss will result in infinity, or maybe use kl_div
     reduction=torch.mean,
     val=False,
@@ -509,7 +510,8 @@ def train_epoch(
                 # the expected gradient g is 2*sqrt(loss)
                 g = 2 * torch.sqrt(loss.detach())
                 # gradient penalty
-                g_loss = grad_loss_fn(dbody_dx_norm, g, reduction="none")
+                grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g)) if grad_loss_scale else grad_loss_fn
+                g_loss = grad_loss_fn_(dbody_dx_norm, g, reduction="none")
                 g_loss = g_loss + eps
                 if loss_clamp:
                     g_loss = clamp_tensor(g_loss, loss_clamp=loss_clamp)
@@ -647,6 +649,7 @@ def eval(
     mean_pred_loss_fn=None,
     std_loss_fn=mean_penalty_rational_half,
     grad_loss_fn=F.mse_loss, #for RMSE,
+    grad_loss_scale="mean",
     reduction=torch.mean,
     models=None,
     allow_same_prediction=True,
@@ -715,7 +718,8 @@ def eval(
 
             # expected gradient is 2*sqrt(loss)
             g = 2 * torch.sqrt(loss.detach())
-            g_loss = grad_loss_fn(dbody_dx_norm, g, reduction="none")
+            grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g)) if grad_loss_scale else grad_loss_fn
+            g_loss = grad_loss_fn_(dbody_dx_norm, g, reduction="none")
             
             preds[model].extend(pred.detach().cpu())
             grads[model].extend(dbody_dx_norm.detach().cpu())
@@ -840,6 +844,7 @@ def pred(
     batch, 
     loss_fn=F.mse_loss,
     grad_loss_fn=F.mse_loss, #for RMSE,
+    grad_loss_scale="mean",
 ):
 
     # Set the model to eval mode for validation or train mode for training
@@ -868,7 +873,8 @@ def pred(
     dbody_dx_norm = dbody_dx.norm(2, dim=-1)
     # expected gradient is 2*sqrt(loss)
     g = 2 * torch.sqrt(loss.detach())
-    g_loss = grad_loss_fn(dbody_dx_norm, g, reduction="none")
+    grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g)) if grad_loss_scale else grad_loss_fn
+    g_loss = grad_loss_fn_(dbody_dx_norm, g, reduction="none")
 
     pred = pred.detach().cpu().numpy()
     loss = loss.detach().cpu().numpy()

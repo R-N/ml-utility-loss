@@ -51,17 +51,39 @@ def mape(pred, y, eps=1e-9, reduction=torch.mean):
     value = reduction(ape)
     return value
 
-class ScaledLoss(torch.nn.Module):
+def range(x, dim=None):
+    return torch.max(x, dim=dim) - torch.min(x, dim=dim)
+
+def iqr(x, dim=None):
+    return torch.quantile(x, 0.75, dim=dim) - torch.quantile(x, 0.25, dim=dim)
+
+SCALING = {
+    "mean": torch.mean,
+    "range": range,
+    "iqr": iqr,
+    "std": torch.std,
+}
+
+def scale_divider(loss_fn, divider=1):
+    assert divider != 0
+    if loss_fn in (F.mse_loss,) or isinstance(loss_fn, (torch.nn.MSELoss)):
+        divider = divider ** 2
+    if loss_fn in (msle,):
+        divider = math.log(divider) ** 2
+    if loss_fn in (F.huber_loss,) or isinstance(loss_fn, (torch.nn.HuberLoss)):
+        divider = 0.5 * (divider ** 2)
+    return divider
+
+class ScaledLoss:
     def __init__(self, loss_fn, divider=1):
+        super().__init__()
         self.loss_fn = loss_fn
         assert divider != 0
-        if loss_fn in (F.mse_loss,) or isinstance(loss_fn, (torch.nn.MSELoss)):
-            divider = divider ** 2
-        if loss_fn in (msle,):
-            divider = math.log(divider) ** 2
-        if loss_fn in (F.huber_loss,) or isinstance(loss_fn, (torch.nn.HuberLoss)):
-            divider = 0.5 * (divider ** 2)
+        divider = scale_divider(loss_fn, divider=divider)
         self.divider = divider
 
     def forward(self, pred, y, **kwargs):
         return self.loss_fn(pred, y, **kwargs) / self.divider
+    
+    def call(self, *args, **kwargs):
+        return self.forward(*args, **kwargs)
