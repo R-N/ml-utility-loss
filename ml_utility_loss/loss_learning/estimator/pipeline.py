@@ -457,6 +457,8 @@ def train(
     
     #print("[INFO] Beginning epoch")
     gradient_penalty_mode_ = GradientPenaltyMode.NONE
+    print("current gradient_penalty_mode_ ", gradient_penalty_mode_)
+    print("given gradient_penalty_mode ", gradient_penalty_mode)
     epochs = epochs or 1000
     for i in range(i, i+epochs):
 
