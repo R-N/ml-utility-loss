@@ -41,7 +41,7 @@ def init_induction_point(tensor, activation=None):
     #torch.nn.init.uniform_(tensor, -1, 1)
     #torch.nn.init.ones_(tensor)
     #torch.nn.init.orthogonal_(tensor)
-    torch.nn.init.uniform_(tensor, -0.01, 0.01) # fixnorm
+    torch.nn.init.uniform_(tensor, -0.001, 0.001) # fixnorm
     #torch.nn.init.nromal_(tensor, -0.01, 0.01) # fixnorm
     elements = math.prod(list(tensor.shape))
     #fill = math.sqrt(elements)
