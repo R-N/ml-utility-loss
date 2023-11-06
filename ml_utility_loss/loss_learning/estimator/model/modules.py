@@ -39,21 +39,21 @@ class Linear(nn.Linear):
     def __init__(self, *args, init=True, **kwargs):
         super().__init__(*args, **kwargs)
 
-class InstanceNorm1d(nn.InstanceNorm1d):
+class GroupNorm(nn.GroupNorm):
     def __init__(self, *args, bias=True, init=True, **kwargs):
         super().__init__(*args, **kwargs)
-    """
+    #"""
         if not bias:
             self.bias = None
             self.register_parameter('bias', None)
             self.reset_parameters()
         
     def reset_parameters(self):
-        if self.elementwise_affine:
+        if (hasattr(self, "elementwise_affine") and self.elementwise_affine) or (hasattr(self, "affine") and self.affine):
             torch.nn.init.ones_(self.weight)
             if self.bias is not None:
                 torch.nn.init.zeros_(self.bias)
-    """
+    #"""
 
 
 class ScaleNorm(nn.Module):
@@ -222,16 +222,16 @@ class MultiHeadAttention(nn.Module):
         self.norm_vs = None
         #self.norm_I = None
         if self.norm_first:
-            self.norm_qs = InstanceNorm1d(self.d_Q, eps=1e-6, bias=bias, init=False)
-            self.norm_ks = InstanceNorm1d(self.d_KV, eps=1e-6, bias=bias, init=False)
-            self.norm_vs = InstanceNorm1d(self.d_KV, eps=1e-6, bias=bias, init=False)
-            #self.norm_I = InstanceNorm1d(self.d_H, eps=1e-6, bias=bias, init=False)
+            self.norm_qs = GroupNorm(self.d_Q, eps=1e-6, bias=bias, init=False)
+            self.norm_ks = GroupNorm(self.d_KV, eps=1e-6, bias=bias, init=False)
+            self.norm_vs = GroupNorm(self.d_KV, eps=1e-6, bias=bias, init=False)
+            #self.norm_I = GroupNorm(self.d_H, eps=1e-6, bias=bias, init=False)
 
         self.layer_norm = None
         self.layer_norm_0 = None
         if not norm_first:
-            self.layer_norm_0 = InstanceNorm1d(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm_0 else None
-            self.layer_norm = InstanceNorm1d(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm else None
+            self.layer_norm_0 = GroupNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm_0 else None
+            self.layer_norm = GroupNorm(self.d_O, eps=1e-6, bias=bias, init=False) if layer_norm else None
 
         fc_bias = attn_bias or (bias and not self.layer_norm and not self.layer_norm_0)
         self.fc = Linear(self.d_O, self.d_O, bias=fc_bias, init=False)
@@ -516,7 +516,7 @@ class InducedSetAttention(nn.Module):
         self.norm_first = layer_norm and norm_first
         self.norm_I = None
         if self.norm_first:
-            self.norm_I = InstanceNorm1d(self.d_I, eps=1e-6, bias=bias, init=False)
+            self.norm_I = GroupNorm(self.d_I, eps=1e-6, bias=bias, init=False)
 
         assert mode in ISABMode.__ALL__
         self.mode = mode
@@ -685,8 +685,8 @@ class PoolingByMultiheadAttention(nn.Module):
             d_model, 
             device=device,
             init=False,
-            layer_norm=layer_norm, # PMA must not use InstanceNorm1d
-            layer_norm_0=layer_norm_0, # PMA must not use InstanceNorm1d
+            layer_norm=layer_norm, # PMA must not use GroupNorm
+            layer_norm_0=layer_norm_0, # PMA must not use GroupNorm
             residual_2=residual_2,
             dropout=dropout,
             activation=activation,
@@ -745,7 +745,7 @@ class DoubleFeedForward(nn.Module):
             self.activation = self.activation()
 
         self.norm_first = norm_first and layer_norm
-        self.layer_norm = InstanceNorm1d(d_in, eps=1e-6, bias=bias, init=False) if layer_norm else None
+        self.layer_norm = GroupNorm(d_in, eps=1e-6, bias=bias, init=False) if layer_norm else None
         self.dropout = nn.Dropout(dropout) if dropout else None
 
         if init:
@@ -813,7 +813,7 @@ class FeedForward(nn.Module):
             self.activation = self.activation()
         self.dropout = nn.Dropout(dropout) if dropout else None
         self.norm_first = norm_first and layer_norm
-        self.layer_norm = InstanceNorm1d(d_out, eps=1e-6, bias=bias, init=False) if layer_norm else None
+        self.layer_norm = GroupNorm(d_out, eps=1e-6, bias=bias, init=False) if layer_norm else None
 
         if init:
             self.init()
