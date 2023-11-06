@@ -31,8 +31,9 @@ def init_layer_norm(norm, activation=None):
         return
     if hasattr(norm, "init"):
         return norm.init(activation=activation)
-    torch.nn.init.ones_(norm.weight)
-    if norm.bias is not None:
+    if hasattr(norm, "weight") and norm.weight is not None:
+        torch.nn.init.ones_(norm.weight)
+    if hasattr(norm, "bias") and norm.bias is not None:
         torch.nn.init.zeros_(norm.bias)
 
 def init_induction_point(tensor, activation=None, mode="torch"):
