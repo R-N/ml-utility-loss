@@ -810,7 +810,7 @@ class FeedForward(nn.Module):
             self.activation = self.activation()
         self.dropout = nn.Dropout(dropout) if dropout else None
         self.norm_first = norm_first and layer_norm
-        self.layer_norm = LayerNorm(d_out, eps=1e-6, bias=bias, init=False) if layer_norm else None
+        self.layer_norm = LayerNorm(d_in if self.norm_first else d_out, eps=1e-6, bias=bias, init=False) if layer_norm else None
 
         if init:
             self.init()
