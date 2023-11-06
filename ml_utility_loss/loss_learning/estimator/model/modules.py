@@ -451,7 +451,8 @@ class TensorInductionPoint(nn.Module):
     def __init__(self, num_inds, d_I, rank=None, device=DEFAULT_DEVICE, **kwargs):
         super().__init__()
         self.tensor = nn.Parameter(Tensor(num_inds, d_I, **kwargs))
-        nn.init.xavier_uniform_(self.tensor)
+        #nn.init.xavier_uniform_(self.tensor)
+        nn.init.ones_(self.tensor)
         self.device = device
         self.to(device)
 
@@ -464,8 +465,10 @@ class LowRankInductionPoint(nn.Module):
         assert rank > 0
         self.a = nn.Parameter(Tensor(num_inds, rank, **kwargs))
         self.b = nn.Parameter(Tensor(rank, d_I, **kwargs))
-        nn.init.xavier_uniform_(self.a)
-        nn.init.xavier_uniform_(self.b)
+        #nn.init.xavier_uniform_(self.a)
+        #nn.init.xavier_uniform_(self.b)
+        nn.init.ones_(self.a)
+        nn.init.ones_(self.b)
         self.device = device
         self.to(device)
 
