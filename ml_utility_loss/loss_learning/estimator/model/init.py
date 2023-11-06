@@ -13,7 +13,7 @@ def init_linear(linear, activation=None):
         a = activation.negative_slope
     t = type(activation) if isinstance(activation, torch.nn.Module) else activation
     nonlinearity = ACTIVATIONS_INVERSE[t]
-    torch.nn.init.kaiming_normal_(linear.weight, a=a, nonlinearity=nonlinearity)
+    #torch.nn.init.kaiming_normal_(linear.weight, a=a, nonlinearity=nonlinearity)
     if linear.bias is not None:
         torch.nn.init.zeros_(linear.bias)
 
