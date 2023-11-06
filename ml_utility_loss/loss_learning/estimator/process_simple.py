@@ -26,8 +26,8 @@ def train_epoch(
     eps=1e-6,
     timer=None,
     allow_same_prediction=False,
-    backward_mean_pred_loss=False,
-    backward_std_loss=False,
+    include_mean_pred_loss=False,
+    include_std_loss=False,
     fixed_role_model=None,
     **kwargs,
 ):
@@ -143,9 +143,9 @@ def train_epoch(
         batch_loss = (
             loss, 
         )
-        if backward_std_loss:
+        if include_std_loss:
             batch_loss = (*batch_loss, std_loss)
-        if backward_mean_pred_loss:
+        if include_mean_pred_loss:
             batch_loss = (*batch_loss, mean_pred_loss)
         if batch == 0:
             loss_balancer.pre_weigh(*batch_loss)

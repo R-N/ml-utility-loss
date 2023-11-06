@@ -340,6 +340,8 @@ def train(
     train_epoch=train_epoch,
     _eval=_eval,
     wandb=None,
+    include_mean_pred_loss=False,
+    include_std_loss=False,
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
@@ -438,6 +440,8 @@ def train(
             head=head,
             allow_same_prediction=allow_same_prediction,
             models=models,
+            include_mean_pred_loss=include_mean_pred_loss,
+            include_std_loss=include_std_loss,
             **gradient_penalty_mode,
         )
         return loss
@@ -498,6 +502,11 @@ def train(
 
         train_value = train_loss["avg_loss"]
         val_value = val_loss["avg_loss"]
+
+        if not include_std_loss:
+            val_value += val_loss["avg_role_model_std_loss"]
+        if not include_mean_pred_loss:
+            val_value += val_loss["avg_role_model_mean_pred_loss"]
 
         if size_scheduler and size_scheduler.step(val_value, epoch=i):
             print("Prepare loader")
