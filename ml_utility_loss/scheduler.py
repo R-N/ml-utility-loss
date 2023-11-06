@@ -55,14 +55,18 @@ class PretrainingScheduler:
 
     def _reset(self):
         """Resets counters."""
-        self.best = self.mode_worse
         self.best_state = None
         self.last_epoch = -1
         self.best_epoch = -1
         self.aug_counter = 0
         self.cooldown_counter = 0
+        self.reset_counter(reset_best=True)
+
+    def reset_counter(self, reset_best=True):
         self.num_bad_epochs = 0
         self.stopped = False
+        if reset_best:
+            self.best = self.mode_worse
 
     def step(self, train_loss, val_loss=None, epoch=None):
         # convert `metrics` to float, in case it's a zero-dim Tensor

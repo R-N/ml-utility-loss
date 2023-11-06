@@ -422,6 +422,7 @@ def train(
     def train_epoch_(
         train_loader,
         val=False,
+        gradient_penalty_mode=gradient_penalty_mode,
     ):
         loss = train_epoch(
             whole_model, 
@@ -455,6 +456,7 @@ def train(
 
     
     #print("[INFO] Beginning epoch")
+    gradient_penalty_mode_ = GradientPenaltyMode.NONE
     epochs = epochs or 1000
     for i in range(i, i+epochs):
 
@@ -463,12 +465,12 @@ def train(
 
         while True:
             try:
-                train_loss = train_epoch_(train_loader)
+                train_loss = train_epoch_(train_loader, gradient_penalty_mode=gradient_penalty_mode_)
                 if verbose:
                     print("Train loss", train_loss)
                 if timer:
                     timer.check_time()
-                val_loss = train_epoch_(val_loader, val=True)
+                val_loss = train_epoch_(val_loader, gradient_penalty_mode=gradient_penalty_mode_, val=True)
                 if verbose:
                     print("Val loss", val_loss)
                 if timer:
@@ -513,6 +515,7 @@ def train(
             del train_loader
             del val_loader
             clear_memory()
+            early_stopping.reset_counter(reset_best=False)
             train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
             val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
 
@@ -533,7 +536,11 @@ def train(
         if early_stopping:
             early_stopping.step(train_value, val_value, epoch=i)
             if early_stopping.stopped:
-                break
+                if gradient_penalty_mode_ != gradient_penalty_mode:
+                    gradient_penalty_mode_ = gradient_penalty_mode
+                    early_stopping.reset_counter(reset_best=True)
+                else:
+                    break
         if timer:
             timer.check_time()
     if timer:
