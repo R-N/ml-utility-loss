@@ -216,15 +216,18 @@ def train_epoch(
 def eval(
     whole_model, 
     eval_loader, 
-    model,
+    model=None,
     loss_fn=F.mse_loss,
     mean_pred_loss_fn=None,
     std_loss_fn=mean_penalty_rational,
     reduction=torch.mean,
     allow_same_prediction=False,
+    fixed_role_model=None,
     **kwargs,
 ):
     size = len(eval_loader.dataset)
+
+    model = model or fixed_role_model
 
     std_loss_fn = std_loss_fn or loss_fn
     mean_pred_loss_fn = mean_pred_loss_fn or loss_fn
