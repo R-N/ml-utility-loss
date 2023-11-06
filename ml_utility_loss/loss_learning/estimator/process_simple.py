@@ -307,6 +307,7 @@ def eval(
         mean_pred_losses,
         torch.zeros(mean_pred_losses.shape).to(mean_pred_losses.device)
     )
+    mean_pred_loss = try_tensor_item(mean_pred_loss)
     assert allow_same_prediction or batch_size == 1 or pred_std, f"model predicts the same for every input, {model}, {pred_std}, {preds[0].item()}"
 
     avg_loss = loss/n 
