@@ -42,7 +42,7 @@ def init_induction_point(tensor, activation=None):
     #torch.nn.init.ones_(tensor)
     #torch.nn.init.orthogonal_(tensor)
     #torch.nn.init.uniform_(tensor, -0.001, 0.001) # fixnorm
-    torch.nn.init.normal_(tensor, std=0.01) # fixnorm
+    torch.nn.init.normal_(tensor, std=0.001) # fixnorm
     elements = math.prod(list(tensor.shape))
     fill = math.sqrt(elements)
     #fill = math.sqrt(sum([x**2 for x in tensor.shape]))
