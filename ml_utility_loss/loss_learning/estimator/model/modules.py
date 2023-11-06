@@ -44,8 +44,10 @@ class Norm(nn.Module):
         super().__init__()
         if isinstance(Norm, str):
             Norm = NORMS[Norm]
+        self.permute = False
         if Norm == nn.GroupNorm:
             self.norm = Norm(num_channels=normalized_shape, num_groups=num_groups, **kwargs)
+            self.permute = True
         elif Norm == nn.LayerNorm:
             self.norm = Norm(normalized_shape=normalized_shape, **kwargs)
         else:
@@ -75,6 +77,15 @@ class Norm(nn.Module):
         if hasattr(self.norm, "bias") and self.norm.bias is not None:
             torch.nn.init.zeros_(self.norm.bias)
 
+    def forward(self, x):
+        if self.permute:
+            dim = list(range(x.dim()))
+            dim = [*dim[:-2], dim[-1], dim[-2]]
+            x = torch.permute(x, dim)
+        x = self.norm(x)
+        if self.permute:
+            x = torch.permute(x, dim)
+        return x
 
 class ScaleNorm(nn.Module):
     """ScaleNorm"""
