@@ -228,13 +228,14 @@ class DatasetDataset(BaseDataset):
         return sample
     
 class WrapperDataset(BaseDataset):
-    def __init__(self, dataset, copy=True, **kwargs):
+    def __init__(self, dataset, copy=True, calculate_stats=True, **kwargs):
         super().__init__(**kwargs)
         self.dataset = dataset.try_copy() if copy else dataset
         self.size = dataset.size
         self.wrapper_kwargs = kwargs
         
-        self.calculate_stats()
+        if calculate_stats:
+            self.calculate_stats()
 
     def calculate_stats(self):
         self.y = self.dataset.y
@@ -274,8 +275,8 @@ class WrapperDataset(BaseDataset):
         return self
 
 class SubDataset(WrapperDataset):
-    def __init__(self, dataset, index, **kwargs):
-        super().__init__(dataset=dataset, **kwargs)
+    def __init__(self, dataset, index, calculate_stats=True, **kwargs):
+        super().__init__(dataset=dataset, calculate_stats=False, **kwargs)
         if isinstance(index, pd.Series) or isinstance(index, pd.Index):
             index = index.to_numpy()
         if not isinstance(index, np.ndarray):
@@ -284,7 +285,8 @@ class SubDataset(WrapperDataset):
         self.sub_kwargs = kwargs
         self.index_ = index
 
-        self.calculate_stats()
+        if calculate_stats:
+            self.calculate_stats()
 
     def calculate_stats(self):
         self.y = self.dataset.y.iloc[self.index]
@@ -570,7 +572,7 @@ def collate_fn(samples):
     raise ValueError(f"Invalid sample type: {type(sample)}")
 
 class ConcatDataset(BaseDataset):
-    def __init__(self, datasets, copy=True, **kwargs):
+    def __init__(self, datasets, copy=True, calculate_stats=True, **kwargs):
         super().__init__(**kwargs)
         assert len(set([dataset.size for dataset in datasets])) == 1
         self.datasets = [dataset.try_copy() if copy else dataset for dataset in datasets]
@@ -582,7 +584,8 @@ class ConcatDataset(BaseDataset):
         self.cumulatives = np.cumsum(self.counts)
         self.count = sum(self.counts)
 
-        self.calculate_stats()
+        if calculate_stats:
+            self.calculate_stats()
 
     def calculate_stats(self):
         self.y = pd.concat([d.y for d in self.datasets])
