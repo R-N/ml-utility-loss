@@ -24,6 +24,7 @@ def init_attn(linear, activation=None):
     if hasattr(linear, "init"):
         return linear.init(activation=activation)
     #torch.nn.init.xavier_normal_(linear.weight)
+    torch.nn.init.uniform_(linear.weight, -0.01, 0.01) # fixnorm
     if linear.bias is not None:
         torch.nn.init.zeros_(linear.bias)
 
@@ -39,14 +40,8 @@ def init_layer_norm(norm, activation=None):
 def init_induction_point(tensor, activation=None):
     #torch.nn.init.xavier_uniform_(tensor, gain=0.1)
     #torch.nn.init.uniform_(tensor, -1, 1)
-    torch.nn.init.orthogonal_(tensor)
-    #torch.nn.init.uniform_(tensor, -0.01, 0.01) # fixnorm
+    torch.nn.init.uniform_(tensor, -0.01, 0.01) # fixnorm
     #torch.nn.init.normal_(tensor, std=0.01) # fixnorm
-    elements = math.prod(list(tensor.shape))
-    fill = math.sqrt(elements)
-    #fill = math.sqrt(sum([x**2 for x in tensor.shape]))
-    sparsity = fill/elements
-    #torch.nn.init.sparse_(tensor, sparsity=fill)
 
 def init(module, activation=None):
     if module is None:
