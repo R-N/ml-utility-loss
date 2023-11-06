@@ -650,6 +650,7 @@ def eval(
     reduction=torch.mean,
     models=None,
     allow_same_prediction=True,
+    fixed_role_model=None,
 ):
     size = len(eval_loader.dataset)
 

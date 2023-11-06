@@ -493,7 +493,8 @@ def train(
             val_loss=val_loss,
             train_set=train_set,
             val_set=val_set,
-            size_scheduler=size_scheduler
+            size_scheduler=size_scheduler,
+            fixed_role_model=fixed_role_model,
         )
 
         train_value = train_loss["avg_loss"]
