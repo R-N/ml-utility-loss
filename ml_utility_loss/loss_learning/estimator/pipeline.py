@@ -494,7 +494,6 @@ def train(
             train_set=train_set,
             val_set=val_set,
             size_scheduler=size_scheduler,
-            fixed_role_model=fixed_role_model,
         )
 
         train_value = train_loss["avg_loss"]
@@ -550,7 +549,9 @@ def train(
         DataLoader=DataLoader,
         multiprocessing_context=multiprocessing_context,
         allow_same_prediction=allow_same_prediction_eval,
+        models=models,
         _eval=_eval,
+        fixed_role_model=fixed_role_model,
     )
     if eval_val and val_set is not test_set:
         val_set.set_size(None)
@@ -565,6 +566,7 @@ def train(
             allow_same_prediction=allow_same_prediction_eval,
             models=models,
             _eval=_eval,
+            fixed_role_model=fixed_role_model,
         )
     if verbose:
         print("Eval loss", eval_loss)
