@@ -45,7 +45,7 @@ class Norm(nn.Module):
         if isinstance(Norm, str):
             Norm = NORMS[Norm]
         if Norm == nn.GroupNorm:
-            self.norm = Norm(num_groups=num_groups, **kwargs)
+            self.norm = Norm(num_channels=normalized_shape, num_groups=num_groups, **kwargs)
         elif Norm == nn.LayerNorm:
             self.norm = Norm(normalized_shape=normalized_shape, **kwargs)
         else:
