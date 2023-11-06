@@ -39,6 +39,8 @@ class Linear(nn.Linear):
     def __init__(self, *args, init=True, **kwargs):
         super().__init__(*args, **kwargs)
 
+InstanceNorm1d = nn.InstanceNorm1d
+"""
 class InstanceNorm1d(nn.InstanceNorm1d):
     def __init__(self, *args, bias=True, init=True, **kwargs):
         super().__init__(*args, **kwargs)
@@ -46,12 +48,12 @@ class InstanceNorm1d(nn.InstanceNorm1d):
             self.bias = None
             self.register_parameter('bias', None)
             self.reset_parameters()
-
     def reset_parameters(self):
         if self.elementwise_affine:
             torch.nn.init.ones_(self.weight)
             if self.bias is not None:
                 torch.nn.init.zeros_(self.bias)
+"""
 
 
 class ScaleNorm(nn.Module):
