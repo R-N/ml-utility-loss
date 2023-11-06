@@ -1,5 +1,6 @@
 import torch
 import types
+import math
 from ....params import ACTIVATIONS_INVERSE
 # Reinit weights because apparently bad weights lead to small variance
 
@@ -40,7 +41,7 @@ def init_induction_point(tensor, activation=None):
     #torch.nn.init.uniform_(tensor, -1, 1)
     #torch.nn.init.ones_(tensor)
     #torch.nn.init.orthogonal_(tensor)
-    torch.nn.init.sparse_(tensor)
+    torch.nn.init.sparse_(tensor, sparsity=math.sqrt(math.prod(list(tensor.shape))))
 
 def init(module, activation=None):
     if module is None:
