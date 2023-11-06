@@ -47,7 +47,7 @@ PARAM_SPACE = {
         #None, 
         "tvae", 
         "lct_gan", 
-        "lct_gan_latent", 
+        #"lct_gan_latent", 
         "tab_ddpm_concat", 
         #"realtabformer"
     ]),
