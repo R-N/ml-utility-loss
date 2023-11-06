@@ -539,6 +539,7 @@ def train(
                 if gradient_penalty_mode_ != gradient_penalty_mode:
                     gradient_penalty_mode_ = gradient_penalty_mode
                     early_stopping.reset_counter(reset_best=True)
+                    print(f"Begin training phase 2 for gradient at epoch {i}")
                 else:
                     break
         if timer:
