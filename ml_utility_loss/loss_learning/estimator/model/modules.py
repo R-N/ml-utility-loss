@@ -42,16 +42,16 @@ class Linear(nn.Linear):
 class LayerNorm(nn.LayerNorm):
     def __init__(self, *args, bias=True, init=True, **kwargs):
         super().__init__(*args, **kwargs)
-        if hasattr(self.norm, "bias") and not bias:
+        if not bias:
             self.bias = None
             self.register_parameter('bias', None)
             self.reset_parameters()
         
     def reset_parameters(self):
-        if hasattr(self.norm, "weight") and self.norm.weight is not None:
-            torch.nn.init.ones_(self.norm.weight)
-        if hasattr(self.norm, "bias") and self.norm.bias is not None:
-            torch.nn.init.zeros_(self.norm.bias)
+        if self.elementwise_affine:
+            torch.nn.init.ones_(self.weight)
+            if self.bias is not None:
+                torch.nn.init.zeros_(self.bias)
 
 class ScaleNorm(nn.Module):
     """ScaleNorm"""
