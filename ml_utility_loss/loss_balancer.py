@@ -33,13 +33,13 @@ class LossBalancer(nn.Module):
         self.device = device
         super().to(device)
 
-    def pre_weigh(self, *losses):
+    def pre_weigh(self, *losses, val=False):
         pass
 
-    def weigh(self, *losses):
+    def weigh(self, *losses, val=False):
         return torch.ones([len(losses)]).to(losses[0].device)
     
-    def forward(self, *losses):
+    def forward(self, *losses, val=False):
         losses = losses0 = try_stack(losses)
         w = self.weigh(*losses).to(losses[0].device)
         #losses = [wi*li for wi, li in zip(w, losses)]
@@ -59,7 +59,7 @@ class FixedWeights(LossBalancer):
         super().to(device)
         self.weights = self.weights.to(device)
 
-    def weigh(self, *losses):
+    def weigh(self, *losses, val=False):
         assert len(losses) == len(self.weights)
         return self.weights.to(losses[0].device)
 
@@ -71,13 +71,14 @@ class MetaBalance(LossBalancer):
         self.r = r
         self.m = None
 
-    def weigh(self, *losses):
+    def weigh(self, *losses, val=False):
         losses = self.reduce(*losses)
         m = self.m if self.m is not None else losses
         #m = [(self.beta * mi + (1 - self.beta) * li) for mi, li in zip(m, losses)]
         #m = try_stack(m)
         m = self.beta * m + (1 - self.beta) * losses
-        self.m = m.detach()
+        if not val:
+            self.m = m.detach()
         m0 = m[0]
         #w = [mi/m0 for mi in m]
         w = m / m0
@@ -93,11 +94,13 @@ class LBTW(LossBalancer):
         super().__init__(**kwargs)
         self.l0 = None
 
-    def pre_weigh(self, *losses):
+    def pre_weigh(self, *losses, val=False):
+        if val:
+            return
         losses = self.reduce(*losses)
         self.l0 = losses.detach()
         
-    def weigh(self, *losses):
+    def weigh(self, *losses, val=False):
         losses = self.reduce(*losses)
         #w = [(li/l0i).detach() for l0i, li in zip(self.l0, losses)]
         w = torch.nan_to_num(torch.div(losses, self.l0), nan=1)
@@ -107,10 +110,10 @@ class LogWeighter(LossBalancer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def pre_weigh(self, *losses):
+    def pre_weigh(self, *losses, val=False):
         pass
 
-    def weigh(self, *losses):
+    def weigh(self, *losses, val=False):
         losses = self.reduce(*losses)
         #w = [torch.log(1+li).detach()/li for li in losses]
         w = torch.nan_to_num(torch.div(torch.log(1+losses) / losses), nan=1)
@@ -120,7 +123,7 @@ class LogTransformer(LogWeighter):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
     
-    def forward(self, *losses):
+    def forward(self, *losses, val=False):
         losses = try_stack(losses)
         return torch.log(1+losses)
     
@@ -132,17 +135,17 @@ class CompositeBalancer(LossBalancer):
             self.balancers = [LossBalancer()]
         CompositeBalancer.to(self, self.device)
 
-    def pre_weigh(self, *losses):
-        _ = [b.pre_weigh(*losses) for b in self.balancers]
+    def pre_weigh(self, *losses, val=False):
+        _ = [b.pre_weigh(*losses, val=val) for b in self.balancers]
 
     def to(self, device):
         super().to(device)
         if self.balancers:
             _ = [b.to(device) for b in self.balancers]
 
-    def weigh(self, *losses):
+    def weigh(self, *losses, val=False):
         losses = self.reduce(*losses)
-        ws = try_stack([b.weigh(*losses) for b in self.balancers])
+        ws = try_stack([b.weigh(*losses, val=val) for b in self.balancers])
         #w = [math.prod(wsi) for wsi in zip(*ws)]
         w = torch.prod(ws, dim=0)
         return w.detach().to(losses[0].device)
@@ -154,10 +157,10 @@ class SequentialWeighter(CompositeBalancer):
     def __init__(self, balancers, **kwargs):
         super().__init__(balancers=balancers, **kwargs)
 
-    def weigh(self, *losses):
+    def weigh(self, *losses, val=False):
         losses = losses0 = self.reduce(*losses)
         for b in self.balancers:
-            losses = b(*losses)
+            losses = b(*losses, val=val)
         #w = [li/l0i for l0i, li in zip(losses0, losses)]
         w = torch.nan_to_num(torch.div(losses, losses0), nan=1)
         return w.detach().to(losses[0].device)
@@ -166,10 +169,10 @@ class SequentialTransformer(SequentialWeighter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-    def forward(self, *losses):
+    def forward(self, *losses, val=False):
         losses = losses0 = try_stack(losses)
         for b in self.balancers:
-            losses = b(*losses)
+            losses = b(*losses, val=val)
         return losses.to(losses[0].device)
 
 class MyLossWeighter(ParallelBalancer):
@@ -196,12 +199,12 @@ class MyLossTransformer(MyLossWeighter):
         self.meta = seq[-1]
         self.lbtw = self.balancers[-1]
     
-    def forward(self, *losses):
+    def forward(self, *losses, val=False):
         losses = losses0 = try_stack(losses)
-        w_lbtw = self.lbtw.weigh(*losses)
+        w_lbtw = self.lbtw.weigh(*losses, val=val)
         if self.log:
-            losses = self.log(*losses)
-        losses = self.meta(*losses)
+            losses = self.log(*losses, val=val)
+        losses = self.meta(*losses, val=val)
         losses = torch.mul(w_lbtw, losses)
         return losses.to(losses[0].device)
 
