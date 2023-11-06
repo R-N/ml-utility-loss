@@ -306,7 +306,7 @@ def train(
     # Training args
     non_role_model_avg=True,
     loss_fn=F.mse_loss,
-    std_loss_fn=mean_penalty_rational,
+    std_loss_fn=mean_penalty_rational_half,
     grad_loss_fn=F.huber_loss,
     adapter_loss_fn=F.huber_loss,
     loss_balancer=None,

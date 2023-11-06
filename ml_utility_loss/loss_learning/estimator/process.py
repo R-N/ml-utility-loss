@@ -161,7 +161,7 @@ def train_epoch(
     non_role_model_avg=True,
     loss_fn=F.mse_loss,
     mean_pred_loss_fn=None,
-    std_loss_fn=mean_penalty,
+    std_loss_fn=mean_penalty_rational_half,
     grad_loss_fn=F.huber_loss, # It's fine as long as loss_fn is MSE
     adapter_loss_fn=F.l1_loss, # Values can get very large and MSE loss will result in infinity, or maybe use kl_div
     reduction=torch.mean,
@@ -645,7 +645,7 @@ def eval(
     eval_loader, 
     loss_fn=F.mse_loss,
     mean_pred_loss_fn=None,
-    std_loss_fn=mean_penalty_rational,
+    std_loss_fn=mean_penalty_rational_half,
     grad_loss_fn=F.mse_loss, #for RMSE,
     reduction=torch.mean,
     models=None,
