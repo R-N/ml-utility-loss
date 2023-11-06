@@ -158,6 +158,12 @@ class DatasetDataset(BaseDataset):
         self.train = train
         self.test = test
         self.value = value
+        y = self.info_all[self.value]
+        self.mean = y.mean()
+        self.std = y.std()
+        self.range = y.max() - y.min()
+        quartiles = y.quantile([0.25, 0.75])
+        self.iqr = quartiles[0.75] - quartiles[0.25]
         assert mode in ("shuffle", "sort")
         self.mode = mode
         self.drop_first_column = drop_first_column

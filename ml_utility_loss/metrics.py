@@ -49,3 +49,12 @@ def mape(pred, y, eps=1e-9, reduction=torch.mean):
     ape = torch.abs(y-pred)/torch.clamp(torch.abs(y), min=eps)
     value = reduction(ape)
     return value
+
+class ScaledLoss(torch.nn.Module):
+    def __init__(self, loss_fn, divider=1):
+        self.loss_fn = loss_fn
+        assert divider != 0
+        self.divider = divider
+
+    def forward(self, pred, y, **kwargs):
+        return self.loss_fn(pred, y, **kwargs) / self.divider
