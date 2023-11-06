@@ -424,7 +424,7 @@ def train(
         loss = train_epoch(
             whole_model, 
             train_loader, 
-            optim,
+            optim=optim,
             val=val,
             non_role_model_avg=non_role_model_avg,
             loss_fn=loss_fn,
