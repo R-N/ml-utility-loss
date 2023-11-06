@@ -538,6 +538,7 @@ def train(
         if early_stopping:
             early_stopping.step(train_value, val_value, epoch=i)
             if early_stopping.stopped:
+                print("Stopped", gradient_penalty_mode_ != gradient_penalty_mode)
                 if gradient_penalty_mode_ != gradient_penalty_mode:
                     gradient_penalty_mode_ = gradient_penalty_mode
                     early_stopping.reset_counter(reset_best=True)
