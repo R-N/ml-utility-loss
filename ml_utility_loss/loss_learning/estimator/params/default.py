@@ -60,7 +60,7 @@ PARAM_SPACE = {
     "isab_skip_small": BOOLEAN,
     #"skip_small": False,
     #"loss_clamp": ("log_float", 0.5, 10.0),
-    "layer_norm": BOOLEAN,
+    "layer_norm": False,
     "pma_layer_norm": False,
     #"pma_layer_norm": BOOLEAN,
     "attn_activation": ("activation", [

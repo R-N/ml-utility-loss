@@ -69,7 +69,7 @@ PARAM_SPACE = {
     "isab_skip_small": BOOLEAN,
     #"skip_small": False,
     #"loss_clamp": ("log_float", 0.6, 1.0), #almost random
-    "layer_norm": BOOLEAN,
+    "layer_norm": False,
     #"layer_norm": True,
     "bias": BOOLEAN,
     #"bias": False,
