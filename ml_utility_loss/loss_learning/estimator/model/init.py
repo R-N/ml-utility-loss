@@ -35,10 +35,13 @@ def init_layer_norm(norm, activation=None):
     if norm.bias is not None:
         torch.nn.init.zeros_(norm.bias)
 
-def init_induction_point(tensor, activation=None):
-    #torch.nn.init.xavier_uniform_(tensor)
-    torch.nn.init.uniform_(tensor, -0.01, 0.01) # fixnorm
-    #torch.nn.init.kaiming_uniform_(tensor, a=math.sqrt(5))
+def init_induction_point(tensor, activation=None, mode="xavier"):
+    if mode=="xavier":
+        torch.nn.init.xavier_uniform_(tensor)
+    elif mode=="fixnorm":
+        torch.nn.init.uniform_(tensor, -0.01, 0.01) # fixnorm
+    elif mode=="torch":
+        torch.nn.init.kaiming_uniform_(tensor, a=math.sqrt(5))
 
 def init(module, activation=None):
     if module is None:
