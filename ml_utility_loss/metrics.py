@@ -3,6 +3,7 @@ import torch.nn.functional as F
 import numpy as np
 from functools import partial
 from .util import zero_tensor, DEFAULT_DEVICE
+import math
 
 pi = np.pi
 tan_pow = 0.2*pi
@@ -54,6 +55,12 @@ class ScaledLoss(torch.nn.Module):
     def __init__(self, loss_fn, divider=1):
         self.loss_fn = loss_fn
         assert divider != 0
+        if loss_fn in (F.mse_loss,) or isinstance(loss_fn, (torch.nn.MSELoss)):
+            divider = divider ** 2
+        if loss_fn in (msle,):
+            divider = math.log(divider) ** 2
+        if loss_fn in (F.huber_loss,) or isinstance(loss_fn, (torch.nn.HuberLoss)):
+            divider = 0.5 * (divider ** 2)
         self.divider = divider
 
     def forward(self, pred, y, **kwargs):
