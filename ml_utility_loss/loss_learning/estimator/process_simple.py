@@ -139,6 +139,9 @@ def train_epoch(
 
         assert isinstance(loss, int) or not torch.isnan(loss).any(), f"role_model_loss has nan"
         # Finally, backprop
+        loss = reduction(loss)
+        std_loss = reduction(std_loss)
+        mean_pred_loss = reduction(mean_pred_loss)
         batch_loss = (
             loss, 
         )
@@ -149,7 +152,6 @@ def train_epoch(
         if batch == 0:
             loss_balancer.pre_weigh(*batch_loss)
         batch_loss = sum(loss_balancer(*batch_loss))
-        print(batch_loss.shape)
         if not val:
             if reduction == torch.sum:
                 (batch_loss/batch_size).backward()
