@@ -343,6 +343,7 @@ def train(
     include_mean_pred_loss=False,
     include_std_loss=False,
     grad_phase_2=False,
+    grad_loss_scale="mean",
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
@@ -444,6 +445,7 @@ def train(
             models=models,
             include_mean_pred_loss=include_mean_pred_loss,
             include_std_loss=include_std_loss,
+            grad_loss_scale=grad_loss_scale,
             **gradient_penalty_mode,
         )
         return loss
@@ -573,6 +575,7 @@ def train(
         models=models,
         _eval=_eval,
         fixed_role_model=fixed_role_model,
+        grad_loss_scale=grad_loss_scale,
     )
     if eval_val and val_set is not test_set:
         val_set.set_size(None)
@@ -588,6 +591,7 @@ def train(
             models=models,
             _eval=_eval,
             fixed_role_model=fixed_role_model,
+            grad_loss_scale=grad_loss_scale,
         )
     if verbose:
         print("Eval loss", eval_loss)
