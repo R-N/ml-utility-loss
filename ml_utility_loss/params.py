@@ -9,6 +9,7 @@ import torch.nn.functional as F
 from .Padam import Padam
 from functools import partial
 from .metrics import msle, mean_penalty, mean_penalty_tan, mean_penalty_tan_half, mean_penalty_tan_double, mean_penalty_rational, mean_penalty_rational_half, mean_penalty_rational_double
+import torch_optimizer
 
 NORMS = {
     "layer": torch.nn.LayerNorm,
@@ -179,6 +180,13 @@ OPTIMS = {
     "amsgrad": partial(torch.optim.Adam, amsgrad=True),
     "amsgradw": partial(torch.optim.AdamW, amsgrad=True),
     "sgdmomentum": partial(torch.optim.SGD, momentum=0.9),
+    "radam": torch.optim.RAdam,
+    "adabound": torch_optimizer.AdaBound,
+    "adahessian": torch_optimizer.Adahessian,
+    "adamp": torch_optimizer.AdamP,
+    "diffgrad": torch_optimizer.DiffGrad,
+    "qhadam": torch_optimizer.QHAdam,
+    "yogi": torch_optimizer.Yogi,
 }
 IDENTITIES = {
     None: torch.nn.Identity,

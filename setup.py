@@ -49,6 +49,7 @@ setup(
         "tqdm>=4.64.1",
         "transformers==4.28.0",
         #"torchmetrics",
+        "torch_optimizer",
     ],
 
     classifiers=[
