@@ -220,7 +220,7 @@ class MyLossTransformer(MyLossWeighter):
         if weights is not None:
             weights = torch.Tensor(weights).to(losses.device)
             losses = torch.mul(weights, losses)
-        print("losses", losses.numpy())
+        print("losses", losses.detach().cpu())
         return losses.to(losses[0].device)
 
 
