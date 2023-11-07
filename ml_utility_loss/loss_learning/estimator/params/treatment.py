@@ -1,4 +1,4 @@
-from ....params import BOOLEAN, ISABMode, LoRAMode, OPTIMS, ACTIVATIONS, LOSSES, SOFTMAXES, GRADIENT_PENALTY_MODES, PMAFFNMode
+from ....params import BOOLEAN, ISABMode, LoRAMode, OPTIMS, ACTIVATIONS, LOSSES, SOFTMAXES, GRADIENT_PENALTY_MODES, PMAFFNMode, IndsInitMode
 from torch import nn, optim
 from torch.nn import functional as F
 
@@ -91,6 +91,11 @@ PARAM_SPACE = {
     ]),
     "attn_residual": True,
     #"attn_residual": BOOLEAN,
+    "inds_init_mode": ("categorical", [
+        IndsInitMode.TORCH,
+        IndsInitMode.FIXNORM,
+        IndsInitMode.XAVIER,
+    ]),
     # Transformer args
     "tf_d_inner": ("int_exp_2", 64, 128),
     "tf_n_layers_enc": ("int", 3, 4), 

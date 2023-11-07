@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import inspect
 from ....util import DEFAULT_DEVICE, check_cuda
-from ....params import ISABMode, NORMS
+from ....params import ISABMode, NORMS, IndsInitMode
 from .init import init_linear, init_layer_norm, init_attn, init_induction_point
 import numpy as np
 
@@ -228,6 +228,7 @@ class MultiHeadAttention(nn.Module):
         attn_residual=True, 
         big_temperature=False,
         norm_first=True,
+        inds_init_mode=None,
         **kwargs,
     ):
         super().__init__()
@@ -481,10 +482,10 @@ class InducedSetAttentionMini(nn.Module):
         return O, (I_attn, O_attn)
     
 class TensorInductionPoint(nn.Module):
-    def __init__(self, num_inds, d_I, rank=None, device=DEFAULT_DEVICE, **kwargs):
+    def __init__(self, num_inds, d_I, rank=None, device=DEFAULT_DEVICE, init_mode=IndsInitMode.TORCH, **kwargs):
         super().__init__()
         self.tensor = nn.Parameter(Tensor(num_inds, d_I, **kwargs))
-        init_induction_point(self.tensor)
+        init_induction_point(self.tensor, mode=init_mode)
         self.device = device
         self.to(device)
 
@@ -492,13 +493,13 @@ class TensorInductionPoint(nn.Module):
         return self.tensor
 
 class LowRankInductionPoint(nn.Module):
-    def __init__(self, num_inds, d_I, rank, device=DEFAULT_DEVICE, **kwargs):
+    def __init__(self, num_inds, d_I, rank, device=DEFAULT_DEVICE, init_mode=IndsInitMode.TORCH, **kwargs):
         super().__init__()
         assert rank > 0
         self.a = nn.Parameter(Tensor(num_inds, rank, **kwargs))
         self.b = nn.Parameter(Tensor(rank, d_I, **kwargs))
-        init_induction_point(self.a)
-        init_induction_point(self.b)
+        init_induction_point(self.a, mode=init_mode)
+        init_induction_point(self.b, mode=init_mode)
         self.device = device
         self.to(device)
 
@@ -530,6 +531,7 @@ class InducedSetAttention(nn.Module):
         attn_residual=True,
         big_temperature=False,
         bias=True,
+        inds_init_mode=IndsInitMode.TORCH,
         **kwargs
     ):
         super().__init__()
@@ -542,7 +544,7 @@ class InducedSetAttention(nn.Module):
         InductionPoint = TensorInductionPoint
         if rank:
             InductionPoint = LowRankInductionPoint
-        self.I = InductionPoint(num_inds, d_I, rank=rank, device=device)
+        self.I = InductionPoint(num_inds, d_I, rank=rank, device=device, init_mode=inds_init_mode)
 
         self.norm_first = layer_norm and norm_first
         self.norm_I = None
@@ -694,6 +696,7 @@ class PoolingByMultiheadAttention(nn.Module):
         big_temperature=False,
         #attn_activation=nn.ReLU,
         #pma_layer_norm=False,
+        inds_init_mode=IndsInitMode.TORCH,
         **kwargs
     ):
         super().__init__()
@@ -706,7 +709,7 @@ class PoolingByMultiheadAttention(nn.Module):
         InductionPoint = TensorInductionPoint
         if rank:
             InductionPoint = LowRankInductionPoint
-        self.S = InductionPoint(num_seeds, d_model, rank=rank, device=device)
+        self.S = InductionPoint(num_seeds, d_model, rank=rank, device=device, init_mode=inds_init_mode)
 
         if attn_bias:
             layer_norm = False

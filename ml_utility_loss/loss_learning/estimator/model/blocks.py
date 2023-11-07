@@ -6,7 +6,7 @@ from .layers import EncoderLayer, DecoderLayer
 from .modules import PoolingByMultiheadAttention, FeedForward, LowRankLinearFactory, Linear
 import inspect
 from ....util import DEFAULT_DEVICE, Cache, check_cuda, filter_dict
-from ....params import ISABMode, LoRAMode, HeadFinalMul, ACTIVATIONS_INVERSE
+from ....params import ISABMode, LoRAMode, HeadFinalMul, ACTIVATIONS_INVERSE, IndsInitMode
 from .init import init, init_linear, init_layer_norm
 
 
@@ -361,6 +361,7 @@ class Head(nn.Module):
         attn_activation=nn.ReLU,
         pma_layer_norm=False,
         attn_residual=True,
+        inds_init_mode=IndsInitMode.TORCH,
         **kwargs,
     ):
         super().__init__()
@@ -403,6 +404,7 @@ class Head(nn.Module):
             activation=attn_activation,
             layer_norm=pma_layer_norm,
             attn_residual=attn_residual,
+            inds_init_mode=inds_init_mode,
             **kwargs,
         ) if n_seeds else None
 

@@ -1,7 +1,7 @@
 import torch
 import types
 import math
-from ....params import ACTIVATIONS_INVERSE
+from ....params import ACTIVATIONS_INVERSE, IndsInitMode
 # Reinit weights because apparently bad weights lead to small variance
 
 def init_linear(linear, activation=None):
@@ -36,7 +36,8 @@ def init_layer_norm(norm, activation=None):
     if hasattr(norm, "bias") and norm.bias is not None:
         torch.nn.init.zeros_(norm.bias)
 
-def init_induction_point(tensor, activation=None, mode="torch"):
+def init_induction_point(tensor, activation=None, mode=IndsInitMode.TORCH):
+    mode = mode or IndsInitMode.TORCH
     if mode=="xavier": # bad
         torch.nn.init.xavier_uniform_(tensor)
     elif mode=="fixnorm":

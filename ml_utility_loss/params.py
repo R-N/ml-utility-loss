@@ -18,6 +18,13 @@ NORMS = {
     #"batch": torch.nn.BatchNorm1d
 }
 
+class IndsInitMode:
+    TORCH = "torch"
+    FIXNORM = "fixnorm"
+    XAVIER = "xavier"
+
+    __ALL__ = (TORCH, FIXNORM, XAVIER)
+
 class CombineMode:
     CONCAT = "concat"
     DIFF_LEFT = "diff_left"

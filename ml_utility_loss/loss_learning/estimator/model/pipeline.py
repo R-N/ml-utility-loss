@@ -2,7 +2,7 @@
 from ....params import GradientPenaltyMode, PMAFFNMode
 from .models import Transformer, MLUtilityWhole, TwinEncoder
 from torch import nn
-from ....params import ISABMode, LoRAMode, HeadFinalMul
+from ....params import ISABMode, LoRAMode, HeadFinalMul, IndsInitMode
 
 class ModelBody:
     TRANSFORMER = "transformer"
@@ -172,6 +172,7 @@ def create_model(
     init=True,
     create_body=create_body,
     Body=ModelBody.TRANSFORMER,
+    inds_init_mode=IndsInitMode.TORCH,
     **kwargs,
 ): 
     if not ada_lora:
@@ -190,6 +191,7 @@ def create_model(
         attn_residual=attn_residual,
         Model=Body,
         norm_first=norm_first,
+        inds_init_mode=inds_init_mode,
         **kwargs,
     )
     whole_model = MLUtilityWhole(
@@ -233,6 +235,7 @@ def create_model(
             "attn_residual": attn_residual,
             "pma_layer_norm": pma_layer_norm,
             "norm_first": norm_first,
+            "inds_init_mode": inds_init_mode,
         },
         init=init,
     )

@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import torch
 from .modules import SimpleInducedSetAttention, DoubleFeedForward, PoolingByMultiheadAttention, SimpleMultiHeadAttention, Linear
 from ....util import DEFAULT_DEVICE, check_cuda
-from ....params import ISABMode, PMAFFNMode
+from ....params import ISABMode, PMAFFNMode, IndsInitMode
 from .init import init, init_linear, init_layer_norm
 
 __author__ = "Yu-Hsiang Huang"
@@ -37,6 +37,7 @@ class EncoderLayer(nn.Module):
         attn_activation=nn.ReLU,
         attn_residual=True,
         pma_layer_norm=False,
+        inds_init_mode=IndsInitMode.TORCH,
         **kwargs,
     ):
         super().__init__()
@@ -58,6 +59,7 @@ class EncoderLayer(nn.Module):
             layer_norm=layer_norm,
             activation=attn_activation,
             attn_residual=attn_residual,
+            inds_init_mode=inds_init_mode,
             **kwargs,
         )
         ffn_layer_norm = layer_norm
@@ -95,6 +97,7 @@ class EncoderLayer(nn.Module):
                 activation=attn_activation,
                 attn_residual=attn_residual,
                 layer_norm=pma_layer_norm,
+                inds_init_mode=inds_init_mode,
                 **kwargs,
             )
             self.pos_ffn_pma = None
@@ -193,6 +196,7 @@ class DecoderLayer(EncoderLayer):
         layer_norm=False,
         attn_activation=nn.ReLU,
         attn_residual=True,
+        inds_init_mode=IndsInitMode.TORCH,
         **kwargs,
     ):
         super().__init__(
@@ -213,6 +217,7 @@ class DecoderLayer(EncoderLayer):
             layer_norm=layer_norm,
             attn_activation=attn_activation,
             attn_residual=attn_residual,
+            inds_init_mode=inds_init_mode,
             **kwargs,
         )
         Attention = SimpleInducedSetAttention if num_inds else SimpleMultiHeadAttention
@@ -233,6 +238,7 @@ class DecoderLayer(EncoderLayer):
             layer_norm=layer_norm,
             activation=attn_activation,
             attn_residual=attn_residual,
+            inds_init_mode=inds_init_mode,
         )
 
         if init:

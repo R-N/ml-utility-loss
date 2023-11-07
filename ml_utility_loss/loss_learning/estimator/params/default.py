@@ -1,4 +1,4 @@
-from ....params import BOOLEAN, ISABMode, LoRAMode, PMAFFNMode
+from ....params import BOOLEAN, ISABMode, LoRAMode, PMAFFNMode, IndsInitMode
 
 PARAM_SPACE = {
     # Dataset args
@@ -86,6 +86,11 @@ PARAM_SPACE = {
     ]),
     "attn_residual": True,
     #"attn_residual": BOOLEAN,
+    "inds_init_mode": ("categorical", [
+        IndsInitMode.TORCH,
+        IndsInitMode.FIXNORM,
+        IndsInitMode.XAVIER,
+    ]),
     # Transformer args
     "tf_d_inner": ("int_exp_2", 128, 256),
     "tf_n_layers_enc": ("int", 3, 5), 
