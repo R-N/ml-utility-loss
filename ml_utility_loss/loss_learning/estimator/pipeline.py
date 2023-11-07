@@ -346,6 +346,7 @@ def train(
     grad_loss_scale="mean",
     g_loss_mul=0.1,
     single_model=True,
+    study_name="ml_utility",
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
@@ -418,6 +419,11 @@ def train(
             models=models,
             **model_args
         )
+
+    if wandb:
+        wandb.init(project=study_name)
+        wandb.watch(whole_model, log='all', log_freq=1)
+
     if not optim:
         optim = Optim(
             whole_model.parameters(),
@@ -560,8 +566,10 @@ def train(
                     break
         if timer:
             timer.check_time()
-    if timer:
-        timer.check_time()
+
+    if wandb:
+        wandb.unwatch(whole_model)
+        wandb.finish()
 
     train_results_2 = [{f"{k}_train": v for k, v in x.items()} for x in train_results]
     val_results_2 = [{f"{k}_test": v for k, v in x.items()} for x in val_results]
