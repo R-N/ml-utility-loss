@@ -510,7 +510,7 @@ def train_epoch(
                 # the expected gradient g is 2*sqrt(loss)
                 g = 2 * torch.sqrt(loss.detach())
                 # gradient penalty
-                grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g)) if grad_loss_scale else grad_loss_fn
+                grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g).item()) if grad_loss_scale else grad_loss_fn
                 g_loss = grad_loss_fn_(dbody_dx_norm, g, reduction="none")
                 g_loss = g_loss + eps
                 if loss_clamp:
@@ -718,7 +718,7 @@ def eval(
 
             # expected gradient is 2*sqrt(loss)
             g = 2 * torch.sqrt(loss.detach())
-            grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g)) if grad_loss_scale else grad_loss_fn
+            grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g).item()) if grad_loss_scale else grad_loss_fn
             g_loss = grad_loss_fn_(dbody_dx_norm, g, reduction="none")
             
             preds[model].extend(pred.detach().cpu())
@@ -873,7 +873,7 @@ def pred(
     dbody_dx_norm = dbody_dx.norm(2, dim=-1)
     # expected gradient is 2*sqrt(loss)
     g = 2 * torch.sqrt(loss.detach())
-    grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g)) if grad_loss_scale else grad_loss_fn
+    grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g).item()) if grad_loss_scale else grad_loss_fn
     g_loss = grad_loss_fn_(dbody_dx_norm, g, reduction="none")
 
     pred = pred.detach().cpu().numpy()
