@@ -9,9 +9,9 @@ def objective(
     checkpoint_dir=None,
     log_dir=None,
     trial=None,
-    mean_loss_mul=0.5,
-    std_loss_mul=0.5,
-    g_loss_mul=0.5,
+    mean_loss_mul=0.1,
+    std_loss_mul=0.1,
+    g_loss_mul=0.1,
     allow_same_prediction=False,
     **kwargs
 ):
@@ -49,9 +49,9 @@ def objective_2(
     checkpoint_dir=None,
     log_dir=None,
     trial=None,
-    mean_loss_mul=0.5,
-    g_loss_mul=0.5,
-    std_loss_mul=0.5,
+    mean_loss_mul=0.1,
+    std_loss_mul=0.1,
+    g_loss_mul=0.1,
     allow_same_prediction=False,
     **kwargs
 ):

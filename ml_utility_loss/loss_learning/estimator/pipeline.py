@@ -344,7 +344,7 @@ def train(
     include_std_loss=False,
     grad_phase_2=False,
     grad_loss_scale="mean",
-    g_loss_mul=0.5,
+    g_loss_mul=0.1,
     single_model=True,
     **model_args
 ):
