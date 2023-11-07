@@ -215,8 +215,11 @@ class MyLossTransformer(MyLossWeighter):
         w_lbtw = self.lbtw.weigh(*losses, val=val)
         if self.log:
             losses = self.log(*losses, val=val)
+            print("post log", losses)
         losses = self.meta(*losses, val=val)
+        print("post meta", losses)
         losses = torch.mul(w_lbtw, losses)
+        print("post lbtw", losses)
         if weights is not None:
             print("pre weights", losses)
             weights = torch.Tensor(weights).to(losses.device)
