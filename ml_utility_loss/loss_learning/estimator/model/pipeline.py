@@ -38,6 +38,7 @@ NON_MODEL_PARAMS = (
     "include_std_loss",
     "include_mean_pred_loss",
     "grad_phase_2",
+    "g_loss_mul",
 )
 
 def remove_non_model_params(params, entries_to_remove=NON_MODEL_PARAMS):
