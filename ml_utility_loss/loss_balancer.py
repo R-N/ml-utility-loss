@@ -217,8 +217,10 @@ class MyLossTransformer(MyLossWeighter):
         losses = self.meta(*losses, val=val)
         losses = torch.mul(w_lbtw, losses)
         if weights is not None:
+            print("pre weights", losses)
             weights = torch.Tensor(weights).to(losses.device)
             losses = torch.mul(weights, losses)
+            print("post weights", losses)
         return losses.to(losses[0].device)
 
 
