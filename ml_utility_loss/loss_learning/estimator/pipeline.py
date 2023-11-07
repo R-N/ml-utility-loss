@@ -364,6 +364,8 @@ def train(
             lbtw=loss_balancer_lbtw,
         )
 
+    print("loss_balancer", loss_balancer)
+
     if optim:
         assert whole_model
 
