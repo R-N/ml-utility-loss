@@ -120,16 +120,14 @@ PARAM_SPACE = {
     }),
     "tf_isab_rank": 0,
     "tf_lora": False,
-    """
-    "tf_isab_rank": ("bool_int_exp_2", 1, 8), #doesn't matter much
-    "tf_lora": ("conditional", { #true is better
-        "tf_lora_mode": ("categorical", ( #doesn't matter
-            #LoRAMode.LOW_RANK, 
-            LoRAMode.LORA,
-        )),
-        "tf_lora_rank": ("int_exp_2", 2, 16), #Mustn't be bool int
-    }),
-    """
+    # "tf_isab_rank": ("bool_int_exp_2", 1, 8), #doesn't matter much
+    # "tf_lora": ("conditional", { #true is better
+    #     "tf_lora_mode": ("categorical", ( #doesn't matter
+    #         #LoRAMode.LOW_RANK, 
+    #         LoRAMode.LORA,
+    #     )),
+    #     "tf_lora_rank": ("int_exp_2", 2, 16), #Mustn't be bool int
+    # }),
     "tf_layer_norm": False,
     #"tf_layer_norm": BOOLEAN,
     "combine_mode": ("categorical", [
@@ -143,17 +141,15 @@ PARAM_SPACE = {
     #"tf_pma": ("conditional", { # doesn't matter
     "tf_pma_start": -1,
     "tf_pma_low": ("int", 1, 1),
-    """
-    "tf_pma_start": ("int", -2, -1),
-    "tf_pma_high": ("int_exp_2", 16, 64),
-    "tf_pma_rank": ("bool_int_exp_2", 2, 32), #doesn't matter so true it is
-    #}),
-    "pma_ffn_mode": ("categorical", (
-        PMAFFNMode.NONE,
-        PMAFFNMode.SEPARATE,
-        PMAFFNMode.SHARED,
-    )),
-    """
+    # "tf_pma_start": ("int", -2, -1),
+    # "tf_pma_high": ("int_exp_2", 16, 64),
+    # "tf_pma_rank": ("bool_int_exp_2", 2, 32), #doesn't matter so true it is
+    # #}),
+    # "pma_ffn_mode": ("categorical", (
+    #     PMAFFNMode.NONE,
+    #     PMAFFNMode.SEPARATE,
+    #     PMAFFNMode.SHARED,
+    # )),
     #"tf_share_ffn": BOOLEAN, 
     #"tf_share_ffn": True, #true is better
     # Adapter args
