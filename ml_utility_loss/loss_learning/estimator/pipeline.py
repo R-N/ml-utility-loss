@@ -344,6 +344,7 @@ def train(
     include_std_loss=False,
     grad_phase_2=False,
     grad_loss_scale="mean",
+    g_loss_mul=0.5,
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
@@ -421,8 +422,7 @@ def train(
             lr=lr
         )
 
-    g_loss_mul = 1.0
-    if grad_loss_scale:
+    if grad_loss_scale and g_loss_mul is True:
         g_loss_mul = getattr(train_set, grad_loss_scale)
         g_loss_mul = scale_divider(grad_loss_fn, g_loss_mul)
 

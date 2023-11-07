@@ -182,7 +182,7 @@ def train_epoch(
     allow_same_prediction=True,
     include_mean_pred_loss=False,
     include_std_loss=False,
-    g_loss_mul=0.2,
+    g_loss_mul=0.5,
 ):
     assert optim or val, "Optimizer must be provided if val is false"
     #torch.autograd.set_detect_anomaly(True)
