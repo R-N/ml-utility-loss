@@ -562,16 +562,24 @@ def train_epoch(
         #batch_loss = role_model_total_loss + non_role_model_loss
         batch_loss = (
             role_model_loss, 
-            g_loss_mul * role_model_g_loss, 
+            role_model_g_loss, 
             non_role_model_avg_mul * non_role_model_embed_loss, 
-            non_role_model_avg_mul * g_loss_mul * non_role_model_g_loss,
+            non_role_model_avg_mul * non_role_model_g_loss,
+        )
+        loss_weights = (
+            1,
+            g_loss_mul,
+            1,
+            g_loss_mul,
         )
         if include_std_loss:
             batch_loss = (*batch_loss, role_model_std_loss)
+            loss_weights = (*loss_weights, 0.5)
         if include_mean_pred_loss:
             batch_loss = (*batch_loss, role_model_mean_pred_loss)
+            loss_weights = (*loss_weights, 0.5)
         if batch == 0 and not val:
-            loss_balancer.pre_weigh(*batch_loss, val=val)
+            loss_balancer.pre_weigh(*batch_loss, val=val, weights=loss_weights)
         batch_loss = sum(loss_balancer(*batch_loss, val=val))
         if not val:
             if reduction == torch.sum:

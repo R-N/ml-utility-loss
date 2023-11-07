@@ -143,13 +143,18 @@ def train_epoch(
         batch_loss = (
             loss, 
         )
+        loss_weights = (
+            1,
+        )
         if include_std_loss:
             batch_loss = (*batch_loss, std_loss)
+            loss_weights = (*loss_weights, 0.5)
         if include_mean_pred_loss:
             batch_loss = (*batch_loss, mean_pred_loss)
+            loss_weights = (*loss_weights, 0.5)
         if batch == 0 and not val:
             loss_balancer.pre_weigh(*batch_loss, val=val)
-        batch_loss = sum(loss_balancer(*batch_loss, val=val))
+        batch_loss = sum(loss_balancer(*batch_loss, val=val, weights=loss_weights))
         if not val:
             if reduction == torch.sum:
                 (batch_loss/batch_size).backward()

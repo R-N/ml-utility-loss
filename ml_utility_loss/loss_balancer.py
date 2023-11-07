@@ -39,10 +39,13 @@ class LossBalancer(nn.Module):
     def weigh(self, *losses, val=False):
         return torch.ones([len(losses)]).to(losses[0].device)
     
-    def forward(self, *losses, val=False):
+    def forward(self, *losses, val=False, weights=None):
         losses = losses0 = try_stack(losses)
         w = self.weigh(*losses).to(losses[0].device)
         #losses = [wi*li for wi, li in zip(w, losses)]
+        if weights is not None:
+            weights = torch.Tensor(weights).to(losses.device)
+            w = torch.mul(weights, w)
         losses = torch.mul(w, losses)
         return losses.to(losses[0].device)
     
@@ -123,9 +126,13 @@ class LogTransformer(LogWeighter):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
     
-    def forward(self, *losses, val=False):
+    def forward(self, *losses, val=False, weights=None):
         losses = try_stack(losses)
-        return torch.log(1+losses)
+        losses = torch.log(1+losses)
+        if weights is not None:
+            weights = torch.Tensor(weights).to(losses.device)
+            losses = torch.mul(weights, losses)
+        return losses
     
 class CompositeBalancer(LossBalancer):
     def __init__(self, balancers, **kwargs):
@@ -169,10 +176,13 @@ class SequentialTransformer(SequentialWeighter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-    def forward(self, *losses, val=False):
+    def forward(self, *losses, val=False, weights=None):
         losses = losses0 = try_stack(losses)
         for b in self.balancers:
             losses = b(*losses, val=val)
+        if weights is not None:
+            weights = torch.Tensor(weights).to(losses.device)
+            losses = torch.mul(weights, losses)
         return losses.to(losses[0].device)
 
 class MyLossWeighter(ParallelBalancer):
@@ -199,13 +209,16 @@ class MyLossTransformer(MyLossWeighter):
         self.meta = seq[-1]
         self.lbtw = self.balancers[-1]
     
-    def forward(self, *losses, val=False):
+    def forward(self, *losses, val=False, weights=None):
         losses = losses0 = try_stack(losses)
         w_lbtw = self.lbtw.weigh(*losses, val=val)
         if self.log:
             losses = self.log(*losses, val=val)
         losses = self.meta(*losses, val=val)
         losses = torch.mul(w_lbtw, losses)
+        if weights is not None:
+            weights = torch.Tensor(weights).to(losses.device)
+            losses = torch.mul(weights, losses)
         return losses.to(losses[0].device)
 
 
