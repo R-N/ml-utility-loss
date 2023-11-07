@@ -686,7 +686,7 @@ def train_2(
     tf_num_inds = kwargs.pop("tf_num_inds", None)
     if tf_num_inds:
         if isinstance(tf_num_inds, dict):
-            kwargs.update(head_lora)
+            kwargs.update(tf_num_inds)
         else:
             kwargs["tf_num_inds"] = tf_num_inds
         
