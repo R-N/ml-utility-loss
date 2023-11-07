@@ -21,7 +21,7 @@ def train_epoch(
     reduction=torch.mean,
     val=False,
     loss_clamp=None,
-    grad_clip=1.0,
+    grad_clip=4.0,
     head="mlu",
     eps=1e-6,
     timer=None,

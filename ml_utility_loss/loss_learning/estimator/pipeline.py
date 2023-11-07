@@ -318,7 +318,7 @@ def train(
     fixed_role_model="tab_ddpm_concat",
     gradient_penalty_mode=GradientPenaltyMode.AVERAGE_MUL,
     loss_clamp=None,
-    grad_clip=1.0,
+    grad_clip=4.0,
     head="mlu",
     verbose=True,
     epoch_callback=None,
