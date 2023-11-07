@@ -17,7 +17,7 @@ PARAM_SPACE = {
         "padam", 
         "nadam",
         "adabound",
-        "adahessian",
+        #"adahessian",
         "adamp",
         "diffgrad",
         "qhadam",
