@@ -83,8 +83,8 @@ class MetaBalance(LossBalancer):
         if not val:
             self.m = m.detach()
         m0 = m[0]
-        #w = [mi/m0 for mi in m]
-        w = m / m0
+        #w = [m0/mi for mi in m]
+        w = m0 / m
         #w = [(wi * self.r) + (1 * (1 - self.r)) for wi in w]
         #w = [(wi * self.r) + 1 - self.r for wi in w]
         #w = [1 + (wi * self.r) - self.r for wi in w]
