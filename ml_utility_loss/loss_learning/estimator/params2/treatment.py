@@ -7,15 +7,21 @@ PARAM_SPACE = {
     "dataset_size": ("int_exp_2", 32, 2048),
     "batch_size": ("int_exp_2", 2, 4),
     # Training args
-    "epochs": ("log_int", 70, 200),
-    "lr": ("log_float", 1e-6, 1e-2),
+    "epochs": ("log_int", 100, 1000),
+    "lr": ("log_float", 5e-4, 1e-2),
     "Optim": ("optimizer", [
         "adamw", 
         "sgdmomentum", 
         "amsgradw",
-        #"adadelta", 
-        #"padam", 
-        "nadam"
+        "adadelta",
+        "padam", 
+        "nadam",
+        "adabound",
+        "adahessian",
+        "adamp",
+        "diffgrad",
+        "qhadam",
+        "yogi",
     ]),
     # Training args
     #"non_role_model_mul": ("float", 0.75, 1.0), #almost random
@@ -23,23 +29,14 @@ PARAM_SPACE = {
     #"non_role_model_avg": True, 
     #"std_loss_mul": ("float", 0.5, 2.0),
     #"grad_loss_mul": ("float", 0.6, 1.0), #almost random
-    "loss_balancer_meta": ("conditional", {
-        "loss_balancer_beta": ("float", 0.0, 1.0),
-        "loss_balancer_r": ("float", 0.5, 1.0),
-    }),
+    "loss_balancer_meta": True,
+    "loss_balancer_beta": ("float", 0.5, 1.0),
+    "loss_balancer_r": ("float", 0.9, 1.0),
     "loss_balancer_log": BOOLEAN,
     "loss_balancer_lbtw": BOOLEAN,
     #"loss_fn": ("loss", "mse"),
     #"grad_loss_fn": ("loss", "huber"),
-    "std_loss_fn": ("loss", [
-        "mean_penalty_tan", 
-        "mean_penalty_tan_half", 
-        "mean_penalty_tan_double", 
-        "mean_penalty_rational", 
-        "mean_penalty_rational_half",
-        "mean_penalty_rational_double", 
-        "mse", "mae", "huber", "msle",
-    ]),
+    "std_loss_fn": "mean_penalty_rational_half",
     "grad_loss_fn": ("loss", ["mse", "mae", "huber", "msle"]),
     "adapter_loss_fn": ("loss", ["mse", "mae", "huber", "msle"]),
     "fixed_role_model": ("categorical", [
@@ -51,25 +48,28 @@ PARAM_SPACE = {
         #"realtabformer"
     ]),
     "gradient_penalty_mode": ("gradient_penalty_mode", [
-        #"NONE",
-        #"ALL", # ALL was the best, but it takes a long time to train
-        "ONCE",
-        "ESTIMATE",
-        #"AVERAGE_NO_MUL",
-        "AVERAGE_MUL"
+        "NONE", # for now, let's not grad penalty
+        ##"ALL", # ALL was the best, but it takes a long time to train
+        #"ONCE",
+        #"ESTIMATE",
+        ##"AVERAGE_NO_MUL",
+        #"AVERAGE_MUL"
     ]),
+    "g_loss_mul": ("log_float", 1e-5, 1.0),
     # Common model args
     "d_model": ("int_exp_2", 64, 128), 
     "dropout": ("bool_float", 0.15, 0.5), 
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
     #"flip": False,
-    "pma_skip_small": BOOLEAN,
-    "isab_skip_small": BOOLEAN,
+    "pma_skip_small": False, #for now, don't skip
+    "isab_skip_small": False, #for now, don't skip
+    #"pma_skip_small": BOOLEAN,
+    #"isab_skip_small": BOOLEAN,
     #"skip_small": False,
     #"loss_clamp": ("log_float", 2.5, 5.0), #almost random
+    "grad_clip": ("log_float", 0.1, 10.0),
     "layer_norm": False,
-    #"layer_norm": True,
     "bias": BOOLEAN,
     #"bias": False,
     "bias_final": BOOLEAN,
@@ -92,7 +92,6 @@ PARAM_SPACE = {
     "attn_residual": True,
     #"attn_residual": BOOLEAN,
     # Transformer args
-    "tf_num_inds": ("int_exp_2", 16, 64),
     "tf_d_inner": ("int_exp_2", 64, 128),
     "tf_n_layers_enc": ("int", 3, 4), 
     "tf_n_layers_dec": ("bool_int", 2, 3), 
@@ -110,11 +109,18 @@ PARAM_SPACE = {
         "hardsigmoid",
         "softsign",
     ]),
-    "tf_isab_mode": ("categorical", (
-        ISABMode.SEPARATE, #best
-        ISABMode.SHARED,
-        ISABMode.MINI, 
-    )),
+    #"tf_num_inds": ("bool_int_exp_2", 16, 64),
+    "tf_num_inds": ("conditional", {
+        "tf_num_inds": 2,
+        "tf_isab_mode": ("categorical", (
+            ISABMode.SEPARATE, 
+            ISABMode.SHARED,
+            ISABMode.MINI, # best
+        )),
+    }),
+    "tf_isab_rank": 0,
+    "tf_lora": False,
+    """
     "tf_isab_rank": ("bool_int_exp_2", 1, 8), #doesn't matter much
     "tf_lora": ("conditional", { #true is better
         "tf_lora_mode": ("categorical", ( #doesn't matter
@@ -123,7 +129,9 @@ PARAM_SPACE = {
         )),
         "tf_lora_rank": ("int_exp_2", 2, 16), #Mustn't be bool int
     }),
-    "tf_layer_norm": BOOLEAN,
+    """
+    "tf_layer_norm": False,
+    #"tf_layer_norm": BOOLEAN,
     "combine_mode": ("categorical", [
         CombineMode.CONCAT,
         CombineMode.DIFF_LEFT,
@@ -133,9 +141,11 @@ PARAM_SPACE = {
     ]),
     # Transformer PMA args
     #"tf_pma": ("conditional", { # doesn't matter
+    "tf_pma_start": -1,
+    "tf_pma_low": ("int", 1, 1),
+    """
     "tf_pma_start": ("int", -2, -1),
     "tf_pma_high": ("int_exp_2", 16, 64),
-    "tf_pma_low": ("int", 1, 1),
     "tf_pma_rank": ("bool_int_exp_2", 2, 32), #doesn't matter so true it is
     #}),
     "pma_ffn_mode": ("categorical", (
@@ -143,6 +153,7 @@ PARAM_SPACE = {
         PMAFFNMode.SEPARATE,
         PMAFFNMode.SHARED,
     )),
+    """
     #"tf_share_ffn": BOOLEAN, 
     #"tf_share_ffn": True, #true is better
     # Adapter args
@@ -171,7 +182,7 @@ PARAM_SPACE = {
         "identity",
     ]),
     # Head args
-    "head_n_seeds": ("int", 0, 0),
+    "head_n_seeds": 0,
     "head_d_hid": ("int_exp_2", 32, 64), 
     "head_n_layers": ("int", 2, 4), 
     "head_n_head": ("int_exp_2", 8, 16), #16 was never sampled but 8 was top
@@ -195,11 +206,13 @@ PARAM_SPACE = {
 }
 
 PARAM_SPACE_2 = {
-    "dataset_size_low": ("int_exp_2", 64, 256),
-    "dataset_size_high": ("int_exp_2", 1024, 4096),
+    "dataset_size_low": ("int_exp_2", 4096, 4096),
+    "dataset_size_high": ("int_exp_2", 4096, 4096),
+    #"dataset_size_low": ("int_exp_2", 64, 256),
+    #"dataset_size_high": ("int_exp_2", 1024, 4096),
     "batch_size_low": ("int_exp_2", 4, 4),
     "batch_size_high": ("int_exp_2", 4, 4), 
-    "patience": ("log_int", 3, 10),
+    "patience": ("log_int", 30, 100),
 }
 
 #21185.595063190336

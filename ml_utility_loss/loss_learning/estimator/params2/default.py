@@ -5,36 +5,34 @@ PARAM_SPACE = {
     "dataset_size": ("int_exp_2", 32, 2048),
     "batch_size": ("int_exp_2", 2, 4),
     # Training args
-    "epochs": ("log_int", 20, 1000),
-    "lr": ("log_float", 1e-6, 1e-2),
+    "epochs": ("log_int", 100, 1000),
+    "lr": ("log_float", 5e-4, 1e-2),
     "Optim": ("optimizer", [
         "adamw", 
         "sgdmomentum", 
         "amsgradw",
-        #"adadelta", 
-        #"padam", 
-        "nadam"
+        "adadelta",
+        "padam", 
+        "nadam",
+        "adabound",
+        "adahessian",
+        "adamp",
+        "diffgrad",
+        "qhadam",
+        "yogi",
     ]),
     # Training args
     #"non_role_model_mul": ("float", 0.3, 1.0),
     #"non_role_model_avg": True,
     #"std_loss_mul": ("float", 0.5, 2.0),
     #"grad_loss_mul": ("float", 0.3, 1.5),
-    "loss_balancer_meta": ("conditional", {
-        "loss_balancer_beta": ("float", 0.0, 1.0),
-        "loss_balancer_r": ("float", 0.5, 1.0),
-    }),
+    "loss_balancer_meta": True,
+    "loss_balancer_beta": ("float", 0.5, 1.0),
+    "loss_balancer_r": ("float", 0.9, 1.0),
     "loss_balancer_log": BOOLEAN,
     "loss_balancer_lbtw": BOOLEAN,
     #"loss_fn": ("loss", "mse"),
-    "std_loss_fn": ("loss", [
-        "mean_penalty_tan", 
-        "mean_penalty_tan_half", 
-        "mean_penalty_tan_double", 
-        "mean_penalty_rational", 
-        "mean_penalty_rational_half",
-        "mean_penalty_rational_double", 
-    ]),
+    "std_loss_fn": "mean_penalty_rational_half",
     "grad_loss_fn": ("loss", ["mse", "mae", "huber", "msle"]),
     "adapter_loss_fn": ("loss", ["mse", "mae", "huber", "msle"]),
     "fixed_role_model": ("categorical", [
@@ -46,21 +44,30 @@ PARAM_SPACE = {
         #"realtabformer"
     ]),
     "gradient_penalty_mode": ("gradient_penalty_mode", [
-        #"ALL",
-        "ONCE",
-        "ESTIMATE",
-        "AVERAGE_MUL",
+        "NONE", # for now, let's not grad penalty
+        ##"ALL", # ALL was the best, but it takes a long time to train
+        #"ONCE",
+        #"ESTIMATE",
+        ##"AVERAGE_NO_MUL",
+        #"AVERAGE_MUL"
     ]),
+    "g_loss_mul": ("log_float", 1e-5, 1.0),
     # Common model args
     "d_model": ("int_exp_2", 16, 64), 
     "dropout": ("float", 0.02, 0.2), 
     #"softmax": ("softmax", "relu15"),
     #"flip": False,
-    "pma_skip_small": BOOLEAN,
-    "isab_skip_small": BOOLEAN,
+    "pma_skip_small": False, #for now, don't skip
+    "isab_skip_small": False, #for now, don't skip
+    #"pma_skip_small": BOOLEAN,
+    #"isab_skip_small": BOOLEAN,
     #"skip_small": False,
     #"loss_clamp": ("log_float", 0.5, 10.0),
+    "grad_clip": ("log_float", 0.1, 10.0),
     "layer_norm": False,
+    "bias": BOOLEAN,
+    #"bias": False,
+    "bias_final": BOOLEAN,
     "pma_layer_norm": False,
     #"pma_layer_norm": BOOLEAN,
     "attn_activation": ("activation", [
@@ -80,12 +87,12 @@ PARAM_SPACE = {
     "attn_residual": True,
     #"attn_residual": BOOLEAN,
     # Transformer args
-    "tf_num_inds": ("int_exp_2", 8, 64),
     "tf_d_inner": ("int_exp_2", 128, 256),
     "tf_n_layers_enc": ("int", 3, 5), 
     "tf_n_layers_dec": ("bool_int", 2, 4), 
     "tf_n_head": ("int_exp_2", 2, 8), 
     "tf_activation": ("activation", ["relu", "leakyrelu"]),
+    "tf_num_inds": ("bool_int_exp_2", 8, 64),
     "tf_isab_mode": ("categorical", (
         ISABMode.SEPARATE, 
         ISABMode.SHARED,
@@ -99,7 +106,8 @@ PARAM_SPACE = {
         )),
         "tf_lora_rank": ("int_exp_2", 2, 16),
     }),
-    "tf_layer_norm": BOOLEAN,
+    "tf_layer_norm": False,
+    #"tf_layer_norm": BOOLEAN,
     "combine_mode": ("categorical", [
         CombineMode.CONCAT,
         CombineMode.DIFF_LEFT,
@@ -149,7 +157,7 @@ PARAM_SPACE_2 = {
     "dataset_size_high": ("int_exp_2", 1024, 4096),
     "batch_size_low": ("int_exp_2", 2, 4),
     "batch_size_high": ("int_exp_2", 8, 8),
-    "patience": ("log_int", 2, 10)
+    "patience": ("log_int", 30, 100),
 }
 
 def update_param_space(param_space, dataset_sizes):

@@ -345,6 +345,7 @@ def train(
     grad_phase_2=False,
     grad_loss_scale="mean",
     g_loss_mul=0.5,
+    single_model=True,
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
@@ -403,11 +404,12 @@ def train(
     val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
 
     adapters = preprocessor.embedding_sizes
-    models = models
     if whole_model and not models:
         models = whole_model.models
     if not models:
         models = list(adapters.keys())
+    if single_model:
+        models = [fixed_role_model]
     adapters = filter_dict(adapters, models)
 
     if not whole_model:
