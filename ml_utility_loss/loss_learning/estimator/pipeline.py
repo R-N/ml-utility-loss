@@ -21,7 +21,7 @@ from ...params import ISABMode, LoRAMode, HeadFinalMul
 from torch.utils.tensorboard import SummaryWriter
 from copy import deepcopy
 from ...loss_balancer import FixedWeights, MyLossTransformer, LossBalancer, MyLossWeighter, DEFAULT_BETA, DEFAULT_R
-from ...metrics import mean_penalty, mean_penalty_rational, mean_penalty_rational_half, ScaledLoss
+from ...metrics import mean_penalty, mean_penalty_rational, mean_penalty_rational_half, ScaledLoss, scale_divider
 
 def augment(df, info, save_dir, n=1, test=0.2, augmenter=None):
     mkdir(save_dir)
@@ -421,6 +421,11 @@ def train(
             lr=lr
         )
 
+    g_loss_mul = 1.0
+    if grad_loss_scale:
+        g_loss_mul = getattr(train_set, grad_loss_scale)
+        g_loss_mul = scale_divider(grad_loss_fn, g_loss_mul)
+
     def train_epoch_(
         train_loader,
         val=False,
@@ -446,6 +451,7 @@ def train(
             include_mean_pred_loss=include_mean_pred_loss,
             include_std_loss=include_std_loss,
             grad_loss_scale=grad_loss_scale,
+            g_loss_mul=g_loss_mul,
             **gradient_penalty_mode,
         )
         return loss

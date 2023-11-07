@@ -178,12 +178,12 @@ OPTIMS = {
     "nadam": torch.optim.NAdam,
     "adadelta": torch.optim.Adadelta,
     "amsgrad": partial(torch.optim.Adam, amsgrad=True),
-    "amsgradw": partial(torch.optim.AdamW, amsgrad=True),
+    "amsgradw": partial(torch.optim.AdamW, amsgrad=True), #good
     "sgdmomentum": partial(torch.optim.SGD, momentum=0.9),
     "radam": torch.optim.RAdam,
-    "adabound": torch_optimizer.AdaBound,
-    "adahessian": torch_optimizer.Adahessian,
-    "adamp": torch_optimizer.AdamP,
+    "adabound": torch_optimizer.AdaBound, #good
+    "adahessian": torch_optimizer.Adahessian, #interesting
+    "adamp": torch_optimizer.AdamP, #good
     "diffgrad": torch_optimizer.DiffGrad,
     "qhadam": torch_optimizer.QHAdam,
     "yogi": torch_optimizer.Yogi,
