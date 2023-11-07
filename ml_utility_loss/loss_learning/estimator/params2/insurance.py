@@ -37,7 +37,7 @@ PARAM_SPACE = {
     #"grad_loss_mul": ("float", 0.3, 1),
     #"loss_fn": ("loss", "mse"),
     #"loss_fn": ("loss", ["mse", "huber"]),
-    "std_loss_fn": "mean_penalty_rational_half",
+    "std_loss_fn": ("loss", ["mean_penalty_rational_half"]),
     "grad_loss_fn": ("loss", ["mse", "mae", "huber", "msle"]),
     "adapter_loss_fn": ("loss", ["mse", "mae", "huber", "msle"]),
     "fixed_role_model": ("categorical", [
