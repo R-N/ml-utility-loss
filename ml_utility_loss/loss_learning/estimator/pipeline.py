@@ -683,6 +683,12 @@ def train_2(
     head_lora = kwargs.pop("head_lora", None)
     if head_lora:
         kwargs.update(head_lora)
+    tf_num_inds = kwargs.pop("tf_num_inds", None)
+    if tf_num_inds:
+        if isinstance(tf_num_inds, dict):
+            kwargs.update(head_lora)
+        else:
+            kwargs["tf_num_inds"] = tf_num_inds
         
     kwargs = {k: v for k, v in kwargs.items() if not k.endswith("_bool")}
     kwargs = {k: v for k, v in kwargs.items() if not k.endswith("_boolc")}
