@@ -65,7 +65,8 @@ SCALING = {
 }
 
 def scale_divider(loss_fn, divider=1):
-    assert divider != 0
+    if divider == 0:
+        return 1
     if loss_fn in (F.mse_loss,) or isinstance(loss_fn, (torch.nn.MSELoss)):
         divider = divider ** 2
     if loss_fn in (msle,):
@@ -78,7 +79,6 @@ class ScaledLoss:
     def __init__(self, loss_fn, divider=1):
         super().__init__()
         self.loss_fn = loss_fn
-        assert divider != 0
         divider = scale_divider(loss_fn, divider=divider)
         self.divider = divider
 
