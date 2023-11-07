@@ -85,6 +85,7 @@ class MetaBalance(LossBalancer):
         m0 = m[0]
         #w = [m0/mi for mi in m]
         w = m0 / m
+        w = torch.nan_to_num(w, nan=1)
         #w = [(wi * self.r) + (1 * (1 - self.r)) for wi in w]
         #w = [(wi * self.r) + 1 - self.r for wi in w]
         #w = [1 + (wi * self.r) - self.r for wi in w]
