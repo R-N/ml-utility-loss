@@ -11,7 +11,7 @@ def objective(
     trial=None,
     mean_loss_mul=0.1,
     std_loss_mul=0.1,
-    g_loss_mul=0.1,
+    g_loss_mul=0.001,
     allow_same_prediction=False,
     **kwargs
 ):
@@ -25,7 +25,8 @@ def objective(
             **kwargs
         )
         eval_loss = train_results["eval_loss"]
-        return eval_loss["avg_loss"] + std_loss_mul * eval_loss["avg_std_loss"] +  mean_loss_mul * eval_loss["avg_mean_pred_loss"] + g_loss_mul * eval_loss["avg_g_loss"]
+        #return eval_loss["avg_loss"] + std_loss_mul * eval_loss["avg_std_loss"] +  mean_loss_mul * eval_loss["avg_mean_pred_loss"] + g_loss_mul * eval_loss["avg_g_loss"]
+        return eval_loss["avg_loss"] + g_loss_mul * eval_loss["avg_g_loss"]
     except AssertionError as ex:
         msg = str(ex)
         if "model predicts the same for every input" in msg:
@@ -51,7 +52,7 @@ def objective_2(
     trial=None,
     mean_loss_mul=0.1,
     std_loss_mul=0.1,
-    g_loss_mul=0.1,
+    g_loss_mul=0.001,
     allow_same_prediction=False,
     **kwargs
 ):
@@ -75,7 +76,8 @@ def objective_2(
             **kwargs
         )
         eval_loss = train_results["eval_loss"]
-        return eval_loss["avg_loss"] + std_loss_mul * eval_loss["avg_std_loss"] +  mean_loss_mul * eval_loss["avg_mean_pred_loss"] + g_loss_mul * eval_loss["avg_g_loss"]
+        #return eval_loss["avg_loss"] + std_loss_mul * eval_loss["avg_std_loss"] +  mean_loss_mul * eval_loss["avg_mean_pred_loss"] + g_loss_mul * eval_loss["avg_g_loss"]
+        return eval_loss["avg_loss"] + g_loss_mul * eval_loss["avg_g_loss"]
 
     except AssertionError as ex:
         msg = str(ex)
