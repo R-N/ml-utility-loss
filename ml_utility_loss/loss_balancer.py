@@ -201,13 +201,11 @@ class MyLossTransformer(MyLossWeighter):
     
     def forward(self, *losses, val=False):
         losses = losses0 = try_stack(losses)
-        print("Pre forward", self.lbtw, self.log, self.meta)
         w_lbtw = self.lbtw.weigh(*losses, val=val)
         if self.log:
             losses = self.log(*losses, val=val)
         losses = self.meta(*losses, val=val)
         losses = torch.mul(w_lbtw, losses)
-        print("Post forward", losses)
         return losses.to(losses[0].device)
 
 

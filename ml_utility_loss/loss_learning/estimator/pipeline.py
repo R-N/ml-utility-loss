@@ -364,8 +364,6 @@ def train(
             lbtw=loss_balancer_lbtw,
         )
 
-    print("loss_balancer", loss_balancer)
-
     if optim:
         assert whole_model
 
@@ -427,6 +425,8 @@ def train(
     if grad_loss_scale:
         g_loss_mul = getattr(train_set, grad_loss_scale)
         g_loss_mul = scale_divider(grad_loss_fn, g_loss_mul)
+
+    print("g_loss_mul", g_loss_mul)
 
     def train_epoch_(
         train_loader,
