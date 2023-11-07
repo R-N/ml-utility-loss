@@ -561,7 +561,7 @@ def train_epoch(
         #batch_loss = role_model_total_loss + non_role_model_loss
         batch_loss = (
             role_model_loss, 
-            role_model_g_loss, 
+            0.5 * role_model_g_loss, 
             non_role_model_avg_mul * non_role_model_embed_loss, 
             non_role_model_avg_mul * non_role_model_g_loss,
         )
