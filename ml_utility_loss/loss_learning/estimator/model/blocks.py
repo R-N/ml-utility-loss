@@ -264,6 +264,7 @@ class Adapter(nn.Module):
         Linear=Linear,
         init=True,
         layer_norm=False,
+        embedding=None,
         **kwargs,
     ):
         super().__init__()
@@ -273,6 +274,14 @@ class Adapter(nn.Module):
         self.lora_mode = lora_mode
         self.lora_rank = lora_rank
         LinearLora = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
+
+        self.embedding = embedding
+        if self.embedding:
+            #freeze
+            for param in self.embedding.parameters(): 
+                param.requires_grad = False
+            #self.embedding.eval()
+            d_input = self.embedding.weight.shape[-1]
 
         def Linear_(
             d_input,
@@ -326,6 +335,8 @@ class Adapter(nn.Module):
 
     def forward(self, x):
         try:
+            if self.embedding:
+                x = self.embedding(x)
             y = self.linear(x)
         except RuntimeError:
             print("check_cuda a", check_cuda(self), check_cuda(self.linear), x.is_cuda)

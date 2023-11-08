@@ -7,6 +7,7 @@ from ...synthesizers.lct_gan.pipeline import create_ae
 from ...util import DEFAULT_DEVICE
 from ml_utility_loss.synthesizers.tab_ddpm.preprocessing import DatasetTransformer, split_features, DataPreprocessor as TabDDPMDataPreprocessor
 from sklearn.metrics import pairwise_distances #metric='minkowski'
+import torch
 
 DEFAULT_CAT_RATES = {
     "swap_values": 0.5/3.0,
@@ -205,6 +206,17 @@ class DataAugmenter:
 MODELS = ["tvae", "realtabformer", "lct_gan_latent", "lct_gan", "tab_ddpm", "tab_ddpm_concat"]
 DEFAULT_MODELS = ["tvae", "realtabformer", "lct_gan_latent", "lct_gan", "tab_ddpm_concat"]
 
+def emb2indices(output, emb_layer):
+    # output is size: [batch, sequence, emb_length], emb_layer is size: [num_tokens, emb_length]
+    emb_weights = emb_layer.weight
+
+    # get indices from embeddings:
+    emb_size = output.size(0), output.size(1), -1, -1
+    out_size = -1, -1, emb_weights.size(0), -1
+    out_indices = torch.argmin(torch.abs(output.unsqueeze(2).expand(out_size) -
+                                    emb_weights.unsqueeze(0).unsqueeze(0).expand(emb_size)).sum(dim=3), dim=2)
+    return out_indices
+
 class DataPreprocessor: #preprocess all with this. save all model here
     def __init__(
         self, 
@@ -222,6 +234,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         tab_ddpm_is_y_cond=True,
         model=None,
         models=DEFAULT_MODELS,
+        realtabformer_embedding=None,
         cuda=False,
     ):
         self.cat_features = cat_features
@@ -233,6 +246,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         assert not model or model in models
         self.model = model
 
+        self.realtabformer_embedding=None
         self.tvae_transformer = None
         self.rtf_model = None
         self.lct_ae = None
@@ -242,12 +256,15 @@ class DataPreprocessor: #preprocess all with this. save all model here
 
         if "tvae" in self.models:
             self.tvae_transformer = TVAEDataTransformer()
-        if "realtabformer" in self.models:
+        if "realtabformer" in self.models or "realtabformer_latent" in self.models:
             self.rtf_model = REaLTabFormer(
                 model_type="tabular",
                 gradient_accumulation_steps=1,
                 epochs=1
             )
+            if "realtabformer_latent" in self.models:
+                self.realtabformer_embedding = realtabformer_embedding
+                self.realtabformer_embedding_size = self.realtabformer_embedding.weight.shape[-1]
         if "lct_gan" in self.models or "lct_gan_latent" in self.models:
             self.lct_ae = lct_ae
             self.lct_ae_embedding_size = lct_ae_embedding_size
@@ -302,7 +319,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
             if store_embedding_size:
                 self.embedding_sizes[model] = x.shape[-1]
             return x
-        if model == "realtabformer":
+        if model in ("realtabformer", "realtabformer_latent"):
             preprocessed = self.rtf_model.preprocess(df, fit=False)
             ids = self.rtf_model.map_input_ids(preprocessed)
             #dataset = self.rtf_model.make_dataset(df)
@@ -312,6 +329,11 @@ class DataPreprocessor: #preprocess all with this. save all model here
             x = ids["input_ids"]
             if isinstance(x, pd.Series):
                 x = x.to_list()
+            if model == "realtabformer_latent":
+                if not torch.is_tensor(x):
+                    x = torch.Tensor(x).to(self.realtabformer_embedding.weight.device)
+                x = self.realtabformer_embedding(x)
+                x = x.detach().cpu().numpy()
             if not isinstance(x, np.ndarray):
                 x = np.array(x)
             if store_embedding_size:
@@ -347,11 +369,16 @@ class DataPreprocessor: #preprocess all with this. save all model here
             if isinstance(x, dict):
                 return self.tvae_transformer.inverse_transform(**x)
             return self.tvae_transformer.inverse_transform(x)
-        if model == "realtabformer":
+        if model in ("realtabformer", "realtabformer_latent"):
             if isinstance(x, dict) or isinstance(x, pd.DataFrame):
                 x = x["input_ids"]
             if isinstance(x, pd.Series):
                 x = x.to_list()
+            if model == "realtabformer_latent":
+                if not torch.is_tensor(x):
+                    x = torch.Tensor(x).to(self.realtabformer_embedding.weight.device)
+                x = emb2indices(x, self.realtabformer_embedding)
+                x = x.detach().cpu().numpy()
             if not isinstance(x, np.ndarray):
                 x = np.array(x)
             return self.rtf_model.postprocess(x)
