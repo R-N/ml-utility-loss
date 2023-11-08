@@ -1036,7 +1036,7 @@ class REaLTabFormer:
                     )
 
     @classmethod
-    def load_from_dir(cls, path: Union[str, Path]):
+    def load_from_dir(cls, path: Union[str, Path], config_file=ModelFileName.rtf_config_json, model_file=ModelFileName.rtf_model_pt):
         """Load a saved REaLTabFormer model
 
         Load trained REaLTabFormer model from directory.
@@ -1049,8 +1049,8 @@ class REaLTabFormer:
         if isinstance(path, str):
             path = Path(path)
 
-        config_file = path / ModelFileName.rtf_config_json
-        model_file = path / ModelFileName.rtf_model_pt
+        config_file = path / config_file
+        model_file = path / model_file
 
         assert path.is_dir(), f"Directory {path} does not exist."
         assert config_file.exists(), f"Config file {config_file} does not exist."
