@@ -421,7 +421,16 @@ def train(
         )
 
     if wandb:
-        wandb.init(project=study_name)
+        while True:
+            try:
+                wandb.init(project=study_name)
+                break
+            except Exception as ex:
+                msg = str(ex)
+                if "timed out" in msg:
+                    continue
+                else:
+                    raise
         wandb.watch(whole_model, log='all', log_freq=1)
 
     if not optim:
@@ -569,7 +578,16 @@ def train(
 
     if wandb:
         wandb.unwatch(whole_model)
-        wandb.finish()
+        while True:
+            try:
+                wandb.finish()
+                break
+            except Exception as ex:
+                msg = str(ex)
+                if "timed out" in msg:
+                    continue
+                else:
+                    raise
 
     train_results_2 = [{f"{k}_train": v for k, v in x.items()} for x in train_results]
     val_results_2 = [{f"{k}_test": v for k, v in x.items()} for x in val_results]
