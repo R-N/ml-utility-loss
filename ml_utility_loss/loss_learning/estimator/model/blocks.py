@@ -275,13 +275,7 @@ class Adapter(nn.Module):
         self.lora_rank = lora_rank
         LinearLora = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
 
-        self.embedding = embedding
-        if self.embedding:
-            #freeze
-            for param in self.embedding.parameters(): 
-                param.requires_grad = False
-            #self.embedding.eval()
-            d_input = self.embedding.weight.shape[-1]
+        d_input = self.set_embedding(embedding) or d_input
 
         def Linear_(
             d_input,
@@ -325,6 +319,17 @@ class Adapter(nn.Module):
         self.to(device)
 
         #print("Adapter.check_cuda", check_cuda(self))
+
+    def set_embedding(self, embedding):
+        self.embedding = embedding
+        if self.embedding:
+            #freeze
+            for param in self.embedding.parameters(): 
+                param.requires_grad = False
+            #self.embedding.eval()
+            d_input = self.embedding.weight.shape[-1]
+            return d_input
+        return None
 
     def init(self, activation=None):
         lin = None
