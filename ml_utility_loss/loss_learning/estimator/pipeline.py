@@ -347,6 +347,7 @@ def train(
     g_loss_mul=0.1,
     single_model=True,
     study_name="ml_utility",
+    gradient_penalty_args={},
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
@@ -472,6 +473,7 @@ def train(
             grad_loss_scale=grad_loss_scale,
             g_loss_mul=g_loss_mul,
             **gradient_penalty_mode,
+            **gradient_penalty_args,
         )
         return loss
     

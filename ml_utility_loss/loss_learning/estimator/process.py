@@ -80,7 +80,6 @@ def clamp_tensor(tensor, loss_clamp, dim=-1, detach_mag=True):
     #tensor = handle_nan(tensor)
     return tensor
 
-"""
 def normalize_tensor(tensor, dim=-1, detach_mag=True):
     # We treat it as a vector, having direction
     # We use keep_dim because we need it to stay (batch, dim) for denominator
@@ -151,7 +150,631 @@ def project_tensor(
     proj = normal * normal_mul
     #proj = handle_nan(proj)
     return proj
-"""
+
+
+def sim_matrix(a, b, eps=1e-8):
+    """
+    added eps for numerical stability
+    """
+    a_n, b_n = a.norm(dim=1)[:, None], b.norm(dim=1)[:, None]
+    a_norm = a / torch.clamp(a_n, min=eps)
+    b_norm = b / torch.clamp(b_n, min=eps)
+    sim_mt = torch.mm(a_norm, b_norm.transpose(0, 1))
+    return sim_mt
+
+# Gradient of error with opposing sign should have opposing direction
+def calc_g_cos_loss_opposing(
+    positive, negative,
+    grad_loss_fn=F.mse_loss,
+    reduction=torch.mean,
+    target=-1,
+    cos_matrix=True,
+    only_sign=False,
+    forgive_over=True,
+):
+
+    if len(positive) == 0 or len(negative) == 0:
+        return zero_tensor(device=positive.device)
+    
+    if cos_matrix:
+        cos = sim_matrix(positive, negative)
+    else:
+        positive = reduction(positive, dim=0)
+        negative = reduction(negative, dim=0)
+
+        assert positive.dim() == 1 and negative.dim() == 1 and positive.shape[-1] == negative.shape[-1] == dbody_dx.shape[-1]
+
+        #cos = project_tensor(positive, negative, return_type="cos")
+        cos = F.cosine_similarity(positive, negative, dim=-1)
+
+    if only_sign is True:
+        cos[cos < 0] = target
+    elif only_sign not in (False, None):
+        cos[cos <= only_sign] = target
+
+    if forgive_over:
+        cos = torch.clamp(cos, min=target)
+
+    # Cos is bounded -1 to 1
+    # So the loss is bounded by 2
+    # Thus we just half it to bound it to 1
+    g_loss = 0.5 * grad_loss_fn(cos, torch.full(cos.shape, target, device=cos.device))
+    if reduction:
+        g_loss = reduction(g_loss)
+    return g_loss
+
+# Gradient of error with same sign should have same direction
+def calc_g_cos_loss_same(
+    dbody_dx, 
+    grad_loss_fn=F.mse_loss,
+    reduction=torch.mean,
+    target=1,
+    only_sign=False,
+    forgive_over=True,
+):
+    if len(dbody_dx) == 0:
+        return zero_tensor(device=dbody_dx.device)
+
+    cos = sim_matrix(dbody_dx, dbody_dx)
+
+    if only_sign is True:
+        cos[cos > 0] = target
+    elif only_sign not in (False, None):
+        cos[cos >= only_sign] = target
+
+    if forgive_over:
+        cos = torch.clamp(cos, max=target) 
+
+    # Cos is bounded -1 to 1
+    # So the loss is bounded by 2
+    # Thus we just half it to bound it to 1
+    g_loss = 0.5 * grad_loss_fn(cos, torch.full(cos.shape, target, device=cos.device))
+
+    g_loss = torch.triu(g_loss)
+
+    if reduction:
+        g_loss = reduction(g_loss)
+    return g_loss
+
+# Gradient of error with opposing sign should have opposing direction
+def calc_g_cos_loss(
+    dbody_dx, error,
+    cos_matrix=True,
+    target=0.5, # 30 degrees, times 2
+    opposing_dir_w=0.75,
+    same_dir_w=0.25,
+    **kwargs,
+):
+    positive_ids = (error > 0).nonzero()
+    negative_ids = (error < 0).nonzero()
+
+    positive = dbody_dx[positive_ids]
+    negative = dbody_dx[negative_ids]
+
+    if cos_matrix:
+        same_dir_loss = calc_g_cos_loss_same(
+            positive,
+            target=target,
+            **kwargs
+        ) + calc_g_cos_loss_same(
+            negative,
+            target=target,
+            **kwargs
+        )
+    else:
+        # No same dir calculation without cos matrix
+        same_dir_loss = zero_tensor()
+
+    opposing_dir_loss = calc_g_cos_loss_opposing(
+        positive,
+        negative,
+        cos_matrix=cos_matrix,
+        target=-target, #negative
+        **kwargs,
+    )
+
+    sum_w = same_dir_w + opposing_dir_w
+    g_loss = (same_dir_w * same_dir_loss + opposing_dir_w * opposing_dir_loss) / sum_w
+    
+    return g_loss
+
+
+# Gradient magnitude should follow MSE gradient
+def calc_g_mse_mag_loss(
+    dbody_dx_norm, error, 
+    grad_loss_fn=F.mse_loss, 
+    grad_loss_scale="mean", 
+    reduction=torch.mean,
+    target=2,
+):
+
+    assert dbody_dx_norm.dim() == 1 and error.dim() == 1 and len(dbody_dx_norm) == len(error)
+    # because we want to model this model as squared error, 
+    # the expected gradient g is 2*error
+    #g = 2 * torch.sqrt(loss.detach())
+    # The gradient norm can't be negative
+    g = target * torch.abs(error) 
+    # gradient penalty
+    grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g).item()) if grad_loss_scale else grad_loss_fn
+    g_loss = grad_loss_fn_(dbody_dx_norm, g, reduction="none")
+    #g_loss = g_loss + eps
+    if reduction and reduction != "none":
+        g_loss = reduction(g_loss)
+    return g_loss
+
+# Gradient magnitude should positively correlate the loss
+def calc_g_mag_corr_loss(
+    dbody_dx_norm, error,
+    grad_loss_fn=F.mse_loss,
+    target=0.5,
+    forgive_over=True,
+    only_sign=False,
+    sign=True,
+):
+
+    assert dbody_dx_norm.dim() == 1 and error.dim() == 1 and len(dbody_dx_norm) == len(error)
+
+    if sign:
+        dbody_dx_norm = torch.mul(torch.sign(error), dbody_dx_norm)
+    else:
+        error = torch.abs(error)
+
+    stack = torch.stack([error, dbody_dx_norm], dim=0)
+    corr_mat = torch.corrcoef(stack)
+    corr_mat = torch.triu(corr_mat)
+    assert corr_mat.shape == (2, 2)
+    corr = corr_mat[0, 1]
+
+    if forgive_over:
+        corr = torch.clamp(corr, max=target)
+    if only_sign is True:
+        corr = corr[corr > 0] = target
+    elif only_sign not in (False, None):
+        corr = corr[corr >= only_sign] = target
+
+    g_loss = grad_loss_fn(corr, torch.full(corr.shape, target, device=corr.device))
+
+    return g_loss
+
+# If a line is drawn over error-gradient points, the gradient of the line must be positive
+# This is done sequentially for each point pair
+# any positive gradient is fine, and gradient higher than 1 is okay too 
+def calc_g_seq_mag_loss(
+    dbody_dx_norm, error,
+    grad_loss_fn=F.mse_loss,
+    reduction=torch.mean,
+    target=1,
+    forgive_over=True,
+    only_sign=False,
+    sign=True,
+):
+    
+    assert dbody_dx_norm.dim() == 1 and error.dim() == 1 and len(dbody_dx_norm) == len(error)
+
+    if sign:
+        dbody_dx_norm = torch.mul(torch.sign(error), dbody_dx_norm)
+    else:
+        error = torch.abs(error)
+
+    indices = torch.argsort(error, descending=False)
+    dbody_dx_norm, error = dbody_dx_norm[indices], error[indices]
+
+    x0 = error[:-1]
+    x1 = error[1:]
+    y0 = dbody_dx_norm[:-1]
+    y1 = dbody_dx_norm[1:]
+
+    assert len(x0) == len(x1) == len(y0) == len(y1) == (len(error) - 1)
+
+    grad = (y1-y0)/(x1-x0)
+    grad = torch.nan_to_num(grad, target)
+
+    if forgive_over or not grad_loss_fn:
+        grad = torch.clamp(grad, max=target)
+    if only_sign is True:
+        grad = grad[grad > 0] = target
+    elif only_sign not in (False, None):
+        grad = grad[grad >= only_sign] = target
+    
+    if grad_loss_fn:
+        g_loss = grad_loss_fn(grad, torch.full(grad.shape, target, device=grad.device), reduction="none")
+    else:
+        g_loss = -grad
+    if reduction:
+        g_loss = reduction(g_loss)
+
+    return g_loss
+
+    
+def calc_g_mag_loss(
+    dbody_dx, error, 
+    grad_loss_fn=F.mse_loss, 
+    grad_loss_scale="mean", 
+    eps=1e-8,
+    loss_clamp=None, 
+    reduction=torch.mean,
+    mse_mag=True,
+    mag_corr=True,
+    seq_mag=True,
+    **seq_mag_kwargs,
+):
+    # Calculate the magnitude of the gradient
+    # No keep_dim, so this results in (batch)
+    dbody_dx = dbody_dx + eps
+    dbody_dx_norm = dbody_dx.norm(2, dim=-1)
+
+    assert dbody_dx_norm.dim() == 1 and error.dim() == 1 and len(dbody_dx_norm) == len(error)
+    
+    losses = [
+        calc_g_mse_mag_loss(
+            dbody_dx_norm=dbody_dx_norm,
+            error=error,
+            grad_loss_fn=grad_loss_fn,
+            grad_loss_scale=grad_loss_scale,
+            reduction=reduction,
+        ) if mse_mag else None,
+        calc_g_mag_corr_loss(
+            dbody_dx_norm=dbody_dx_norm,
+            error=error,
+            grad_loss_fn=grad_loss_fn,
+            **seq_mag_kwargs,
+        ) if mag_corr else None,
+        calc_g_seq_mag_loss(
+            dbody_dx_norm, error,
+            grad_loss_fn=F.mse_loss,
+            reduction=reduction,
+            **seq_mag_kwargs,
+        ) if seq_mag else None,
+    ]
+    if loss_clamp:
+        losses = [clamp_tensor(l, loss_clamp=loss_clamp) for l in losses if l is not None]
+    losses = [l for l in losses if l is not None]
+    g_mag_loss = mean(losses) if losses else zero_tensor()
+    return g_mag_loss
+
+def calc_g_loss(
+    dbody_dx, error, 
+    grad_loss_fn=F.mse_loss, 
+    grad_loss_scale="mean", 
+    loss_clamp=None, 
+    reduction=torch.mean,
+    eps=1e-8,
+    mag_loss=True,
+    cos_loss=True,
+    cos_matrix=True,
+    opposing_dir_w=0.75,
+    same_dir_w=0.25,
+    **mag_loss_kwargs,
+):
+    #detach the error because we only want to shape the gradient
+    #the error will still be in the gradient's computation,
+    #but it's fine because that's just how it will update the weights
+    error = error.detach()
+    # The gradient is of shape (batch, size, dim)
+    # Sum gradient over the size dimension, resulting in (batch, dim)
+    assert dbody_dx.dim() > 2
+    dbody_dx = torch.sum(dbody_dx, dim=-2)
+    assert dbody_dx.dim() > 1 and error.dim() == 1 and len(dbody_dx) == len(error)
+
+    losses = [
+        calc_g_mag_loss(
+            dbody_dx=dbody_dx,
+            error=error,
+            grad_loss_fn=grad_loss_fn,
+            grad_loss_scale=grad_loss_scale,
+            reduction=reduction,
+            loss_clamp=loss_clamp,
+            eps=eps,
+            **mag_loss_kwargs,
+        ) if mag_loss else None,
+        calc_g_cos_loss(
+            dbody_dx=dbody_dx,
+            error=error,
+            grad_loss_fn=grad_loss_fn,
+            loss_clamp=loss_clamp,
+            opposing_dir_w=opposing_dir_w,
+            same_dir_w=same_dir_w,
+            cos_matrix=cos_matrix,
+            **mag_loss_kwargs,
+        ) if cos_loss else None,
+    ]
+    if loss_clamp:
+        losses = [clamp_tensor(l, loss_clamp=loss_clamp) for l in losses if l is not None]
+    return losses
+    losses = [l for l in losses if l is not None]
+    g_loss = mean(losses) if losses else zero_tensor()
+    return g_loss
+    
+def forward_pass_1(whole_model, model, train, compute):
+    # train needs to require grad for gradient penalty computation
+    # should I zero and make it not require grad later?
+    train = train.clone()
+    train = train.detach()
+
+
+    train = train.to(whole_model.device)
+    test = test.to(whole_model.device)
+    y = y.to(whole_model.device)
+
+    # train.grad = None
+    train.requires_grad_()
+    # calculate intermediate tensor for later use
+    compute["train"] = train
+    m = whole_model.adapters[model](train)
+    # store grad in m
+    m.requires_grad_()
+    compute["m"] = m
+
+    compute["m_test"] = m_test = whole_model.adapters[model](test)
+    
+    assert not torch.isnan(m).any(), f"{model} m has nan"
+    assert not torch.isnan(m_test).any(), f"{model} m_test has nan"
+
+    # Somehow y keeps being 64 bit tensor
+    # I have no idea what went wrong, I converted it in dataset
+    # So yeah this is a workaround
+    y = y.to(torch.float32)
+    compute["y"] = y
+
+    return compute
+
+def forward_pass_1_avg(
+    computes,
+    role_model
+):
+    compute = {}
+    compute["y"] = next(iter(computes.values()))["y"] #any, even role model
+    non_role_model_computes = [v for k, v in computes.items() if k != role_model]
+    m_s = [c["m"] for c in non_role_model_computes]
+    m_test_s = [c["m_test"] for c in non_role_model_computes]
+    m = torch.mean(torch.stack(m_s), dim=0)
+    m.requires_grad_()
+    m_test = torch.mean(torch.stack(m_test_s), dim=0)
+    compute["m"] = m
+    compute["m_test"] = m_test
+    return m, m_test
+
+
+def forward_pass_2(
+    whole_model,
+    compute,
+    model,
+    head="mlu",
+    loss_fn=F.mse_loss,
+):
+    # make prediction using intermediate tensor
+    model_1 = model
+    if model == "avg_non_role_model":
+        model_1 = None
+    m = compute["m"]
+    m_test = compute["m_test"]
+    pred = whole_model(
+        m, m_test, 
+        model=model_1, 
+        head=head, 
+        skip_train_adapter=True,
+        skip_test_adapter=True
+    )
+
+    assert not torch.isnan(pred).any(), f"{model} prediction has nan"
+    # none reduction to retain the batch shape
+    y = compute["y"]
+    compute["loss"] = loss = loss_fn(pred, y, reduction="none")
+    compute["error"] = pred - y
+    assert not torch.isnan(loss).any(), f"{model} main loss has nan"
+
+    return pred, loss
+
+def forward_pass_gradient(
+    compute,
+    calc_grad_m=True,
+    model=None,
+):
+    m = compute["m"]
+    loss = compute["loss"]
+    train = compute["train"]
+    # Partial gradient chain rule doesn't work so conveniently
+    # Due to shape changes along forward pass
+    # So we'll just calculate the whole gradient 
+    # Although we only want the role model gradient 
+    # to propagate across the rest of the model
+    # Using retain_graph and create_graph on loss.backward causes memory leak
+    # We have to use autograd.grad
+    # This forward pass cannot be merged due to insufficient memory
+    if calc_grad_m:
+        # It may be unfair to propagate gradient penalty only for role model adapter
+        # So maybe do it only up to m
+        compute["grad"] = grad = calc_gradient(m, loss)
+    else:
+        train = compute["train"]
+        compute["grad"] = grad = calc_gradient(train, loss)
+    assert not torch.isnan(grad).any(), f"{model} grad has nan"
+
+    return grad
+
+def calc_std_loss(
+    compute,
+    std_loss_fn=mean_penalty_rational_half,
+    batch_size=1,
+    allow_same_prediction=True,
+    model=None
+):
+    y = compute["y"]
+    pred = compute["pred"]
+    
+    y_std = torch.std(y).detach()
+    #compute["y_std"] = y_std
+
+    pred_std = torch.std(pred)
+    #compute["pred_std"] = pred_std
+
+    std_loss = std_loss_fn(pred_std, y_std)
+    compute["std_loss"] = std_loss
+
+    pred_std_ = pred_std.item()
+    
+    assert allow_same_prediction or batch_size == 1 or pred_std_ != 0, f"model predicts the same for every input, {model}, {pred[0].item()}, {pred_std_}"
+    return pred_std_
+
+def calc_mean_pred_loss(
+    compute,
+    loss_fn=F.mse_loss,
+    mean_pred_loss_fn=F.mse_loss,
+):
+    y = compute["y"]
+    loss = compute["loss"]
+
+    y_mean = torch.mean(y).item()
+    y_mean_loss = loss_fn(
+        torch.full(pred.shape, y_mean, device=loss.device),
+        y,
+        reduction="none"
+    ).detach()
+    #mean_pred_loss = torch.clamp(loss - y_mean_loss, min=-y_mean_loss)
+    #mean_pred_loss = loss - y_mean_loss
+    mean_pred_loss = torch.clamp(loss - y_mean_loss, min=0)
+    mean_pred_loss = mean_pred_loss_fn(
+        mean_pred_loss, 
+        torch.zeros(mean_pred_loss.shape, device=loss.device),
+        reduction="none"
+    )
+    compute["mean_pred_loss"] = mean_pred_loss
+    return mean_pred_loss
+
+def calc_embed_loss(
+    compute,
+    embed_y,
+    adapter_loss_fn=F.l1_loss,
+    loss_clamp=None,
+    reduction=torch.mean,
+    model=None,
+    eps=1e-8,
+):
+    # We reuse the previous intermediate tensor
+    # Don't detach this one
+    m = compute["m"]
+    #m.requires_grad_()
+    embed_pred = torch.cat([
+        m, 
+        compute["m_test"]
+    ], dim=-2)
+
+    embed_loss = adapter_loss_fn(embed_pred, embed_y, reduction="none")
+    # Embed loss is of shape (batch, size, dim)
+    # Average the loss over samples
+    # This has to be averaging so we won't be using the reduction parameter
+    # keep_dim=False by default so this should result in shape (batch, dim)
+    embed_loss = torch.mean(embed_loss, dim=-2)
+    assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan 1"
+    # Now we clamp embed loss because it overpowers the rest
+    if loss_clamp:
+        embed_loss_0 = embed_loss
+        embed_loss = clamp_tensor(embed_loss, loss_clamp=loss_clamp)
+        assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan 2 {embed_loss_0} {embed_pred} {embed_y}"
+    
+    # Again we'll take the norm because it is a vector
+    # But no keep_dim so it results in (batch)
+    embed_loss = embed_loss + eps
+    embed_loss = embed_loss.norm(2, dim=-1)
+    embed_loss = reduction(embed_loss)
+
+    assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan"
+
+    compute["embed_loss"] = embed_loss
+
+    return embed_loss
+
+def calc_g_loss_2(
+    model,
+    compute,
+    computes,
+    role_model,
+    inverse_avg_non_role_model_m,
+    avg_non_role_model_m=None,
+    non_role_model_count=None,
+    avg_compute=None,
+    role_model_compute=None,
+    calc_grad_m=None,
+    grad_loss_fn=F.mse_loss,
+    grad_loss_scale="mean",
+    loss_clamp=None,
+    reduction=torch.mean,
+    eps=1e-8,
+    **kwargs
+):
+    if avg_non_role_model_m is None:
+        avg_non_role_model_m = "avg_non_role_model" in computes
+    if non_role_model_count is None:
+        non_role_model_count = len(k for k in computes.keys() if k != role_model and k != "avg_non_role_model")
+    if calc_grad_m is None:
+        calc_grad_m = "m" in compute and compute["m"].requires_grad
+
+    # the grad at m is empty and detaching m won't do anything
+    if "grad" in compute:
+        grad_compute = compute
+    elif avg_non_role_model_m:
+        # We use the gradient of averaged m
+        if not avg_compute:
+            avg_compute = computes[role_model]
+        grad_compute = avg_compute
+    else:
+        if not role_model_compute:
+            role_model_compute = computes["avg_non_role_model"]
+        grad_compute = role_model_compute
+
+    if calc_grad_m: # It's not dbody/dx yet but intermediate dbody/dadapter
+        dbody_dadapter = grad_compute["grad"]
+        m = compute["m"]
+        if model != role_model:
+            dbody_dadapter = dbody_dadapter.detach()
+            if avg_non_role_model_m:
+                # We calculate the actual gradient at m from the average
+                dbody_dadapter = calc_gradient(m, grad_compute["m"], dbody_dadapter)
+                if inverse_avg_non_role_model_m:
+                    # Since it was an average, we multiply it by the model count
+                    dbody_dadapter = non_role_model_count * dbody_dadapter
+                dbody_dadapter = dbody_dadapter.detach()
+            else:
+                # The embedding is a point, not a vector
+                # Thus we shouldn't be using cos or dot product to decide
+                # Their similarity
+                # Meanwhile, gradient is where the point should move
+                # So we add the direction of where the embedding should move
+                # That is towards the role model embedding
+                # Using the gradient of embedding loss at m
+                # Does this make sense?
+                #assert not hasattr(m, "grad") or m.grad is None or m.grad == 0, "m has grad"
+                m_grad = calc_gradient(m, compute["embed_loss"])
+                dbody_dadapter = dbody_dadapter + m_grad
+                dbody_dadapter = dbody_dadapter.detach()
+
+        assert not torch.isnan(dbody_dadapter).any(), f"{model} dbody_dadapter has nan"
+        train = compute["train"]
+        dbody_dx = calc_gradient(train, m, dbody_dadapter)
+    else:
+        dbody_dx = grad_compute["grad"]
+    assert not torch.isnan(dbody_dx).any(), f"{model} dbody_dx has nan"
+    #loss = grad_compute["loss"]
+    error = grad_compute["error"]
+    g_loss = calc_g_loss(
+        dbody_dx=dbody_dx,
+        error=error,
+        grad_loss_fn=grad_loss_fn,
+        grad_loss_scale=grad_loss_scale,
+        loss_clamp=loss_clamp,
+        reduction=reduction,
+        eps=eps,
+        **kwargs
+    )
+    # weight the gradient penalty
+    #g_loss = grad_loss_mul * g_loss
+    # add to compute
+    # Okay so apparently for non role model, the g_loss is always 0
+    # This needs to be fixed
+    compute["g_loss"] = g_loss
+    assert not torch.isnan(g_loss).any(), f"{model} g_loss has nan"
+
+    return g_loss
 
 def train_epoch(
     whole_model, 
@@ -162,7 +785,7 @@ def train_epoch(
     loss_fn=F.mse_loss,
     mean_pred_loss_fn=None,
     std_loss_fn=mean_penalty_rational_half,
-    grad_loss_fn=F.huber_loss, # It's fine as long as loss_fn is MSE
+    grad_loss_fn=F.mse_loss, # It's fine as long as loss_fn is MSE
     grad_loss_scale="mean",
     adapter_loss_fn=F.l1_loss, # Values can get very large and MSE loss will result in infinity, or maybe use kl_div
     reduction=torch.mean,
@@ -177,12 +800,13 @@ def train_epoch(
     grad_clip=4.0,
     models = None,
     head="mlu",
-    eps=1e-6,
+    eps=1e-8,
     timer=None,
     allow_same_prediction=True,
     include_mean_pred_loss=False,
     include_std_loss=False,
     g_loss_mul=0.1,
+    **g_loss_kwargs
 ):
     assert optim or val, "Optimizer must be provided if val is false"
     #torch.autograd.set_detect_anomaly(True)
@@ -251,127 +875,61 @@ def train_epoch(
         # Compute prediction and loss for all adapters
         computes = {model: {} for model in models}
         for model, (train, test, y) in batch_dict.items():
-            # train needs to require grad for gradient penalty computation
-            # should I zero and make it not require grad later?
-            train = train.clone()
-            train = train.detach()
-
             batch_size = y.shape[0] if y.dim() > 0 else 1
-
-            train = train.to(whole_model.device)
-            test = test.to(whole_model.device)
-            y = y.to(whole_model.device)
-
-            # train.grad = None
-            train.requires_grad_()
             compute = computes[model]
-            # calculate intermediate tensor for later use
-            compute["train"] = train
-            m = whole_model.adapters[model](train)
-            # store grad in m
-            m.requires_grad_()
-            compute["m"] = m
-
-            compute["m_test"] = m_test = whole_model.adapters[model](test)
-            
-            assert not torch.isnan(m).any(), f"{model} m has nan"
-            assert not torch.isnan(m_test).any(), f"{model} m_test has nan"
-
-            # Somehow y keeps being 64 bit tensor
-            # I have no idea what went wrong, I converted it in dataset
-            # So yeah this is a workaround
-            y = y.to(torch.float32)
-            compute["y"] = y
-
+            forward_pass_1(
+                whole_model=whole_model,
+                model=model,
+                train=train,
+                compute=compute,
+            )
 
         # We calculate average m of non role models to do one forward pass for all of them
         avg_compute = {}
         computes_1 = computes
         if forward_once and role_model and avg_non_role_model_m:
-            compute = avg_compute
-            compute["y"] = computes[models[0]]["y"] #any, even role model
-            non_role_model_computes = [v for k, v in computes.items() if k != role_model]
-            m_s = [c["m"] for c in non_role_model_computes]
-            m_test_s = [c["m_test"] for c in non_role_model_computes]
-            m = torch.mean(torch.stack(m_s), dim=0)
-            m.requires_grad_()
-            m_test = torch.mean(torch.stack(m_test_s), dim=0)
-            compute["m"] = m
-            compute["m_test"] = m_test
-            computes_1 = {**computes, "avg_non_role_model": compute}
+            avg_compute = forward_pass_1_avg(
+                computes=computes,
+                role_model=role_model,
+            )
+            computes_1 = {**computes, "avg_non_role_model": avg_compute}
 
         for model, compute in computes_1.items():
             if forward_once and role_model and model not in (role_model, "avg_non_role_model"):
                 continue
-            # make prediction using intermediate tensor
-            model_1 = model
-            if model == "avg_non_role_model":
-                model_1 = None
-            m = compute["m"]
-            m_test = compute["m_test"]
-            pred = whole_model(
-                m, m_test, 
-                model=model_1, 
-                head=head, 
-                skip_train_adapter=True,
-                skip_test_adapter=True
-            )
-
-            assert not torch.isnan(pred).any(), f"{model} prediction has nan"
-            # none reduction to retain the batch shape
-            y = compute["y"]
-            compute["loss"] = loss = loss_fn(pred, y, reduction="none")
-            assert not torch.isnan(loss).any(), f"{model} main loss has nan"
-            # Partial gradient chain rule doesn't work so conveniently
-            # Due to shape changes along forward pass
-            # So we'll just calculate the whole gradient 
-            # Although we only want the role model gradient 
-            # to propagate across the rest of the model
-            # Using retain_graph and create_graph on loss.backward causes memory leak
-            # We have to use autograd.grad
-            # This forward pass cannot be merged due to insufficient memory
-            if gradient_penalty:
-                if calc_grad_m:
-                    # It may be unfair to propagate gradient penalty only for role model adapter
-                    # So maybe do it only up to m
-                    compute["grad"] = grad = calc_gradient(m, loss)
-                else:
-                    train = compute["train"]
-                    compute["grad"] = grad = calc_gradient(train, loss)
-                assert not torch.isnan(grad).any(), f"{model} grad has nan"
-
-            y_std = torch.std(y).detach()
-            #compute["y_std"] = y_std
-
-            pred_std = torch.std(pred)
-            #compute["pred_std"] = pred_std
-
-            std_loss = std_loss_fn(pred_std, y_std)
-            compute["std_loss"] = std_loss
-
-            pred_std_ = pred_std.item()
             
-            assert allow_same_prediction or batch_size == 1 or pred_std_ != 0, f"model predicts the same for every input, {model}, {pred[0].item()}, {pred_std_}"
+            forward_pass_2(
+                whole_model=whole_model,
+                compute=compute,
+                model=model,
+                head=head,
+                loss_fn=loss_fn,
+            )
+            if gradient_penalty:
+                forward_pass_gradient(
+                    compute=compute,
+                    calc_grad_m=calc_grad_m,
+                    model=model,
+                )
+
+
+            pred_std_ = calc_std_loss(
+                compute=compute,
+                std_loss_fn=std_loss_fn,
+                batch_size=batch_size,
+                allow_same_prediction=allow_same_prediction,
+                model=model,
+            )
 
             if model not in avg_pred_stds:
                 avg_pred_stds[model] = 0
             avg_pred_stds[model] += pred_std_
 
-            y_mean = torch.mean(y).item()
-            y_mean_loss = loss_fn(
-                torch.full(pred.shape, y_mean).to(whole_model.device),
-                y,
-                reduction="none"
-            ).detach()
-            #mean_pred_loss = torch.clamp(loss - y_mean_loss, min=-y_mean_loss)
-            #mean_pred_loss = loss - y_mean_loss
-            mean_pred_loss = torch.clamp(loss - y_mean_loss, min=0)
-            mean_pred_loss = mean_pred_loss_fn(
-                mean_pred_loss, 
-                torch.zeros(mean_pred_loss.shape).to(whole_model.device),
-                reduction="none"
+            calc_mean_pred_loss(
+                compute=compute,
+                loss_fn=loss_fn,
+                mean_pred_loss_fn=mean_pred_loss_fn
             )
-            compute["mean_pred_loss"] = mean_pred_loss
 
         if role_model and (fixed_role_model or forward_once):
             role_model_compute = computes[role_model]
@@ -396,6 +954,7 @@ def train_epoch(
             # anyway that means -3 and -2
             # This has to be done here
             # So backward pass can be called together with g_loss
+            role_model_compute = computes[role_model]
             embed_y = torch.cat([
                 role_model_compute["m"], 
                 role_model_compute["m_test"]
@@ -404,40 +963,17 @@ def train_epoch(
             # calculate embed loss to follow role model
             for model, compute in computes.items():
                 # Role model is already fully backproped by role_model_loss
-                if model == role_model:
+                if model == role_model:# compute is role_model_compute:
                     continue
-
-                # We reuse the previous intermediate tensor
-                # Don't detach this one
-                m = compute["m"]
-                #m.requires_grad_()
-                embed_pred = torch.cat([
-                    m, 
-                    compute["m_test"]
-                ], dim=-2)
-
-                embed_loss = adapter_loss_fn(embed_pred, embed_y, reduction="none")
-                # Embed loss is of shape (batch, size, dim)
-                # Average the loss over samples
-                # This has to be averaging so we won't be using the reduction parameter
-                # keep_dim=False by default so this should result in shape (batch, dim)
-                embed_loss = torch.mean(embed_loss, dim=-2)
-                assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan 1"
-                # Now we clamp embed loss because it overpowers the rest
-                if loss_clamp:
-                    embed_loss_0 = embed_loss
-                    embed_loss = clamp_tensor(embed_loss, loss_clamp=loss_clamp)
-                    assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan 2 {embed_loss_0} {embed_pred} {embed_y}"
-                
-                # Again we'll take the norm because it is a vector
-                # But no keep_dim so it results in (batch)
-                embed_loss = embed_loss + eps
-                embed_loss = embed_loss.norm(2, dim=-1)
-                embed_loss = reduction(embed_loss)
-
-                assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan"
-
-                compute["embed_loss"] = embed_loss
+                calc_embed_loss(
+                    compute=compute,
+                    embed_y=embed_y,
+                    adapter_loss_fn=adapter_loss_fn,
+                    loss_clamp=loss_clamp,
+                    reduction=reduction,
+                    model=model,
+                    eps=eps,
+                )
 
             # sum embed loss
             non_role_model_embed_loss = sum([
@@ -459,71 +995,25 @@ def train_epoch(
                 # This doesn't stand on its own
                 if model == "avg_non_role_model":
                     continue
-                # the grad at m is empty and detaching m won't do anything
-                if "grad" in compute:
-                    grad_compute = compute
-                elif avg_non_role_model_m:
-                    # We use the gradient of averaged m
-                    grad_compute = avg_compute
-                else:
-                    grad_compute = role_model_compute
-                loss = grad_compute["loss"]
-                if calc_grad_m: # It's not dbody/dx yet but intermediate dbody/dadapter
-                    dbody_dadapter = grad_compute["grad"]
-                    m = compute["m"]
-                    if model != role_model:
-                        dbody_dadapter = dbody_dadapter.detach()
-                        if avg_non_role_model_m:
-                            # We calculate the actual gradient at m from the average
-                            dbody_dadapter = calc_gradient(m, grad_compute["m"], dbody_dadapter)
-                            if inverse_avg_non_role_model_m:
-                                # Since it was an average, we multiply it by the model count
-                                dbody_dadapter = non_role_model_count * dbody_dadapter
-                            dbody_dadapter = dbody_dadapter.detach()
-                        else:
-                            # The embedding is a point, not a vector
-                            # Thus we shouldn't be using cos or dot product to decide
-                            # Their similarity
-                            # Meanwhile, gradient is where the point should move
-                            # So we add the direction of where the embedding should move
-                            # That is towards the role model embedding
-                            # Using the gradient of embedding loss at m
-                            # Does this make sense?
-                            #assert not hasattr(m, "grad") or m.grad is None or m.grad == 0, "m has grad"
-                            m_grad = calc_gradient(m, compute["embed_loss"])
-                            dbody_dadapter = dbody_dadapter + m_grad
-                            dbody_dadapter = dbody_dadapter.detach()
-
-                    assert not torch.isnan(dbody_dadapter).any(), f"{model} dbody_dadapter has nan"
-                    train = compute["train"]
-                    dbody_dx = calc_gradient(train, m, dbody_dadapter)
-                else:
-                    dbody_dx = grad_compute["grad"]
-                assert not torch.isnan(dbody_dx).any(), f"{model} dbody_dx has nan"
-                # The gradient is of shape (batch, size, dim)
-                # Sum gradient over the size dimension, resulting in (batch, dim)
-                dbody_dx = torch.sum(dbody_dx, dim=-2)
-                # Calculate the magnitude of the gradient
-                # No keep_dim, so this results in (batch)
-                dbody_dx = dbody_dx + eps
-                dbody_dx_norm = dbody_dx.norm(2, dim=-1)
-                # because we want to model this model as squared error, 
-                # the expected gradient g is 2*sqrt(loss)
-                g = 2 * torch.sqrt(loss.detach())
-                # gradient penalty
-                grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g).item()) if grad_loss_scale else grad_loss_fn
-                g_loss = grad_loss_fn_(dbody_dx_norm, g, reduction="none")
-                g_loss = g_loss + eps
-                if loss_clamp:
-                    g_loss = clamp_tensor(g_loss, loss_clamp=loss_clamp)
-                g_loss = reduction(g_loss)
-                # weight the gradient penalty
-                #g_loss = grad_loss_mul * g_loss
-                # add to compute
-                # Okay so apparently for non role model, the g_loss is always 0
-                # This needs to be fixed
-                compute["g_loss"] = g_loss
-                assert not torch.isnan(g_loss).any(), f"{model} g_loss has nan"
+                
+                calc_g_loss_2(
+                    model=model,
+                    compute=compute,
+                    computes=computes_1,
+                    role_model=role_model,
+                    inverse_avg_non_role_model_m=inverse_avg_non_role_model_m,
+                    avg_non_role_model_m=avg_non_role_model_m,
+                    non_role_model_count=non_role_model_count,
+                    avg_compute=avg_compute,
+                    role_model_compute=role_model_compute,
+                    calc_grad_m=calc_grad_m,
+                    grad_loss_fn=grad_loss_fn,
+                    grad_loss_scale=grad_loss_scale,
+                    loss_clamp=loss_clamp,
+                    reduction=reduction,
+                    eps=eps,
+                    **g_loss_kwargs
+                )
 
             # If forward_once, this will be 0 and the other computes won't have g_loss
             if not forward_once or calc_grad_m:
@@ -663,6 +1153,7 @@ def eval(
     models=None,
     allow_same_prediction=True,
     fixed_role_model=None,
+    eps=1e-8,
 ):
     size = len(eval_loader.dataset)
 
@@ -715,6 +1206,7 @@ def eval(
             time_1 = time.time()
             # We reduce directly because no further need for shape
             loss = loss_fn(pred, y, reduction="none")
+            error = pred - y
             dbody_dx = calc_gradient(train, loss)
             # The gradient is of shape (batch, size, dim)
             # Sum gradient over the size dimension, resulting in (batch, dim)
@@ -725,10 +1217,15 @@ def eval(
 
             time_2 = time.time()
 
-            # expected gradient is 2*sqrt(loss)
-            g = 2 * torch.sqrt(loss.detach())
-            grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g).item()) if grad_loss_scale else grad_loss_fn
-            g_loss = grad_loss_fn_(dbody_dx_norm, g, reduction="none")
+            g_loss = calc_g_loss(
+                dbody_dx=dbody_dx,
+                error=error,
+                grad_loss_fn=grad_loss_fn,
+                grad_loss_scale=grad_loss_scale,
+                loss_clamp=None,
+                reduction=None,
+                eps=eps,
+            )
             
             preds[model].extend(pred.detach().cpu())
             grads[model].extend(dbody_dx_norm.detach().cpu())
