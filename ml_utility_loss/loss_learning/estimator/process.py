@@ -357,6 +357,7 @@ def calc_g_seq_mag_loss(
     only_sign=False,
     sign=True,
 ):
+    print("reduction", reduction)
     
     assert dbody_dx_norm.dim() == 1 and error.dim() == 1 and len(dbody_dx_norm) == len(error)
 
@@ -389,7 +390,6 @@ def calc_g_seq_mag_loss(
         g_loss = grad_loss_fn(grad, torch.full(grad.shape, target, device=grad.device), reduction="none")
     else:
         g_loss = -grad
-    print("reduction", reduction)
     if reduction:
         g_loss = reduction(g_loss)
 
@@ -408,6 +408,7 @@ def calc_g_mag_loss(
     seq_mag=True,
     **seq_mag_kwargs,
 ):
+    print("reduction0", reduction)
     # Calculate the magnitude of the gradient
     # No keep_dim, so this results in (batch)
     dbody_dx = dbody_dx + eps
@@ -430,7 +431,8 @@ def calc_g_mag_loss(
             **seq_mag_kwargs,
         ) if mag_corr else None,
         calc_g_seq_mag_loss(
-            dbody_dx_norm, error,
+            dbody_dx_norm=dbody_dx_norm,
+            error=error,
             grad_loss_fn=F.mse_loss,
             reduction=reduction,
             **seq_mag_kwargs,
@@ -456,6 +458,7 @@ def calc_g_loss(
     same_dir_w=0.25,
     **mag_loss_kwargs,
 ):
+    print("reduction-1", reduction)
     #detach the error because we only want to shape the gradient
     #the error will still be in the gradient's computation,
     #but it's fine because that's just how it will update the weights
@@ -712,6 +715,7 @@ def calc_g_loss_2(
     eps=1e-8,
     **kwargs
 ):
+    print("reduction-2", reduction)
     if avg_non_role_model_m is None:
         avg_non_role_model_m = "avg_non_role_model" in computes
     if non_role_model_count is None:
