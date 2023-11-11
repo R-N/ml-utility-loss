@@ -556,7 +556,7 @@ def forward_pass_2(
         model_1 = None
     m = compute["m"]
     m_test = compute["m_test"]
-    pred = whole_model(
+    compute["pred"] = pred = whole_model(
         m, m_test, 
         model=model_1, 
         head=head, 
