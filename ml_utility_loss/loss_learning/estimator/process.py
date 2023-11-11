@@ -461,7 +461,6 @@ def calc_g_loss(
     error = error.detach()
     # The gradient is of shape (batch, size, dim)
     # Sum gradient over the size dimension, resulting in (batch, dim)
-    print("gradient shape", dbody_dx.shape)
     assert dbody_dx.dim() > 2, f"gradient dim too small: {dbody_dx.shape}"
     dbody_dx = torch.sum(dbody_dx, dim=-2)
     assert dbody_dx.dim() == 2 and error.dim() == 1 and len(dbody_dx) == len(error)
@@ -1243,12 +1242,6 @@ def eval(
             loss = loss_fn(pred, y, reduction="none")
             error = pred - y
             dbody_dx = calc_gradient(train, loss)
-            # The gradient is of shape (batch, size, dim)
-            # Sum gradient over the size dimension, resulting in (batch, dim)
-            dbody_dx = torch.sum(dbody_dx, dim=-2)
-            # Calculate the magnitude of the gradient
-            # No keep_dim, so this results in (batch)
-            dbody_dx_norm = dbody_dx.norm(2, dim=-1)
 
             time_2 = time.time()
 
@@ -1262,6 +1255,12 @@ def eval(
                 reduction=reduction,
                 eps=eps,
             )
+            # The gradient is of shape (batch, size, dim)
+            # Sum gradient over the size dimension, resulting in (batch, dim)
+            dbody_dx = torch.sum(dbody_dx, dim=-2)
+            # Calculate the magnitude of the gradient
+            # No keep_dim, so this results in (batch)
+            dbody_dx_norm = dbody_dx.norm(2, dim=-1)
             
             preds[model].extend(pred.detach().cpu())
             grads[model].extend(dbody_dx_norm.detach().cpu())
