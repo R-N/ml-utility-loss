@@ -6,26 +6,27 @@ import pandas as pd
 from scipy.linalg import LinAlgError
 
 
-def plot_grad(loss, grad, fig=None, ax=None, name=None, **kwargs):
+def plot_grad(error, grad, fig=None, ax=None, name=None, sqrt=False, **kwargs):
     if not ax:
         fig, ax = plt.subplots()
-    loss = np.sqrt(loss)
-    series = np.array(list(zip(loss, grad)))
+    if sqrt:
+        error = np.sqrt(error)
+    series = np.array(list(zip(error, grad)))
     series = series[series[:, 0].argsort()]
     ax.plot(series[:, 0], series[:, 1], **kwargs)
     if name:
         ax.legend([name])
     return fig
 
-def plot_grad_2(y, models, loss="loss", grad="grad", g="g", **kwargs):
+def plot_grad_2(y, models, error="error", grad="grad", g="g", **kwargs):
     fig, ax = plt.subplots()
     axes = []
     for m in models:
         yi = y[m]
-        plot_grad(yi[loss], yi[grad], fig=fig, ax=ax, **kwargs)
+        plot_grad(yi[error], yi[grad], fig=fig, ax=ax, **kwargs)
         axes.append(f"{m}_{grad}")
         if g in yi:
-            plot_grad(yi[loss], yi[g], fig=fig, ax=ax, **kwargs)
+            plot_grad(yi[error], yi[g], fig=fig, ax=ax, **kwargs)
             axes.append(f"{m}_{g}")
     ax.legend(axes)
     return fig

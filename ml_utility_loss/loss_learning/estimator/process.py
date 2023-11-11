@@ -1452,6 +1452,7 @@ def pred(
         #"g_cos_loss": g_cos_loss,
         "y": y,
         "g": g,
+        "error": (pred-y),
     }
 
 def pred_2(whole_model, batch_dict, **kwargs):
