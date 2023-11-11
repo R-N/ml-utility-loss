@@ -7,8 +7,10 @@ import math
 
 pi = np.pi
 tan_pow = 0.2*pi
+e = torch.exp(1)
+sqrt_e = torch.exp(0.5)
 
-def mean_penalty(pred_std, y_std, negative="rational", positive=F.mse_loss, power=1.0, **kwargs):
+def mean_penalty(pred_std, y_std, negative="log", positive=F.mse_loss, power=1.0, **kwargs):
     #error = pred_std - y_std
     device = pred_std.device
     #assert pred_std >= 0 and y_std > 0, f"pred_std is negative or y_std is nonpositive {pred_std}, {y_std}"
@@ -17,6 +19,8 @@ def mean_penalty(pred_std, y_std, negative="rational", positive=F.mse_loss, powe
             loss = -torch.tan(pi/2 * (1+torch.pow(pred_std/y_std, tan_pow*power)))
         elif negative == "rational":
             loss = torch.pow(y_std/pred_std, power) - 1
+        elif negative == "log":
+            loss = torch.pow(torch.log(torch.pow(pred_std/y_std, sqrt_e * power)), 2)
         else:
             raise ValueError(f"Invalid negative option: {negative}")
         assert loss >= 0, f"mean penalty is negative {negative}, {power}, {pred_std}, {y_std}, {loss}"
@@ -28,10 +32,13 @@ def mean_penalty(pred_std, y_std, negative="rational", positive=F.mse_loss, powe
     
 mean_penalty_tan = partial(mean_penalty, negative="tan")
 mean_penalty_rational = partial(mean_penalty, negative="rational")
+mean_penalty_log = partial(mean_penalty, negative="log")
 mean_penalty_tan_half = partial(mean_penalty_tan, power=0.5)
 mean_penalty_rational_half = partial(mean_penalty_rational, power=0.5)
+mean_penalty_log_half = partial(mean_penalty_log, power=0.5)
 mean_penalty_tan_double = partial(mean_penalty_tan, power=2.0)
 mean_penalty_rational_double = partial(mean_penalty_rational, power=2.0)
+mean_penalty_log_double = partial(mean_penalty_log, power=2.0)
 
 def msle(pred, y, **kwargs):
     return F.mse_loss(torch.log(1+pred), torch.log(1+y), **kwargs)

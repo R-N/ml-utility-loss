@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 from ...util import stack_samples, stack_sample_dicts, clear_memory, clear_cuda_memory, zero_tensor, filter_dict
 from torch.nn.utils import clip_grad_norm_
-from ...metrics import rmse, mae, mape, mean_penalty, mean_penalty_rational, mean_penalty_rational_half, ScaledLoss, SCALING
+from ...metrics import rmse, mae, mape, mean_penalty, mean_penalty_rational, mean_penalty_rational_half, ScaledLoss, SCALING, mean_penalty_log, mean_penalty_log_half
 import time
 import numpy as np
 from ...loss_balancer import FixedWeights, MyLossWeighter, LossBalancer, MyLossTransformer
@@ -278,6 +278,12 @@ def calc_g_cos_loss(
     
     return g_loss
 
+def get_g(
+    error,
+    target=2,
+):
+    g = target * torch.abs(error) 
+    return g
 
 # Gradient magnitude should follow MSE gradient
 def calc_g_mse_mag_loss(
@@ -293,7 +299,10 @@ def calc_g_mse_mag_loss(
     # the expected gradient g is 2*error
     #g = 2 * torch.sqrt(loss.detach())
     # The gradient norm can't be negative
-    g = target * torch.abs(error) 
+    g = get_g(
+        error=error,
+        target=target,
+    )
     # gradient penalty
     grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g).item()) if grad_loss_scale else grad_loss_fn
     g_loss = grad_loss_fn_(dbody_dx_norm, g, reduction="none")
@@ -594,7 +603,7 @@ def forward_pass_gradient(
 
 def calc_std_loss(
     compute,
-    std_loss_fn=mean_penalty_rational_half,
+    std_loss_fn=mean_penalty_log_half,
     batch_size=1,
     allow_same_prediction=True,
     model=None
@@ -756,7 +765,7 @@ def calc_g_loss_2(
     assert not torch.isnan(dbody_dx).any(), f"{model} dbody_dx has nan"
     #loss = grad_compute["loss"]
     error = grad_compute["error"]
-    g_loss = calc_g_loss(
+    g_mag_loss, g_cos_loss = calc_g_loss(
         dbody_dx=dbody_dx,
         error=error,
         grad_loss_fn=grad_loss_fn,
@@ -771,10 +780,12 @@ def calc_g_loss_2(
     # add to compute
     # Okay so apparently for non role model, the g_loss is always 0
     # This needs to be fixed
-    compute["g_loss"] = g_loss
-    assert not torch.isnan(g_loss).any(), f"{model} g_loss has nan"
+    compute["g_mag_loss"] = g_mag_loss
+    compute["g_cos_loss"] = g_cos_loss
+    assert not torch.isnan(g_mag_loss).any(), f"{model} g_mag_loss has nan"
+    assert not torch.isnan(g_cos_loss).any(), f"{model} g_cos_loss has nan"
 
-    return g_loss
+    return g_mag_loss, g_cos_loss
 
 def train_epoch(
     whole_model, 
@@ -784,7 +795,7 @@ def train_epoch(
     non_role_model_avg=True,
     loss_fn=F.mse_loss,
     mean_pred_loss_fn=None,
-    std_loss_fn=mean_penalty_rational_half,
+    std_loss_fn=mean_penalty_log_half,
     grad_loss_fn=F.mse_loss, # It's fine as long as loss_fn is MSE
     grad_loss_scale="mean",
     adapter_loss_fn=F.l1_loss, # Values can get very large and MSE loss will result in infinity, or maybe use kl_div
@@ -823,8 +834,10 @@ def train_epoch(
     avg_role_model_loss = 0
     avg_role_model_std_loss = 0
     avg_role_model_mean_pred_loss = 0
-    avg_role_model_g_loss = 0
-    avg_non_role_model_g_loss = 0
+    avg_role_model_g_mag_loss = 0
+    avg_role_model_g_cos_loss = 0
+    avg_non_role_model_g_mag_loss = 0
+    avg_non_role_model_g_cos_loss = 0
     avg_non_role_model_embed_loss = 0
     n_size = 0
     n_batch = 0
@@ -984,7 +997,8 @@ def train_epoch(
         if timer:
             timer.check_time()
 
-        non_role_model_g_loss = zero_tensor(whole_model.device)
+        non_role_model_g_mag_loss = zero_tensor(whole_model.device)
+        non_role_model_g_cos_loss = zero_tensor(whole_model.device)
         # Now we calculate the gradient penalty
         # We do this only for "train" input because test is supposedly the real dataset
         if gradient_penalty:
@@ -1017,10 +1031,15 @@ def train_epoch(
 
             # If forward_once, this will be 0 and the other computes won't have g_loss
             if not forward_once or calc_grad_m:
-                non_role_model_g_loss = sum([
-                    compute["g_loss"] 
+                non_role_model_g_mag_loss = sum([
+                    compute["g_mag_loss"] 
                     for model, compute in computes.items() 
-                    if model != role_model and "g_loss" in compute
+                    if model != role_model and "g_mag_loss" in compute
+                ])
+                non_role_model_g_cos_loss = sum([
+                    compute["g_cos_loss"] 
+                    for model, compute in computes.items() 
+                    if model != role_model and "g_cos_loss" in compute
                 ])
         if timer:
             timer.check_time()
@@ -1031,7 +1050,8 @@ def train_epoch(
         # So first we'll call backward on non-rolemodel
         # and zero the grads of the rest of the model
         assert isinstance(non_role_model_embed_loss, int) or not torch.isnan(non_role_model_embed_loss).any(), f"non_role_model_embed_loss has nan"
-        assert isinstance(non_role_model_g_loss, int) or not torch.isnan(non_role_model_g_loss).any(), f"non_role_model_g_loss has nan"
+        assert isinstance(non_role_model_g_mag_loss, int) or not torch.isnan(non_role_model_g_mag_loss).any(), f"non_role_model_g_mag_loss has nan"
+        assert isinstance(non_role_model_g_cos_loss, int) or not torch.isnan(non_role_model_g_cos_loss).any(), f"non_role_model_g_cos_loss has nan"
         #non_role_model_loss = non_role_model_embed_loss + non_role_model_g_loss
         #non_role_model_loss = non_role_model_avg_mul * non_role_model_loss
         #if not val and hasattr(non_role_model_loss, "backward"):
@@ -1041,8 +1061,10 @@ def train_epoch(
             # whole_model.non_adapter_zero_grad()
 
         # Now we backward the role model
-        role_model_g_loss = reduction(role_model_compute["g_loss"]) if gradient_penalty else zero_tensor(whole_model.device)
-        assert isinstance(role_model_g_loss, int) or not torch.isnan(role_model_g_loss).any(), f"role_model_g_loss has nan"
+        role_model_g_mag_loss = reduction(role_model_compute["g_mag_loss"]) if gradient_penalty else zero_tensor(device=whole_model.device)
+        role_model_g_cos_loss = reduction(role_model_compute["g_cos_loss"]) if gradient_penalty else zero_tensor(device=whole_model.device)
+        assert isinstance(role_model_g_mag_loss, int) or not torch.isnan(role_model_g_mag_loss).any(), f"role_model_g_mag_loss has nan"
+        assert isinstance(role_model_g_cos_loss, int) or not torch.isnan(role_model_g_cos_loss).any(), f"role_model_g_cos_loss has nan"
         assert isinstance(role_model_loss, int) or not torch.isnan(role_model_loss).any(), f"role_model_loss has nan"
         #role_model_total_loss = role_model_loss + role_model_std_loss + role_model_g_loss
         #if not val:
@@ -1052,15 +1074,19 @@ def train_epoch(
         #batch_loss = role_model_total_loss + non_role_model_loss
         batch_loss = (
             role_model_loss, 
-            role_model_g_loss, 
+            role_model_g_mag_loss, 
+            role_model_g_cos_loss, 
             non_role_model_avg_mul * non_role_model_embed_loss, 
-            non_role_model_avg_mul * non_role_model_g_loss,
+            non_role_model_avg_mul * non_role_model_g_mag_loss,
+            non_role_model_avg_mul * non_role_model_g_cos_loss,
         )
         loss_weights = (
             1,
-            g_loss_mul,
+            g_loss_mul * 0.5,
+            g_loss_mul * 0.5,
             1,
-            g_loss_mul,
+            g_loss_mul * 0.5,
+            g_loss_mul * 0.5,
         )
         if include_std_loss:
             batch_loss = (*batch_loss, role_model_std_loss)
@@ -1091,8 +1117,10 @@ def train_epoch(
         avg_role_model_loss += try_tensor_item(role_model_loss) * n_mul
         avg_role_model_std_loss += try_tensor_item(role_model_std_loss) * n_mul
         avg_role_model_mean_pred_loss += try_tensor_item(role_model_mean_pred_loss) * n_mul
-        avg_role_model_g_loss += try_tensor_item(role_model_g_loss) * n_mul
-        avg_non_role_model_g_loss += try_tensor_item(non_role_model_g_loss) * n_mul
+        avg_role_model_g_mag_loss += try_tensor_item(role_model_g_mag_loss) * n_mul
+        avg_role_model_g_cos_loss += try_tensor_item(role_model_g_cos_loss) * n_mul
+        avg_non_role_model_g_mag_loss += try_tensor_item(non_role_model_g_mag_loss) * n_mul
+        avg_non_role_model_g_cos_loss += try_tensor_item(non_role_model_g_cos_loss) * n_mul
         avg_non_role_model_embed_loss += try_tensor_item(non_role_model_embed_loss) * n_mul
         avg_loss += try_tensor_item(batch_loss) * n_mul
     
@@ -1115,8 +1143,10 @@ def train_epoch(
     avg_role_model_loss /= n
     avg_role_model_std_loss /= n_batch
     avg_role_model_mean_pred_loss /= n
-    avg_role_model_g_loss /= n
-    avg_non_role_model_g_loss /= n
+    avg_role_model_g_mag_loss /= n
+    avg_role_model_g_cos_loss /= n
+    avg_non_role_model_g_mag_loss /= n
+    avg_non_role_model_g_cos_loss /= n
     avg_non_role_model_embed_loss /= n
     avg_loss /= n
     avg_pred_stds = {k: (v / n_batch) for k, v in avg_pred_stds.items()}
@@ -1127,8 +1157,10 @@ def train_epoch(
         "avg_role_model_loss": avg_role_model_loss, 
         "avg_role_model_std_loss": avg_role_model_std_loss,
         "avg_role_model_mean_pred_loss": avg_role_model_mean_pred_loss,
-        "avg_role_model_g_loss": avg_role_model_g_loss,
-        "avg_non_role_model_g_loss": avg_non_role_model_g_loss,
+        "avg_role_model_g_mag_loss": avg_role_model_g_mag_loss,
+        "avg_role_model_g_cos_loss": avg_role_model_g_cos_loss,
+        "avg_non_role_model_g_mag_loss": avg_non_role_model_g_mag_loss,
+        "avg_non_role_model_g_cos_loss": avg_non_role_model_g_cos_loss,
         "avg_non_role_model_embed_loss": avg_non_role_model_embed_loss,
         "avg_loss": avg_loss,
         "n_size": n_size,
@@ -1146,7 +1178,7 @@ def eval(
     eval_loader, 
     loss_fn=F.mse_loss,
     mean_pred_loss_fn=None,
-    std_loss_fn=mean_penalty_rational_half,
+    std_loss_fn=mean_penalty_log_half,
     grad_loss_fn=F.mse_loss, #for RMSE,
     grad_loss_scale="mean",
     reduction=torch.mean,
@@ -1168,7 +1200,8 @@ def eval(
     n_batch = 0
     
     avg_losses = {model: 0 for model in models}
-    avg_g_losses = {model: 0 for model in models}
+    avg_g_mag_losses = {model: 0 for model in models}
+    avg_g_cos_losses = {model: 0 for model in models}
     pred_duration = {model: 0 for model in models}
     grad_duration = {model: 0 for model in models}
 
@@ -1217,13 +1250,14 @@ def eval(
 
             time_2 = time.time()
 
-            g_loss = calc_g_loss(
+            g = get_g(error=error)
+            g_mag_loss, g_cos_loss = calc_g_loss(
                 dbody_dx=dbody_dx,
                 error=error,
                 grad_loss_fn=grad_loss_fn,
                 grad_loss_scale=grad_loss_scale,
                 loss_clamp=None,
-                reduction=None,
+                reduction=reduction,
                 eps=eps,
             )
             
@@ -1234,8 +1268,10 @@ def eval(
             n_mul = (batch_size if reduction == torch.mean else 1)
             loss = reduction(loss).item()
             avg_losses[model] += loss * n_mul
-            g_loss = reduction(g_loss).item()
-            avg_g_losses[model] += g_loss * n_mul
+            g_mag_loss = reduction(g_mag_loss).item()
+            g_cos_loss = reduction(g_cos_loss).item()
+            avg_g_mag_losses[model] += g_mag_loss * n_mul
+            avg_g_cos_losses[model] += g_cos_loss * n_mul
 
             pred_duration[model] += time_1 - time_0
             grad_duration[model] += time_2 - time_1
@@ -1280,9 +1316,13 @@ def eval(
         model: (loss/n) 
         for model, loss in avg_losses.items()
     }
-    avg_g_losses = {
-        model: (g_loss/n) 
-        for model, g_loss in avg_g_losses.items()
+    avg_g_mag_losses = {
+        model: (g_mag_loss/n) 
+        for model, g_mag_loss in avg_g_mag_losses.items()
+    }
+    avg_g_cos_losses = {
+        model: (g_cos_loss/n) 
+        for model, g_cos_loss in avg_g_cos_losses.items()
     }
 
     # determine role model (adapter) by minimum loss
@@ -1297,7 +1337,8 @@ def eval(
     total_duration = {model: (pred_duration[model] + grad_duration[model]) for model in models}
 
     avg_loss = sum(avg_losses.values()) / len(models)
-    avg_g_loss = sum(avg_g_losses.values()) / len(models)
+    avg_g_mag_loss = sum(avg_g_mag_losses.values()) / len(models)
+    avg_g_cos_loss = sum(avg_g_cos_losses.values()) / len(models)
     avg_pred_duration = sum(pred_duration.values()) / len(models)
     avg_grad_duration = sum(grad_duration.values()) / len(models)
     avg_total_duration = sum(total_duration.values()) / len(models)
@@ -1308,7 +1349,8 @@ def eval(
     model_metrics = {
         model: {
             "avg_loss": avg_losses[model],
-            "avg_g_losses": avg_g_losses[model],
+            "avg_g_mag_losses": avg_g_mag_losses[model],
+            "avg_g_cos_losses": avg_g_cos_losses[model],
             "pred_duration": pred_duration[model],
             "grad_duration": grad_duration[model],
             "total_duration": total_duration[model],
@@ -1327,7 +1369,8 @@ def eval(
         "min_loss": min_loss,
         "avg_loss": avg_loss,
         "avg_std_loss": avg_std_loss,
-        "avg_g_loss": avg_g_loss,
+        "avg_g_mag_loss": avg_g_mag_loss,
+        "avg_g_cos_loss": avg_g_cos_loss,
         "avg_pred_std": avg_pred_std,
         "avg_mean_pred_loss": avg_mean_pred_loss,
         "n_size": n_size,
@@ -1351,6 +1394,7 @@ def pred(
     loss_fn=F.mse_loss,
     grad_loss_fn=F.mse_loss, #for RMSE,
     grad_loss_scale="mean",
+    eps=1e-8,
 ):
 
     # Set the model to eval mode for validation or train mode for training
@@ -1370,6 +1414,7 @@ def pred(
     )
     # We reduce directly because no further need for shape
     loss = loss_fn(pred, y, reduction="none")
+    error = pred - y
     dbody_dx = calc_gradient(train, loss)
     # The gradient is of shape (batch, size, dim)
     # Sum gradient over the size dimension, resulting in (batch, dim)
@@ -1378,23 +1423,33 @@ def pred(
     # No keep_dim, so this results in (batch)
     dbody_dx_norm = dbody_dx.norm(2, dim=-1)
     # expected gradient is 2*sqrt(loss)
-    g = 2 * torch.sqrt(loss.detach())
-    grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g).item()) if grad_loss_scale else grad_loss_fn
-    g_loss = grad_loss_fn_(dbody_dx_norm, g, reduction="none")
+    g = get_g(error=error)
+    
+    g_mag_loss, g_cos_loss = calc_g_loss(
+        dbody_dx=dbody_dx,
+        error=error,
+        grad_loss_fn=grad_loss_fn,
+        grad_loss_scale=grad_loss_scale,
+        loss_clamp=None,
+        reduction=None,
+        eps=eps,
+    )
 
     pred = pred.detach().cpu().numpy()
     loss = loss.detach().cpu().numpy()
     dbody_dx_norm = dbody_dx_norm.detach().cpu().numpy()
-    g_loss = g_loss.detach().cpu().numpy()
+    g_mag_loss = g_mag_loss.detach().cpu().numpy()
+    g_cos_loss = g_cos_loss.detach().cpu().numpy()
     y = y.detach().cpu().numpy()
     g = g.detach().cpu().numpy()
 
     clear_memory()
     return {
         "pred": pred, 
-        "loss": loss,
+        #"loss": loss,
         "grad": dbody_dx_norm,
-        "grad_loss": g_loss,
+        #"g_mag_loss": g_mag_loss,
+        #"g_cos_loss": g_cos_loss,
         "y": y,
         "g": g,
     }

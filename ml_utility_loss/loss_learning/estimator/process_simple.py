@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 from ...util import stack_samples, stack_sample_dicts, clear_memory, clear_cuda_memory, zero_tensor, filter_dict
 from torch.nn.utils import clip_grad_norm_
-from ...metrics import rmse, mae, mape, mean_penalty, mean_penalty_rational, mean_penalty_rational_half
+from ...metrics import rmse, mae, mape, mean_penalty, mean_penalty_rational, mean_penalty_rational_half, mean_penalty_log, mean_penalty_log_half
 import time
 import numpy as np
 from ...loss_balancer import FixedWeights, MyLossWeighter, LossBalancer, MyLossTransformer
@@ -17,7 +17,7 @@ def train_epoch(
     loss_balancer=LossBalancer(),
     loss_fn=F.mse_loss,
     mean_pred_loss_fn=None,
-    std_loss_fn=mean_penalty_rational_half,
+    std_loss_fn=mean_penalty_log_half,
     reduction=torch.mean,
     val=False,
     loss_clamp=None,
@@ -221,7 +221,7 @@ def eval(
     model=None,
     loss_fn=F.mse_loss,
     mean_pred_loss_fn=None,
-    std_loss_fn=mean_penalty_rational_half,
+    std_loss_fn=mean_penalty_log_half,
     reduction=torch.mean,
     allow_same_prediction=False,
     fixed_role_model=None,
