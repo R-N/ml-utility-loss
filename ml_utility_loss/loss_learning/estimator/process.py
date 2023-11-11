@@ -389,6 +389,7 @@ def calc_g_seq_mag_loss(
         g_loss = grad_loss_fn(grad, torch.full(grad.shape, target, device=grad.device), reduction="none")
     else:
         g_loss = -grad
+    print("reduction", reduction)
     if reduction:
         g_loss = reduction(g_loss)
 
