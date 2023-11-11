@@ -246,8 +246,8 @@ def calc_g_cos_loss(
     same_dir_w=0.25,
     **kwargs,
 ):
-    positive_ids = (error > 0).nonzero()
-    negative_ids = (error < 0).nonzero()
+    positive_ids = (error > 0).nonzero().squeeze(dim=-1)
+    negative_ids = (error < 0).nonzero().squeeze(dim=-1)
 
     print("indices shape", positive_ids.shape, negative_ids.shape)
 
