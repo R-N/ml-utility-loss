@@ -168,7 +168,7 @@ def calc_g_cos_loss_opposing(
     positive, negative,
     grad_loss_fn=F.mse_loss,
     reduction=torch.mean,
-    target=-0.5,
+    target=-0.2588190451,
     cos_matrix=True,
     only_sign=False,
     forgive_over=True,
@@ -209,7 +209,7 @@ def calc_g_cos_loss_same(
     dbody_dx, 
     grad_loss_fn=F.mse_loss,
     reduction=torch.mean,
-    target=0.5,
+    target=0.2588190451,
     only_sign=False,
     forgive_over=True,
 ):
