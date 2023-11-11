@@ -32,7 +32,7 @@ PARAM_SPACE = {
     "loss_balancer_log": BOOLEAN,
     "loss_balancer_lbtw": BOOLEAN,
     #"loss_fn": ("loss", "mse"),
-    "std_loss_fn": ("loss", ["mean_penalty_rational_half"]),
+    "std_loss_fn": ("loss", ["mean_penalty_log_half"]),
     "grad_loss_fn": ("loss", ["mse", "mae", "huber", "msle"]),
     "adapter_loss_fn": ("loss", ["mse", "mae", "huber", "msle"]),
     "fixed_role_model": ("categorical", [
@@ -94,7 +94,8 @@ PARAM_SPACE = {
     # Transformer args
     "tf_d_inner": ("int_exp_2", 128, 256),
     "tf_n_layers_enc": ("int", 3, 5), 
-    "tf_n_layers_dec": ("bool_int", 2, 4), 
+    "tf_n_layers_dec": False, 
+    #"tf_n_layers_dec": ("bool_int", 2, 4), 
     "tf_n_head": ("int_exp_2", 2, 8), 
     "tf_activation": ("activation", ["relu", "leakyrelu"]),
     "tf_num_inds": ("bool_int_exp_2", 8, 64),
