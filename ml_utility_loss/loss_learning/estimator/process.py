@@ -405,7 +405,7 @@ def calc_g_mag_loss(
     reduction=torch.mean,
     mse_mag=True,
     mag_corr=True,
-    seq_mag=True,
+    seq_mag=False, #can't converge
     **seq_mag_kwargs,
 ):
     # Calculate the magnitude of the gradient
