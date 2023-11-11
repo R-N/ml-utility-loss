@@ -249,6 +249,8 @@ def calc_g_cos_loss(
     positive_ids = (error > 0).nonzero()
     negative_ids = (error < 0).nonzero()
 
+    print("indices shape", positive_ids.shape, negative_ids.shape)
+
     positive = dbody_dx[positive_ids]
     negative = dbody_dx[negative_ids]
 
@@ -463,10 +465,8 @@ def calc_g_loss(
     # The gradient is of shape (batch, size, dim)
     # Sum gradient over the size dimension, resulting in (batch, dim)
     assert dbody_dx.dim() > 2
-    print("shape0", dbody_dx.shape)
     dbody_dx = torch.sum(dbody_dx, dim=-2)
-    print("shape1", dbody_dx.shape)
-    assert dbody_dx.dim() > 1 and error.dim() == 1 and len(dbody_dx) == len(error)
+    assert dbody_dx.dim() == 2 and error.dim() == 1 and len(dbody_dx) == len(error)
 
     losses = [
         calc_g_mag_loss(
