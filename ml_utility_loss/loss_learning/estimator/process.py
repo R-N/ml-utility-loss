@@ -631,6 +631,7 @@ def calc_mean_pred_loss(
 ):
     y = compute["y"]
     loss = compute["loss"]
+    pred = compute["pred"]
 
     y_mean = torch.mean(y).item()
     y_mean_loss = loss_fn(
