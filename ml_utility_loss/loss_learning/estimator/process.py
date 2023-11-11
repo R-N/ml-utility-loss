@@ -384,7 +384,7 @@ def calc_g_seq_mag_loss(
     if only_sign is True:
         grad[grad > 0] = target
     elif only_sign not in (False, None):
-        grad = grad[grad >= only_sign] = target
+        grad[grad >= only_sign] = target
     
     if grad_loss_fn:
         g_loss = grad_loss_fn(grad, torch.full(grad.shape, target, device=grad.device), reduction="none")
