@@ -494,12 +494,11 @@ def calc_g_loss(
     g_loss = mean(losses) if losses else zero_tensor(device=error.device)
     return g_loss
     
-def forward_pass_1(whole_model, model, train, compute):
+def forward_pass_1(whole_model, model, train, test, compute):
     # train needs to require grad for gradient penalty computation
     # should I zero and make it not require grad later?
     train = train.clone()
     train = train.detach()
-
 
     train = train.to(whole_model.device)
     test = test.to(whole_model.device)
@@ -894,6 +893,7 @@ def train_epoch(
                 whole_model=whole_model,
                 model=model,
                 train=train,
+                test=test,
                 compute=compute,
             )
 
