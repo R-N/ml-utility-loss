@@ -241,7 +241,7 @@ def calc_g_cos_loss_same(
 def calc_g_cos_loss(
     dbody_dx, error,
     cos_matrix=True,
-    target=0.5, # 60 degrees, times 2
+    target=0.2588190451, # 75 degrees # 60 degrees, times 2
     opposing_dir_w=0.75,
     same_dir_w=0.25,
     **kwargs,
