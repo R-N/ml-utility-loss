@@ -6,11 +6,13 @@ import pandas as pd
 from scipy.linalg import LinAlgError
 
 
-def plot_grad(error, grad, fig=None, ax=None, name=None, sqrt=False, **kwargs):
+def plot_grad(error, grad, fig=None, ax=None, name=None, sqrt=False, abs=False, **kwargs):
     if not ax:
         fig, ax = plt.subplots()
     if sqrt:
         error = np.sqrt(error)
+    if abs:
+        error = np.abs(error)
     series = np.array(list(zip(error, grad)))
     series = series[series[:, 0].argsort()]
     ax.plot(series[:, 0], series[:, 1], **kwargs)
