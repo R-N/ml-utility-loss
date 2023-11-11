@@ -167,7 +167,7 @@ def calc_g_cos_loss_opposing(
     positive, negative,
     grad_loss_fn=F.mse_loss,
     reduction=torch.mean,
-    target=-1.0,
+    target=-0.5,
     cos_matrix=True,
     only_sign=False,
     forgive_over=True,
@@ -208,7 +208,7 @@ def calc_g_cos_loss_same(
     dbody_dx, 
     grad_loss_fn=F.mse_loss,
     reduction=torch.mean,
-    target=1.0,
+    target=0.5,
     only_sign=False,
     forgive_over=True,
 ):
@@ -458,6 +458,8 @@ def calc_g_loss(
     cos_matrix=True,
     opposing_dir_w=0.75,
     same_dir_w=0.25,
+    forgive_over=True,
+    only_sign=False,
     **mag_loss_kwargs,
 ):
     #detach the error because we only want to shape the gradient
@@ -479,6 +481,8 @@ def calc_g_loss(
             reduction=reduction,
             loss_clamp=loss_clamp,
             eps=eps,
+            forgive_over=forgive_over,
+            only_sign=only_sign,
             **mag_loss_kwargs,
         ) if mag_loss else zero_tensor(device=error.device),
         calc_g_cos_loss(
@@ -488,7 +492,8 @@ def calc_g_loss(
             opposing_dir_w=opposing_dir_w,
             same_dir_w=same_dir_w,
             cos_matrix=cos_matrix,
-            **mag_loss_kwargs,
+            forgive_over=forgive_over,
+            only_sign=only_sign,
         ) if cos_loss else zero_tensor(device=error.device),
     ]
     if loss_clamp:
