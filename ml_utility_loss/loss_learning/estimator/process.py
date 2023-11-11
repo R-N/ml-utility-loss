@@ -438,8 +438,12 @@ def calc_g_mag_loss(
     if loss_clamp:
         losses = [clamp_tensor(l, loss_clamp=loss_clamp) for l in losses if l is not None]
     losses = [l for l in losses if l is not None]
-    print("losses shape", [l.shape for l in losses])
-    g_mag_loss = mean(losses) if losses else zero_tensor(device=error.device)
+    try:
+        g_mag_loss = mean(losses) if losses else zero_tensor(device=error.device)
+    except RuntimeError as ex:
+        print("losses shape", [l.shape for l in losses])
+        raise
+
     return g_mag_loss
 
 def calc_g_loss(
