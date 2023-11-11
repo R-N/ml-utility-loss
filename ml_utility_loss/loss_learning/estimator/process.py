@@ -464,7 +464,8 @@ def calc_g_loss(
     error = error.detach()
     # The gradient is of shape (batch, size, dim)
     # Sum gradient over the size dimension, resulting in (batch, dim)
-    assert dbody_dx.dim() > 2
+    print("gradient shape", dbody_dx.shape)
+    assert dbody_dx.dim() > 2, f"gradient dim too small: {dbody_dx.shape}"
     dbody_dx = torch.sum(dbody_dx, dim=-2)
     assert dbody_dx.dim() == 2 and error.dim() == 1 and len(dbody_dx) == len(error)
 
