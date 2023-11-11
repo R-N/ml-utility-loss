@@ -480,7 +480,6 @@ def calc_g_loss(
             dbody_dx=dbody_dx,
             error=error,
             grad_loss_fn=grad_loss_fn,
-            loss_clamp=loss_clamp,
             opposing_dir_w=opposing_dir_w,
             same_dir_w=same_dir_w,
             cos_matrix=cos_matrix,
