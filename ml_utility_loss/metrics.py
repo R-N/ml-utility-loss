@@ -7,8 +7,8 @@ import math
 
 pi = np.pi
 tan_pow = 0.2*pi
-e = torch.exp(1)
-sqrt_e = torch.exp(0.5)
+e = np.exp(1)
+sqrt_e = np.exp(0.5)
 
 def mean_penalty(pred_std, y_std, negative="log", positive=F.mse_loss, power=1.0, **kwargs):
     #error = pred_std - y_std
