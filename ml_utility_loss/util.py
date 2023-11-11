@@ -328,4 +328,4 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 def zero_tensor(value=0, device=DEFAULT_DEVICE):
-    return torch.full([], value, device=device)
+    return torch.full(tuple(), value, device=device)
