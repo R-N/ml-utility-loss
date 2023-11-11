@@ -168,7 +168,7 @@ def calc_g_cos_loss_opposing(
     positive, negative,
     grad_loss_fn=F.mse_loss,
     reduction=torch.mean,
-    target=-1,
+    target=-1.0,
     cos_matrix=True,
     only_sign=False,
     forgive_over=True,
@@ -209,7 +209,7 @@ def calc_g_cos_loss_same(
     dbody_dx, 
     grad_loss_fn=F.mse_loss,
     reduction=torch.mean,
-    target=1,
+    target=1.0,
     only_sign=False,
     forgive_over=True,
 ):
@@ -283,7 +283,7 @@ def calc_g_cos_loss(
 
 def get_g(
     error,
-    target=2,
+    target=2.0,
 ):
     g = target * torch.abs(error) 
     return g
@@ -294,7 +294,7 @@ def calc_g_mse_mag_loss(
     grad_loss_fn=F.mse_loss, 
     grad_loss_scale="mean", 
     reduction=torch.mean,
-    target=2,
+    target=2.0,
 ):
 
     assert dbody_dx_norm.dim() == 1 and error.dim() == 1 and len(dbody_dx_norm) == len(error)
@@ -355,7 +355,7 @@ def calc_g_seq_mag_loss(
     dbody_dx_norm, error,
     grad_loss_fn=F.mse_loss,
     reduction=torch.mean,
-    target=1,
+    target=1.0,
     forgive_over=True,
     only_sign=False,
     sign=True,
