@@ -156,7 +156,6 @@ def sim_matrix(a, b, eps=1e-8):
     """
     added eps for numerical stability
     """
-    print("sim_matrix", a.shape, b.shape)
     a_n, b_n = a.norm(dim=1)[:, None], b.norm(dim=1)[:, None]
     a_norm = a / torch.clamp(a_n, min=eps)
     b_norm = b / torch.clamp(b_n, min=eps)
@@ -248,8 +247,6 @@ def calc_g_cos_loss(
 ):
     positive_ids = (error > 0).nonzero().squeeze(dim=-1)
     negative_ids = (error < 0).nonzero().squeeze(dim=-1)
-
-    print("indices shape", positive_ids.shape, negative_ids.shape)
 
     positive = dbody_dx[positive_ids]
     negative = dbody_dx[negative_ids]
