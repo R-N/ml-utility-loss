@@ -56,11 +56,7 @@ class FixedWeights(LossBalancer):
     def __init__(self, weights, **kwargs):
         super().__init__(**kwargs)
         self.weights = try_stack([torch.Tensor(w) for w in weights])
-        FixedWeights.to(self, self.device)
-
-    def to(self, device):
-        super().to(device)
-        self.weights = self.weights.to(device)
+        self.to(self, self.device)
 
     def weigh(self, *losses, val=False):
         assert len(losses) == len(self.weights)
@@ -141,15 +137,11 @@ class CompositeBalancer(LossBalancer):
         self.balancers = [b for b in balancers if b]
         if not self.balancers:
             self.balancers = [LossBalancer()]
+        self.balancers = nn.ModuleList(self.balancers)
         CompositeBalancer.to(self, self.device)
 
     def pre_weigh(self, *losses, val=False):
         _ = [b.pre_weigh(*losses, val=val) for b in self.balancers]
-
-    def to(self, device):
-        super().to(device)
-        if self.balancers:
-            _ = [b.to(device) for b in self.balancers]
 
     def weigh(self, *losses, val=False):
         losses = self.reduce(*losses)
