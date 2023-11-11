@@ -480,7 +480,7 @@ def calc_g_loss(
             loss_clamp=loss_clamp,
             eps=eps,
             **mag_loss_kwargs,
-        ) if mag_loss else None,
+        ) if mag_loss else zero_tensor(device=error.device),
         calc_g_cos_loss(
             dbody_dx=dbody_dx,
             error=error,
@@ -489,7 +489,7 @@ def calc_g_loss(
             same_dir_w=same_dir_w,
             cos_matrix=cos_matrix,
             **mag_loss_kwargs,
-        ) if cos_loss else None,
+        ) if cos_loss else zero_tensor(device=error.device),
     ]
     if loss_clamp:
         losses = [clamp_tensor(l, loss_clamp=loss_clamp) for l in losses if l is not None]
