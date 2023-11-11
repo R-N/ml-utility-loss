@@ -1417,15 +1417,6 @@ def pred(
     loss = loss_fn(pred, y, reduction="none")
     error = pred - y
     dbody_dx = calc_gradient(train, loss)
-    # The gradient is of shape (batch, size, dim)
-    # Sum gradient over the size dimension, resulting in (batch, dim)
-    dbody_dx = torch.sum(dbody_dx, dim=-2)
-    # Calculate the magnitude of the gradient
-    # No keep_dim, so this results in (batch)
-    dbody_dx_norm = dbody_dx.norm(2, dim=-1)
-    # expected gradient is 2*sqrt(loss)
-    g = get_g(error=error)
-    
     g_mag_loss, g_cos_loss = calc_g_loss(
         dbody_dx=dbody_dx,
         error=error,
@@ -1435,6 +1426,15 @@ def pred(
         reduction=None,
         eps=eps,
     )
+    # The gradient is of shape (batch, size, dim)
+    # Sum gradient over the size dimension, resulting in (batch, dim)
+    dbody_dx = torch.sum(dbody_dx, dim=-2)
+    # Calculate the magnitude of the gradient
+    # No keep_dim, so this results in (batch)
+    dbody_dx_norm = dbody_dx.norm(2, dim=-1)
+    # expected gradient is 2*sqrt(loss)
+    g = get_g(error=error)
+    
 
     pred = pred.detach().cpu().numpy()
     loss = loss.detach().cpu().numpy()
