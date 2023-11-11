@@ -10,7 +10,7 @@ from ...loss_balancer import FixedWeights, MyLossWeighter, LossBalancer, MyLossT
 Tensor = torch.FloatTensor
 
 def mean(x):
-    return np.mean(list(x))
+    return sum(x)/len(x)
 
 def try_tensor_item(tensor, detach=True):
     if hasattr(tensor, "item"):
