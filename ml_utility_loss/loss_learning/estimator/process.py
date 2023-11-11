@@ -263,7 +263,7 @@ def calc_g_cos_loss(
         )
     else:
         # No same dir calculation without cos matrix
-        same_dir_loss = zero_tensor()
+        same_dir_loss = zero_tensor(device=error.device)
 
     opposing_dir_loss = calc_g_cos_loss_opposing(
         positive,
@@ -438,7 +438,7 @@ def calc_g_mag_loss(
     if loss_clamp:
         losses = [clamp_tensor(l, loss_clamp=loss_clamp) for l in losses if l is not None]
     losses = [l for l in losses if l is not None]
-    g_mag_loss = mean(losses) if losses else zero_tensor()
+    g_mag_loss = mean(losses) if losses else zero_tensor(device=error.device)
     return g_mag_loss
 
 def calc_g_loss(
@@ -491,7 +491,7 @@ def calc_g_loss(
         losses = [clamp_tensor(l, loss_clamp=loss_clamp) for l in losses if l is not None]
     return losses
     losses = [l for l in losses if l is not None]
-    g_loss = mean(losses) if losses else zero_tensor()
+    g_loss = mean(losses) if losses else zero_tensor(device=error.device)
     return g_loss
     
 def forward_pass_1(whole_model, model, train, compute):
@@ -960,7 +960,7 @@ def train_epoch(
         if timer:
             timer.check_time()
 
-        non_role_model_embed_loss = zero_tensor(whole_model.device)
+        non_role_model_embed_loss = zero_tensor(device=whole_model.device)
         if len(computes) > 1:
             # Calculate role model adapter embedding as the correct one as it has lowest error
             # dim 0 is batch, dim 1 is size, not sure which to use but size I guess
@@ -997,8 +997,8 @@ def train_epoch(
         if timer:
             timer.check_time()
 
-        non_role_model_g_mag_loss = zero_tensor(whole_model.device)
-        non_role_model_g_cos_loss = zero_tensor(whole_model.device)
+        non_role_model_g_mag_loss = zero_tensor(device=whole_model.device)
+        non_role_model_g_cos_loss = zero_tensor(device=whole_model.device)
         # Now we calculate the gradient penalty
         # We do this only for "train" input because test is supposedly the real dataset
         if gradient_penalty:
