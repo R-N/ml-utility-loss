@@ -82,8 +82,10 @@ class MetaBalance(LossBalancer):
             m[mask] = ref[mask]
             self.m = m.detach()
         m0 = m[0]
+        m_div = m.clone()
+        m_div[m_div==0] = 1
         #w = [m0/mi for mi in m]
-        w = m0 / m
+        w = m0 / m_div
         w = torch.nan_to_num(w, nan=1)
         #w = [(wi * self.r) + (1 * (1 - self.r)) for wi in w]
         #w = [(wi * self.r) + 1 - self.r for wi in w]
@@ -104,12 +106,15 @@ class LBTW(LossBalancer):
         mask = (l0 == 0)
         ref = self.l0 if self.l0 is not None else l0
         l0[mask] = ref[mask]
+        l0[l0==0] = 1
         self.l0 = l0.detach()
         
     def weigh(self, *losses, val=False):
         losses = self.reduce(*losses)
         #w = [(li/l0i).detach() for l0i, li in zip(self.l0, losses)]
-        w = torch.nan_to_num(torch.div(losses, self.l0), nan=1)
+        l0_div = self.l0#.clone()
+        #l0_div[l0_div==0] = 1
+        w = torch.nan_to_num(torch.div(losses, l0_div), nan=1)
         return w.detach().to(losses[0].device)
     
 class LogWeighter(LossBalancer):
