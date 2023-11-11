@@ -6,6 +6,7 @@ from ...metrics import rmse, mae, mape, mean_penalty, mean_penalty_rational, mea
 import time
 import numpy as np
 from ...loss_balancer import FixedWeights, MyLossWeighter, LossBalancer, MyLossTransformer
+import math
 
 Tensor = torch.FloatTensor
 
@@ -240,7 +241,7 @@ def calc_g_cos_loss_same(
 def calc_g_cos_loss(
     dbody_dx, error,
     cos_matrix=True,
-    target=0.5, # 30 degrees, times 2
+    target=0.5, # 60 degrees, times 2
     opposing_dir_w=0.75,
     same_dir_w=0.25,
     **kwargs,
@@ -291,7 +292,7 @@ def calc_g_mse_mag_loss(
     grad_loss_fn=F.mse_loss, 
     grad_loss_scale="mean", 
     reduction=torch.mean,
-    target=2.0,
+    target=1.0,
 ):
 
     assert dbody_dx_norm.dim() == 1 and error.dim() == 1 and len(dbody_dx_norm) == len(error)
