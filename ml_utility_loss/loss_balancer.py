@@ -77,6 +77,9 @@ class MetaBalance(LossBalancer):
         #m = try_stack(m)
         m = self.beta * m + (1 - self.beta) * losses
         if not val:
+            mask = (m == 0)
+            ref = self.m if self.m is not None else losses
+            m[mask] = ref[mask]
             self.m = m.detach()
         m0 = m[0]
         #w = [m0/mi for mi in m]
@@ -97,8 +100,11 @@ class LBTW(LossBalancer):
     def pre_weigh(self, *losses, val=False):
         if val:
             return
-        losses = self.reduce(*losses)
-        self.l0 = losses.detach()
+        l0 = self.reduce(*losses)
+        mask = (l0 == 0)
+        ref = self.l0 if self.l0 is not None else l0
+        l0[mask] = ref[mask]
+        self.l0 = l0.detach()
         
     def weigh(self, *losses, val=False):
         losses = self.reduce(*losses)
