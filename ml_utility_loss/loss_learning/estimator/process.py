@@ -1428,7 +1428,7 @@ def pred(
         grad_loss_fn=grad_loss_fn,
         grad_loss_scale=grad_loss_scale,
         loss_clamp=None,
-        reduction=None,
+        #reduction=None,
         eps=eps,
     )
     # The gradient is of shape (batch, size, dim)
