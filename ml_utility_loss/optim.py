@@ -12,6 +12,10 @@ class ScheduledOptim():
         self.n_warmup_steps = n_warmup_steps
         self.n_steps = 0
 
+    @property
+    def warming_up(self):
+        return self.n_steps < self.n_warmup_steps
+
 
     def step_and_update_lr(self):
         "Step with the inner optimizer"
