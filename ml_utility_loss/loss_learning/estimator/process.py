@@ -212,7 +212,7 @@ def calc_g_cos_loss_same(
     only_sign=False,
     forgive_over=True,
 ):
-    if len(dbody_dx) == 0:
+    if len(dbody_dx) < 2:
         return zero_tensor(device=dbody_dx.device)
 
     cos = sim_matrix(dbody_dx, dbody_dx)
