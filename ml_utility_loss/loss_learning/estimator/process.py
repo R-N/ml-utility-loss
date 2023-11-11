@@ -382,7 +382,7 @@ def calc_g_seq_mag_loss(
     if forgive_over or not grad_loss_fn:
         grad = torch.clamp(grad, max=target)
     if only_sign is True:
-        grad = grad[grad > 0] = target
+        grad[grad > 0] = target
     elif only_sign not in (False, None):
         grad = grad[grad >= only_sign] = target
     
