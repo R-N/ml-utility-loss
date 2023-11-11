@@ -31,7 +31,7 @@ class LossBalancer(nn.Module):
 
     def to(self, device):
         self.device = device
-        super().to(device)
+        super(nn.Module, self).to(device)
 
     def pre_weigh(self, *losses, val=False):
         pass
