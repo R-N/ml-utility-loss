@@ -168,7 +168,7 @@ def calc_g_cos_loss_opposing(
     positive, negative,
     grad_loss_fn=F.mse_loss,
     reduction=torch.mean,
-    target=-1.0,
+    target=1.0,
     cos_matrix=True,
     only_sign=0.2588190451,
     forgive_over=True,
@@ -183,23 +183,23 @@ def calc_g_cos_loss_opposing(
         positive = reduction(positive, dim=0)
         negative = reduction(negative, dim=0)
 
-        assert positive.dim() == 1 and negative.dim() == 1 and positive.shape[-1] == negative.shape[-1] == dbody_dx.shape[-1]
+        assert positive.dim() == 1 and negative.dim() == 1 and positive.shape[-1] == negative.shape[-1]
 
         #cos = project_tensor(positive, negative, return_type="cos")
         cos = F.cosine_similarity(positive, negative, dim=-1)
 
     if only_sign is True:
-        cos[cos < 0] = target
+        cos[cos < 0] = -target #negative
     elif only_sign not in (False, None):
-        cos[cos <= only_sign] = target
+        cos[cos <= -only_sign] = -target #negative
 
     if forgive_over:
-        cos = torch.clamp(cos, min=target)
+        cos = torch.clamp(cos, min=-target) #negative
 
     # Cos is bounded -1 to 1
     # So the loss is bounded by 2
     # Thus we just half it to bound it to 1
-    g_loss = 0.5 * grad_loss_fn(cos, torch.full(cos.shape, target, device=cos.device))
+    g_loss = 0.5 * grad_loss_fn(cos, torch.full(cos.shape, -target, device=cos.device)) #negative
     if reduction:
         g_loss = reduction(g_loss)
     return g_loss
@@ -273,7 +273,7 @@ def calc_g_cos_loss(
         positive,
         negative,
         cos_matrix=cos_matrix,
-        target=-target, #negative
+        target=target, #not negative
         only_sign=only_sign,
         **kwargs,
     )
