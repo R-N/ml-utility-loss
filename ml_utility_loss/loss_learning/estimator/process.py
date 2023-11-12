@@ -168,9 +168,9 @@ def calc_g_cos_loss_opposing(
     positive, negative,
     grad_loss_fn=F.mse_loss,
     reduction=torch.mean,
-    target=-0.2588190451,
+    target=-1.0,
     cos_matrix=True,
-    only_sign=False,
+    only_sign=0.2588190451,
     forgive_over=True,
 ):
 
@@ -209,8 +209,8 @@ def calc_g_cos_loss_same(
     dbody_dx, 
     grad_loss_fn=F.mse_loss,
     reduction=torch.mean,
-    target=0.2588190451,
-    only_sign=False,
+    target=1.0,
+    only_sign=0.2588190451,
     forgive_over=True,
 ):
     if len(dbody_dx) < 2:
@@ -241,9 +241,10 @@ def calc_g_cos_loss_same(
 def calc_g_cos_loss(
     dbody_dx, error,
     cos_matrix=True,
-    target=0.2588190451, # 75 degrees # 60 degrees, times 2
+    target=1.0, # 75 degrees # 60 degrees, times 2
     opposing_dir_w=0.75,
     same_dir_w=0.25,
+    only_sign=0.2588190451,
     **kwargs,
 ):
     positive_ids = (error > 0).nonzero().squeeze(dim=-1)
@@ -256,10 +257,12 @@ def calc_g_cos_loss(
         same_dir_loss = calc_g_cos_loss_same(
             positive,
             target=target,
+            only_sign=only_sign,
             **kwargs
         ) + calc_g_cos_loss_same(
             negative,
             target=target,
+            only_sign=only_sign,
             **kwargs
         )
     else:
@@ -271,6 +274,7 @@ def calc_g_cos_loss(
         negative,
         cos_matrix=cos_matrix,
         target=-target, #negative
+        only_sign=only_sign,
         **kwargs,
     )
 
@@ -316,9 +320,9 @@ def calc_g_mse_mag_loss(
 def calc_g_mag_corr_loss(
     dbody_dx_norm, error,
     grad_loss_fn=F.mse_loss,
-    target=0.5,
+    target=1.0,
     forgive_over=True,
-    only_sign=False,
+    only_sign=0.3,
     sign=True,
 ):
 
@@ -460,7 +464,9 @@ def calc_g_loss(
     opposing_dir_w=0.75,
     same_dir_w=0.25,
     forgive_over=True,
-    only_sign=False,
+    #only_sign=False,
+    mag_only_sign=0.3,
+    cos_only_sign=0.2588190451,
     **mag_loss_kwargs,
 ):
     #detach the error because we only want to shape the gradient
@@ -483,7 +489,7 @@ def calc_g_loss(
             loss_clamp=loss_clamp,
             eps=eps,
             forgive_over=forgive_over,
-            only_sign=only_sign,
+            only_sign=mag_only_sign,
             **mag_loss_kwargs,
         ) if mag_loss else zero_tensor(device=error.device),
         calc_g_cos_loss(
@@ -494,7 +500,7 @@ def calc_g_loss(
             same_dir_w=same_dir_w,
             cos_matrix=cos_matrix,
             forgive_over=forgive_over,
-            only_sign=only_sign,
+            only_sign=cos_only_sign,
         ) if cos_loss else zero_tensor(device=error.device),
     ]
     if loss_clamp:
