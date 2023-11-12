@@ -338,9 +338,9 @@ def calc_g_mag_corr_loss(
     if forgive_over:
         corr = torch.clamp(corr, max=target)
     if only_sign is True:
-        corr = corr[corr > 0] = target
+        corr[corr > 0] = target
     elif only_sign not in (False, None):
-        corr = corr[corr >= only_sign] = target
+        corr[corr >= only_sign] = target
 
     g_loss = grad_loss_fn(corr, torch.full(corr.shape, target, device=corr.device))
 
