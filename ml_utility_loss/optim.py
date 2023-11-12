@@ -5,7 +5,7 @@ from .Padam import Padam
 class ScheduledOptim():
     '''A simple wrapper class for learning rate scheduling'''
 
-    def __init__(self, optimizer, lr_mul, d_model, n_warmup_steps):
+    def __init__(self, optimizer, d_model, lr_mul=2.0, n_warmup_steps=100):
         self._optimizer = optimizer
         self.lr_mul = lr_mul
         self.d_model = d_model
@@ -16,8 +16,7 @@ class ScheduledOptim():
     def warming_up(self):
         return self.n_steps < self.n_warmup_steps
 
-
-    def step_and_update_lr(self):
+    def step(self):
         "Step with the inner optimizer"
         self.n_steps += 1
         self._update_learning_rate()

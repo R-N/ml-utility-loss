@@ -16,12 +16,14 @@ from torch import nn
 import torch.nn.functional as F
 import math
 import warnings
-from ...scheduler import PretrainingScheduler
+from ...scheduler import SizeScheduler
 from ...params import ISABMode, LoRAMode, HeadFinalMul
 from torch.utils.tensorboard import SummaryWriter
 from copy import deepcopy
 from ...loss_balancer import FixedWeights, MyLossTransformer, LossBalancer, MyLossWeighter, DEFAULT_BETA, DEFAULT_R
 from ...metrics import mean_penalty, mean_penalty_rational, mean_penalty_rational_half, ScaledLoss, scale_divider, mean_penalty_log, mean_penalty_log_half
+from ...optim import ScheduledOptim
+from ...early_stopping import StopOnPlateau
 
 def augment(df, info, save_dir, n=1, test=0.2, augmenter=None):
     mkdir(save_dir)
@@ -348,6 +350,8 @@ def train(
     single_model=True,
     study_name="ml_utility",
     gradient_penalty_args={},
+    lr_mul=0.0,
+    n_warmup_steps=100,
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
@@ -439,6 +443,14 @@ def train(
             whole_model.parameters(),
             lr=lr
         )
+    if lr_mul and not isinstance(optim, ScheduledOptim):
+        optim = ScheduledOptim(
+            optim,
+            lr_mul=lr_mul,
+            n_warmup_steps=n_warmup_steps,
+        )
+    if not hasattr(optim, "warming_up"):
+        optim.warming_up = False
 
     if grad_loss_scale and g_loss_mul is True:
         g_loss_mul = getattr(train_set, grad_loss_scale)
@@ -542,7 +554,7 @@ def train(
         if not include_mean_pred_loss:
             val_value += val_loss["avg_role_model_mean_pred_loss"]
 
-        if size_scheduler and size_scheduler.step(val_value, epoch=i):
+        if not optim.warming_up and size_scheduler and size_scheduler.step(val_value, epoch=i):
             print("Prepare loader")
             del train_loader
             del val_loader
@@ -565,7 +577,7 @@ def train(
                 **{f"{k}_test": v for k, v in val_loss.items()},
             })
 
-        if early_stopping:
+        if not optim.warming_up and early_stopping:
             early_stopping.step(train_value, val_value, epoch=i)
             if early_stopping.stopped:
                 print("Stopped", gradient_penalty_mode_ != gradient_penalty_mode)
@@ -689,6 +701,8 @@ def train_2(
     log_dir=None,
     trial=None,
     verbose=False,
+    early_stopping=None,
+    patience=50,
     **kwargs
 ):
     tf_pma = kwargs.pop("tf_pma", None)
@@ -713,6 +727,9 @@ def train_2(
     kwargs = {k: v for k, v in kwargs.items() if not k.endswith("_bool")}
     kwargs = {k: v for k, v in kwargs.items() if not k.endswith("_boolc")}
 
+    if not early_stopping and patience:
+        early_stopping = StopOnPlateau(patience=patience)
+
     train_results = train(
         datasets,
         preprocessor,
@@ -732,7 +749,7 @@ def train_3(
     batch_size_low=4,
     batch_size_high=64,
     verbose=False,
-    patience=5,
+    scheduler_patience=50,
     objective=train_2,
     checkpoint_dir=None,
     log_dir=None,
@@ -743,21 +760,21 @@ def train_3(
     assert batch_size_low <= batch_size_high, "batch size low must be lower than high"
 
 
-    size_scheduler = PretrainingScheduler(
+    size_scheduler = SizeScheduler(
         min_size=dataset_size_low,
         max_size=dataset_size_high,
         min_batch_size=batch_size_low,
         max_batch_size=batch_size_high,
-        patience=patience,
+        patience=scheduler_patience,
         verbose=verbose,
     )
     kwargs["dataset_size"] = size_scheduler.get_size()
     kwargs["batch_size"] = size_scheduler.get_batch_size()
-    early_stopping = size_scheduler
+    #early_stopping = size_scheduler
     return objective(
         *args, 
         size_scheduler=size_scheduler, 
-        early_stopping=early_stopping, 
+        #early_stopping=early_stopping, 
         checkpoint_dir=checkpoint_dir,
         log_dir=log_dir,
         trial=trial,

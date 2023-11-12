@@ -8,7 +8,9 @@ PARAM_SPACE = {
     "batch_size": ("int_exp_2", 2, 4),
     # Training args
     "epochs": ("log_int", 150, 500),
-    "lr": ("log_float", 5e-4, 5e-3),
+    #"lr": ("log_float", 5e-4, 5e-3),
+    "lr_mul": ("log_float", 0.1, 10.0),
+    "n_warmup_steps": ("log_float", 25, 1000),
     "Optim": ("optimizer", [
         "adamw", 
         #"sgdmomentum", 
@@ -208,6 +210,7 @@ PARAM_SPACE = {
         "sigmoid", 
         "hardsigmoid",
     ]),
+    "patience": ("log_int", 40, 80),
 }
 
 PARAM_SPACE_2 = {
@@ -218,7 +221,7 @@ PARAM_SPACE_2 = {
     #"dataset_size_high": ("int_exp_2", 256, 4096),
     "batch_size_low": ("int_exp_2", 4, 4),
     "batch_size_high": ("int_exp_2", 4, 4),
-    "patience": ("log_int", 40, 80),
+    "scheduler_patience": ("log_int", 40, 80),
 }
 
 #0.0

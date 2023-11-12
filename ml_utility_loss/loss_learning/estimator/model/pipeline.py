@@ -40,6 +40,9 @@ NON_MODEL_PARAMS = (
     "grad_phase_2",
     "g_loss_mul",
     "gradient_penalty_args",
+    "scheduler_patience",
+    "lr_mul",
+    "n_warmup_steps",
 )
 
 def remove_non_model_params(params, entries_to_remove=NON_MODEL_PARAMS):

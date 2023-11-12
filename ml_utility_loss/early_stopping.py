@@ -2,6 +2,136 @@ from .util import progressive_smooth, calculate_prediction_interval
 from torch.utils.tensorboard import SummaryWriter
 from copy import deepcopy
 import optuna
+from torch import inf
+
+class StopOnPlateau:
+    """
+        Based on ReduceLROnPlateau
+    """
+    def __init__(
+        self, 
+        mode='min', patience=50, cooldown=0,
+        threshold=1e-4, threshold_mode='rel', 
+        eps=1e-8, 
+        model=None,
+        verbose=False,
+    ):
+
+        self.patience = patience
+        self.verbose = verbose
+        self.cooldown = cooldown
+        self.cooldown_counter = 0
+        self.mode = mode
+        self.threshold = threshold
+        self.threshold_mode = threshold_mode
+        self.best = None
+        self.num_bad_epochs = None
+        self.mode_worse = None  # the worse value for the chosen mode
+        self.eps = eps
+        self.model = model
+        self._init_is_better(mode=mode, threshold=threshold,
+                             threshold_mode=threshold_mode)
+        self._reset()
+
+    def _reset(self):
+        """Resets counters."""
+        self.best_state = None
+        self.last_epoch = -1
+        self.best_epoch = -1
+        self.aug_counter = 0
+        self.cooldown_counter = 0
+        self.reset_counter(reset_best=True)
+
+    def reset_counter(self, reset_best=True):
+        self.num_bad_epochs = 0
+        self.stopped = False
+        if reset_best:
+            self.best = self.mode_worse
+
+    def step(self, train_loss, val_loss=None, epoch=None):
+        # convert `metrics` to float, in case it's a zero-dim Tensor
+        train_loss = train_loss.item() if torch.is_tensor(train_loss) else train_loss
+        val_loss = val_loss.item() if torch.is_tensor(val_loss) else val_loss
+        assert not isinstance(train_loss, int), "got int train_loss"
+        assert not isinstance(val_loss, int), "got int val_loss"
+        metrics = val_loss if val_loss is not None else train_loss
+        current = float(metrics)
+        if epoch is None:
+            epoch = self.last_epoch + 1
+        elif epoch == self.last_epoch:
+            return False
+
+        if self.is_better(current, self.best):
+            self.new_best(current, epoch=epoch)
+        else:
+            self.num_bad_epochs += 1
+
+        if self.in_cooldown:
+            self.cooldown_counter -= 1
+            self.num_bad_epochs = 0  # ignore any bad epochs in cooldown
+
+        if self.num_bad_epochs > self.patience:
+            return self.stop()
+
+        self.last_epoch = epoch
+        return False
+    
+    def new_best(self, current, epoch=None):
+        epoch = epoch if epoch is not None else self.last_epoch+1
+        self.best = current
+        self.num_bad_epochs = 0
+        self.best_epoch = epoch
+        if self.model:
+            if self.best_state is not None:
+                del self.best_state
+            self.best_state = deepcopy(self.model.state_dict())
+
+    @property
+    def in_cooldown(self):
+        return self.cooldown_counter > 0
+
+    def is_better(self, a, best):
+        if self.mode == 'min' and self.threshold_mode == 'rel':
+            rel_epsilon = 1. - self.threshold
+            return a < best * rel_epsilon
+
+        elif self.mode == 'min' and self.threshold_mode == 'abs':
+            return a < best - self.threshold
+
+        elif self.mode == 'max' and self.threshold_mode == 'rel':
+            rel_epsilon = self.threshold + 1.
+            return a > best * rel_epsilon
+
+        else:  # mode == 'max' and epsilon_mode == 'abs':
+            return a > best + self.threshold
+
+    def _init_is_better(self, mode, threshold, threshold_mode):
+        if mode not in {'min', 'max'}:
+            raise ValueError('mode ' + mode + ' is unknown!')
+        if threshold_mode not in {'rel', 'abs'}:
+            raise ValueError('threshold mode ' + threshold_mode + ' is unknown!')
+
+        if mode == 'min':
+            self.mode_worse = inf
+        else:  # mode == 'max':
+            self.mode_worse = -inf
+
+        self.mode = mode
+        self.threshold = threshold
+        self.threshold_mode = threshold_mode
+
+    def state_dict(self):
+        return {key: value for key, value in self.__dict__.items() if key != 'optimizer'}
+
+    def load_state_dict(self, state_dict):
+        self.__dict__.update(state_dict)
+        self._init_is_better(mode=self.mode, threshold=self.threshold, threshold_mode=self.threshold_mode)
+
+    def stop(self):
+        if not self.stopped:
+            if self.model:
+                self.model.load_state_dict(self.best_state)
+            self.stopped = True
 
 
 class EarlyStopping:

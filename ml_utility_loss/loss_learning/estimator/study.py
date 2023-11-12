@@ -1,6 +1,6 @@
 from .pipeline import train_2, train_3
 from optuna.exceptions import TrialPruned
-from ...scheduler import PretrainingScheduler
+from ...scheduler import SizeScheduler
 import math
 
 def objective(

@@ -6,7 +6,9 @@ PARAM_SPACE = {
     "batch_size": ("int_exp_2", 2, 4),
     # Training args
     "epochs": ("log_int", 100, 1000),
-    "lr": ("log_float", 5e-4, 1e-2),
+    #"lr": ("log_float", 5e-4, 1e-2),
+    "lr_mul": ("log_float", 0.1, 10.0),
+    "n_warmup_steps": ("log_float", 25, 1000),
     "Optim": ("optimizer", [
         "adamw", 
         "sgdmomentum", 
@@ -148,6 +150,7 @@ PARAM_SPACE = {
         "leakyrelu", 
         "selu", 
     ]),
+    "patience": ("log_int", 30, 100),
 }
 
 PARAM_SPACE_2 = {
@@ -155,7 +158,7 @@ PARAM_SPACE_2 = {
     "dataset_size_high": ("int_exp_2", 1024, 4096),
     "batch_size_low": ("int_exp_2", 2, 4),
     "batch_size_high": ("int_exp_2", 8, 8),
-    "patience": ("log_int", 30, 100),
+    "scheduler_patience": ("log_int", 30, 100),
 }
 
 def update_param_space(param_space, dataset_sizes):

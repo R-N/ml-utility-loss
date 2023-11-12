@@ -4,7 +4,7 @@ from torch import inf
 from copy import deepcopy
 import torch
 
-class PretrainingScheduler:
+class SizeScheduler:
     """
         Based on ReduceLROnPlateau
     """
