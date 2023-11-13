@@ -188,8 +188,6 @@ def calc_g_cos_loss_opposing(
         #cos = project_tensor(positive, negative, return_type="cos")
         cos = F.cosine_similarity(positive, negative, dim=-1)
 
-    print("calc_g_cos_loss_opposing", target, only_sign)
-
     if only_sign is True:
         cos[cos < 0] = -target #negative
     elif only_sign not in (False, None):
