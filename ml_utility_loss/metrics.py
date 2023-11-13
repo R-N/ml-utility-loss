@@ -40,11 +40,22 @@ mean_penalty_tan_double = partial(mean_penalty_tan, power=2.0)
 mean_penalty_rational_double = partial(mean_penalty_rational, power=2.0)
 mean_penalty_log_double = partial(mean_penalty_log, power=2.0)
 
-def msle(pred, y, **kwargs):
-    return F.mse_loss(torch.log(1+pred), torch.log(1+y), **kwargs)
+# THIS IS NOT STANDARD MSLE
+def mile(pred, y, reduction="mean"):
+    error = torch.abs(pred - y)
+    loss = mile_(error)
+    if reduction and reduction != "none":
+        if reduction == "mean":
+            loss = torch.mean(loss)
+        elif reduction == "sum":
+            loss = torch.sum(loss)
+    return loss
 
-def rmsle(pred, y, **kwargs):
-    return torch.sqrt(msle(pred, y **kwargs))
+def mile_(error):
+    return torch.log(1+error) * (1+error) - error
+
+def rmile(pred, y, **kwargs):
+    return torch.sqrt(mile(pred, y **kwargs))
 
 def rmse(pred, y, **kwargs):
     return torch.sqrt(F.mse_loss(pred, y, **kwargs))
@@ -76,8 +87,8 @@ def scale_divider(loss_fn, divider=1):
         return 1
     if loss_fn in (F.mse_loss,) or isinstance(loss_fn, (torch.nn.MSELoss)):
         divider = divider ** 2
-    if loss_fn in (msle,):
-        divider = math.log(divider) ** 2
+    if loss_fn in (mile,):
+        divider = mile_(zero_tensor(divider)).item()
     if loss_fn in (F.huber_loss,) or isinstance(loss_fn, (torch.nn.HuberLoss)):
         divider = 0.5 * (divider ** 2)
     return divider

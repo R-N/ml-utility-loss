@@ -40,8 +40,8 @@ PARAM_SPACE = {
     #"loss_fn": ("loss", ["mse", "mae"]),
     #"grad_loss_fn": ("loss", "huber"),
     "std_loss_fn": ("loss", ["mean_penalty_log_half"]),
-    "grad_loss_fn": ("loss", ["mse", "mae", "huber", "msle"]),
-    "adapter_loss_fn": ("loss", ["mse", "mae", "huber", "msle"]),
+    "grad_loss_fn": ("loss", ["mse", "mae", "huber", "mile"]),
+    "adapter_loss_fn": ("loss", ["mse", "mae", "huber", "mile"]),
     "fixed_role_model": ("categorical", [
         #None, 
         "tvae", 

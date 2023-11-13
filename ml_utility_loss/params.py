@@ -8,7 +8,7 @@ from .activations import AlphaSigmoid, AlphaTanh, AlphaReLU15, LearnableLeakyReL
 import torch.nn.functional as F
 from .Padam import Padam
 from functools import partial
-from .metrics import msle, mean_penalty, mean_penalty_tan, mean_penalty_tan_half, mean_penalty_tan_double, mean_penalty_rational, mean_penalty_rational_half, mean_penalty_rational_double, mean_penalty_log, mean_penalty_log_half, mean_penalty_log_double
+from .metrics import mile, mean_penalty, mean_penalty_tan, mean_penalty_tan_half, mean_penalty_tan_double, mean_penalty_rational, mean_penalty_rational_half, mean_penalty_rational_double, mean_penalty_log, mean_penalty_log_half, mean_penalty_log_double
 import torch_optimizer
 
 NORMS = {
@@ -177,7 +177,7 @@ LOSSES = {
     "kl": F.kl_div,
     "kl_div": F.kl_div,
     "huber": F.huber_loss,
-    "msle": msle,
+    "mile": mile,
     **MEAN_PENALTIES,
 }
 OPTIMS = {

@@ -205,7 +205,7 @@ class MyLossWeighter(ParallelBalancer):
 
 class MyLossTransformer(MyLossWeighter):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, Sequential=SequentialTransformer, Log=LogTransformer, **kwargs)
+        super().__init__(*args, Sequential=SequentialTransformer, Log=LogWeighter, **kwargs)
         self.log = None
         seq = self.balancers[0].balancers
         if len(seq) > 1:

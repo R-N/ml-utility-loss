@@ -44,13 +44,13 @@ PARAM_SPACE = {
         "mse", 
         "mae", 
         "huber", 
-        "msle"
+        "mile"
     ]),
     "adapter_loss_fn": ("loss", [
         "mse", 
         "mae", 
         "huber", 
-        "msle"
+        "mile"
     ]),
     "fixed_role_model": ("categorical", [
         #None, 
@@ -234,7 +234,7 @@ BEST = {
     'loss_balancer_log': False,
     'loss_balancer_lbtw': False,
     'std_loss_fn': 'mean_penalty_rational_half',
-    'grad_loss_fn': 'msle',
+    'grad_loss_fn': 'mile',
     'adapter_loss_fn': 'mse',
     'fixed_role_model': 'tab_ddpm_concat',
     'gradient_penalty_mode': 'NONE',
