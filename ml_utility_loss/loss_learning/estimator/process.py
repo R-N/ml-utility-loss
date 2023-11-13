@@ -168,9 +168,9 @@ def calc_g_cos_loss_opposing(
     positive, negative,
     grad_loss_fn=F.mse_loss,
     reduction=torch.mean,
-    target=1.0,
+    target=0.2588190451,
     cos_matrix=True,
-    only_sign=0.2588190451,
+    only_sign=False,
     forgive_over=True,
 ):
 
@@ -209,8 +209,8 @@ def calc_g_cos_loss_same(
     dbody_dx, 
     grad_loss_fn=F.mse_loss,
     reduction=torch.mean,
-    target=1.0,
-    only_sign=0.2588190451,
+    target=0.2588190451,
+    only_sign=False,
     forgive_over=True,
 ):
     if len(dbody_dx) < 2:
@@ -241,10 +241,10 @@ def calc_g_cos_loss_same(
 def calc_g_cos_loss(
     dbody_dx, error,
     cos_matrix=True,
-    target=1.0, # 75 degrees # 60 degrees, times 2
+    target=0.2588190451, # 75 degrees # 60 degrees, times 2
     opposing_dir_w=0.75,
     same_dir_w=0.25,
-    only_sign=0.2588190451,
+    only_sign=False,
     **kwargs,
 ):
     positive_ids = (error > 0).nonzero().squeeze(dim=-1)
@@ -320,9 +320,9 @@ def calc_g_mse_mag_loss(
 def calc_g_mag_corr_loss(
     dbody_dx_norm, error,
     grad_loss_fn=F.mse_loss,
-    target=1.0,
+    target=0.3,
     forgive_over=True,
-    only_sign=0.3,
+    only_sign=False,
     sign=True,
 ):
 
@@ -465,8 +465,8 @@ def calc_g_loss(
     same_dir_w=0.25,
     forgive_over=True,
     #only_sign=False,
-    mag_only_sign=0.3,
-    cos_only_sign=0.2588190451,
+    mag_only_sign=False,
+    cos_only_sign=False,
     **mag_loss_kwargs,
 ):
     #detach the error because we only want to shape the gradient
