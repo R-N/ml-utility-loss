@@ -448,6 +448,7 @@ def train(
             optim,
             lr_mul=lr_mul,
             n_warmup_steps=n_warmup_steps,
+            d_model=whole_model.body.d_model,
         )
     if not hasattr(optim, "warming_up"):
         optim.warming_up = False
