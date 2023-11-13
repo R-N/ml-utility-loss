@@ -378,12 +378,15 @@ class Head(nn.Module):
         pma_layer_norm=False,
         attn_residual=True,
         inds_init_mode=IndsInitMode.TORCH,
+        n_seeds_2=0,
         **kwargs,
     ):
         super().__init__()
         assert n_layers >= 2
         
         #assert final_mul in HeadFinalMul.__ALL__
+
+        n_seeds_2 = n_seeds_2 or n_seeds
 
         self.final_mul = final_mul
         if self.final_mul == HeadFinalMul.IDENTITY:
@@ -447,7 +450,7 @@ class Head(nn.Module):
                 **kwargs,
             )
         self.linear = nn.Sequential(*[
-            Linear_(max(1, n_seeds)*d_model, d_hid),
+            Linear_(max(1, n_seeds_2)*d_model, d_hid),
             *[Linear_(d_hid, d_hid) for i in range(n_layers-2)],
             Linear_(d_hid, 1, activation=activation_final, layer_norm=False, residual=False, bias=bias_final),
         ])
