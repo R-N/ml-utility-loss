@@ -168,7 +168,7 @@ class DatasetDataset(BaseDataset):
         self.train = train
         self.test = test
         self.value = value
-        self.real_value = real_value
+        self.real_value = real_value or value
         
         assert mode in ("shuffle", "sort")
         self.mode = mode
@@ -178,7 +178,7 @@ class DatasetDataset(BaseDataset):
         self.calculate_stats()
 
     def calculate_stats(self):
-        self.y = y = self.info_all[self.value]
+        self.y = y = self.info_all[self.real_value]
         self.calculate_stats_()
 
     def set_size(self, size, force=False):
