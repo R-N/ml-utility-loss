@@ -153,6 +153,9 @@ def create_model(
     attn_residual=True,
     models=None,
     norm_first=True,
+    # TF PMA args
+    tf_pma_start=-4,
+    tf_pma_low=1,
     # Adapter args
     ada_d_hid=32, 
     ada_n_layers=2, 
@@ -177,6 +180,7 @@ def create_model(
     create_body=create_body,
     Body=ModelBody.TRANSFORMER,
     inds_init_mode=IndsInitMode.TORCH,
+    head_n_seeds_2=0,
     **kwargs,
 ): 
     if not ada_lora:
@@ -196,8 +200,14 @@ def create_model(
         Model=Body,
         norm_first=norm_first,
         inds_init_mode=inds_init_mode,
+        tf_pma_start=tf_pma_start,
+        tf_pma_low=tf_pma_low,
         **kwargs,
     )
+
+    if tf_pma_start and not head_n_seeds and not head_n_seeds_2:
+        head_n_seeds_2 = tf_pma_low
+
     whole_model = MLUtilityWhole(
         body=body,
         adapters=adapters,
@@ -240,6 +250,7 @@ def create_model(
             "pma_layer_norm": pma_layer_norm,
             "norm_first": norm_first,
             "inds_init_mode": inds_init_mode,
+            "n_seeds_2": head_n_seeds_2,
         },
         init=init,
     )
