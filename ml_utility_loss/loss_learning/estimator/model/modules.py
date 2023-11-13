@@ -867,7 +867,13 @@ class FeedForward(nn.Module):
 
         if self.norm_first:
             x = self.layer_norm(x)
-        x = self.w(x)
+        try:
+            x = self.w(x)
+        except RuntimeError as ex:
+            msg = str(ex)
+            if "mat1 and mat2 must have the same dtype" in msg:
+                print(x.dtype, self.w.weight.dtype, self.w.bias.dtype if self.w.bias is not None else None)
+            raise
         x = self.activation(x)
         if self.dropout:
             x = self.dropout(x)
