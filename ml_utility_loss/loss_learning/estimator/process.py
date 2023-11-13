@@ -552,6 +552,7 @@ def forward_pass_1_avg(
 ):
     compute = {}
     compute["y"] = next(iter(computes.values()))["y"] #any, even role model
+    compute["y_real"] = next(iter(computes.values()))["y_real"] #any, even role model
     non_role_model_computes = [v for k, v in computes.items() if k != role_model]
     m_s = [c["m"] for c in non_role_model_computes]
     m_test_s = [c["m_test"] for c in non_role_model_computes]
@@ -590,6 +591,12 @@ def forward_pass_2(
     compute["loss"] = loss = loss_fn(pred, y, reduction="none")
     compute["error"] = pred - y
     assert not torch.isnan(loss).any(), f"{model} main loss has nan"
+    """
+    y_real = compute["y_real"]
+    compute["loss_real"] = loss_real = loss_fn(pred, y_real, reduction="none")
+    compute["error"] = pred - y_real
+    assert not torch.isnan(loss_real).any(), f"{model} main loss has nan"
+    """
 
     return pred, loss
 
@@ -600,6 +607,7 @@ def forward_pass_gradient(
 ):
     m = compute["m"]
     loss = compute["loss"]
+    #loss = compute["loss_real"]
     train = compute["train"]
     # Partial gradient chain rule doesn't work so conveniently
     # Due to shape changes along forward pass
@@ -1263,9 +1271,13 @@ def eval(
             time_1 = time.time()
             # We reduce directly because no further need for shape
             loss = loss_fn(pred, y, reduction="none")
+            error = pred - y
+            dbody_dx = calc_gradient(train, loss)
+            """
             loss_real = loss_fn(pred, y_real, reduction="none")
             error = pred - y_real
             dbody_dx = calc_gradient(train, loss_real)
+            """
 
             time_2 = time.time()
 
@@ -1440,9 +1452,13 @@ def pred(
     )
     # We reduce directly because no further need for shape
     loss = loss_fn(pred, y, reduction="none")
+    error = pred - y
+    dbody_dx = calc_gradient(train, loss)
+    """
     loss_real = loss_fn(pred, y_real, reduction="none")
     error = pred - y_real
     dbody_dx = calc_gradient(train, loss_real)
+    """
     g_mag_loss, g_cos_loss = calc_g_loss(
         dbody_dx=dbody_dx,
         error=error,
