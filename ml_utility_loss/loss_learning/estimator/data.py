@@ -51,11 +51,12 @@ def to_tensor(x, Tensor=None):
     if isinstance(x, dict):
         return {k: to_tensor(v, Tensor) for k, v in x.items()}
     if isinstance(x, pd.DataFrame):
-        return to_tensor(x.values)
+        return to_tensor(x.values, Tensor)
     if isinstance(x, pd.Series):
-        return to_tensor(x.values)
+        return to_tensor(x.values, Tensor)
     if isinstance(x, np.ndarray):
-        return torch.from_numpy(x)
+        return Tensor(x)
+        #return torch.from_numpy(x)
     if torch.is_tensor(x):
         return x.to(Tensor.dtype)
     if hasattr(x, "__iter__"):
