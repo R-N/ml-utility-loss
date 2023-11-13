@@ -14,10 +14,10 @@ Tensor=torch.FloatTensor
 def preprocess_sample(sample, preprocessor=None, model=None):
     if not preprocessor:
         return sample
-    train, test, y = sample
+    train, test, y, y_real = sample
     train, test = preprocessor.preprocess(train, model=model), preprocessor.preprocess(test, model=model)
     
-    return train, test, y
+    return train, test, y, y_real
 
 def to_dtype(x, dtype=None):
     if not dtype:
@@ -154,7 +154,7 @@ class BaseDataset(Dataset):
 
 class DatasetDataset(BaseDataset):
 
-    def __init__(self, dir, file="info.csv", Tensor=None, mode="shuffle", train="synth", test="val", value="synth_value", drop_first_column=False, dtypes=None, **kwargs):
+    def __init__(self, dir, file="info.csv", Tensor=None, mode="shuffle", train="synth", test="val", value="synth_value", real_value="real_value", drop_first_column=False, dtypes=None, **kwargs):
         super().__init__(**kwargs)
         self._dir = dir
         subdir = self.size
@@ -168,6 +168,7 @@ class DatasetDataset(BaseDataset):
         self.train = train
         self.test = test
         self.value = value
+        self.real_value = real_value
         
         assert mode in ("shuffle", "sort")
         self.mode = mode
@@ -212,13 +213,14 @@ class DatasetDataset(BaseDataset):
             train.drop(train.columns[0], axis=1, inplace=True)
 
         y = info[self.value]
+        y_real = info[self.real_value]
 
         if self.mode == "shuffle":
             train, test = shuffle_df(train), shuffle_df(test)
         elif self.mode == "sort":
             train, test = sort_df(train), sort_df(test)
 
-        sample = train, test, y
+        sample = train, test, y, y_real
 
         sample = to_tensor(sample, self.Tensor)
 

@@ -63,7 +63,7 @@ def train_epoch(
     for batch, batch_dict in enumerate(train_loader):
         clear_memory()
 
-        train, test, y = batch_dict[model]
+        train, test, y, y_real = batch_dict[model]
 
         if timer:
             timer.check_time()
@@ -250,7 +250,7 @@ def eval(
     for batch, batch_dict in enumerate(eval_loader):
         clear_memory()
 
-        train, test, y = batch_dict[model]
+        train, test, y, y_real = batch_dict[model]
 
         batch_size = 1
 

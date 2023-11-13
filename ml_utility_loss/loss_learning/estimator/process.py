@@ -510,7 +510,7 @@ def calc_g_loss(
     g_loss = mean(losses) if losses else zero_tensor(device=error.device)
     return g_loss
     
-def forward_pass_1(whole_model, model, train, test, y, compute):
+def forward_pass_1(whole_model, model, train, test, y, y_real, compute):
     # train needs to require grad for gradient penalty computation
     # should I zero and make it not require grad later?
     train = train.clone()
@@ -519,6 +519,7 @@ def forward_pass_1(whole_model, model, train, test, y, compute):
     train = train.to(whole_model.device)
     test = test.to(whole_model.device)
     y = y.to(whole_model.device)
+    y_real = y_real.to(whole_model.device)
 
     # train.grad = None
     train.requires_grad_()
@@ -539,6 +540,9 @@ def forward_pass_1(whole_model, model, train, test, y, compute):
     # So yeah this is a workaround
     y = y.to(torch.float32)
     compute["y"] = y
+    y_real = y_real.to(torch.float32)
+    compute["y_real"] = y_real
+
 
     return compute
 
@@ -903,7 +907,7 @@ def train_epoch(
 
         # Compute prediction and loss for all adapters
         computes = {model: {} for model in models}
-        for model, (train, test, y) in batch_dict.items():
+        for model, (train, test, y, y_real) in batch_dict.items():
             batch_size = y.shape[0] if y.dim() > 0 else 1
             compute = computes[model]
             forward_pass_1(
@@ -912,6 +916,7 @@ def train_epoch(
                 train=train,
                 test=test,
                 y=y,
+                y_real=y_real,
                 compute=compute,
             )
 
@@ -1237,7 +1242,7 @@ def eval(
 
         batch_size = 1
         # Compute prediction and loss for all adapters
-        for model, (train, test, y) in batch_dict.items():
+        for model, (train, test, y, y_real) in batch_dict.items():
             batch_size = y.shape[0] if y.dim() > 0 else 1
 
             ys[model].extend(y.detach().cpu())
@@ -1247,6 +1252,7 @@ def eval(
             train = train.to(whole_model.device)
             test = test.to(whole_model.device)
             y = y.to(whole_model.device)
+            y_real = y_real.to(whole_model.device)
 
 
             train.requires_grad_()
@@ -1257,8 +1263,9 @@ def eval(
             time_1 = time.time()
             # We reduce directly because no further need for shape
             loss = loss_fn(pred, y, reduction="none")
-            error = pred - y
-            dbody_dx = calc_gradient(train, loss)
+            loss_real = loss_fn(pred, y_real, reduction="none")
+            error = pred - y_real
+            dbody_dx = calc_gradient(train, loss_real)
 
             time_2 = time.time()
 
@@ -1420,11 +1427,12 @@ def pred(
 
     clear_memory()
     # Compute prediction and loss for all adapters
-    train, test, y = batch
+    train, test, y, y_real = batch
 
     train = train.to(model.device)
     test = test.to(model.device)
     y = y.to(model.device)
+    y_real = y_real.to(model.device)
 
     train.requires_grad_()
     pred = model(
@@ -1432,8 +1440,9 @@ def pred(
     )
     # We reduce directly because no further need for shape
     loss = loss_fn(pred, y, reduction="none")
-    error = pred - y
-    dbody_dx = calc_gradient(train, loss)
+    loss_real = loss_fn(pred, y_real, reduction="none")
+    error = pred - y_real
+    dbody_dx = calc_gradient(train, loss_real)
     g_mag_loss, g_cos_loss = calc_g_loss(
         dbody_dx=dbody_dx,
         error=error,
