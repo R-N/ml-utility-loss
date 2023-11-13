@@ -44,13 +44,15 @@ PARAM_SPACE = {
         "mse", 
         "mae", 
         "huber", 
-        "mile"
+        "mile",
+        "mire",
     ]),
     "adapter_loss_fn": ("loss", [
         "mse", 
         "mae", 
         "huber", 
-        "mile"
+        "mile",
+        "mire",
     ]),
     "fixed_role_model": ("categorical", [
         #None, 

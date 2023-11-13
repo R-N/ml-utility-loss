@@ -35,8 +35,8 @@ PARAM_SPACE = {
     "loss_balancer_lbtw": BOOLEAN,
     #"loss_fn": ("loss", "mse"),
     "std_loss_fn": ("loss", ["mean_penalty_log_half"]),
-    "grad_loss_fn": ("loss", ["mse", "mae", "huber", "mile"]),
-    "adapter_loss_fn": ("loss", ["mse", "mae", "huber", "mile"]),
+    "grad_loss_fn": ("loss", ["mse", "mae", "huber", "mile", "mire"]),
+    "adapter_loss_fn": ("loss", ["mse", "mae", "huber", "mile", "mire"]),
     "fixed_role_model": ("categorical", [
         #None, 
         "tvae", 

@@ -40,10 +40,7 @@ mean_penalty_tan_double = partial(mean_penalty_tan, power=2.0)
 mean_penalty_rational_double = partial(mean_penalty_rational, power=2.0)
 mean_penalty_log_double = partial(mean_penalty_log, power=2.0)
 
-# THIS IS NOT STANDARD MSLE
-def mile(pred, y, reduction="mean"):
-    error = torch.abs(pred - y)
-    loss = mile_(error)
+def reduce(loss, reduction="mean"):
     if reduction and reduction != "none":
         if reduction == "mean":
             loss = torch.mean(loss)
@@ -51,11 +48,24 @@ def mile(pred, y, reduction="mean"):
             loss = torch.sum(loss)
     return loss
 
+# THIS IS NOT STANDARD MSLE
+def mile(pred, y, reduction="mean"):
+    error = torch.abs(pred - y)
+    loss = mile_(error)
+    loss = reduce(loss, reduction=reduction)
+    return loss
+
 def mile_(error):
     return torch.log(1+error) * (1+error) - error
 
-def rmile(pred, y, **kwargs):
-    return torch.sqrt(mile(pred, y **kwargs))
+def mire(pred, y, scale=0.5, reduction="mean"):
+    error = torch.abs(pred - y)
+    loss = mire_(error, scale=scale)
+    loss = reduce(loss, reduction=reduction)
+    return loss
+
+def mire_(error, scale=0.5):
+    return scale * torch.pow(error, 1.5)
 
 def rmse(pred, y, **kwargs):
     return torch.sqrt(F.mse_loss(pred, y, **kwargs))
