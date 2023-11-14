@@ -289,7 +289,6 @@ class Adapter(nn.Module):
         self.d_embed = d_embed
         self.use_embedding = use_embedding
         self.d_input = d_input
-        print("embed", d_input, d_embed, d_input*d_embed)
 
         def Linear_(
             d_input,
@@ -369,14 +368,10 @@ class Adapter(nn.Module):
                 w = self.input_w()
                 w = torch.repeat_interleave(w, self.d_embed, dim=-1)
                 w = w.view(-1)
-                print("wy", w.shape, y.shape)
                 y = torch.mul(w, y)
                 y = y.view(*shape0, self.d_input, -1)
-                print("y", y.shape)
                 y = torch.sum(y, dim=-2)
-            print("adapter shapes0", x0.shape, x1.shape, x.shape, y.shape)
             y = self.linear(y)
-            print("adapter shapes", x0.shape, x1.shape, x.shape, y.shape)
             return x, y
         except RuntimeError:
             print("check_cuda a", check_cuda(self), check_cuda(self.linear), x.is_cuda)
