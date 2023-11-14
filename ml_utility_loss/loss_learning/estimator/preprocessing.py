@@ -236,6 +236,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         models=DEFAULT_MODELS,
         realtabformer_embedding=None,
         cuda=False,
+        freeze=True,
     ):
         self.cat_features = cat_features
         self.mixed_features = mixed_features
@@ -253,6 +254,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         self.tab_ddpm_preprocessor = None
         self.cuda = cuda
         self.dtypes = None
+        self.freeze = freeze
 
         if "tvae" in self.models:
             self.tvae_transformer = TVAEDataTransformer()
@@ -265,9 +267,15 @@ class DataPreprocessor: #preprocess all with this. save all model here
             self.realtabformer_embedding = realtabformer_embedding
             if "realtabformer_latent" in self.models:
                 self.realtabformer_embedding_size = self.realtabformer_embedding.weight.shape[-1]
+            if self.freeze:
+                for param in self.realtabformer_embedding.parameters(): 
+                    param.requires_grad = False
         if "lct_gan" in self.models or "lct_gan_latent" in self.models:
             self.lct_ae = lct_ae
             self.lct_ae_embedding_size = lct_ae_embedding_size
+            if self.freeze:
+                for param in self.lct_ae.parameters(): 
+                    param.requires_grad = False
         if self.lct_ae:
             self.lct_ae_embedding_size = self.lct_ae.embedding_size
         if "tab_ddpm" in self.models or "tab_ddpm_concat" in self.models:
@@ -305,6 +313,9 @@ class DataPreprocessor: #preprocess all with this. save all model here
                     epochs = 1,
                     batch_size=1,
                 )
+                if self.freeze:
+                    for param in self.lct_ae.parameters(): 
+                        param.requires_grad = False
         if "tab_ddpm" in self.models or "tab_ddpm_concat" in self.models:
             self.tab_ddpm_preprocessor.fit(train)
 

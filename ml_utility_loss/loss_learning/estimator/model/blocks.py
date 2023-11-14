@@ -286,6 +286,7 @@ class Adapter(nn.Module):
             if not isinstance(embedding, torch.nn.Embedding):
                 if isinstance(vocab_size, torch.nn.Embedding):
                     embedding = vocab_size
+                    freeze = True
                 else:
                     embedding = torch.nn.Embedding(vocab_size, d_hid)
         d_embed = self.set_embedding(embedding, freeze=freeze)
