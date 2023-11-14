@@ -357,6 +357,7 @@ class Adapter(nn.Module):
         try:
             if self.embedding:
                 x0 = x
+                print("pre embedding shape", x0.shape)
                 x = self.embedding(x.to(torch.int))
                 x.requires_grad_(x0.requires_grad)
             y = self.linear(x)
