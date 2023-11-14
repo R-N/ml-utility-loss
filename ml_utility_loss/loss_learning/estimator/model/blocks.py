@@ -279,8 +279,8 @@ class Adapter(nn.Module):
         if isinstance(d_input, torch.nn.Embedding):
             raise ValueError("d_input should be int or tuple, not embedding")
             embedding = d_input
-        if embedding is True:
-            embedding = torch.nn.Embedding(d_input, d_hid)
+        # if embedding is True:
+        #     embedding = torch.nn.Embedding(d_input, d_hid)
         if hasattr(d_input, "__iter__"):
             d_input, vocab_size = d_input
             if not isinstance(embedding, torch.nn.Embedding):
