@@ -289,8 +289,8 @@ class Adapter(nn.Module):
         d_embed = self.set_embedding(embedding, freeze=freeze)
         self.d_embed = d_embed
         self.use_embedding = use_embedding
-        d_input = d_embed or d_input
         self.d_input = d_input
+        d_input = d_embed or d_input
 
         def Linear_(
             d_input,
