@@ -525,13 +525,14 @@ def forward_pass_1(whole_model, model, train, test, y, y_real, compute):
     # train.grad = None
     train.requires_grad_()
     # calculate intermediate tensor for later use
+    train, m = whole_model.adapters[model](train)
     compute["train"] = train
-    m = whole_model.adapters[model](train)
     # store grad in m
     m.requires_grad_()
     compute["m"] = m
 
-    compute["m_test"] = m_test = whole_model.adapters[model](test)
+    test, m_test = whole_model.adapters[model](test)
+    compute["m_test"] = m_test
     
     assert not torch.isnan(m).any(), f"{model} m has nan"
     assert not torch.isnan(m_test).any(), f"{model} m_test has nan"
@@ -578,13 +579,14 @@ def forward_pass_2(
         model_1 = None
     m = compute["m"]
     m_test = compute["m_test"]
-    compute["pred"] = pred = whole_model(
+    m, pred = whole_model(
         m, m_test, 
         model=model_1, 
         head=head, 
         skip_train_adapter=True,
         skip_test_adapter=True
     )
+    compute["pred"] = pred
 
     assert not torch.isnan(pred).any(), f"{model} prediction has nan"
     # none reduction to retain the batch shape
@@ -1265,7 +1267,7 @@ def eval(
 
 
             train.requires_grad_()
-            pred = whole_model(
+            train, pred = whole_model(
                 train, test, model
             )
 

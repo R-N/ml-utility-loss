@@ -352,7 +352,9 @@ class Adapter(nn.Module):
     def forward(self, x):
         try:
             if self.embedding:
+                x0 = x
                 x = self.embedding(x)
+                x.requires_grad_(x0.requires_grad)
             y = self.linear(x)
             return x, y
         except RuntimeError:

@@ -259,16 +259,17 @@ class MLUtilitySingle(nn.Module):
 
     def forward(self, train, test, skip_train_adapter=False, skip_test_adapter=False, return_attns=False):
         # So here we have train and test with shape (batch, size, d_input)
+        m_train, m_test = train, test
         if self.adapter:
             if not skip_train_adapter:
-                train = self.adapter(train)
+                train, m_train = self.adapter(train)
             if not skip_test_adapter:
-                test = self.adapter(test)
+                test, m_test = self.adapter(test)
         # The adapter is normal deep MLP so here it will still be (batch, size, d_model)
         # Transformer should take the same input, 
         # but inside it will be uhhh (batch, size, head, d_model/head)?
         body_attn, head_attn = None, None
-        out = self.body(train, test, return_attns=return_attns)
+        out = self.body(m_train, m_test, return_attns=return_attns)
         if return_attns:
             out, body_attn = out
         # Idk what it outputs but head expects (batch, size, d_model)
@@ -281,8 +282,8 @@ class MLUtilitySingle(nn.Module):
         # but anyway, it will later be (batch, d_head), 
         # which by default d_head=1
         if return_attns:
-            return out, (body_attn, head_attn)
-        return out
+            return train, out, (body_attn, head_attn)
+        return train, out
     
 DEFAULT_ADAPTER_DIMS = {
     'tvae': 36,
