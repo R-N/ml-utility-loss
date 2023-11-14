@@ -415,6 +415,8 @@ class SimpleMultiHeadAttention(MultiHeadAttention):
         )
     
 def scale_inds_to_batch(I, q):
+    if q is None:
+        return I
     while q.dim() > I.dim():
         I = I.unsqueeze(0)
         I = I.repeat(q.size(-I.dim()), *[1 for _ in range(I.dim()-1)])
@@ -489,8 +491,8 @@ class TensorInductionPoint(nn.Module):
         self.device = device
         self.to(device)
 
-    def forward(self):
-        return self.tensor
+    def forward(self, q=None):
+        return scale_inds_to_batch(self.tensor, q)
 
 class LowRankInductionPoint(nn.Module):
     def __init__(self, num_inds, d_I, rank, device=DEFAULT_DEVICE, init_mode=IndsInitMode.TORCH, **kwargs):
@@ -503,8 +505,8 @@ class LowRankInductionPoint(nn.Module):
         self.device = device
         self.to(device)
 
-    def forward(self):
-        return torch.matmul(self.a, self.b)
+    def forward(self, q=None):
+        return scale_inds_to_batch(torch.matmul(self.a, self.b), q)
 
 class InducedSetAttention(nn.Module):
     def __init__(
@@ -636,7 +638,7 @@ class InducedSetAttention(nn.Module):
         # Ok so this is actually a problem
         # It expects batched input so I is repeated to the batch dimension
         # So it has to be handled
-        I = scale_inds_to_batch(self.I(), q)
+        I = self.I(q)
         if self.norm_first:
             I = self.norm_I(I)
         if self.mode == ISABMode.MINI:
@@ -743,7 +745,7 @@ class PoolingByMultiheadAttention(nn.Module):
     def forward(self, X):
         if self.skip_small and self.num_seeds > X.shape[-2]:
             return X, None
-        S = scale_inds_to_batch(self.S(), X)
+        S = self.S(X)
         return self.mab(S, X, X)
 
     def lora(self, base=None, mab=None):

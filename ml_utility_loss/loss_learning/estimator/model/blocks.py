@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 from .layers import EncoderLayer, DecoderLayer
-from .modules import PoolingByMultiheadAttention, FeedForward, LowRankLinearFactory, Linear
+from .modules import PoolingByMultiheadAttention, FeedForward, LowRankLinearFactory, Linear, TensorInductionPoint
 import inspect
 from ....util import DEFAULT_DEVICE, Cache, check_cuda, filter_dict
 from ....params import ISABMode, LoRAMode, HeadFinalMul, ACTIVATIONS_INVERSE, IndsInitMode
@@ -289,8 +289,11 @@ class Adapter(nn.Module):
                 else:
                     embedding = torch.nn.Embedding(vocab_size, d_hid)
         d_embed = self.set_embedding(embedding, freeze=freeze)
+        self.input_w = None
         if d_embed:
-            d_input = (d_embed or 1) * d_input
+            #d_input = (d_embed or 1) * d_input
+            self.input_w = TensorInductionPoint(d_input, 1)
+            d_input = d_embed
 
         def Linear_(
             d_input,
@@ -359,7 +362,9 @@ class Adapter(nn.Module):
             x0 = x
             if self.embedding:
                 x = self.embedding(x.to(torch.int))
-                x = torch.flatten(x, -2, -1)
+                #x = torch.flatten(x, -2, -1)
+                x = torch.mul(self.input_w, x)
+                x = torch.sum(x, dim=-2)
                 if x0.requires_grad and not x.requires_grad:
                     x.requires_grad_()
             y = self.linear(x)
