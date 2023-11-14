@@ -275,6 +275,7 @@ class Adapter(nn.Module):
         self.lora_rank = lora_rank
         LinearLora = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
 
+        print("d_input adapter", d_input)
         if isinstance(d_input, torch.nn.Embedding):
             embedding = d_input
         if embedding is True:
