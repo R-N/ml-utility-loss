@@ -156,6 +156,9 @@ class LatentTAE:
             latent_dataset = [ *latent_dataset, *latent ]
         
         return np.asarray(latent_dataset) if as_numpy else torch.stack(latent_dataset)
+    
+    def parameters(self):
+        return self.ae.parameters()
 
 
 class AENetwork(nn.Module):
@@ -250,3 +253,6 @@ class AutoEncoder(object):
     
     def load_state_dict(self, state_dict):
         return self.model.load_state_dict(state_dict)
+    
+    def parameters(self):
+        return self.model.parameters()
