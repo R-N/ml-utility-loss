@@ -278,15 +278,15 @@ class Adapter(nn.Module):
         if isinstance(d_input, torch.nn.Embedding):
             embedding = d_input
         if embedding is True:
-            embedding = torch.nn.Embedding(d_input, d_model)
+            embedding = torch.nn.Embedding(d_input, d_hid)
         if hasattr(d_input, "__iter__"):
             d_input, vocab_size = d_input
             if not isinstance(embedding, torch.nn.Embedding):
                 if isinstance(vocab_size, torch.nn.Embedding):
                     embedding = vocab_size
                 else:
-                    embedding = torch.nn.Embedding(vocab_size, d_model)
-                    print("create embedding", vocab_size, d_model)
+                    embedding = torch.nn.Embedding(vocab_size, d_hid)
+                    print("create embedding", vocab_size, d_hid)
         d_input = self.set_embedding(embedding) or d_input
 
         def Linear_(
