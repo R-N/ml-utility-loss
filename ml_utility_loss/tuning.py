@@ -143,6 +143,9 @@ def map_parameters(params_raw, param_space={}, param_map={}):
                     except KeyError:
                         pass
         ret[k] = v
+    for k, v in param_space.items():
+        if k not in ret and not isinstance(v, (tuple, list)):
+            ret[k] = v
     return ret
 
 
