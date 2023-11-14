@@ -262,8 +262,8 @@ class DataPreprocessor: #preprocess all with this. save all model here
                 gradient_accumulation_steps=1,
                 epochs=1
             )
+            self.realtabformer_embedding = realtabformer_embedding
             if "realtabformer_latent" in self.models:
-                self.realtabformer_embedding = realtabformer_embedding
                 self.realtabformer_embedding_size = self.realtabformer_embedding.weight.shape[-1]
         if "lct_gan" in self.models or "lct_gan_latent" in self.models:
             self.lct_ae = lct_ae
@@ -348,7 +348,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
                 x = x.to_list()
             if model == "realtabformer_latent":
                 if not torch.is_tensor(x):
-                    x = torch.Tensor(x).to(self.realtabformer_embedding.weight.device)
+                    x = torch.IntTensor(x).to(self.realtabformer_embedding.weight.device)
                 x = self.realtabformer_embedding(x)
                 x = x.detach().cpu().numpy()
             if not isinstance(x, np.ndarray):
