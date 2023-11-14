@@ -289,7 +289,9 @@ class Adapter(nn.Module):
                 else:
                     embedding = torch.nn.Embedding(vocab_size, d_hid)
                     print("create embedding", vocab_size, d_hid)
-        d_input = self.set_embedding(embedding, freeze=freeze) or d_input
+        d_embed = self.set_embedding(embedding, freeze=freeze)
+        if d_embed:
+            d_input = (d_embed or 1) * d_input
 
         def Linear_(
             d_input,
@@ -358,6 +360,7 @@ class Adapter(nn.Module):
             x0 = x
             if self.embedding:
                 x = self.embedding(x.to(torch.int))
+                x = torch.flatten(x, -2, -1)
                 x.requires_grad_(x0.requires_grad)
             y = self.linear(x)
             print("adapter shape", x0.shape, x.shape, y.shape)
