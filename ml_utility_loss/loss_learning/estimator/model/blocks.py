@@ -275,7 +275,6 @@ class Adapter(nn.Module):
         self.lora_rank = lora_rank
         LinearLora = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
 
-        print("d_input adapter", d_input)
         freeze = isinstance(embedding, torch.nn.Embedding)
         if isinstance(d_input, torch.nn.Embedding):
             embedding = d_input
@@ -288,7 +287,6 @@ class Adapter(nn.Module):
                     embedding = vocab_size
                 else:
                     embedding = torch.nn.Embedding(vocab_size, d_hid)
-                    print("create embedding", vocab_size, d_hid)
         d_embed = self.set_embedding(embedding, freeze=freeze)
         if d_embed:
             d_input = (d_embed or 1) * d_input
@@ -364,7 +362,6 @@ class Adapter(nn.Module):
                 if x0.requires_grad and not x.requires_grad:
                     x.requires_grad_()
             y = self.linear(x)
-            print("adapter shape", x0.shape, x.shape, y.shape)
             return x, y
         except RuntimeError:
             print("check_cuda a", check_cuda(self), check_cuda(self.linear), x.is_cuda)

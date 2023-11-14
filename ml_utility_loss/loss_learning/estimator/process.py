@@ -527,7 +527,6 @@ def forward_pass_1(whole_model, model, train, test, y, y_real, compute):
     # calculate intermediate tensor for later use
     train, m = whole_model.adapters[model](train)
     compute["train"] = train
-    print("train shape", compute["train"].shape)
     # store grad in m
     m.requires_grad_()
     compute["m"] = m

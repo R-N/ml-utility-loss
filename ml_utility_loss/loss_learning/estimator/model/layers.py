@@ -146,7 +146,6 @@ class EncoderLayer(nn.Module):
         pma_attn = None
         if self.pma:
             enc_output, pma_attn = self.pma(enc_output)
-            print("DID PMA")
             if self.pos_ffn_pma:
                 enc_output = self.pos_ffn_pma(enc_output)
         return enc_output, (enc_slf_attn, pma_attn)
