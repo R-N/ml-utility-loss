@@ -381,7 +381,7 @@ def calc_g_seq_mag_loss(
 
     assert len(x0) == len(x1) == len(y0) == len(y1) == (len(error) - 1)
 
-    grad = (y1-y0)/(x1-x0)
+    grad = torch.div((y1-y0), (x1-x0))
     grad = torch.nan_to_num(grad, target)
 
     if forgive_over or not grad_loss_fn:
