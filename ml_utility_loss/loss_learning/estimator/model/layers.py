@@ -274,6 +274,7 @@ class DecoderLayer(EncoderLayer):
         pma_attn = None
         if self.pma:
             dec_output, pma_attn = self.pma(dec_output)
+            print("DID PMA")
             if self.pos_ffn_pma:
                 dec_output = self.pos_ffn_pma(dec_output)
         return dec_output, (dec_slf_attn, dec_enc_attn, pma_attn)
