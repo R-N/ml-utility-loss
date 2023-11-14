@@ -372,6 +372,7 @@ class Adapter(nn.Module):
                 w = w.view(-1)
                 y = torch.mul(w, y)
                 y = y.view(*shape0, self.d_input, -1)
+                print("y", y.shape)
                 y = torch.sum(y, dim=-2)
             print("adapter shapes0", x0.shape, x1.shape, x.shape, y.shape)
             y = self.linear(y)
