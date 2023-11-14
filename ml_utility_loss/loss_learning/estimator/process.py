@@ -20,16 +20,17 @@ def try_tensor_item(tensor, detach=True):
         return tensor.item()
     return tensor
 
-def calc_gradient(inputs, outputs, outputs_grad=None, is_grads_batched=True):
+def calc_gradient(inputs, outputs, outputs_grad=None, is_grads_batched=False):
     if outputs_grad is None and outputs.dim() > 0:
         outputs_grad = torch.ones_like(outputs)
+    is_grads_batched = is_grads_batched and outputs.dim() > 0 and (outputs_grad is None or outputs_grad.dim() >0)
     gradient = torch.autograd.grad(
         inputs = inputs,
         outputs = outputs,
         grad_outputs=outputs_grad, 
         create_graph=True,
         retain_graph=True,
-        is_grads_batched=is_grads_batched, # default
+        is_grads_batched=is_grads_batched,
     )[0]
     return gradient
 
@@ -766,7 +767,7 @@ def calc_g_loss_2(
             dbody_dadapter = dbody_dadapter.detach()
             if avg_non_role_model_m:
                 # We calculate the actual gradient at m from the average
-                dbody_dadapter = calc_gradient(m, grad_compute["m"], dbody_dadapter)
+                dbody_dadapter = calc_gradient(m, grad_compute["m"], dbody_dadapter, is_grads_batched=True)
                 if inverse_avg_non_role_model_m:
                     # Since it was an average, we multiply it by the model count
                     dbody_dadapter = non_role_model_count * dbody_dadapter
@@ -787,7 +788,7 @@ def calc_g_loss_2(
 
         assert not torch.isnan(dbody_dadapter).any(), f"{model} dbody_dadapter has nan"
         train = compute["train"]
-        dbody_dx = calc_gradient(train, m, dbody_dadapter)
+        dbody_dx = calc_gradient(train, m, dbody_dadapter, is_grads_batched=True)
     else:
         dbody_dx = grad_compute["grad"]
     assert not torch.isnan(dbody_dx).any(), f"{model} dbody_dx has nan"
