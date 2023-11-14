@@ -290,10 +290,9 @@ class Adapter(nn.Module):
                 else:
                     embedding = torch.nn.Embedding(vocab_size, d_hid)
         d_embed = self.set_embedding(embedding, freeze=freeze)
-        self.input_w = None
+        self.input_w = TensorInductionPoint(d_input, 1)
         if d_embed:
             #d_input = (d_embed or 1) * d_input
-            self.input_w = TensorInductionPoint(d_input, 1)
             d_input = d_embed
 
         def Linear_(
@@ -362,13 +361,18 @@ class Adapter(nn.Module):
         try:
             x0 = x
             if self.embedding:
-                x = self.embedding(x.to(torch.int))
-                #x = torch.flatten(x, -2, -1)
-                x = torch.mul(self.input_w(), x)
-                x = torch.sum(x, dim=-2)
-                if x0.requires_grad and not x.requires_grad:
-                    x.requires_grad_()
-            y = self.linear(x)
+                x = x1 = self.embedding(x.to(torch.int))
+                x = torch.flatten(x, -2, -1)
+            if x is not x0 and x0.requires_grad and not x.requires_grad:
+                x.requires_grad_()
+            y = x
+            if y.dim() > 3:
+                w = self.input_w()
+                w = torch.repeat_interleave(w, x1.shape[-1], dim=-1)
+                w = torch.flatten(w, -2, -1)
+                y = torch.mul(w, y)
+                y = torch.sum(y, dim=-2)
+            y = self.linear(y)
             return x, y
         except RuntimeError:
             print("check_cuda a", check_cuda(self), check_cuda(self.linear), x.is_cuda)
