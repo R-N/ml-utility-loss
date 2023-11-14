@@ -363,7 +363,7 @@ class Adapter(nn.Module):
             if self.embedding:
                 x = self.embedding(x.to(torch.int))
                 #x = torch.flatten(x, -2, -1)
-                x = torch.mul(self.input_w, x)
+                x = torch.mul(self.input_w(), x)
                 x = torch.sum(x, dim=-2)
                 if x0.requires_grad and not x.requires_grad:
                     x.requires_grad_()
