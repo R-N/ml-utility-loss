@@ -20,7 +20,7 @@ def try_tensor_item(tensor, detach=True):
         return tensor.item()
     return tensor
 
-def calc_gradient(inputs, outputs, outputs_grad=None):
+def calc_gradient(inputs, outputs, outputs_grad=None, is_grads_batched=True):
     if outputs_grad is None and outputs.dim() > 0:
         outputs_grad = torch.ones_like(outputs)
     gradient = torch.autograd.grad(
@@ -29,7 +29,7 @@ def calc_gradient(inputs, outputs, outputs_grad=None):
         grad_outputs=outputs_grad, 
         create_graph=True,
         retain_graph=True,
-        is_grads_batched=False, # default
+        is_grads_batched=is_grads_batched, # default
     )[0]
     return gradient
 
