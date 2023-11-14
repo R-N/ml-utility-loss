@@ -255,6 +255,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         self.cuda = cuda
         self.dtypes = None
         self.freeze = freeze
+        self.realtabformer_embedding_size = 0
 
         if "tvae" in self.models:
             self.tvae_transformer = TVAEDataTransformer()
@@ -265,11 +266,11 @@ class DataPreprocessor: #preprocess all with this. save all model here
                 epochs=1
             )
             self.realtabformer_embedding = realtabformer_embedding
-            if "realtabformer_latent" in self.models:
+            if self.realtabformer_embedding:
                 self.realtabformer_embedding_size = self.realtabformer_embedding.weight.shape[-1]
-            if self.freeze:
-                for param in self.realtabformer_embedding.parameters(): 
-                    param.requires_grad = False
+                if self.freeze:
+                    for param in self.realtabformer_embedding.parameters(): 
+                        param.requires_grad = False
         if "lct_gan" in self.models or "lct_gan_latent" in self.models:
             self.lct_ae = lct_ae
             self.lct_ae_embedding_size = lct_ae_embedding_size
@@ -331,11 +332,29 @@ class DataPreprocessor: #preprocess all with this. save all model here
         if "realtabformer" in self.models:
             k = "realtabformer"
             if self.realtabformer_embedding:
-                self.adapter_sizes[k] = (self.embedding_sizes[k], self.realtabformer_embedding)
+                self.adapter_sizes[k] = (
+                    self.embedding_sizes[k], 
+                    self.vocabulary_sizes[k], 
+                    self.realtabformer_embedding, 
+                    True,
+                )
             elif self.vocabulary_sizes[k]:
-                self.adapter_sizes[k] = (self.embedding_sizes[k], self.vocabulary_sizes[k])
+                self.adapter_sizes[k] = (
+                    self.embedding_sizes[k], 
+                    self.vocabulary_sizes[k], 
+                    None,
+                    True,
+                )
             else:
                 raise ValueError(f"Model {k} should be a realtabformer type, but realtabformer_embedding is {self.realtabformer_embedding} and the vocab size is {self.vocabulary_sizes[k]}")
+        if "realtabformer_latent" in self.models:
+            k = "realtabformer_latent"
+            self.adapter_sizes[k] = (
+                self.embedding_sizes[k], 
+                self.vocabulary_sizes[k], 
+                self.realtabformer_embedding, 
+                False,
+            )
 
     def preprocess(self, df, model=None, store_embedding_size=False):
         model = model or self.model
@@ -357,15 +376,19 @@ class DataPreprocessor: #preprocess all with this. save all model here
             x = ids["input_ids"]
             if isinstance(x, pd.Series):
                 x = x.to_list()
+            if not isinstance(x, np.ndarray):
+                x = np.array(x)
+            embed_size = x.shape[-1]
             if model == "realtabformer_latent":
                 if not torch.is_tensor(x):
                     x = torch.IntTensor(x).to(self.realtabformer_embedding.weight.device)
                 x = self.realtabformer_embedding(x)
+                x = x.flatten(-2, -1)
                 x = x.detach().cpu().numpy()
             if not isinstance(x, np.ndarray):
                 x = np.array(x)
             if store_embedding_size:
-                self.embedding_sizes[model] = x.shape[-1]
+                self.embedding_sizes[model] = embed_size
             return x
         if model == "lct_gan_latent":
             x = self.lct_ae.encode(df)

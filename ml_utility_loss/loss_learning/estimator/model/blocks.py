@@ -264,7 +264,6 @@ class Adapter(nn.Module):
         Linear=Linear,
         init=True,
         layer_norm=False,
-        embedding=None,
         **kwargs,
     ):
         super().__init__()
@@ -275,25 +274,23 @@ class Adapter(nn.Module):
         self.lora_rank = lora_rank
         LinearLora = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
 
-        freeze = isinstance(embedding, torch.nn.Embedding)
-        if isinstance(d_input, torch.nn.Embedding):
-            raise ValueError("d_input should be int or tuple, not embedding")
-            embedding = d_input
-        # if embedding is True:
-        #     embedding = torch.nn.Embedding(d_input, d_hid)
+        freeze = False
+        d_embed = 0
+        use_embedding = True
         if hasattr(d_input, "__iter__"):
-            d_input, vocab_size = d_input
-            if not isinstance(embedding, torch.nn.Embedding):
-                if isinstance(vocab_size, torch.nn.Embedding):
-                    embedding = vocab_size
-                    freeze = True
-                else:
-                    embedding = torch.nn.Embedding(vocab_size, d_hid)
-        d_embed = self.set_embedding(embedding, freeze=freeze)
+            d_input, vocab_size, embedding, use_embedding = d_input
+            if isinstance(vocab_size, torch.nn.Embedding):
+                embedding = vocab_size
+                freeze = True
+            else:
+                embedding = torch.nn.Embedding(vocab_size, d_hid)
+        freeze = freeze and use_embedding
         self.input_w = TensorInductionPoint(d_input, 1)
-        if d_embed:
-            #d_input = (d_embed or 1) * d_input
-            d_input = d_embed
+        d_embed = self.set_embedding(embedding, freeze=freeze)
+        if not use_embedding:
+            self.embedding = None
+        d_input = d_embed or d_input
+        self.d_input = d_input
 
         def Linear_(
             d_input,
@@ -346,9 +343,9 @@ class Adapter(nn.Module):
                 for param in self.embedding.parameters(): 
                     param.requires_grad = False
             #self.embedding.eval()
-            d_input = self.embedding.weight.shape[-1]
-            return d_input
-        return None
+            d_embed = self.embedding.weight.shape[-1]
+            return d_embed
+        return 0
 
     def init(self, activation=None):
         lin = None
@@ -360,17 +357,19 @@ class Adapter(nn.Module):
     def forward(self, x):
         try:
             x0 = x
+            shape0 = x.shape[:2]
             if self.embedding:
                 x = x1 = self.embedding(x.to(torch.int))
-                x = torch.flatten(x, -2, -1)
+                x = x.view(*shape0, -1)
             if x is not x0 and x0.requires_grad and not x.requires_grad:
                 x.requires_grad_()
             y = x
             if y.dim() > 3:
                 w = self.input_w()
                 w = torch.repeat_interleave(w, x1.shape[-1], dim=-1)
-                w = torch.flatten(w, -2, -1)
+                w = w.view(*shape0, -1)
                 y = torch.mul(w, y)
+                y = y.view(*shape0, self.d_input, -1)
                 y = torch.sum(y, dim=-2)
             y = self.linear(y)
             return x, y
