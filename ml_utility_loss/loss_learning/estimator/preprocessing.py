@@ -290,7 +290,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         if "realtabformer" in self.models or "realtabformer_latent" in self.models:
             self.rtf_model.fit_preprocess(train)
             id2token = self.rtf_model.vocab["id2token"]
-            vocab_size = max(max(id2token.keys()), len(id2token)) + 1
+            vocab_size = max(max(id2token.keys()) + 1, len(id2token))
             for k in self.models:
                 if "realtabformer" in k:
                     self.vocabulary_sizes[k] = vocab_size
