@@ -354,10 +354,10 @@ class Adapter(nn.Module):
             if self.embedding:
                 x = self.embedding(x)
             y = self.linear(x)
+            return x, y
         except RuntimeError:
             print("check_cuda a", check_cuda(self), check_cuda(self.linear), x.is_cuda)
             raise
-        return y
     
 
 class Head(nn.Module):
