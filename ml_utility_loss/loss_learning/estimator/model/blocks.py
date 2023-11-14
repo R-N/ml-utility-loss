@@ -286,6 +286,7 @@ class Adapter(nn.Module):
                     embedding = vocab_size
                 else:
                     embedding = torch.nn.Embedding(vocab_size, d_model)
+                    print("create embedding", vocab_size, d_model)
         d_input = self.set_embedding(embedding) or d_input
 
         def Linear_(
