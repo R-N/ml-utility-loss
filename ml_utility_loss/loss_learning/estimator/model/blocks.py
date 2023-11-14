@@ -287,8 +287,8 @@ class Adapter(nn.Module):
         freeze = freeze and use_embedding
         self.input_w = TensorInductionPoint(d_input, 1)
         d_embed = self.set_embedding(embedding, freeze=freeze)
-        if not use_embedding:
-            self.embedding = None
+        self.d_embed = d_embed
+        self.use_embedding = use_embedding
         d_input = d_embed or d_input
         self.d_input = d_input
 
@@ -356,22 +356,26 @@ class Adapter(nn.Module):
 
     def forward(self, x):
         try:
-            x0 = x
+            x0 = x1 = x
+            assert x.dim() > 2, "Input must be batched"
+            b = x.shape[0]
             shape0 = x.shape[:2]
-            if self.embedding:
+            if self.embedding and self.use_embedding:
                 x = x1 = self.embedding(x.to(torch.int))
                 x = x.view(*shape0, -1)
             if x is not x0 and x0.requires_grad and not x.requires_grad:
                 x.requires_grad_()
             y = x
-            if y.dim() > 3:
+            if self.embedding:
                 w = self.input_w()
                 w = torch.repeat_interleave(w, x1.shape[-1], dim=-1)
                 w = w.view(*shape0, -1)
                 y = torch.mul(w, y)
                 y = y.view(*shape0, self.d_input, -1)
                 y = torch.sum(y, dim=-2)
+            print("adapter shapes0", x0.shape, x1.shape, x.shape, y.shape)
             y = self.linear(y)
+            print("adapter shapes", x0.shape, x1.shape, x.shape, y.shape)
             return x, y
         except RuntimeError:
             print("check_cuda a", check_cuda(self), check_cuda(self.linear), x.is_cuda)
