@@ -320,7 +320,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         if "realtabformer" in self.models:
             k = "realtabformer"
             if self.realtabformer_embedding:
-                self.adapter_sizes[k] = self.realtabformer_embedding
+                self.adapter_sizes[k] = (self.embedding_sizes[k], self.realtabformer_embedding)
             elif self.vocabulary_sizes[k]:
                 self.adapter_sizes[k] = (self.embedding_sizes[k], self.vocabulary_sizes[k])
             else:

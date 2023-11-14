@@ -277,6 +277,7 @@ class Adapter(nn.Module):
 
         freeze = isinstance(embedding, torch.nn.Embedding)
         if isinstance(d_input, torch.nn.Embedding):
+            raise ValueError("d_input should be int or tuple, not embedding")
             embedding = d_input
         if embedding is True:
             embedding = torch.nn.Embedding(d_input, d_hid)
