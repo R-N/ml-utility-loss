@@ -361,7 +361,8 @@ class Adapter(nn.Module):
             if self.embedding:
                 x = self.embedding(x.to(torch.int))
                 x = torch.flatten(x, -2, -1)
-                x.requires_grad_(x0.requires_grad)
+                if x0.requires_grad and not x.requires_grad:
+                    x.requires_grad_()
             y = self.linear(x)
             print("adapter shape", x0.shape, x.shape, y.shape)
             return x, y
