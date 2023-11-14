@@ -2,7 +2,22 @@ from ....params import BOOLEAN, ISABMode, LoRAMode, OPTIMS, ACTIVATIONS, LOSSES,
 from torch import nn, optim
 from torch.nn import functional as F
 
+DEFAULTS = {
+    "loss_balancer_meta": True,
+    "loss_balancer_log": False,
+    "pma_skip_small": False, #for now, don't skip
+    "isab_skip_small": False, #for now, don't skip
+    "layer_norm": False,
+    "pma_layer_norm": False,
+    "attn_residual": True,
+    "tf_isab_rank": 0,
+    "tf_lora": False,
+    "tf_layer_norm": False,
+    "tf_pma": False,
+
+}
 PARAM_SPACE = {
+    **DEFAULTS,
     # Dataset args
     "dataset_size": ("int_exp_2", 32, 2048),
     "batch_size": ("int_exp_2", 2, 4),
@@ -31,10 +46,9 @@ PARAM_SPACE = {
     #"non_role_model_avg": True, # doesnt matter
     #"std_loss_mul": ("float", 0.5, 2.0),
     #"grad_loss_mul": ("float", 0.6, 1.0), #almost random
-    "loss_balancer_meta": True,
     "loss_balancer_beta": ("float", 0.8, 0.98),
     "loss_balancer_r": ("float", 0.9, 0.95),
-    "loss_balancer_log": False,
+    "loss_balancer_log": BOOLEAN,
     "loss_balancer_lbtw": BOOLEAN,
     #"loss_fn": ("loss", "mse"),
     #"loss_fn": ("loss", ["mse", "mae"]),
@@ -77,18 +91,14 @@ PARAM_SPACE = {
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
     #"flip": BOOLEAN, #doesn't matter
-    "pma_skip_small": False, #for now, don't skip
-    "isab_skip_small": False, #for now, don't skip
     #"pma_skip_small": BOOLEAN,
     #"isab_skip_small": BOOLEAN,
     #"skip_small": False,
     #"loss_clamp": ("log_float", 3.5, 4.5), #seems random
     "grad_clip": ("log_float", 0.5, 3.0), #0.5
-    "layer_norm": False,
     "bias": BOOLEAN,
     #"bias": False,
     "bias_final": BOOLEAN,
-    "pma_layer_norm": False,
     #"pma_layer_norm": BOOLEAN,
     "attn_activation": ("activation", [
         "tanh",  
@@ -104,7 +114,6 @@ PARAM_SPACE = {
         "softsign",
         "identity",
     ]),
-    "attn_residual": True,
     #"attn_residual": BOOLEAN,
     "inds_init_mode": ("categorical", [
         IndsInitMode.TORCH,
@@ -138,8 +147,6 @@ PARAM_SPACE = {
             ISABMode.MINI, # best
         )),
     }),
-    "tf_isab_rank": 0,
-    "tf_lora": False,
     # "tf_isab_rank": ("bool_int_exp_2", 1, 8), #true is better
     # "tf_lora": ("conditional", {
     #     "tf_lora_mode": ("categorical", (
@@ -148,10 +155,8 @@ PARAM_SPACE = {
     #     )),
     #     "tf_lora_rank": ("int_exp_2", 2, 16), #Mustn't be bool int
     # }),
-    "tf_layer_norm": False,
     #"tf_layer_norm": BOOLEAN,
     # Transformer PMA args
-    "tf_pma": False,
     # "tf_pma": ("conditional", { # better true
     #     "tf_pma_start": ("int", -2, -1),
     #     "tf_pma_high": ("int_exp_2", 16, 128),
@@ -228,6 +233,7 @@ PARAM_SPACE_2 = {
 
 #0.0
 BEST = {
+    **DEFAULTS,
     'epochs': 785,
     'lr': 0.001017516341033314,
     'Optim': 'nadam',
