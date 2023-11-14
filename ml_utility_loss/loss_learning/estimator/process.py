@@ -169,9 +169,9 @@ def calc_g_cos_loss_opposing(
     positive, negative,
     grad_loss_fn=F.mse_loss,
     reduction=torch.mean,
-    target=0.2588190451,
+    target=1e-3, #0.2588190451,
     cos_matrix=True,
-    only_sign=False,
+    only_sign=True,
     forgive_over=True,
 ):
 
@@ -210,8 +210,8 @@ def calc_g_cos_loss_same(
     dbody_dx, 
     grad_loss_fn=F.mse_loss,
     reduction=torch.mean,
-    target=0.2588190451,
-    only_sign=False,
+    target=1e-3, #0.2588190451,
+    only_sign=True,
     forgive_over=True,
 ):
     if len(dbody_dx) < 2:
@@ -242,10 +242,10 @@ def calc_g_cos_loss_same(
 def calc_g_cos_loss(
     dbody_dx, error,
     cos_matrix=True,
-    target=0.2588190451, # 75 degrees # 60 degrees, times 2
+    target=1e-3, #0.2588190451, # 75 degrees # 60 degrees, times 2
     opposing_dir_w=0.75,
     same_dir_w=0.25,
-    only_sign=False,
+    only_sign=True,
     **kwargs,
 ):
     positive_ids = (error > 0).nonzero().squeeze(dim=-1)
@@ -321,9 +321,9 @@ def calc_g_mse_mag_loss(
 def calc_g_mag_corr_loss(
     dbody_dx_norm, error,
     grad_loss_fn=F.mse_loss,
-    target=0.3,
+    target=1e-3, #0.3,
     forgive_over=True,
-    only_sign=False,
+    only_sign=True,
     sign=True,
 ):
 
@@ -358,9 +358,9 @@ def calc_g_seq_mag_loss(
     dbody_dx_norm, error,
     grad_loss_fn=F.mse_loss,
     reduction=torch.mean,
-    target=1.0,
+    target=1e-3, #1.0,
     forgive_over=True,
-    only_sign=False,
+    only_sign=True,
     sign=True,
 ):
     
@@ -462,8 +462,8 @@ def calc_g_loss(
     mag_loss=True,
     cos_loss=True,
     cos_matrix=True,
-    opposing_dir_w=0.75,
-    same_dir_w=0.25,
+    opposing_dir_w=0.5,
+    same_dir_w=0.5,
     forgive_over=True,
     #only_sign=False,
     mag_only_sign=False,
