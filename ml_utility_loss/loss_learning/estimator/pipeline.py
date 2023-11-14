@@ -409,7 +409,7 @@ def train(
     train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
     val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
 
-    adapters = preprocessor.embedding_sizes
+    adapters = preprocessor.adapter_sizes
     if whole_model and not models:
         models = whole_model.models
     if not models:

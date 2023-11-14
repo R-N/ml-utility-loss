@@ -203,8 +203,8 @@ class DataAugmenter:
     
         return df
 
-MODELS = ["tvae", "realtabformer", "lct_gan_latent", "lct_gan", "tab_ddpm", "tab_ddpm_concat"]
-DEFAULT_MODELS = ["tvae", "realtabformer", "lct_gan_latent", "lct_gan", "tab_ddpm_concat"]
+MODELS = ["tvae", "realtabformer", "realtabformer_latent", "lct_gan_latent", "lct_gan", "tab_ddpm", "tab_ddpm_concat"]
+DEFAULT_MODELS = ["tvae", "realtabformer", "lct_gan", "tab_ddpm_concat"]
 
 def emb2indices(output, emb_layer):
     # output is size: [batch, sequence, emb_length], emb_layer is size: [num_tokens, emb_length]
@@ -283,10 +283,16 @@ class DataPreprocessor: #preprocess all with this. save all model here
 
     def fit(self, train):
         self.dtypes = train.dtypes.to_dict()
+        self.vocabulary_sizes = {k:0 for k in self.models}
+        self.embeddings = {}
         if "tvae" in self.models:
             self.tvae_transformer.fit(train, self.cat_features)
-        if "realtabformer" in self.models:
+        if "realtabformer" in self.models or "realtabformer_latent" in self.models:
             self.rtf_model.fit_preprocess(train)
+            vocab_size = max(self.rtf_model.vocab["id2token"].keys())
+            for k in self.models:
+                if "realtabformer" in k:
+                    self.vocabulary_sizes[k] = vocab_size
         if "lct_gan" in self.models or "lct_gan_latent" in self.models:
             if not self.lct_ae:
                 self.lct_ae, recon = create_ae(
@@ -308,6 +314,16 @@ class DataPreprocessor: #preprocess all with this. save all model here
         self.embedding_sizes = {}
         for k in self.models:
             self.preprocess(train, k, store_embedding_size=True)
+
+        self.adapter_sizes = dict(self.embedding_sizes)
+        if "realtabformer" in self.models:
+            k = "realtabformer"
+            if self.realtabformer_embedding:
+                self.adapter_sizes[k] = self.realtabformer_embedding
+            elif self.vocabulary_sizes[k]:
+                self.adapter_sizes[k] = (self.embedding_sizes[k], self.vocabulary_sizes[k])
+            else:
+                raise ValueError(f"Model {k} should be a realtabformer type, but realtabformer_embedding is {self.realtabformer_embedding} and the vocab size is {self.vocabulary_sizes[k]}")
 
     def preprocess(self, df, model=None, store_embedding_size=False):
         model = model or self.model
