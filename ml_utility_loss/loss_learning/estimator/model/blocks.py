@@ -355,13 +355,12 @@ class Adapter(nn.Module):
 
     def forward(self, x):
         try:
+            x0 = x
             if self.embedding:
-                x0 = x
-                print("pre embedding shape", x0.shape)
                 x = self.embedding(x.to(torch.int))
                 x.requires_grad_(x0.requires_grad)
             y = self.linear(x)
-            print("adapter shape", x.shape, y.shape)
+            print("adapter shape", x0.shape, x.shape, y.shape)
             return x, y
         except RuntimeError:
             print("check_cuda a", check_cuda(self), check_cuda(self.linear), x.is_cuda)
