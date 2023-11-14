@@ -290,7 +290,7 @@ class Adapter(nn.Module):
         self.d_embed = d_embed
         self.use_embedding = use_embedding
         self.d_input = d_input
-        d_input = d_embed or d_input
+        print("embed", d_input, d_embed, d_input*d_embed)
 
         def Linear_(
             d_input,
@@ -315,7 +315,7 @@ class Adapter(nn.Module):
                 **kwargs,
             )
         self.linear = nn.Sequential(*[
-            Linear_(d_input, d_hid, layer_norm=False),
+            Linear_(d_embed or d_input, d_hid, layer_norm=False),
             *[Linear_(d_hid, d_hid) for i in range(n_layers-2)],
             Linear_(d_hid, d_model, activation=activation_final, residual=False),
         ])
