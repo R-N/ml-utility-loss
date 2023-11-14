@@ -360,6 +360,7 @@ class Adapter(nn.Module):
                 x = self.embedding(x.to(torch.int))
                 x.requires_grad_(x0.requires_grad)
             y = self.linear(x)
+            print("adapter shape", x.shape, y.shape)
             return x, y
         except RuntimeError:
             print("check_cuda a", check_cuda(self), check_cuda(self.linear), x.is_cuda)

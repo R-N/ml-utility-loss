@@ -201,6 +201,8 @@ class TwinEncoder(nn.Module):
         # Nevermind it messed up the shape
         # dec_output = dec_output.view(-1, dec_output.size(-1))
 
+        print("precombine shape", left_output.shape, right_output.shape)
+
         outputs = [left_output, right_output]
         if self.combine_mode == CombineMode.CONCAT:
             output = torch.cat(outputs, dim=-1)
