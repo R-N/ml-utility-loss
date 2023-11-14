@@ -369,7 +369,7 @@ class Adapter(nn.Module):
             if self.embedding:
                 w = self.input_w()
                 w = torch.repeat_interleave(w, x1.shape[-1], dim=-1)
-                w = w.view(*shape0, -1)
+                w = w.view(-1)
                 y = torch.mul(w, y)
                 y = y.view(*shape0, self.d_input, -1)
                 y = torch.sum(y, dim=-2)
