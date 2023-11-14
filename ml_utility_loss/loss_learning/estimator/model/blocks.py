@@ -279,8 +279,7 @@ class Adapter(nn.Module):
         use_embedding = True
         if hasattr(d_input, "__iter__"):
             d_input, vocab_size, embedding, use_embedding = d_input
-            if isinstance(vocab_size, torch.nn.Embedding):
-                embedding = vocab_size
+            if embedding:
                 freeze = True
             else:
                 embedding = torch.nn.Embedding(vocab_size, d_hid)
