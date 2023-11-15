@@ -39,7 +39,7 @@ NON_MODEL_PARAMS = (
     "include_mean_pred_loss",
     "grad_phase_2",
     "g_loss_mul",
-    "gradient_penalty_args",
+    "gradient_penalty_kwargs",
     "scheduler_patience",
     "lr_mul",
     "n_warmup_steps",

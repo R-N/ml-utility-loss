@@ -14,7 +14,7 @@ DEFAULTS = {
     "tf_lora": False,
     "tf_layer_norm": False,
     "tf_pma": False,
-    "gradient_penalty_args": {
+    "gradient_penalty_kwargs": {
         "mag_loss": True,
         "mse_mag": True,
         "mag_corr": True,

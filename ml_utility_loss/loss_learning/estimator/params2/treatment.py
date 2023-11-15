@@ -16,7 +16,7 @@ DEFAULTS = {
     "tf_pma_start": -1,
     "head_n_seeds": 0,
     "tf_pma_low": 1,
-    "gradient_penalty_args": {
+    "gradient_penalty_kwargs": {
         "mag_loss": True,
         "mse_mag": True,
         "mag_corr": True,
