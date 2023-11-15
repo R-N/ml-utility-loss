@@ -695,6 +695,27 @@ def eval(
 
     return eval_loss
 
+def pop_update(kwargs, arg_name):
+    arg = kwargs.pop(arg_name, None)
+    if arg is not None:
+        if isinstance(arg, dict):
+            kwargs.update(arg)
+        else:
+            kwargs[arg_name] = arg
+    return kwargs
+
+def pop_repack(kwargs, arg_name):
+    arg = kwargs.pop(arg_name, None)
+    if arg is not None:
+        if isinstance(arg, dict):
+            kwargs[arg_name] = arg.pop(arg_name)
+            l = len(arg_name) + 1
+            kwargs[f"{arg_name}_kwargs"] = {k[l:]: v for k, v in arg.items()}
+        else:
+            kwargs[arg_name] = arg
+    return kwargs
+
+
 def train_2(
     datasets,
     preprocessor,
@@ -706,24 +727,14 @@ def train_2(
     patience=50,
     **kwargs
 ):
-    tf_pma = kwargs.pop("tf_pma", None)
-    if tf_pma:
-        kwargs.update(tf_pma)
-    tf_lora = kwargs.pop("tf_lora", None)
-    if tf_lora:
-        kwargs.update(tf_lora)
-    ada_lora = kwargs.pop("ada_lora", None)
-    if ada_lora:
-        kwargs.update(ada_lora)
-    head_lora = kwargs.pop("head_lora", None)
-    if head_lora:
-        kwargs.update(head_lora)
-    tf_num_inds = kwargs.pop("tf_num_inds", None)
-    if tf_num_inds:
-        if isinstance(tf_num_inds, dict):
-            kwargs.update(tf_num_inds)
-        else:
-            kwargs["tf_num_inds"] = tf_num_inds
+    kwargs = pop_update(kwargs, "tf_pma")
+    kwargs = pop_update(kwargs, "tf_lora")
+    kwargs = pop_update(kwargs, "ada_lora")
+    kwargs = pop_update(kwargs, "head_lora")
+    kwargs = pop_update(kwargs, "tf_num_inds")
+    kwargs = pop_repack(kwargs, "mse_mag")
+    kwargs = pop_repack(kwargs, "mag_corr")
+    kwargs = pop_repack(kwargs, "cos_loss")
         
     kwargs = {k: v for k, v in kwargs.items() if not k.endswith("_bool")}
     kwargs = {k: v for k, v in kwargs.items() if not k.endswith("_boolc")}

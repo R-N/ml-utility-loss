@@ -11,6 +11,25 @@ from functools import partial
 from .metrics import mile, mire, mean_penalty, mean_penalty_tan, mean_penalty_tan_half, mean_penalty_tan_double, mean_penalty_rational, mean_penalty_rational_half, mean_penalty_rational_double, mean_penalty_log, mean_penalty_log_half, mean_penalty_log_double
 import torch_optimizer
 
+class GradMagLoss:
+    MSE_CORR = {
+        "mse_mag": True,
+        "mag_corr": True,
+    }
+    MSE_MAG = {
+        "mse_mag": True,
+        "mag_corr": False,
+    }
+    MAG_CORR = {
+        "mse_mag": False,
+        "mag_corr": True,
+    }
+    DICT = {
+        "MSE_CORR": MSE_CORR,
+        "MSE_MAG": MSE_MAG,
+        "MAG_CORR": MAG_CORR,
+    }
+
 NORMS = {
     "layer": torch.nn.LayerNorm,
     "group": torch.nn.GroupNorm,

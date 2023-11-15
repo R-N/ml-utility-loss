@@ -321,7 +321,7 @@ def calc_g_mse_mag_loss(
 def calc_g_mag_corr_loss(
     dbody_dx_norm, error,
     grad_loss_fn=F.mse_loss,
-    target=0.3,
+    target=0.8,
     forgive_over=True,
     only_sign=True,
     sign=True,
@@ -411,7 +411,10 @@ def calc_g_mag_loss(
     mse_mag=True,
     mag_corr=True,
     seq_mag=False, #can't converge
-    **seq_mag_kwargs,
+    mse_mag_kwargs={},
+    mag_corr_kwargs={},
+    seq_mag_kwargs={},
+    **kwargs,
 ):
     # Calculate the magnitude of the gradient
     # No keep_dim, so this results in (batch)
@@ -427,17 +430,20 @@ def calc_g_mag_loss(
             grad_loss_fn=grad_loss_fn,
             grad_loss_scale=grad_loss_scale,
             reduction=reduction,
+            **mse_mag_kwargs,
         ) if mse_mag else None,
         calc_g_mag_corr_loss(
             dbody_dx_norm=dbody_dx_norm,
             error=error,
             grad_loss_fn=grad_loss_fn,
-            **seq_mag_kwargs,
+            **kwargs,
+            **mag_corr_kwargs,
         ) if mag_corr else None,
         calc_g_seq_mag_loss(
             dbody_dx_norm, error,
             grad_loss_fn=F.mse_loss,
             reduction=reduction,
+            **kwargs,
             **seq_mag_kwargs,
         ) if seq_mag else None,
     ]
@@ -466,8 +472,9 @@ def calc_g_loss(
     same_dir_w=0.5,
     forgive_over=True,
     #only_sign=False,
-    mag_only_sign=False,
-    cos_only_sign=False,
+    #mag_only_sign=False,
+    #cos_only_sign=False,
+    cos_loss_kwargs={},
     **mag_loss_kwargs,
 ):
     #detach the error because we only want to shape the gradient
@@ -490,7 +497,7 @@ def calc_g_loss(
             loss_clamp=loss_clamp,
             eps=eps,
             forgive_over=forgive_over,
-            only_sign=mag_only_sign,
+            #only_sign=mag_only_sign,
             **mag_loss_kwargs,
         ) if mag_loss else zero_tensor(device=error.device),
         calc_g_cos_loss(
@@ -501,7 +508,8 @@ def calc_g_loss(
             same_dir_w=same_dir_w,
             cos_matrix=cos_matrix,
             forgive_over=forgive_over,
-            only_sign=cos_only_sign,
+            #only_sign=cos_only_sign,
+            **cos_loss_kwargs,
         ) if cos_loss else zero_tensor(device=error.device),
     ]
     if loss_clamp:
@@ -1295,12 +1303,17 @@ def eval(
                 reduction=reduction,
                 eps=eps,
                 mag_loss=True,
-                mse_mag=True,
+                mse_mag=False,
                 mag_corr=True,
                 seq_mag=False,
                 cos_loss=True,
-                mag_only_sign=False,
-                cos_only_sign=True,
+                mag_corr_kwargs=dict(
+                    target=1.0,
+                    only_sign=False,
+                ),
+                cos_loss_kwargs=dict(
+                    only_sign=True,
+                ),
             )
             # The gradient is of shape (batch, size, dim)
             # Sum gradient over the size dimension, resulting in (batch, dim)
