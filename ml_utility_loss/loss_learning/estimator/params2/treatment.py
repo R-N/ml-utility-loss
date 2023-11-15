@@ -184,9 +184,9 @@ PARAM_SPACE = {
     ]),
     # Transformer PMA args
     #"tf_pma": ("conditional", { # doesn't matter
-    "tf_pma_start": ("int", -2, -1),
+    #"tf_pma_start": ("int", -2, -1),
     "tf_pma_low": ("int_exp_2", 1, 4),
-    "tf_pma_high": ("int_exp_2", 4, 8),
+    #"tf_pma_high": ("int_exp_2", 4, 8),
     # "tf_pma_start": ("int", -2, -1),
     # "tf_pma_high": ("int_exp_2", 16, 64),
     # "tf_pma_rank": ("bool_int_exp_2", 2, 32), #doesn't matter so true it is
