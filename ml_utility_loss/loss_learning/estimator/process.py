@@ -942,7 +942,7 @@ def train_epoch(
         # We calculate average m of non role models to do one forward pass for all of them
         avg_compute = {}
         computes_1 = computes
-        if forward_once and role_model and avg_non_role_model_m:
+        if forward_once and role_model and avg_non_role_model_m and len(computes) > 1:
             avg_compute = forward_pass_1_avg(
                 computes=computes,
                 role_model=role_model,
