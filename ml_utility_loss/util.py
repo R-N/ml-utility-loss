@@ -307,7 +307,7 @@ class Timer:
         cur_seconds = self.cur_seconds(cur_time=cur_time)
         
         if (cur_seconds > self.max_seconds):
-            raise TrialPruned(f"TIme out: {cur_seconds}/{self.max_seconds}")
+            raise TrialPruned(f"Time out: {cur_seconds}/{self.max_seconds}")
         return cur_seconds
 
 def sorted_nicely( l ): 

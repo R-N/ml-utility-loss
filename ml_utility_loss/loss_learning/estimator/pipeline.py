@@ -3,6 +3,7 @@ import json
 from .preprocessing import DataAugmenter
 import os
 from ...util import mkdir, filter_dict, split_df_kfold, Timer, clear_memory
+from optuna.exceptions import TrialPruned
 from ..ml_utility.pipeline import eval_ml_utility
 from ...params import GradientPenaltyMode, PMAFFNMode
 from .model.models import Transformer, MLUtilityWhole
@@ -493,9 +494,6 @@ def train(
     
     train_results = []
     val_results = []
-    
-    if timer:
-        timer.check_time()
 
     
     #print("[INFO] Beginning epoch")
@@ -505,92 +503,99 @@ def train(
 
     epochs = epochs or 1000
     for i in range(i, i+epochs):
+        try:
+            if verbose:
+                print("Epoch", i)
 
-        if verbose:
-            print("Epoch", i)
+            while True:
+                try:
+                    train_loss = train_epoch_(train_loader, gradient_penalty_mode=gradient_penalty_mode_)
+                    if verbose:
+                        print("Train loss", train_loss)
+                    if timer:
+                        timer.check_time()
+                    val_loss = train_epoch_(val_loader, gradient_penalty_mode=gradient_penalty_mode_, val=True)
+                    if verbose:
+                        print("Val loss", val_loss)
+                    if timer:
+                        timer.check_time()
+                    break
+                except RuntimeError as ex:
+                    if "stack expects each tensor to be equal size" in str(ex) and broken_loader_counter > 0:
+                        print("Forgiving broken loader. Remaining: ", broken_loader_counter)
+                        del train_loader
+                        del val_loader
+                        clear_memory()
+                        train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
+                        val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
+                        broken_loader_counter -= 1
+                        continue
+                    raise
 
-        while True:
-            try:
-                train_loss = train_epoch_(train_loader, gradient_penalty_mode=gradient_penalty_mode_)
-                if verbose:
-                    print("Train loss", train_loss)
-                if timer:
-                    timer.check_time()
-                val_loss = train_epoch_(val_loader, gradient_penalty_mode=gradient_penalty_mode_, val=True)
-                if verbose:
-                    print("Val loss", val_loss)
-                if timer:
-                    timer.check_time()
-                break
-            except RuntimeError as ex:
-                if "stack expects each tensor to be equal size" in str(ex) and broken_loader_counter > 0:
-                    print("Forgiving broken loader. Remaining: ", broken_loader_counter)
-                    del train_loader
-                    del val_loader
-                    clear_memory()
-                    train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
-                    val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
-                    broken_loader_counter -= 1
-                    continue
-                raise
+            train_results.append(train_loss)
+            val_results.append(val_loss)
 
-        train_results.append(train_loss)
-        val_results.append(val_loss)
-
-        #print("[INFO] Logging", i, torch.cuda.mem_get_info())
-        log(
-            writer=writer, 
-            i=i, 
-            train_loss=train_loss, 
-            val_loss=val_loss,
-            train_set=train_set,
-            val_set=val_set,
-            size_scheduler=size_scheduler,
-        )
-
-        train_value = train_loss["avg_loss"]
-        val_value = val_loss["avg_loss"]
-
-        if not include_std_loss:
-            val_value += val_loss["avg_role_model_std_loss"]
-        if not include_mean_pred_loss:
-            val_value += val_loss["avg_role_model_mean_pred_loss"]
-
-        if not optim.warming_up and size_scheduler and size_scheduler.step(val_value, epoch=i):
-            print("Prepare loader")
-            del train_loader
-            del val_loader
-            clear_memory()
-            early_stopping.reset_counter(reset_best=False)
-            train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
-            val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
-
-
-        if epoch_callback:
-            epoch_callback(
-                epoch=i,
-                train_loss=train_loss,
+            #print("[INFO] Logging", i, torch.cuda.mem_get_info())
+            log(
+                writer=writer, 
+                i=i, 
+                train_loss=train_loss, 
                 val_loss=val_loss,
+                train_set=train_set,
+                val_set=val_set,
+                size_scheduler=size_scheduler,
             )
 
-        if wandb:
-            wandb.log({
-                **{f"{k}_train": v for k, v in train_loss.items()}, 
-                **{f"{k}_test": v for k, v in val_loss.items()},
-            })
+            train_value = train_loss["avg_loss"]
+            val_value = val_loss["avg_loss"]
 
-        if not optim.warming_up and early_stopping:
-            early_stopping.step(train_value, val_value, epoch=i)
-            if early_stopping.stopped:
-                print("Stopped", gradient_penalty_mode_ != gradient_penalty_mode)
-                if gradient_penalty_mode_ != gradient_penalty_mode:
-                    gradient_penalty_mode_ = gradient_penalty_mode
-                    early_stopping.reset_counter(reset_best=True)
-                    print(f"Begin training phase 2 for gradient at epoch {i}")
-                else:
-                    break
-        if timer:
-            timer.check_time()
+            if not include_std_loss:
+                val_value += val_loss["avg_role_model_std_loss"]
+            if not include_mean_pred_loss:
+                val_value += val_loss["avg_role_model_mean_pred_loss"]
+
+            if not optim.warming_up and size_scheduler and size_scheduler.step(val_value, epoch=i):
+                print("Prepare loader")
+                del train_loader
+                del val_loader
+                clear_memory()
+                early_stopping.reset_counter(reset_best=False)
+                train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
+                val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
+
+
+            if epoch_callback:
+                epoch_callback(
+                    epoch=i,
+                    train_loss=train_loss,
+                    val_loss=val_loss,
+                )
+
+            if wandb:
+                wandb.log({
+                    **{f"{k}_train": v for k, v in train_loss.items()}, 
+                    **{f"{k}_test": v for k, v in val_loss.items()},
+                })
+
+            if not optim.warming_up and early_stopping:
+                early_stopping.step(train_value, val_value, epoch=i)
+                if early_stopping.stopped:
+                    print("Stopped", gradient_penalty_mode_ != gradient_penalty_mode)
+                    if gradient_penalty_mode_ != gradient_penalty_mode:
+                        gradient_penalty_mode_ = gradient_penalty_mode
+                        early_stopping.reset_counter(reset_best=True)
+                        print(f"Begin training phase 2 for gradient at epoch {i}")
+                    else:
+                        break
+            if timer:
+                timer.check_time()
+        except TrialPruned as ex:
+            msg = str(ex)
+            if "Time out" in msg:
+                print(ex)
+                break
+            else:
+                raise
 
     if wandb:
         wandb.unwatch(whole_model)
