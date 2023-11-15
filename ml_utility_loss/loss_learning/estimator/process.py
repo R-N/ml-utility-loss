@@ -324,7 +324,7 @@ def calc_g_mag_corr_loss(
     target=0.3,
     forgive_over=True,
     only_sign=True,
-    sign=False,
+    sign=True,
 ):
 
     assert dbody_dx_norm.dim() == 1 and error.dim() == 1 and len(dbody_dx_norm) == len(error)
