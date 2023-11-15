@@ -276,6 +276,7 @@ class Adapter(nn.Module):
 
         freeze = False
         d_embed = 0
+        embedding = None
         use_embedding = True
         if hasattr(d_input, "__iter__"):
             d_input, vocab_size, embedding, use_embedding = d_input
@@ -285,8 +286,7 @@ class Adapter(nn.Module):
                 embedding = torch.nn.Embedding(vocab_size, d_hid)
         freeze = freeze and use_embedding
         self.input_w = TensorInductionPoint(d_input, 1)
-        if embedding:
-            d_embed = self.set_embedding(embedding, freeze=freeze)
+        d_embed = self.set_embedding(embedding, freeze=freeze)
         self.d_embed = d_embed
         self.use_embedding = use_embedding
         self.d_input = d_input
