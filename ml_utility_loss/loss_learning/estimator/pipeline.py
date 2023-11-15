@@ -502,6 +502,10 @@ def train(
     gradient_penalty_mode_ = gradient_penalty_mode
     if grad_phase_2:
         gradient_penalty_mode_ = GradientPenaltyMode.NONE
+
+    print("gradient_penalty_mode_", gradient_penalty_mode_)
+    print("gradient_penalty_mode", gradient_penalty_mode)
+
     epochs = epochs or 1000
     for i in range(i, i+epochs):
 
