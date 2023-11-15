@@ -12,7 +12,7 @@ DEFAULTS = {
     "tf_isab_rank": 0,
     "tf_lora": False,
     "tf_layer_norm": False,
-    "tf_pma": False,
+    "tf_pma": None,
     "gradient_penalty_kwargs": {
         "mag_loss": True,
         "mse_mag": True,
