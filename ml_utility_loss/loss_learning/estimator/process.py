@@ -798,7 +798,6 @@ def calc_g_loss_2(
 
         assert not torch.isnan(dbody_dadapter).any(), f"{model} dbody_dadapter has nan"
         train = compute["train"]
-        raise RuntimeError("Halt! You should not be here")
         dbody_dx = calc_gradient(train, m, dbody_dadapter)
     else:
         dbody_dx = grad_compute["grad"]
