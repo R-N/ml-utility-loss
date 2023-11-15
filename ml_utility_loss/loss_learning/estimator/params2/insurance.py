@@ -3,6 +3,7 @@ from torch import nn, optim
 from torch.nn import functional as F
 
 DEFAULTS = {
+    "Body": "twin_encoder",
     "loss_balancer_meta": True,
     "pma_skip_small": False, #for now, don't skip
     "isab_skip_small": False, #for now, don't skip

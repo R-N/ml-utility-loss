@@ -1,6 +1,7 @@
 from ....params import BOOLEAN, ISABMode, LoRAMode, PMAFFNMode, CombineMode, IndsInitMode
 
 DEFAULTS = {
+    "Body": "twin_encoder",
     "loss_balancer_meta": True,
     "pma_skip_small": False, #for now, don't skip
     "isab_skip_small": False, #for now, don't skip
