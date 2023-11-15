@@ -214,7 +214,8 @@ class TwinEncoder(nn.Module):
             output = torch.mul(left_output, right_output)
 
         if output.dim() > 2:
-            output = output.squeeze(-2)
+            #output = output.squeeze(-2)
+            output = torch.flatten(output, -2, -1)
         assert output.dim() == 2
 
         if return_attns:
