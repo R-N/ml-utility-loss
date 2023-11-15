@@ -349,7 +349,7 @@ def train(
     g_loss_mul=0.1,
     single_model=True,
     study_name="ml_utility",
-    gradient_penalty_args={},
+    gradient_penalty_kwargs={},
     lr_mul=0.0,
     n_warmup_steps=100,
     **model_args
@@ -486,7 +486,7 @@ def train(
             grad_loss_scale=grad_loss_scale,
             g_loss_mul=g_loss_mul,
             **gradient_penalty_mode,
-            **gradient_penalty_args,
+            **gradient_penalty_kwargs,
         )
         return loss
     
@@ -695,25 +695,27 @@ def eval(
 
     return eval_loss
 
-def pop_update(kwargs, arg_name):
+def pop_update(kwargs, arg_name, out_kwargs={}):
     arg = kwargs.pop(arg_name, None)
+    out_kwargs = kwargs if out_kwargs is None else out_kwargs
     if arg is not None:
         if isinstance(arg, dict):
-            kwargs.update(arg)
+            out_kwargs.update(arg)
         else:
-            kwargs[arg_name] = arg
-    return kwargs
+            out_kwargs[arg_name] = arg
+    return out_kwargs
 
-def pop_repack(kwargs, arg_name):
+def pop_repack(kwargs, arg_name, out_kwargs={}):
     arg = kwargs.pop(arg_name, None)
+    out_kwargs = kwargs if out_kwargs is None else out_kwargs
     if arg is not None:
         if isinstance(arg, dict):
-            kwargs[arg_name] = arg.pop(arg_name)
+            out_kwargs[arg_name] = arg.pop(arg_name)
             l = len(arg_name) + 1
-            kwargs[f"{arg_name}_kwargs"] = {k[l:]: v for k, v in arg.items()}
+            out_kwargs[f"{arg_name}_kwargs"] = {k[l:]: v for k, v in arg.items()}
         else:
-            kwargs[arg_name] = arg
-    return kwargs
+            out_kwargs[arg_name] = arg
+    return out_kwargs
 
 
 def train_2(
@@ -732,9 +734,11 @@ def train_2(
     kwargs = pop_update(kwargs, "ada_lora")
     kwargs = pop_update(kwargs, "head_lora")
     kwargs = pop_update(kwargs, "tf_num_inds")
-    kwargs = pop_repack(kwargs, "mse_mag")
-    kwargs = pop_repack(kwargs, "mag_corr")
-    kwargs = pop_repack(kwargs, "cos_loss")
+
+    gradient_penalty_kwargs = {}
+    gradient_penalty_kwargs = pop_repack(kwargs, "mse_mag", gradient_penalty_kwargs)
+    gradient_penalty_kwargs = pop_repack(kwargs, "mag_corr", gradient_penalty_kwargs)
+    gradient_penalty_kwargs = pop_repack(kwargs, "cos_loss", gradient_penalty_kwargs)
         
     kwargs = {k: v for k, v in kwargs.items() if not k.endswith("_bool")}
     kwargs = {k: v for k, v in kwargs.items() if not k.endswith("_boolc")}
@@ -749,6 +753,7 @@ def train_2(
         epoch_callback=None, # for now
         checkpoint_dir=checkpoint_dir,
         log_dir=log_dir,
+        gradient_penalty_kwargs=gradient_penalty_kwargs,
         **kwargs
     )
     return train_results
