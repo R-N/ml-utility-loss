@@ -18,9 +18,13 @@ DEFAULTS = {
         "mse_mag": True,
         "mag_corr": True,
         "seq_mag": False,
-        "mag_only_sign": False,
         "cos_loss": True,
-        "cos_only_sign": True,
+        "mag_corr_kwargs": {
+            "only_sign": False,
+        },
+        "cos_loss_kwargs": {
+            "only_sign": True,
+        },
     }
 }
 
