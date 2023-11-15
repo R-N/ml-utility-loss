@@ -127,7 +127,7 @@ class LogWeighter(LossBalancer):
     def weigh(self, *losses, val=False):
         losses = self.reduce(*losses)
         #w = [torch.log(1+li).detach()/li for li in losses]
-        w = torch.nan_to_num(torch.div(torch.log(1+losses) / losses), nan=1)
+        w = torch.nan_to_num(torch.div(torch.log(1+losses), losses), nan=1)
         return w.detach().to(losses[0].device)
     
 class LogTransformer(LogWeighter):
