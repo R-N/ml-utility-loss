@@ -16,6 +16,15 @@ DEFAULTS = {
     "tf_pma_start": -1,
     "head_n_seeds": 0,
     "tf_pma_low": 1,
+    "gradient_penalty_args": {
+        "mag_loss": True,
+        "mse_mag": True,
+        "mag_corr": True,
+        "seq_mag": False,
+        "mag_only_sign": False,
+        "cos_loss": True,
+        "cos_only_sign": True,
+    }
 }
 
 PARAM_SPACE = {
@@ -24,10 +33,10 @@ PARAM_SPACE = {
     "dataset_size": ("int_exp_2", 32, 2048),
     "batch_size": ("int_exp_2", 2, 4),
     # Training args
-    "epochs": ("log_int", 400, 800),
+    "epochs": ("log_int", 400, 1000),
     #"lr": ("log_float", 5e-4, 1e-2),
-    "lr_mul": ("log_float", 0.1, 10.0),
-    "n_warmup_steps": ("log_float", 25, 1000),
+    "lr_mul": ("log_float", 0.001, 2.0),
+    "n_warmup_steps": ("log_float", 25, 400),
     "Optim": ("optimizer", [
         "adamw", 
         "sgdmomentum", 
@@ -64,17 +73,18 @@ PARAM_SPACE = {
         "lct_gan", 
         #"lct_gan_latent", 
         "tab_ddpm_concat", 
-        #"realtabformer"
+        #"realtabformer",
+        "realtabformer_latent",
     ]),
     "gradient_penalty_mode": ("gradient_penalty_mode", [
-        "NONE", # for now, let's not grad penalty
+        #"NONE", # for now, let's not grad penalty
         ##"ALL", # ALL was the best, but it takes a long time to train
-        #"ONCE",
+        "ONCE",
         #"ESTIMATE",
         ##"AVERAGE_NO_MUL",
         #"AVERAGE_MUL"
     ]),
-    "g_loss_mul": ("log_float", 1e-5, 1e-3),
+    "g_loss_mul": ("log_float", 1e-5, 1.0),
     # Common model args
     "d_model": ("int_exp_2", 64, 128), 
     "dropout": ("bool_float", 0.15, 0.5), 
@@ -130,7 +140,7 @@ PARAM_SPACE = {
     ]),
     #"tf_num_inds": ("bool_int_exp_2", 16, 64),
     "tf_num_inds": ("conditional", {
-        "tf_num_inds": 2,
+        "tf_num_inds": ("int_exp_2", 2, 8),
         "tf_isab_mode": ("categorical", (
             ISABMode.SEPARATE, 
             ISABMode.SHARED,
@@ -155,8 +165,9 @@ PARAM_SPACE = {
     ]),
     # Transformer PMA args
     #"tf_pma": ("conditional", { # better true
-    "tf_pma_low": ("int", 1, 1),
-    # "tf_pma_start": ("int", -2, -1),
+    "tf_pma_start": ("int", -2, -1),
+    "tf_pma_low": ("int_exp_2", 1, 4),
+    "tf_pma_high": ("int_exp_2", 4, 8),
     # "tf_pma_high": ("int_exp_2", 16, 128),
     # "tf_pma_rank": ("bool_int_exp_2", 2, 16), # better true
     # #}),
@@ -213,7 +224,7 @@ PARAM_SPACE = {
         "sigmoid", 
         "hardsigmoid",
     ]),
-    "patience": ("log_int", 50, 90),
+    "patience": ("log_int", 50, 100),
 }
 
 PARAM_SPACE_2 = {

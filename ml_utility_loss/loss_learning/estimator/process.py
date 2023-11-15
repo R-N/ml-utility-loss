@@ -321,7 +321,7 @@ def calc_g_mse_mag_loss(
 def calc_g_mag_corr_loss(
     dbody_dx_norm, error,
     grad_loss_fn=F.mse_loss,
-    target=1e-3, #0.3,
+    target=0.3,
     forgive_over=True,
     only_sign=True,
     sign=True,
@@ -1220,6 +1220,7 @@ def eval(
     allow_same_prediction=True,
     fixed_role_model=None,
     eps=1e-8,
+    
 ):
     size = len(eval_loader.dataset)
 
@@ -1293,6 +1294,13 @@ def eval(
                 loss_clamp=None,
                 reduction=reduction,
                 eps=eps,
+                mag_loss=True,
+                mse_mag=True,
+                mag_corr=True,
+                seq_mag=False,
+                cos_loss=True,
+                mag_only_sign=False,
+                cos_only_sign=True,
             )
             # The gradient is of shape (batch, size, dim)
             # Sum gradient over the size dimension, resulting in (batch, dim)

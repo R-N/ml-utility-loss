@@ -14,7 +14,15 @@ DEFAULTS = {
     "tf_lora": False,
     "tf_layer_norm": False,
     "tf_pma": False,
-
+    "gradient_penalty_args": {
+        "mag_loss": True,
+        "mse_mag": True,
+        "mag_corr": True,
+        "seq_mag": False,
+        "mag_only_sign": False,
+        "cos_loss": True,
+        "cos_only_sign": True,
+    }
 }
 PARAM_SPACE = {
     **DEFAULTS,
@@ -22,10 +30,10 @@ PARAM_SPACE = {
     "dataset_size": ("int_exp_2", 32, 2048),
     "batch_size": ("int_exp_2", 2, 4),
     # Training args
-    "epochs": ("log_int", 150, 500),
+    "epochs": ("log_int", 150, 1000),
     #"lr": ("log_float", 5e-4, 5e-3),
-    "lr_mul": ("log_float", 0.1, 10.0),
-    "n_warmup_steps": ("log_float", 25, 1000),
+    "lr_mul": ("log_float", 0.001, 2.0),
+    "n_warmup_steps": ("log_float", 25, 400),
     "Optim": ("optimizer", [
         "adamw", 
         #"sgdmomentum", 
@@ -74,17 +82,18 @@ PARAM_SPACE = {
         "lct_gan", 
         #"lct_gan_latent", 
         "tab_ddpm_concat", 
-        #"realtabformer"
+        #"realtabformer",
+        "realtabformer_latent",
     ]),
     "gradient_penalty_mode": ("gradient_penalty_mode", [
-        "NONE", # for now, let's not grad penalty
+        #"NONE", # for now, let's not grad penalty
         ##"ALL", # ALL was the best, but it takes a long time to train
-        #"ONCE",
+        "ONCE",
         #"ESTIMATE",
         ##"AVERAGE_NO_MUL",
         #"AVERAGE_MUL"
     ]),
-    "g_loss_mul": ("log_float", 1e-5, 2e-3),
+    "g_loss_mul": ("log_float", 1e-5, 1.0),
     # Common model args
     "d_model": ("int_exp_2", 32, 128), 
     "dropout": ("bool_float", 0.15, 0.5), 
@@ -140,7 +149,7 @@ PARAM_SPACE = {
     ]),
     #"tf_num_inds": ("bool_int_exp_2", 16, 64),
     "tf_num_inds": ("conditional", {
-        "tf_num_inds": 2,
+        "tf_num_inds": ("int_exp_2", 2, 8),
         "tf_isab_mode": ("categorical", (
             ISABMode.SEPARATE, 
             #ISABMode.SHARED,
@@ -217,7 +226,7 @@ PARAM_SPACE = {
         "sigmoid", 
         "hardsigmoid",
     ]),
-    "patience": ("log_int", 40, 80),
+    "patience": ("log_int", 40, 100),
 }
 
 PARAM_SPACE_2 = {
