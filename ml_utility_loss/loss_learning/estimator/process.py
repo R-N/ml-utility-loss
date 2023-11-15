@@ -750,6 +750,7 @@ def calc_g_loss_2(
     eps=1e-8,
     **kwargs
 ):
+    print(calc_grad_m, avg_non_role_model_m, non_role_model_count)
     if avg_non_role_model_m is None:
         avg_non_role_model_m = "avg_non_role_model" in computes
     if non_role_model_count is None:
@@ -777,7 +778,7 @@ def calc_g_loss_2(
             dbody_dadapter = dbody_dadapter.detach()
             if avg_non_role_model_m:
                 # We calculate the actual gradient at m from the average
-                dbody_dadapter = calc_gradient(m, grad_compute["m"], dbody_dadapter, is_grads_batched=True)
+                dbody_dadapter = calc_gradient(m, grad_compute["m"], dbody_dadapter)
                 if inverse_avg_non_role_model_m:
                     # Since it was an average, we multiply it by the model count
                     dbody_dadapter = non_role_model_count * dbody_dadapter
@@ -798,8 +799,8 @@ def calc_g_loss_2(
 
         assert not torch.isnan(dbody_dadapter).any(), f"{model} dbody_dadapter has nan"
         train = compute["train"]
-        print("gradient shape", m.shape, dbody_dadapter.shape)
-        dbody_dx = calc_gradient(train, m, dbody_dadapter, is_grads_batched=True)
+        raise RuntimeError("Halt! You should not be here")
+        dbody_dx = calc_gradient(train, m, dbody_dadapter)
     else:
         dbody_dx = grad_compute["grad"]
     assert not torch.isnan(dbody_dx).any(), f"{model} dbody_dx has nan"
