@@ -321,10 +321,10 @@ def calc_g_mse_mag_loss(
 def calc_g_mag_corr_loss(
     dbody_dx_norm, error,
     grad_loss_fn=F.mse_loss,
-    target=0.8,
+    target=0.3,
     forgive_over=True,
     only_sign=True,
-    sign=True,
+    sign=False,
 ):
 
     assert dbody_dx_norm.dim() == 1 and error.dim() == 1 and len(dbody_dx_norm) == len(error)
