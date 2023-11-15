@@ -503,9 +503,6 @@ def train(
     if grad_phase_2:
         gradient_penalty_mode_ = GradientPenaltyMode.NONE
 
-    print("gradient_penalty_mode_", gradient_penalty_mode_)
-    print("gradient_penalty_mode", gradient_penalty_mode)
-
     epochs = epochs or 1000
     for i in range(i, i+epochs):
 
@@ -699,7 +696,7 @@ def eval(
 
     return eval_loss
 
-def pop_update(kwargs, arg_name, out_kwargs={}):
+def pop_update(kwargs, arg_name, out_kwargs=None):
     arg = kwargs.pop(arg_name, None)
     out_kwargs = kwargs if out_kwargs is None else out_kwargs
     if arg is not None:
@@ -709,7 +706,7 @@ def pop_update(kwargs, arg_name, out_kwargs={}):
             out_kwargs[arg_name] = arg
     return out_kwargs
 
-def pop_repack(kwargs, arg_name, out_kwargs={}):
+def pop_repack(kwargs, arg_name, out_kwargs=None):
     arg = kwargs.pop(arg_name, None)
     out_kwargs = kwargs if out_kwargs is None else out_kwargs
     if arg is not None:

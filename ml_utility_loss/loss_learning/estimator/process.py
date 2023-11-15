@@ -750,7 +750,6 @@ def calc_g_loss_2(
     eps=1e-8,
     **kwargs
 ):
-    print(calc_grad_m, avg_non_role_model_m, non_role_model_count)
     if avg_non_role_model_m is None:
         avg_non_role_model_m = "avg_non_role_model" in computes
     if non_role_model_count is None:
