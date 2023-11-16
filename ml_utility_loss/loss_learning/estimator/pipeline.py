@@ -353,7 +353,7 @@ def train(
     gradient_penalty_kwargs={},
     lr_mul=0.0,
     n_warmup_steps=100,
-    prune_timeout=True,
+    prune_timeout=False,
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
