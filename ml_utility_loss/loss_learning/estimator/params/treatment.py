@@ -37,21 +37,21 @@ PARAM_SPACE = {
     # Training args
     "epochs": ("log_int", 200, 1000),
     #"lr": ("log_float", 1e-3, 5e-3),
-    "lr_mul": ("log_float", 0.2, 2.0),
+    "lr_mul": ("log_float", 0.2, 1.0),
     "n_warmup_steps": ("log_float", 100, 400),
     "Optim": ("optimizer", [
-        "adamw", 
-        "sgdmomentum", 
-        "adadelta",
-        "amsgradw",
+        #"adamw", 
+        #"sgdmomentum", 
+        #"adadelta",
+        #"amsgradw",
         "padam", 
-        #"nadam",
-        #"adabound",
-        #"adahessian",
-        "adamp",
-        "diffgrad",
-        "qhadam",
-        "yogi",
+        ##"nadam",
+        ##"adabound",
+        ##"adahessian",
+        #"adamp",
+        #"diffgrad",
+        #"qhadam",
+        #"yogi",
     ]),
     # Training args
     #"non_role_model_mul": ("float", 0.75, 1.0), #almost random
@@ -61,7 +61,7 @@ PARAM_SPACE = {
     #"grad_loss_mul": ("float", 0.6, 1.0), #almost random
     "loss_balancer_beta": ("float", 0.9, 0.98),
     "loss_balancer_r": ("float", 0.9, 1.0),
-    "loss_balancer_log": BOOLEAN, 
+    "loss_balancer_log": BOOLEAN, #False
     "loss_balancer_lbtw": BOOLEAN, #True better
     #"loss_fn": ("loss", "mse"),
     #"grad_loss_fn": ("loss", "huber"),
@@ -98,15 +98,15 @@ PARAM_SPACE = {
         #"AVERAGE_MUL"
     ]),
     "g_loss_mul": ("log_float", 1e-5, 1.0),
-    "mse_mag": ("conditional", {
+    "mse_mag": ("conditional", { #True
         "mse_mag": True,
         "mse_mag_target": ("log_float", 1e-3, 2.0),
     }),
     "mag_corr": ("conditional", {
         "mag_corr": True,
         "mag_corr_target": ("log_float", 1e-3, 0.2),
-        "mag_corr_only_sign": BOOLEAN,
-        "mag_corr_sign": BOOLEAN,
+        "mag_corr_only_sign": BOOLEAN, #True
+        "mag_corr_sign": BOOLEAN, #False
     }),
     "cos_loss": ("conditional", {
         "cos_loss": True,
@@ -123,7 +123,7 @@ PARAM_SPACE = {
     #"isab_skip_small": BOOLEAN,
     #"skip_small": False,
     #"loss_clamp": ("log_float", 2.5, 5.0), #almost random
-    "grad_clip": ("log_float", 1.0, 3.0),
+    "grad_clip": ("log_float", 1.0, 2.0),
     "bias": BOOLEAN,
     #"bias": False,
     "bias_final": BOOLEAN,
@@ -146,7 +146,7 @@ PARAM_SPACE = {
     "inds_init_mode": ("categorical", [
         #IndsInitMode.TORCH,
         IndsInitMode.FIXNORM,
-        IndsInitMode.XAVIER,
+        #IndsInitMode.XAVIER,
     ]),
     # Transformer args
     "tf_d_inner": ("int_exp_2", 128, 256),
@@ -167,14 +167,14 @@ PARAM_SPACE = {
         #"softsign",
     ]),
     #"tf_num_inds": ("bool_int_exp_2", 16, 64),
-    "tf_num_inds": ("conditional", {
-        "tf_num_inds": ("int_exp_2", 8, 32),
-        "tf_isab_mode": ("categorical", (
-            ISABMode.SEPARATE, 
-            #ISABMode.SHARED,
-            ISABMode.MINI, # best
-        )),
-    }),
+    #"tf_num_inds": ("conditional", {
+    "tf_num_inds": ("int_exp_2", 8, 32),
+    "tf_isab_mode": ("categorical", (
+        ISABMode.SEPARATE, 
+        #ISABMode.SHARED,
+        ISABMode.MINI, # best
+    )),
+    #}),
     # "tf_isab_rank": ("bool_int_exp_2", 1, 8), #doesn't matter much
     # "tf_lora": ("conditional", { #true is better
     #     "tf_lora_mode": ("categorical", ( #doesn't matter
@@ -202,17 +202,17 @@ PARAM_SPACE = {
     "ada_d_hid": ("int_exp_2", 64, 128), 
     "ada_n_layers": ("int", 4, 5), 
     "ada_activation": ("activation", [
-        #"tanh",  
-        #"sigmoid", 
-        "relu",
-        "leakyrelu", 
+        ##"tanh",  
+        ##"sigmoid", 
+        #"relu",
+        #"leakyrelu", 
         "selu", # best 2x
-        "prelu",
-        #"rrelu",
-        #"relu6",
-        #"hardtanh",
-        #"hardsigmoid",
-        "softsign",
+        #"prelu",
+        ##"rrelu",
+        ##"relu6",
+        ##"hardtanh",
+        ##"hardsigmoid",
+        #"softsign",
     ]),
     "ada_activation_final": ("activation", [
         "tanh", 
@@ -259,8 +259,9 @@ PARAM_SPACE_2 = {
 }
 
 #GOOD = [17, 34, 42]
-GOOD = [17, 34, 42] # all good!
-#0.0001478503552605853
+#GOOD = [17, 34, 42] # all good!
+GOOD = [0, 1, 2] # all good!
+#5.9853411966840894e-05
 BEST = {
     **DEFAULTS,
     'epochs': 247,

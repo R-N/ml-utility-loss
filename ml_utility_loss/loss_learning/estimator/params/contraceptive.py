@@ -98,7 +98,7 @@ PARAM_SPACE = {
         ##"AVERAGE_NO_MUL",
         #"AVERAGE_MUL"
     ]),
-    "g_loss_mul": ("log_float", 1e-4, 1.0),
+    "g_loss_mul": ("log_float", 1e-4, 5e-3),
     "mse_mag": ("conditional", {
         "mse_mag": True,
         "mse_mag_target": ("log_float", 1e-2, 1.0),
@@ -155,27 +155,27 @@ PARAM_SPACE = {
     "tf_n_layers_dec": ("int", 4, 5), 
     "tf_n_head": ("int_exp_2", 32, 64), 
     "tf_activation": ("activation", [
-        "tanh",  
-        #"sigmoid", 
+        #"tanh",  
+        ##"sigmoid", 
         "relu",
-        #"leakyrelu", 
-        "selu",
-        "prelu",
-        "rrelu",
-        "relu6",
-        "hardtanh",
-        "hardsigmoid",
-        "softsign",
+        ##"leakyrelu", 
+        #"selu",
+        #"prelu",
+        #"rrelu",
+        #"relu6",
+        #"hardtanh",
+        #"hardsigmoid",
+        #"softsign",
     ]),
     #"tf_num_inds": ("bool_int_exp_2", 16, 64),
-    "tf_num_inds": ("conditional", {
-        "tf_num_inds": ("int_exp_2", 8, 32),
-        "tf_isab_mode": ("categorical", (
-            ISABMode.SEPARATE, 
-            #ISABMode.SHARED,
-            ISABMode.MINI, # best
-        )),
-    }),
+    #"tf_num_inds": ("conditional", {
+    "tf_num_inds": ("int_exp_2", 8, 32),
+    "tf_isab_mode": ("categorical", (
+        ISABMode.SEPARATE, 
+        #ISABMode.SHARED,
+        ISABMode.MINI, # best
+    )),
+    #}),
     # "tf_isab_rank": ("bool_int_exp_2", 1, 8), #true is better
     # "tf_lora": ("conditional", {
     #     "tf_lora_mode": ("categorical", (
@@ -216,13 +216,13 @@ PARAM_SPACE = {
         "softsign",
     ]),
     "ada_activation_final": ("activation", [
-        "tanh", 
-        "sigmoid", 
-        "relu6",
+        #"tanh", 
+        #"sigmoid", 
+        #"relu6",
         "hardtanh",
-        "hardsigmoid",
-        "softsign",
-        "identity",
+        #"hardsigmoid",
+        #"softsign",
+        #"identity",
     ]),
     # Head args
     "head_n_seeds": ("int_exp_2", 4, 16),
@@ -246,7 +246,7 @@ PARAM_SPACE = {
         "sigmoid", 
         "hardsigmoid",
     ]),
-    "patience": ("log_int", 40, 100),
+    "patience": ("log_int", 55, 100),
 }
 
 PARAM_SPACE_2 = {
@@ -261,37 +261,38 @@ PARAM_SPACE_2 = {
 }
 
 #GOOD = [5, 31, 35, 50]
-GOOD = [50]
-#0.00011175789386778552
+#GOOD = [50]
+GOOD = [3]
+#0.001760821647414171
 BEST = {
     **DEFAULTS,
     'loss_balancer_log': True,
-    'epochs': 789,
-    'lr_mul': 0.02942600380805804,
-    'n_warmup_steps': 188.7548033982219,
+    'epochs': 765,
+    'lr_mul': 0.014265816075883831,
+    'n_warmup_steps': 147.21887294560756,
     'Optim': 'adabound',
-    'loss_balancer_beta': 0.8455563869472452,
-    'loss_balancer_r': 0.9204602720143109,
+    'loss_balancer_beta': 0.8151311060610368,
+    'loss_balancer_r': 0.9071028158533604,
     'loss_balancer_lbtw': True,
     'std_loss_fn': 'mean_penalty_log_half',
     'grad_loss_fn': 'mile',
     'adapter_loss_fn': 'huber',
-    'fixed_role_model': 'tab_ddpm_concat',
+    'fixed_role_model': 'tvae',
     'gradient_penalty_mode': 'ONCE',
-    'g_loss_mul': 0.0014664036802512523,
+    'g_loss_mul': 0.0034002536971579535,
     'mse_mag_boolc': True,
-    'mse_mag_target': 0.3244994049121371,
+    'mse_mag_target': 0.06499708420004074,
     'mag_corr_boolc': False,
     'cos_loss_boolc': False,
     'd_model_exp_2': 7,
     'dropout_bool': False,
-    'grad_clip': 1.4503520666177825,
+    'grad_clip': 1.6933958917845673,
     'bias': True,
     'bias_final': False,
-    'attn_activation': 'tanh',
+    'attn_activation': 'leakyrelu',
     'inds_init_mode': 'xavier',
     'tf_d_inner_exp_2': 7,
-    'tf_n_layers_enc': 4,
+    'tf_n_layers_enc': 5,
     'tf_n_layers_dec': 4,
     'tf_n_head_exp_2': 5,
     'tf_activation': 'relu',
@@ -300,7 +301,7 @@ BEST = {
     'tf_isab_mode': 'mini',
     'ada_d_hid_exp_2': 9,
     'ada_n_layers': 4,
-    'ada_activation': 'relu6',
+    'ada_activation': 'rrelu',
     'ada_activation_final': 'hardtanh',
     'head_n_seeds_exp_2': 2,
     'head_d_hid_exp_2': 7,
@@ -308,10 +309,10 @@ BEST = {
     'head_n_head_exp_2': 5,
     'head_activation': 'relu',
     'head_activation_final': 'hardsigmoid',
-    'patience': 62,
+    'patience': 57,
     'dataset_size_low_exp_2': 11,
     'dataset_size_high_exp_2': 11,
     'batch_size_low_exp_2': 2,
     'batch_size_high_exp_2': 2,
-    'scheduler_patience': 66
+    'scheduler_patience': 61
 }

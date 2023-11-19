@@ -40,18 +40,18 @@ PARAM_SPACE = {
     "lr_mul": ("log_float", 0.001, 2.0),
     "n_warmup_steps": ("log_float", 25, 200),
     "Optim": ("optimizer", [
-        "adamw", 
-        #"sgdmomentum", 
-        "adadelta",
-        "amsgradw",
-        #"padam", 
-        "nadam",
-        #"adabound",
-        #"adahessian",
-        #"adamp",
-        "diffgrad",
+        #"adamw", 
+        ##"sgdmomentum", 
+        #"adadelta",
+        #"amsgradw",
+        ##"padam", 
+        #"nadam",
+        ##"adabound",
+        ##"adahessian",
+        ##"adamp",
+        #"diffgrad",
         "qhadam",
-        #"yogi",
+        ##"yogi",
     ]),
     # Training args
     #"non_role_model_mul": ("float", 0.3, 0.8),
@@ -86,15 +86,16 @@ PARAM_SPACE = {
         ##"AVERAGE_NO_MUL",
         #"AVERAGE_MUL"
     ]),
-    "g_loss_mul": ("log_float", 5e-4, 1.0),
+    "g_loss_mul": ("log_float", 5e-4, 0.5),
     "mse_mag": ("conditional", {
         "mse_mag": True,
-        "mse_mag_target": ("log_float", 1e-3, 0.2),
+        "mse_mag_target": ("log_float", 1e-3, 0.05),
     }),
     "mag_corr": ("conditional", {
         "mag_corr": True,
-        "mag_corr_target": ("log_float", 1e-3, 1.0),
-        "mag_corr_only_sign": BOOLEAN,
+        "mag_corr_target": ("log_float", 0.9, 1.0),
+        "mag_corr_only_sign": False,
+        #"mag_corr_only_sign": BOOLEAN, # False
         "mag_corr_sign": BOOLEAN,
     }),
     "cos_loss": ("conditional", {
@@ -112,7 +113,7 @@ PARAM_SPACE = {
     #"isab_skip_small": BOOLEAN,
     #"skip_small": False,
     #"loss_clamp": ("log_float", 0.6, 1.0), #almost random
-    "grad_clip": ("log_float", 1.0, 3.0),
+    "grad_clip": ("log_float", 1.0, 1.5),
     "bias": BOOLEAN,
     #"bias": False,
     "bias_final": BOOLEAN,
@@ -144,26 +145,26 @@ PARAM_SPACE = {
     "tf_n_head": ("int_exp_2", 4, 8), 
     "tf_activation": ("activation", [
         "tanh", 
-        #"sigmoid",
-        "relu", 
-        "leakyrelu", 
-        "selu",
-        "prelu",
-        "rrelu",
-        #"relu6",
+        ##"sigmoid",
+        #"relu", 
+        #"leakyrelu", 
+        #"selu",
+        #"prelu",
+        #"rrelu",
+        ##"relu6",
         "hardtanh",
-        #"hardsigmoid",
-        "softsign",
+        ##"hardsigmoid",
+        #"softsign",
     ]),
     #"tf_num_inds": ("bool_int_exp_2", 16, 128),
-    "tf_num_inds": ("conditional", {
-        "tf_num_inds": ("int_exp_2", 2, 8),
-        "tf_isab_mode": ("categorical", (
-            ISABMode.SEPARATE, 
-            #ISABMode.SHARED,
-            ISABMode.MINI, # best
-        )),
-    }),
+    #"tf_num_inds": ("conditional", {
+    "tf_num_inds": ("int_exp_2", 2, 8),
+    "tf_isab_mode": ("categorical", (
+        ISABMode.SEPARATE, 
+        #ISABMode.SHARED,
+        ISABMode.MINI, # best
+    )),
+    #}),
     # "tf_isab_rank": ("bool_int_exp_2", 1, 32), #doesn't matter so true it is
     # "tf_lora": ("conditional", {
     #     "tf_lora_mode": ("categorical", (
@@ -191,26 +192,26 @@ PARAM_SPACE = {
     "ada_d_hid": ("int_exp_2", 128, 512), 
     "ada_n_layers": ("int", 4, 5), 
     "ada_activation": ("activation", [
-        "tanh",  
-        #"sigmoid", 
-        "relu",
-        #"leakyrelu", 
-        "selu",
-        "prelu",
-        "rrelu",
-        "relu6",
-        "hardtanh",
-        #"hardsigmoid",
-        "softsign",
-    ]),
-    "ada_activation_final": ("activation", [
-        "tanh", 
-        #"sigmoid", 
+        #"tanh",  
+        ##"sigmoid", 
+        #"relu",
+        ##"leakyrelu", 
+        #"selu",
+        #"prelu",
+        #"rrelu",
         #"relu6",
         "hardtanh",
-        #"hardsigmoid",
+        ##"hardsigmoid",
         #"softsign",
-        "identity",
+    ]),
+    "ada_activation_final": ("activation", [
+        #"tanh", 
+        ##"sigmoid", 
+        ##"relu6",
+        "hardtanh",
+        ##"hardsigmoid",
+        ##"softsign",
+        #"identity",
     ]),
     # Head args
     "head_n_seeds": ("int_exp_2", 16, 64), # 1 was never sampled or always pruned
@@ -231,11 +232,11 @@ PARAM_SPACE = {
         "softsign",
     ]),
     "head_activation_final": ("activation", [
-        #"sigmoid", 
-        "tanh",
-        #"hardtanh",
-        #"softsign",
-        "logsigmoid",
+        ##"sigmoid", 
+        #"tanh",
+        ##"hardtanh",
+        ##"softsign",
+        #"logsigmoid",
         "identity",
     ]),
     #"head_final_mul": ("categorical", [
@@ -244,7 +245,7 @@ PARAM_SPACE = {
     #    "oneminus",
     #    "oneplus",
     #]),
-    "patience": ("log_int", 40, 100),
+    "patience": ("log_int", 60, 100),
 }
 
 PARAM_SPACE_2 = {
@@ -258,7 +259,8 @@ PARAM_SPACE_2 = {
 }
 
 #GOOD = [16, 23]
-GOOD = [16]
+#GOOD = [16]
+GOOD = [0]
 #1.0530388320569608e-05
 BEST = {
     **DEFAULTS,
