@@ -255,7 +255,7 @@ PARAM_SPACE = {
         #"softsign",
     ]),
     "head_activation_final": ("activation", [
-        #"sigmoid", 
+        "sigmoid", 
         "hardsigmoid",
     ]),
     "patience": ("log_int", 50, 100),
