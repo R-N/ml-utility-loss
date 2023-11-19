@@ -3,6 +3,7 @@ import os
 from .util import mkdir, split_df, split_df_2, split_df_ratio, split_df_kfold
 import json
 from .params import PARAM_MAP, BOOLEAN
+import optuna
 
 def map_parameter(param, source):
     try:
@@ -233,3 +234,13 @@ def make_objective_kfold(
         avg_value = sum(values) / len(values)
         return avg_value
     return f
+
+def load_good_params(study_name, storage, trials):
+    study = optuna.load_study(study_name=study_name, storage=storage)
+    good_params = [t.params for t in study.trials if t.number in trials]
+    del study
+    return good_params
+
+def enqueue_params(study, params):
+    for p in params:
+        study.enqueue_trial(p, skip_if_exists=True)
