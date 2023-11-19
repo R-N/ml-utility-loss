@@ -89,19 +89,18 @@ PARAM_SPACE = {
     "g_loss_mul": ("log_float", 5e-4, 0.5),
     "mse_mag": ("conditional", {
         "mse_mag": True,
-        "mse_mag_target": ("log_float", 1e-3, 0.05),
+        "mse_mag_target": ("log_float", 1e-3, 1.0),
     }),
     "mag_corr": ("conditional", {
         "mag_corr": True,
         "mag_corr_target": ("log_float", 0.9, 1.0),
         "mag_corr_only_sign": False,
-        #"mag_corr_only_sign": BOOLEAN, # False
         "mag_corr_sign": BOOLEAN,
     }),
     "cos_loss": ("conditional", {
         "cos_loss": True,
-        "cos_loss_target": ("log_float", 1e-3, 1.0),
-        "cos_loss_only_sign": BOOLEAN,
+        "cos_loss_target": ("log_float", 1e-3, 0.15),
+        "cos_loss_only_sign": True,
     }),
     # Common model args
     "d_model": ("int_exp_2", 64, 256), 
