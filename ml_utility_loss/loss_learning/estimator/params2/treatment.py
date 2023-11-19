@@ -29,7 +29,9 @@ DEFAULTS = {
         "cos_loss_kwargs": {
             "only_sign": True,
         },
-    }
+    },
+    "dropout": 0,
+    "combine_mode": CombineMode.DIFF_LEFT,
 }
 
 PARAM_SPACE = {
@@ -38,15 +40,15 @@ PARAM_SPACE = {
     "dataset_size": ("int_exp_2", 32, 2048),
     "batch_size": ("int_exp_2", 2, 4),
     # Training args
-    "epochs": ("log_int", 150, 1000),
+    "epochs": ("log_int", 200, 1000),
     #"lr": ("log_float", 5e-4, 1e-2),
-    "lr_mul": ("log_float", 0.001, 2.0),
-    "n_warmup_steps": ("log_float", 25, 400),
+    "lr_mul": ("log_float", 0.001, 1.0),
+    "n_warmup_steps": ("log_float", 50, 200),
     "Optim": ("optimizer", [
         "adamw", 
-        "sgdmomentum", 
+        #"sgdmomentum", 
         "amsgradw",
-        "adadelta",
+        #"adadelta",
         "padam", 
         "nadam",
         "adabound",
@@ -69,8 +71,20 @@ PARAM_SPACE = {
     #"loss_fn": ("loss", "mse"),
     #"grad_loss_fn": ("loss", "huber"),
     "std_loss_fn": ("loss", ["mean_penalty_log_half"]),
-    "grad_loss_fn": ("loss", ["mse", "mae", "huber", "mile", "mire"]),
-    "adapter_loss_fn": ("loss", ["mse", "mae", "huber", "mile", "mire"]),
+    "grad_loss_fn": ("loss", [
+        "mse", 
+        "mae", 
+        "huber", 
+        "mile", 
+        "mire"
+    ]),
+    "adapter_loss_fn": ("loss", [
+        "mse", 
+        "mae", 
+        "huber", 
+        "mile", 
+        "mire"
+    ]),
     "fixed_role_model": ("categorical", [
         #None, 
         "tvae", 
@@ -88,10 +102,10 @@ PARAM_SPACE = {
         ##"AVERAGE_NO_MUL",
         #"AVERAGE_MUL"
     ]),
-    "g_loss_mul": ("log_float", 1e-5, 1.0),
+    "g_loss_mul": ("log_float", 5e-4, 1.0),
     "mse_mag": ("conditional", {
         "mse_mag": True,
-        "mse_mag_target": ("log_float", 1e-3, 2.0),
+        "mse_mag_target": ("log_float", 1e-2, 2.0),
     }),
     "mag_corr": ("conditional", {
         "mag_corr": True,
@@ -101,12 +115,12 @@ PARAM_SPACE = {
     }),
     "cos_loss": ("conditional", {
         "cos_loss": True,
-        "cos_loss_target": ("log_float", 1e-3, 1.0),
+        "cos_loss_target": ("log_float", 2e-3, 1.0),
         "cos_loss_only_sign": BOOLEAN,
     }),
     # Common model args
     "d_model": ("int_exp_2", 64, 128), 
-    "dropout": ("bool_float", 0.15, 0.5), 
+    #"dropout": ("bool_float", 0.15, 0.5), 
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
     #"flip": False,
@@ -114,7 +128,7 @@ PARAM_SPACE = {
     #"isab_skip_small": BOOLEAN,
     #"skip_small": False,
     #"loss_clamp": ("log_float", 2.5, 5.0), #almost random
-    "grad_clip": ("log_float", 0.5, 3.0),
+    "grad_clip": ("log_float", 0.8, 3.0),
     "bias": BOOLEAN,
     #"bias": False,
     "bias_final": BOOLEAN,
@@ -140,7 +154,7 @@ PARAM_SPACE = {
         IndsInitMode.XAVIER,
     ]),
     # Transformer args
-    "tf_d_inner": ("int_exp_2", 64, 128),
+    "tf_d_inner": ("int_exp_2", 128, 256),
     "tf_n_layers_enc": ("int", 4, 5), 
     #"tf_n_layers_dec": ("bool_int", 3, 4), #better false
     "tf_n_head": ("int_exp_2", 8, 16), 
@@ -151,11 +165,11 @@ PARAM_SPACE = {
         "leakyrelu", 
         "selu",
         "prelu",
-        "rrelu",
+        #"rrelu",
         "relu6",
         "hardtanh",
         "hardsigmoid",
-        "softsign",
+        #"softsign",
     ]),
     #"tf_num_inds": ("bool_int_exp_2", 16, 64),
     "tf_num_inds": ("conditional", {
@@ -175,13 +189,13 @@ PARAM_SPACE = {
     #     "tf_lora_rank": ("int_exp_2", 2, 16), #Mustn't be bool int
     # }),
     #"tf_layer_norm": BOOLEAN,
-    "combine_mode": ("categorical", [
-        CombineMode.CONCAT,
-        CombineMode.DIFF_LEFT,
-        #CombineMode.DIFF_RIGHT,
-        #CombineMode.MEAN,
-        #CombineMode.PROD
-    ]),
+    # "combine_mode": ("categorical", [
+    #     CombineMode.CONCAT,
+    #     CombineMode.DIFF_LEFT,
+    #     #CombineMode.DIFF_RIGHT,
+    #     #CombineMode.MEAN,
+    #     #CombineMode.PROD
+    # ]),
     # Transformer PMA args
     #"tf_pma": ("conditional", { # doesn't matter
     #"tf_pma_start": ("int", -2, -1),
@@ -199,8 +213,8 @@ PARAM_SPACE = {
     #"tf_share_ffn": BOOLEAN, 
     #"tf_share_ffn": True, #true is better
     # Adapter args
-    "ada_d_hid": ("int_exp_2", 32, 256), 
-    "ada_n_layers": ("int", 4, 5), 
+    "ada_d_hid": ("int_exp_2", 64, 256), 
+    "ada_n_layers": ("int", 5, 6), 
     "ada_activation": ("activation", [
         "tanh",  
         "sigmoid", 
@@ -221,11 +235,11 @@ PARAM_SPACE = {
         "hardtanh",
         "hardsigmoid",
         "softsign",
-        "identity",
+        #"identity",
     ]),
     # Head args
     "head_d_hid": ("int_exp_2", 64, 128), 
-    "head_n_layers": ("int", 2, 4), 
+    "head_n_layers": ("int", 3, 5), 
     "head_n_head": ("int_exp_2", 8, 16), #16 was never sampled but 8 was top
     "head_activation": ("activation", [
         "tanh",  
@@ -235,16 +249,16 @@ PARAM_SPACE = {
         "selu", 
         "prelu",
         "rrelu",
-        "relu6",
+        #"relu6",
         "hardtanh",
         "hardsigmoid",
         "softsign",
     ]),
     "head_activation_final": ("activation", [
-        "sigmoid", 
+        #"sigmoid", 
         "hardsigmoid",
     ]),
-    "patience": ("log_int", 30, 100),
+    "patience": ("log_int", 50, 100),
 }
 
 PARAM_SPACE_2 = {

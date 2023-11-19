@@ -29,7 +29,9 @@ DEFAULTS = {
         "cos_loss_kwargs": {
             "only_sign": True,
         },
-    }
+    },
+    "dropout": 0,
+    "combine_mode": CombineMode.DIFF_LEFT,
 }
 
 PARAM_SPACE = {
@@ -38,10 +40,10 @@ PARAM_SPACE = {
     "dataset_size": ("int_exp_2", 32, 2048),
     "batch_size": ("int_exp_2", 2, 4),
     # Training args
-    "epochs": ("log_int", 150, 1000),
+    "epochs": ("log_int", 400, 1000),
     #"lr": ("log_float", 5e-3, 1e-2),
     "lr_mul": ("log_float", 0.001, 2.0),
-    "n_warmup_steps": ("log_float", 25, 400),
+    "n_warmup_steps": ("log_float", 30, 200),
     "Optim": ("optimizer", [
         "adamw", 
         "sgdmomentum", 
@@ -64,8 +66,8 @@ PARAM_SPACE = {
     #"grad_loss_mul": ("float", 0.7, 1.0),
     "loss_balancer_beta": ("float", 0.7, 0.95),
     "loss_balancer_r": ("float", 0.94, 0.98),
-    "loss_balancer_log": BOOLEAN,
-    "loss_balancer_lbtw": BOOLEAN,
+    "loss_balancer_log": BOOLEAN, #True
+    "loss_balancer_lbtw": BOOLEAN, #True
     #"grad_loss_mul": ("float", 0.3, 1),
     #"loss_fn": ("loss", "mse"),
     #"loss_fn": ("loss", ["mse", "huber"]),
@@ -96,7 +98,7 @@ PARAM_SPACE = {
     }),
     "mag_corr": ("conditional", {
         "mag_corr": True,
-        "mag_corr_target": ("log_float", 1e-3, 1.0),
+        "mag_corr_target": ("log_float", 0.02, 1.0),
         "mag_corr_only_sign": BOOLEAN,
         "mag_corr_sign": BOOLEAN,
     }),
@@ -107,7 +109,7 @@ PARAM_SPACE = {
     }),
     # Common model args
     "d_model": ("int_exp_2", 32, 128), 
-    "dropout": ("bool_float", 0.15, 0.5), 
+    #"dropout": ("bool_float", 0.15, 0.5), 
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
     #"flip": False,
@@ -115,7 +117,7 @@ PARAM_SPACE = {
     #"isab_skip_small": BOOLEAN,
     #"skip_small": False,
     #"loss_clamp": ("log_float", 0.6, 1.0), #almost random
-    "grad_clip": ("log_float", 1.0, 3.0),
+    "grad_clip": ("log_float", 1.5, 3.0),
     "bias": BOOLEAN,
     #"bias": False,
     "bias_final": BOOLEAN,
@@ -126,7 +128,7 @@ PARAM_SPACE = {
         "relu",
         "leakyrelu", 
         "selu",
-        "prelu",
+        #"prelu",
         "rrelu",
         "relu6",
         "hardtanh",
@@ -141,7 +143,7 @@ PARAM_SPACE = {
         IndsInitMode.XAVIER,
     ]),
     # Transformer args
-    "tf_d_inner": ("int_exp_2", 128, 256),
+    "tf_d_inner": ("int_exp_2", 128, 512),
     "tf_n_layers_enc": ("int", 2, 4), 
     #"tf_n_layers_dec": ("bool_int", 2, 3), #better false
     "tf_n_head": ("int_exp_2", 4, 8), 
@@ -160,7 +162,7 @@ PARAM_SPACE = {
     ]),
     #"tf_num_inds": ("bool_int_exp_2", 16, 128),
     "tf_num_inds": ("conditional", {
-        "tf_num_inds": ("int_exp_2", 2, 8),
+        "tf_num_inds": ("int_exp_2", 8, 32),
         "tf_isab_mode": ("categorical", (
             ISABMode.SEPARATE, 
             ISABMode.SHARED,
@@ -176,17 +178,17 @@ PARAM_SPACE = {
     #     "tf_lora_rank": ("int_exp_2", 2, 32), #Mustn't be bool int
     # }),
     #"tf_layer_norm": BOOLEAN,
-    "combine_mode": ("categorical", [
-        CombineMode.CONCAT,
-        CombineMode.DIFF_LEFT,
-        #CombineMode.DIFF_RIGHT,
-        #CombineMode.MEAN,
-        #CombineMode.PROD
-    ]),
+    # "combine_mode": ("categorical", [
+    #     CombineMode.CONCAT,
+    #     CombineMode.DIFF_LEFT,
+    #     #CombineMode.DIFF_RIGHT,
+    #     #CombineMode.MEAN,
+    #     #CombineMode.PROD
+    # ]),
     # Transformer PMA args
     #"tf_pma": ("conditional", { #better true
     #"tf_pma_start": ("int", -2, -1),
-    "tf_pma_low": ("int_exp_2", 1, 4),
+    "tf_pma_low": ("int_exp_2", 1, 2),
     #"tf_pma_high": ("int_exp_2", 4, 8),
     # "tf_pma_rank": ("bool_int_exp_2", 2, 32), #true better
     # #}),
@@ -198,8 +200,8 @@ PARAM_SPACE = {
     #"tf_share_ffn": BOOLEAN, 
     #"tf_share_ffn": True,
     # Adapter args
-    "ada_d_hid": ("int_exp_2", 32, 256), 
-    "ada_n_layers": ("int", 3, 4), 
+    "ada_d_hid": ("int_exp_2", 128, 512), 
+    "ada_n_layers": ("int", 4, 5), 
     "ada_activation": ("activation", [
         "tanh",  
         "sigmoid", 
@@ -223,8 +225,8 @@ PARAM_SPACE = {
         "identity",
     ]),
     # Head args
-    "head_d_hid": ("int_exp_2", 32, 64), 
-    "head_n_layers": ("int", 2, 4), 
+    "head_d_hid": ("int_exp_2", 64, 128), 
+    "head_n_layers": ("int", 2, 3), 
     "head_n_head": ("int_exp_2", 16, 32),
     "head_activation": ("activation", [
         "tanh",  
@@ -244,7 +246,7 @@ PARAM_SPACE = {
         "tanh",
         "hardtanh",
         "softsign",
-        "logsigmoid",
+        #"logsigmoid",
         "identity",
     ]),
     #"head_final_mul": ("categorical", [
@@ -253,7 +255,7 @@ PARAM_SPACE = {
     #    "oneminus",
     #    "oneplus",
     #]),
-    "patience": ("log_int", 50, 100),
+    "patience": ("log_int", 70, 100),
 }
 
 PARAM_SPACE_2 = {

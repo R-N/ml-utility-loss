@@ -25,7 +25,8 @@ DEFAULTS = {
         "cos_loss_kwargs": {
             "only_sign": True,
         },
-    }
+    },
+    "dropout": 0,
 }
 
 PARAM_SPACE = {
@@ -34,18 +35,18 @@ PARAM_SPACE = {
     "dataset_size": ("int_exp_2", 32, 2048),
     "batch_size": ("int_exp_2", 2, 4),
     # Training args
-    "epochs": ("log_int", 250, 1000),
+    "epochs": ("log_int", 500, 1000),
     #"lr": ("log_float", 5e-4, 2e-3),
     "lr_mul": ("log_float", 0.001, 2.0),
-    "n_warmup_steps": ("log_float", 25, 400),
+    "n_warmup_steps": ("log_float", 25, 200),
     "Optim": ("optimizer", [
         "adamw", 
         #"sgdmomentum", 
         "adadelta",
         "amsgradw",
-        "padam", 
+        #"padam", 
         "nadam",
-        "adabound",
+        #"adabound",
         #"adahessian",
         #"adamp",
         "diffgrad",
@@ -60,7 +61,7 @@ PARAM_SPACE = {
     #"grad_loss_mul": ("float", 0.7, 1.0),
     "loss_balancer_beta": ("float", 0.5, 0.8),
     "loss_balancer_r": ("float", 0.93, 0.98),
-    "loss_balancer_log": BOOLEAN,
+    "loss_balancer_log": BOOLEAN, # True
     "loss_balancer_lbtw": BOOLEAN,
     #"grad_loss_mul": ("float", 0.3, 1),
     #"loss_fn": ("loss", "mse"),
@@ -85,10 +86,10 @@ PARAM_SPACE = {
         ##"AVERAGE_NO_MUL",
         #"AVERAGE_MUL"
     ]),
-    "g_loss_mul": ("log_float", 1e-5, 1.0),
+    "g_loss_mul": ("log_float", 5e-4, 1.0),
     "mse_mag": ("conditional", {
         "mse_mag": True,
-        "mse_mag_target": ("log_float", 1e-3, 2.0),
+        "mse_mag_target": ("log_float", 1e-3, 0.2),
     }),
     "mag_corr": ("conditional", {
         "mag_corr": True,
@@ -103,7 +104,7 @@ PARAM_SPACE = {
     }),
     # Common model args
     "d_model": ("int_exp_2", 64, 256), 
-    "dropout": ("bool_float", 0.15, 0.5), 
+    #"dropout": ("bool_float", 0.15, 0.5), 
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
     #"flip": False,
@@ -111,7 +112,7 @@ PARAM_SPACE = {
     #"isab_skip_small": BOOLEAN,
     #"skip_small": False,
     #"loss_clamp": ("log_float", 0.6, 1.0), #almost random
-    "grad_clip": ("log_float", 0.9, 4.0),
+    "grad_clip": ("log_float", 1.0, 3.0),
     "bias": BOOLEAN,
     #"bias": False,
     "bias_final": BOOLEAN,
@@ -119,7 +120,7 @@ PARAM_SPACE = {
     "attn_activation": ("activation", [
         "tanh",  
         #"sigmoid", 
-        "relu",
+        #"relu",
         "leakyrelu", 
         #"selu",
         "prelu",
@@ -137,13 +138,13 @@ PARAM_SPACE = {
         #IndsInitMode.XAVIER,
     ]),
     # Transformer args
-    "tf_d_inner": ("int_exp_2", 64, 128),
+    "tf_d_inner": ("int_exp_2", 128, 256),
     "tf_n_layers_enc": ("int", 3, 4), 
-    "tf_n_layers_dec": ("int", 2, 3), 
+    "tf_n_layers_dec": ("int", 3, 4), 
     "tf_n_head": ("int_exp_2", 4, 8), 
     "tf_activation": ("activation", [
         "tanh", 
-        "sigmoid",
+        #"sigmoid",
         "relu", 
         "leakyrelu", 
         "selu",
@@ -187,8 +188,8 @@ PARAM_SPACE = {
     #"tf_share_ffn": BOOLEAN, 
     #"tf_share_ffn": True,
     # Adapter args
-    "ada_d_hid": ("int_exp_2", 64, 256), 
-    "ada_n_layers": ("int", 3, 4), 
+    "ada_d_hid": ("int_exp_2", 128, 512), 
+    "ada_n_layers": ("int", 4, 5), 
     "ada_activation": ("activation", [
         "tanh",  
         #"sigmoid", 
@@ -212,9 +213,9 @@ PARAM_SPACE = {
         "identity",
     ]),
     # Head args
-    "head_n_seeds": ("int_exp_2", 8, 64), # 1 was never sampled or always pruned
+    "head_n_seeds": ("int_exp_2", 16, 64), # 1 was never sampled or always pruned
     "head_d_hid": ("int_exp_2", 32, 64), 
-    "head_n_layers": ("int", 2, 4), 
+    "head_n_layers": ("int", 3, 5), 
     "head_n_head": ("int_exp_2", 8, 16),
     "head_activation": ("activation", [
         #"tanh",  
@@ -226,7 +227,7 @@ PARAM_SPACE = {
         #"rrelu",
         "relu6",
         #"hardtanh",
-        "hardsigmoid",
+        #"hardsigmoid",
         "softsign",
     ]),
     "head_activation_final": ("activation", [

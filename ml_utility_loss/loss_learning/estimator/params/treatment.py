@@ -25,7 +25,8 @@ DEFAULTS = {
         "cos_loss_kwargs": {
             "only_sign": True,
         },
-    }
+    },
+    "dropout": 0,
 }
 
 PARAM_SPACE = {
@@ -36,16 +37,16 @@ PARAM_SPACE = {
     # Training args
     "epochs": ("log_int", 200, 1000),
     #"lr": ("log_float", 1e-3, 5e-3),
-    "lr_mul": ("log_float", 0.001, 2.0),
-    "n_warmup_steps": ("log_float", 25, 400),
+    "lr_mul": ("log_float", 0.2, 2.0),
+    "n_warmup_steps": ("log_float", 100, 400),
     "Optim": ("optimizer", [
         "adamw", 
         "sgdmomentum", 
         "adadelta",
         "amsgradw",
         "padam", 
-        "nadam",
-        "adabound",
+        #"nadam",
+        #"adabound",
         #"adahessian",
         "adamp",
         "diffgrad",
@@ -58,15 +59,27 @@ PARAM_SPACE = {
     #"non_role_model_avg": True, 
     #"std_loss_mul": ("float", 0.5, 2.0),
     #"grad_loss_mul": ("float", 0.6, 1.0), #almost random
-    "loss_balancer_beta": ("float", 0.8, 0.98),
+    "loss_balancer_beta": ("float", 0.9, 0.98),
     "loss_balancer_r": ("float", 0.9, 1.0),
-    "loss_balancer_log": BOOLEAN,
-    "loss_balancer_lbtw": BOOLEAN,
+    "loss_balancer_log": BOOLEAN, 
+    "loss_balancer_lbtw": BOOLEAN, #True better
     #"loss_fn": ("loss", "mse"),
     #"grad_loss_fn": ("loss", "huber"),
     "std_loss_fn": ("loss", ["mean_penalty_log_half"]),
-    "grad_loss_fn": ("loss", ["mse", "mae", "huber", "mile", "mire"]),
-    "adapter_loss_fn": ("loss", ["mse", "mae", "huber", "mile", "mire"]),
+    "grad_loss_fn": ("loss", [
+        #"mse", 
+        #"mae", 
+        "huber", 
+        "mile", 
+        #"mire"
+    ]),
+    "adapter_loss_fn": ("loss", [
+        "mse", 
+        #"mae", 
+        #"huber", 
+        "mile", 
+        "mire"
+    ]),
     "fixed_role_model": ("categorical", [
         #None, 
         "tvae", 
@@ -91,18 +104,18 @@ PARAM_SPACE = {
     }),
     "mag_corr": ("conditional", {
         "mag_corr": True,
-        "mag_corr_target": ("log_float", 1e-3, 1.0),
+        "mag_corr_target": ("log_float", 1e-3, 0.2),
         "mag_corr_only_sign": BOOLEAN,
         "mag_corr_sign": BOOLEAN,
     }),
     "cos_loss": ("conditional", {
         "cos_loss": True,
-        "cos_loss_target": ("log_float", 1e-3, 1.0),
+        "cos_loss_target": ("log_float", 1e-3, 0.1),
         "cos_loss_only_sign": BOOLEAN,
     }),
     # Common model args
     "d_model": ("int_exp_2", 64, 128), 
-    "dropout": ("bool_float", 0.15, 0.5), 
+    #"dropout": ("bool_float", 0.15, 0.5), 
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
     #"flip": False,
@@ -110,7 +123,7 @@ PARAM_SPACE = {
     #"isab_skip_small": BOOLEAN,
     #"skip_small": False,
     #"loss_clamp": ("log_float", 2.5, 5.0), #almost random
-    "grad_clip": ("log_float", 0.5, 3.0),
+    "grad_clip": ("log_float", 1.0, 3.0),
     "bias": BOOLEAN,
     #"bias": False,
     "bias_final": BOOLEAN,
@@ -124,25 +137,25 @@ PARAM_SPACE = {
         "prelu",
         "rrelu",
         "relu6",
-        "hardtanh",
-        "hardsigmoid",
-        "softsign",
-        "identity",
+        #"hardtanh",
+        #"hardsigmoid",
+        #"softsign",
+        #"identity",
     ]),
     #"attn_residual": BOOLEAN,
     "inds_init_mode": ("categorical", [
-        IndsInitMode.TORCH,
+        #IndsInitMode.TORCH,
         IndsInitMode.FIXNORM,
         IndsInitMode.XAVIER,
     ]),
     # Transformer args
-    "tf_d_inner": ("int_exp_2", 64, 128),
-    "tf_n_layers_enc": ("int", 3, 4), 
-    "tf_n_layers_dec": ("int", 2, 3), 
+    "tf_d_inner": ("int_exp_2", 128, 256),
+    "tf_n_layers_enc": ("int", 4, 5), 
+    "tf_n_layers_dec": ("int", 3, 4), 
     "tf_n_head": ("int_exp_2", 4, 8), 
     "tf_activation": ("activation", [
         "tanh", 
-        "sigmoid",
+        #"sigmoid",
         "relu", 
         "leakyrelu", 
         "selu",
@@ -151,14 +164,14 @@ PARAM_SPACE = {
         "relu6",
         "hardtanh",
         "hardsigmoid",
-        "softsign",
+        #"softsign",
     ]),
     #"tf_num_inds": ("bool_int_exp_2", 16, 64),
     "tf_num_inds": ("conditional", {
-        "tf_num_inds": ("int_exp_2", 2, 8),
+        "tf_num_inds": ("int_exp_2", 8, 32),
         "tf_isab_mode": ("categorical", (
             ISABMode.SEPARATE, 
-            ISABMode.SHARED,
+            #ISABMode.SHARED,
             ISABMode.MINI, # best
         )),
     }),
@@ -186,33 +199,33 @@ PARAM_SPACE = {
     #"tf_share_ffn": BOOLEAN, 
     #"tf_share_ffn": True, #true is better
     # Adapter args
-    "ada_d_hid": ("int_exp_2", 32, 256), 
+    "ada_d_hid": ("int_exp_2", 64, 128), 
     "ada_n_layers": ("int", 4, 5), 
     "ada_activation": ("activation", [
-        "tanh",  
-        "sigmoid", 
+        #"tanh",  
+        #"sigmoid", 
         "relu",
         "leakyrelu", 
-        "selu", # best
+        "selu", # best 2x
         "prelu",
-        "rrelu",
-        "relu6",
-        "hardtanh",
+        #"rrelu",
+        #"relu6",
+        #"hardtanh",
         #"hardsigmoid",
         "softsign",
     ]),
     "ada_activation_final": ("activation", [
         "tanh", 
-        "sigmoid", 
+        #"sigmoid", 
         "relu6",
-        "hardtanh",
-        "hardsigmoid", #best
+        #"hardtanh",
+        #"hardsigmoid", #best
         "softsign",
         "identity",
     ]),
     # Head args
     "head_n_seeds": ("int_exp_2", 4, 8),
-    "head_d_hid": ("int_exp_2", 64, 128), 
+    "head_d_hid": ("int_exp_2", 128, 256), 
     "head_n_layers": ("int", 2, 4), 
     "head_n_head": ("int_exp_2", 8, 16), #16 was never sampled but 8 was top
     "head_activation": ("activation", [
@@ -226,10 +239,10 @@ PARAM_SPACE = {
         "relu6",
         "hardtanh",
         "hardsigmoid",
-        "softsign",
+        #"softsign",
     ]),
     "head_activation_final": ("activation", [
-        "sigmoid", 
+        #"sigmoid", 
         "hardsigmoid",
     ]),
     "patience": ("log_int", 40, 100),

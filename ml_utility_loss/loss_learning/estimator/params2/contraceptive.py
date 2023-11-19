@@ -29,7 +29,9 @@ DEFAULTS = {
         "cos_loss_kwargs": {
             "only_sign": True,
         },
-    }
+    },
+    "dropout": 0,
+    "combine_mode": CombineMode.DIFF_LEFT,
 }
 
 PARAM_SPACE = {
@@ -40,20 +42,20 @@ PARAM_SPACE = {
     # Training args
     "epochs": ("log_int", 400, 1000),
     #"lr": ("log_float", 5e-4, 1e-2),
-    "lr_mul": ("log_float", 0.001, 2.0),
-    "n_warmup_steps": ("log_float", 25, 400),
+    "lr_mul": ("log_float", 0.025, 2.0),
+    "n_warmup_steps": ("log_float", 50, 200),
     "Optim": ("optimizer", [
         "adamw", 
-        "sgdmomentum", 
+        #"sgdmomentum", 
         "amsgradw",
-        "adadelta",
+        #"adadelta",
         "padam", 
-        "nadam",
+        #"nadam",
         "adabound",
         #"adahessian",
         "adamp",
         "diffgrad",
-        "qhadam",
+        #"qhadam",
         "yogi",
     ]),
     # Training args
@@ -62,16 +64,22 @@ PARAM_SPACE = {
     #"non_role_model_avg": True, # doesnt matter
     #"std_loss_mul": ("float", 0.5, 2.0),
     #"grad_loss_mul": ("float", 0.6, 1.0), #almost random
-    "loss_balancer_beta": ("float", 0.5, 0.98),
-    "loss_balancer_r": ("float", 0.9, 0.98),
-    "loss_balancer_log": BOOLEAN,
-    "loss_balancer_lbtw": BOOLEAN,
+    "loss_balancer_beta": ("float", 0.75, 0.98),
+    "loss_balancer_r": ("float", 0.9, 0.95),
+    "loss_balancer_log": BOOLEAN, #True
+    "loss_balancer_lbtw": BOOLEAN, #True
     #"loss_fn": ("loss", "mse"),
     #"loss_fn": ("loss", ["mse", "mae"]),
     #"grad_loss_fn": ("loss", "huber"),
     "std_loss_fn": ("loss", ["mean_penalty_log_half"]),
     "grad_loss_fn": ("loss", ["mse", "mae", "huber", "mile", "mire"]),
-    "adapter_loss_fn": ("loss", ["mse", "mae", "huber", "mile", "mire"]),
+    "adapter_loss_fn": ("loss", [
+        "mse", 
+        #"mae", 
+        "huber", 
+        "mile", 
+        "mire"
+    ]),
     "fixed_role_model": ("categorical", [
         #None, 
         "tvae", 
@@ -107,7 +115,7 @@ PARAM_SPACE = {
     }),
     # Common model args
     "d_model": ("int_exp_2", 64, 128), 
-    "dropout": ("bool_float", 0.15, 0.5), 
+    #"dropout": ("bool_float", 0.15, 0.5), 
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
     #"flip": BOOLEAN, #doesn't matter
@@ -115,7 +123,7 @@ PARAM_SPACE = {
     #"isab_skip_small": BOOLEAN,
     #"skip_small": False,
     #"loss_clamp": ("log_float", 3.5, 4.5), #seems random
-    "grad_clip": ("log_float", 0.1, 0.5),
+    "grad_clip": ("log_float", 0.1, 0.2),
     "bias": BOOLEAN,
     #"bias": False,
     "bias_final": BOOLEAN,
@@ -132,7 +140,7 @@ PARAM_SPACE = {
         "hardtanh",
         "hardsigmoid",
         "softsign",
-        "identity",
+        #"identity",
     ]),
     #"attn_residual": BOOLEAN,
     "inds_init_mode": ("categorical", [
@@ -144,14 +152,14 @@ PARAM_SPACE = {
     "tf_d_inner": ("int_exp_2", 64, 128),
     "tf_n_layers_enc": ("int", 2, 4), 
     #"tf_n_layers_dec": ("bool_int", 2, 3),  #better false
-    "tf_n_head": ("int_exp_2", 16, 32), 
+    "tf_n_head": ("int_exp_2", 32, 64), 
     "tf_activation": ("activation", [
         "tanh", 
         "sigmoid",
         "relu", 
         "leakyrelu", 
         "selu",
-        "prelu",
+        #"prelu",
         "rrelu",
         "relu6",
         "hardtanh",
@@ -176,13 +184,13 @@ PARAM_SPACE = {
     #    "tf_lora_rank": ("int_exp_2", 2, 16), #Mustn't be bool int
     # }),
     #"tf_layer_norm": BOOLEAN,
-    "combine_mode": ("categorical", [
-        CombineMode.CONCAT,
-        CombineMode.DIFF_LEFT,
-        #CombineMode.DIFF_RIGHT,
-        #CombineMode.MEAN,
-        #CombineMode.PROD
-    ]),
+    # "combine_mode": ("categorical", [
+    #     CombineMode.CONCAT,
+    #     CombineMode.DIFF_LEFT,
+    #     #CombineMode.DIFF_RIGHT,
+    #     #CombineMode.MEAN,
+    #     #CombineMode.PROD
+    # ]),
     # Transformer PMA args
     #"tf_pma": ("conditional", { # better true
     #"tf_pma_start": ("int", -2, -1),
@@ -199,7 +207,7 @@ PARAM_SPACE = {
     #"tf_share_ffn": BOOLEAN, 
     #"tf_share_ffn": True, #better true
     # Adapter args
-    "ada_d_hid": ("int_exp_2", 256, 512), 
+    "ada_d_hid": ("int_exp_2", 512, 1024), 
     "ada_n_layers": ("int", 4, 5), 
     "ada_activation": ("activation", [
         "tanh",  
@@ -224,8 +232,8 @@ PARAM_SPACE = {
         "identity",
     ]),
     # Head args
-    "head_d_hid": ("int_exp_2", 64, 128), 
-    "head_n_layers": ("int", 2, 4), 
+    "head_d_hid": ("int_exp_2", 64, 256), 
+    "head_n_layers": ("int", 4, 5), 
     "head_n_head": ("int_exp_2", 16, 32),
     "head_activation": ("activation", [
         "tanh",  
@@ -241,7 +249,7 @@ PARAM_SPACE = {
         "softsign",
     ]),
     "head_activation_final": ("activation", [
-        "sigmoid", 
+        #"sigmoid", 
         "hardsigmoid",
     ]),
     "patience": ("log_int", 50, 100),
