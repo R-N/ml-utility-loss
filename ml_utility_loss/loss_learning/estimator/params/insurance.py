@@ -257,7 +257,8 @@ PARAM_SPACE_2 = {
     "scheduler_patience": ("log_int", 40, 75),
 }
 
-GOOD = [16, 23]
+#GOOD = [16, 23]
+GOOD = [16]
 #1.0530388320569608e-05
 BEST = {
     **DEFAULTS,
