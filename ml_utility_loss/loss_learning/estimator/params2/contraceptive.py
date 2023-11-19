@@ -81,7 +81,7 @@ PARAM_SPACE = {
     ]),
     "adapter_loss_fn": ("loss", [
         "mse", 
-        #"mae", 
+        "mae", 
         "huber", 
         "mile", 
         "mire"
