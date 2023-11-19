@@ -55,7 +55,7 @@ PARAM_SPACE = {
         ##"adahessian",
         "adamp",
         #"diffgrad",
-        #"qhadam",
+        "qhadam",
         #"yogi",
     ]),
     # Training args
