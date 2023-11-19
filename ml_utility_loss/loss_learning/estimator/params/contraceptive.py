@@ -133,7 +133,7 @@ PARAM_SPACE = {
         "tanh",  
         "sigmoid", 
         #"relu",
-        #"leakyrelu", 
+        "leakyrelu", 
         "selu",
         #"prelu",
         "rrelu",
