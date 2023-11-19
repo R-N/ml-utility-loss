@@ -235,7 +235,7 @@ def make_objective_kfold(
         return avg_value
     return f
 
-def load_good_params(study_name, storage, trials):
+def load_params(study_name, storage, trials):
     study = optuna.load_study(study_name=study_name, storage=storage)
     good_params = [t.params for t in study.trials if t.number in trials]
     del study
