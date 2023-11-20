@@ -165,7 +165,7 @@ PARAM_SPACE = {
         "relu", 
         "leakyrelu", 
         "selu",
-        #"prelu",
+        "prelu",
         "rrelu",
         #"relu6",
         "hardtanh",
