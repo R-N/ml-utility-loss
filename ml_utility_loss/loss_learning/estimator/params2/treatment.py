@@ -96,11 +96,11 @@ PARAM_SPACE = {
     ]),
     "gradient_penalty_mode": ("gradient_penalty_mode", [
         #"NONE", # for now, let's not grad penalty
-        ##"ALL", # ALL was the best, but it takes a long time to train
+        "ALL", # ALL was the best, but it takes a long time to train
         "ONCE",
-        #"ESTIMATE",
-        ##"AVERAGE_NO_MUL",
-        #"AVERAGE_MUL"
+        "ESTIMATE",
+        #"AVERAGE_NO_MUL",
+        "AVERAGE_MUL"
     ]),
     "g_loss_mul": ("log_float", 5e-4, 0.1),
     "mse_mag": ("conditional", {
