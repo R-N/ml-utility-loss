@@ -144,7 +144,7 @@ PARAM_SPACE = {
         #"rrelu",
         "relu6",
         "hardtanh",
-        #"hardsigmoid",
+        "hardsigmoid",
         "softsign",
         #"identity",
     ]),
