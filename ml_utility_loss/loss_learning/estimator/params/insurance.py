@@ -260,7 +260,7 @@ PARAM_SPACE_2 = {
 #GOOD = [16, 23]
 #GOOD = [16]
 GOOD = [0]
-#1.0530388320569608e-05
+#5.9708226059220705e-05
 BEST = {
     **DEFAULTS,
     'epochs': 981,
@@ -281,11 +281,9 @@ BEST = {
     'mse_mag_target': 0.038511929348267804,
     'mag_corr_boolc': True,
     'mag_corr_target': 0.9632878784273137,
-    'mag_corr_only_sign': False,
     'mag_corr_sign': True,
     'cos_loss_boolc': False,
     'd_model_exp_2': 6,
-    'dropout_bool': False,
     'grad_clip': 1.0204594685810375,
     'bias': True,
     'bias_final': False,
@@ -296,7 +294,8 @@ BEST = {
     'tf_n_layers_dec': 3,
     'tf_n_head_exp_2': 2,
     'tf_activation': 'hardtanh',
-    'tf_num_inds_boolc': False,
+    'tf_num_inds_exp_2': 1,
+    'tf_isab_mode': 'mini',
     'ada_d_hid_exp_2': 8,
     'ada_n_layers': 4,
     'ada_activation': 'hardtanh',

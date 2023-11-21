@@ -718,12 +718,17 @@ def pop_repack(kwargs, arg_name, out_kwargs=None):
     arg = kwargs.pop(arg_name, None)
     out_kwargs = kwargs if out_kwargs is None else out_kwargs
     if arg is not None:
+        l = len(arg_name) + 1
         if isinstance(arg, dict):
             out_kwargs[arg_name] = arg.pop(arg_name)
-            l = len(arg_name) + 1
             out_kwargs[f"{arg_name}_kwargs"] = {k[l:]: v for k, v in arg.items()}
         else:
             out_kwargs[arg_name] = arg
+            arg_kwargs = kwargs.pop(f"{arg_name}_kwargs", {})
+            for k in kwargs.keys():
+                if k.startswith(arg_name):
+                    arg_kwargs[k[l:]] = kwargs.pop(k)
+            out_kwargs[f"{arg_name}_kwargs"] = arg_kwargs
     return out_kwargs
 
 
