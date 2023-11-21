@@ -725,7 +725,7 @@ def pop_repack(kwargs, arg_name, out_kwargs=None):
         else:
             out_kwargs[arg_name] = arg
             arg_kwargs = kwargs.pop(f"{arg_name}_kwargs", {})
-            for k in kwargs.keys():
+            for k in list(kwargs.keys()):
                 if k.startswith(arg_name):
                     arg_kwargs[k[l:]] = kwargs.pop(k)
             out_kwargs[f"{arg_name}_kwargs"] = arg_kwargs
