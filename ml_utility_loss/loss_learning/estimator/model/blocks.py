@@ -264,6 +264,17 @@ class Adapter(nn.Module):
         Linear=Linear,
         init=True,
         layer_norm=False,
+        n_seeds=1,
+        d_qk=None, 
+        n_head=8,  
+        pma_rank=0,
+        softmax=nn.Softmax,
+        pma_skip_small=False,
+        attn_activation=nn.ReLU,
+        pma_layer_norm=False,
+        attn_residual=True,
+        inds_init_mode=IndsInitMode.TORCH,
+        n_seeds_2=0,
         **kwargs,
     ):
         super().__init__()
@@ -285,7 +296,29 @@ class Adapter(nn.Module):
             else:
                 embedding = torch.nn.Embedding(vocab_size, d_hid)
         freeze = freeze and use_embedding
-        self.input_w = TensorInductionPoint(d_input, 1)
+        #self.input_w = TensorInductionPoint(d_input, 1)
+        
+        assert n_seeds >= 1
+        n_seeds_2 = n_seeds_2 or n_seeds
+        self.pma = PoolingByMultiheadAttention(
+            n_seeds, 
+            n_head, 
+            d_model, 
+            d_qk=d_qk, 
+            skip_small=pma_skip_small,
+            softmax=softmax,
+            device=device,
+            Linear=LinearLora,
+            rank=pma_rank,
+            bias=bias,
+            init=False,
+            activation=attn_activation,
+            layer_norm=pma_layer_norm,
+            attn_residual=attn_residual,
+            inds_init_mode=inds_init_mode,
+            **kwargs,
+        ) if d_embed else None
+
         d_embed = self.set_embedding(embedding, freeze=freeze)
         self.d_embed = d_embed
         self.use_embedding = use_embedding
@@ -313,8 +346,11 @@ class Adapter(nn.Module):
                 layer_norm=layer_norm,
                 **kwargs,
             )
+        first_dim = d_input
+        if d_embed:
+            first_dim = max(1, n_seeds_2)*d_embed
         self.linear = nn.Sequential(*[
-            Linear_(d_embed or d_input, d_hid, layer_norm=False),
+            Linear_(first_dim, d_hid, layer_norm=False),
             *[Linear_(d_hid, d_hid) for i in range(n_layers-2)],
             Linear_(d_hid, d_model, activation=activation_final, residual=False),
         ])
@@ -347,13 +383,15 @@ class Adapter(nn.Module):
         return 0
 
     def init(self, activation=None):
+        if self.pma:
+            self.pma.init(activation=None)
         lin = None
         for lin in self.linear.children():
             lin.init(activation=None)
         if activation:
             lin.init(activation=activation)
 
-    def forward(self, x):
+    def forward(self, x, return_attns=False):
         try:
             x0 = x1 = x
             assert x.dim() > 2, "Input must be batched"
@@ -366,13 +404,20 @@ class Adapter(nn.Module):
                 x.requires_grad_()
             y = x
             if self.embedding:
+                """
                 w = self.input_w()
                 w = torch.repeat_interleave(w, self.d_embed, dim=-1)
                 w = w.view(-1)
                 y = torch.mul(w, y)
                 y = y.view(*shape0, self.d_input, -1)
                 y = torch.sum(y, dim=-2)
+                """
+                y = y.view(*shape0, self.d_input, -1)
+                y, pma_attn = self.pma(y)
+                y = y.view(*shape0, -1)
             y = self.linear(y)
+            if return_attns:
+                return x, y, pma_attn
             return x, y
         except RuntimeError:
             print("check_cuda a", check_cuda(self), check_cuda(self.linear), x.is_cuda)
