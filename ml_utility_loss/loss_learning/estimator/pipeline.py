@@ -750,6 +750,7 @@ def train_2(
     kwargs = pop_update(kwargs, "ada_lora")
     kwargs = pop_update(kwargs, "head_lora")
     kwargs = pop_update(kwargs, "tf_num_inds")
+    kwargs = pop_update(kwargs, "ada_n_seeds")
 
     gradient_penalty_kwargs = kwargs.pop("gradient_penalty_kwargs", {})
     gradient_penalty_kwargs = pop_repack(kwargs, "mse_mag", gradient_penalty_kwargs)
