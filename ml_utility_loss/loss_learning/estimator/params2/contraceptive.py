@@ -104,6 +104,7 @@ PARAM_SPACE = {
         "AVERAGE_MUL"
     ]),
     "g_loss_mul": ("log_float", 1e-5, 0.5),
+    "non_role_model_mul": ("log_float", 1e-5, 1.0),
     "mse_mag": ("conditional", {
         "mse_mag": True,
         "mse_mag_target": ("log_float", 5e-3, 1.0),

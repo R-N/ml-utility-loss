@@ -856,6 +856,7 @@ def train_epoch(
     include_mean_pred_loss=False,
     include_std_loss=False,
     g_loss_mul=0.1,
+    non_role_model_mul=0.5,
     **g_loss_kwargs
 ):
     assert optim or val, "Optimizer must be provided if val is false"
@@ -1126,9 +1127,9 @@ def train_epoch(
             1,
             g_loss_mul * 0.5,
             g_loss_mul * 0.5,
-            1,
-            g_loss_mul * 0.5,
-            g_loss_mul * 0.5,
+            non_role_model_mul,
+            non_role_model_mul * g_loss_mul * 0.5,
+            non_role_model_mul * g_loss_mul * 0.5,
         )
         if include_std_loss:
             batch_loss = (*batch_loss, role_model_std_loss)

@@ -348,6 +348,7 @@ def train(
     grad_phase_2=False,
     grad_loss_scale="mean",
     g_loss_mul=0.1,
+    non_role_model_mul=0.5,
     single_model=True,
     study_name="ml_utility",
     gradient_penalty_kwargs={},
@@ -487,6 +488,7 @@ def train(
             include_std_loss=include_std_loss,
             grad_loss_scale=grad_loss_scale,
             g_loss_mul=g_loss_mul,
+            non_role_model_mul=non_role_model_mul,
             **gradient_penalty_mode,
             **gradient_penalty_kwargs,
         )
