@@ -729,7 +729,6 @@ def train_2(
         epoch_callback=None, # for now
         checkpoint_dir=checkpoint_dir,
         log_dir=log_dir,
-        gradient_penalty_kwargs=gradient_penalty_kwargs,
         **kwargs
     )
     return train_results
