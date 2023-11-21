@@ -561,8 +561,10 @@ def forward_pass_1_avg(
     role_model
 ):
     compute = {}
-    compute["y"] = next(iter(computes.values()))["y"] #any, even role model
-    compute["y_real"] = next(iter(computes.values()))["y_real"] #any, even role model
+    compute_0 = next(iter(computes.values()))
+    compute["train"] = compute_0["train"]
+    compute["y"] = compute_0["y"] #any, even role model
+    compute["y_real"] = compute_0["y_real"] #any, even role model
     non_role_model_computes = [v for k, v in computes.items() if k != role_model]
     m_s = [c["m"] for c in non_role_model_computes]
     m_test_s = [c["m_test"] for c in non_role_model_computes]
