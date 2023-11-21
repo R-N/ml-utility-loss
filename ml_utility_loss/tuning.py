@@ -143,9 +143,8 @@ def unpack_params(kwargs):
     kwargs = {k: v for k, v in kwargs.items() if not k.endswith("_boolc")}
     return kwargs
 
-def map_parameters(params_raw, param_space={}, param_map={}):
+def map_parameters(params_raw, param_space={}, param_map={}, unpack=True):
     param_map = {**PARAM_MAP, **param_map}
-    params_raw = unpack_params(params_raw)
     ret = {}
     for k, v in params_raw.items():
         if k.endswith("_bool") or k.endswith("_boolc"):
@@ -194,6 +193,8 @@ def map_parameters(params_raw, param_space={}, param_map={}):
     for k, v in param_space.items():
         if k not in ret and not isinstance(v, (tuple, list)):
             ret[k] = v
+    if unpack:
+        ret = unpack_params(ret)
     return ret
 
 
