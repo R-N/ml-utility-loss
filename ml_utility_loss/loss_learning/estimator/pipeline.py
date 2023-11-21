@@ -721,7 +721,9 @@ def pop_repack(kwargs, arg_name, out_kwargs=None):
         l = len(arg_name) + 1
         if isinstance(arg, dict):
             out_kwargs[arg_name] = arg.pop(arg_name)
-            out_kwargs[f"{arg_name}_kwargs"] = {k[l:]: v for k, v in arg.items()}
+            arg_kwargs = kwargs.pop(f"{arg_name}_kwargs", {})
+            arg_kwargs.update({k[l:]: v for k, v in arg.items()})
+            out_kwargs[f"{arg_name}_kwargs"] = arg_kwargs
         else:
             out_kwargs[arg_name] = arg
             arg_kwargs = kwargs.pop(f"{arg_name}_kwargs", {})
