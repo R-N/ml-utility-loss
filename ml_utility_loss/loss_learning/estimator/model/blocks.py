@@ -299,6 +299,7 @@ class Adapter(nn.Module):
                 embedding = torch.nn.Embedding(vocab_size, d_hid)
         freeze = freeze and use_embedding
         
+        d_embed = self.set_embedding(embedding, freeze=freeze)
         if d_embed:
             if n_seeds >= 1:
                 self.pma = PoolingByMultiheadAttention(
@@ -322,9 +323,7 @@ class Adapter(nn.Module):
             else:
                 self.input_w = TensorInductionPoint(d_input, 1)
             assert self.pma or self.input_w, "Either PMA or input_w must be present"
-        first_dim = d_input
 
-        d_embed = self.set_embedding(embedding, freeze=freeze)
         self.d_embed = d_embed
         self.use_embedding = use_embedding
         self.d_input = d_input
@@ -351,6 +350,7 @@ class Adapter(nn.Module):
                 layer_norm=layer_norm,
                 **kwargs,
             )
+        first_dim = d_input
         if d_embed:
             first_dim = max(1, n_seeds)*d_embed
         self.linear = nn.Sequential(*[
