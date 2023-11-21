@@ -273,8 +273,8 @@ PARAM_SPACE_2 = {
 
 #GOOD = [6, 22, 30, 32, 38, 70]
 #GOOD = [30, 32]
-GOOD = [2, 3]
-#GOOD = [0, 1]
+#GOOD = [2, 3]
+GOOD = [0, 1]
 #4.880445494453871e-06
 BEST = {
     **DEFAULTS,

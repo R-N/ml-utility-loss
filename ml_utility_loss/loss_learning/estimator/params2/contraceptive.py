@@ -278,8 +278,8 @@ PARAM_SPACE_2 = {
 #GOOD = [1, 2, 3, 7, 9]
 #GOOD = [1, 2, 3, 4, 5]
 #GOOD = [0, 1, 2, 3]
-GOOD = [1, 2]
-#GOOD = [0, 1]
+#GOOD = [1, 2]
+GOOD = [0, 1]
 #7.52912516610035e-08
 BEST = {
     **DEFAULTS,
