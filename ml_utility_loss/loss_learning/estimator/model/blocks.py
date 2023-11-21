@@ -264,7 +264,7 @@ class Adapter(nn.Module):
         Linear=Linear,
         init=True,
         layer_norm=False,
-        n_seeds=1,
+        n_seeds=0,
         d_qk=None, 
         n_head=8,  
         pma_rank=0,
@@ -289,6 +289,8 @@ class Adapter(nn.Module):
         d_embed = 0
         embedding = None
         use_embedding = True
+        self.pma = None
+        self.input_w = None
         if hasattr(d_input, "__iter__"):
             d_input, vocab_size, embedding, use_embedding = d_input
             if embedding:
@@ -296,27 +298,31 @@ class Adapter(nn.Module):
             else:
                 embedding = torch.nn.Embedding(vocab_size, d_hid)
         freeze = freeze and use_embedding
-        #self.input_w = TensorInductionPoint(d_input, 1)
         
-        assert n_seeds >= 1
-        self.pma = PoolingByMultiheadAttention(
-            n_seeds, 
-            n_head, 
-            d_model, 
-            d_qk=d_qk, 
-            skip_small=pma_skip_small,
-            softmax=softmax,
-            device=device,
-            Linear=LinearLora,
-            rank=pma_rank,
-            bias=bias,
-            init=False,
-            activation=attn_activation,
-            layer_norm=pma_layer_norm,
-            attn_residual=attn_residual,
-            inds_init_mode=inds_init_mode,
-            **kwargs,
-        ) if d_embed else None
+        if d_embed:
+            if n_seeds >= 1:
+                self.pma = PoolingByMultiheadAttention(
+                    n_seeds, 
+                    n_head, 
+                    d_model, 
+                    d_qk=d_qk, 
+                    skip_small=pma_skip_small,
+                    softmax=softmax,
+                    device=device,
+                    Linear=LinearLora,
+                    rank=pma_rank,
+                    bias=bias,
+                    init=False,
+                    activation=attn_activation,
+                    layer_norm=pma_layer_norm,
+                    attn_residual=attn_residual,
+                    inds_init_mode=inds_init_mode,
+                    **kwargs,
+                )
+            else:
+                self.input_w = TensorInductionPoint(d_input, 1)
+            assert self.pma or self.input_w, "Either PMA or input_w must be present"
+        first_dim = d_input
 
         d_embed = self.set_embedding(embedding, freeze=freeze)
         self.d_embed = d_embed
@@ -345,7 +351,6 @@ class Adapter(nn.Module):
                 layer_norm=layer_norm,
                 **kwargs,
             )
-        first_dim = d_input
         if d_embed:
             first_dim = max(1, n_seeds)*d_embed
         self.linear = nn.Sequential(*[
@@ -384,6 +389,7 @@ class Adapter(nn.Module):
     def init(self, activation=None):
         if self.pma:
             self.pma.init(activation=None)
+        
         lin = None
         for lin in self.linear.children():
             lin.init(activation=None)
@@ -402,6 +408,7 @@ class Adapter(nn.Module):
             if x is not x0 and x0.requires_grad and not x.requires_grad:
                 x.requires_grad_()
             y = x
+            pma_attn = None
             if self.embedding:
                 """
                 w = self.input_w()
@@ -411,8 +418,20 @@ class Adapter(nn.Module):
                 y = y.view(*shape0, self.d_input, -1)
                 y = torch.sum(y, dim=-2)
                 """
+                """
                 y = y.view(*shape0, self.d_input, -1)
                 y, pma_attn = self.pma(y)
+                y = y.view(*shape0, -1)
+                """
+                y = y.view(*shape0, self.d_input, -1)
+                if self.pma:
+                    y, pma_attn = self.pma(y)
+                elif self.input_w:
+                    w = self.input_w()
+                    w = torch.repeat_interleave(w, self.d_embed, dim=-1)
+                    y = torch.mul(w, y)
+                else:
+                    raise RuntimeError("Either PMA or input_w must be present")
                 y = y.view(*shape0, -1)
             y = self.linear(y)
             if return_attns:

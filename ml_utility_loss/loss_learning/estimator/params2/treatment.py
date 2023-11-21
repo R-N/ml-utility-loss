@@ -15,6 +15,7 @@ DEFAULTS = {
     "tf_lora": False,
     "tf_layer_norm": False,
     "tf_pma_start": -1,
+    "ada_n_seeds": 0,
     "head_n_seeds": 0,
     "tf_pma_low": 1,
     "gradient_penalty_kwargs": {
@@ -214,6 +215,7 @@ PARAM_SPACE = {
     #"tf_share_ffn": BOOLEAN, 
     #"tf_share_ffn": True, #true is better
     # Adapter args
+    "ada_n_seeds": ("bool_int_exp_2", 1, 2),
     "ada_d_hid": ("int_exp_2", 64, 256), 
     "ada_n_layers": ("int", 5, 6), 
     "ada_activation": ("activation", [
