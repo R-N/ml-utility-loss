@@ -175,11 +175,14 @@ def map_parameters(params_raw, param_space={}, param_map={}, unpack=True):
                     #done = True
                     continue
                 if not done and k0 in k:
-                    type_0, *args = v0
-                    if not done and type_0 == "conditional":
-                        v = map_parameters({k: v}, args[0], param_map=param_map)[k]
-                        done = True
-                    break
+                    try:
+                        type_0, *args = v0
+                        if not done and type_0 == "conditional":
+                            v = map_parameters({k: v}, args[0], param_map=param_map)[k]
+                            done = True
+                        break
+                    except KeyError:
+                        pass
         if not done:
             for k0, v0 in param_map.items():
                 if k0 in k:
