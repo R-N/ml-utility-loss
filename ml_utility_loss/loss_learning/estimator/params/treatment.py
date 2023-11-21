@@ -201,7 +201,7 @@ PARAM_SPACE = {
     #"tf_share_ffn": True, #true is better
     # Adapter args
     "ada_n_seeds": ("conditional", {
-        "ada_n_seeds": ("int_exp_2", 1, 4),
+        "ada_n_seeds": ("int_exp_2", 1, 2),
         "ada_n_head": ("int_exp_2", 4, 32),
     }),
     "ada_d_hid": ("int_exp_2", 64, 128), 
