@@ -177,7 +177,10 @@ PARAM_SPACE = {
     )),
     #"tf_share_ffn": BOOLEAN,
     # Adapter args
-    "ada_n_seeds": ("bool_int_exp_2", 1, 2),
+    "ada_n_seeds": ("conditional", {
+        "ada_n_seeds": ("int_exp_2", 1, 4),
+        "ada_n_head": ("int_exp_2", 4, 32),
+    }),
     "ada_d_hid": ("int_exp_2", 8, 64), 
     "ada_n_layers": ("int", 2, 4), 
     "ada_activation": ("activation", [
