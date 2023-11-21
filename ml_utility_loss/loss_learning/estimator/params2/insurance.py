@@ -42,19 +42,19 @@ PARAM_SPACE = {
     # Training args
     "epochs": ("log_int", 500, 1000),
     #"lr": ("log_float", 5e-3, 1e-2),
-    "lr_mul": ("log_float", 0.0025, 0.04),
-    "n_warmup_steps": ("log_float", 35, 100),
+    "lr_mul": ("log_float", 0.0025, 0.7),
+    "n_warmup_steps": ("log_float", 35, 270),
     "Optim": ("optimizer", [
         # #"adamw", 
         "sgdmomentum", 
-        # "amsgradw",
+        "amsgradw",
         # #"adadelta",
-        # "padam", 
+        "padam", 
         "nadam",
         "adabound",
         # ##"adahessian",
         "adamp",
-        # #"diffgrad",
+        "diffgrad",
         # #"qhadam",
         # #"yogi",
     ]),
@@ -64,8 +64,8 @@ PARAM_SPACE = {
     #"non_role_model_avg": True, 
     #"std_loss_mul": ("float", 0.5, 2.0),
     #"grad_loss_mul": ("float", 0.7, 1.0),
-    "loss_balancer_beta": ("float", 0.7, 0.8),
-    "loss_balancer_r": ("float", 0.94, 0.98),
+    "loss_balancer_beta": ("float", 0.65, 0.98),
+    "loss_balancer_r": ("float", 0.9, 0.98),
     "loss_balancer_log": BOOLEAN, #True
     "loss_balancer_lbtw": BOOLEAN, #True
     #"grad_loss_mul": ("float", 0.3, 1),
@@ -74,8 +74,8 @@ PARAM_SPACE = {
     "std_loss_fn": ("loss", ["mean_penalty_log_half"]),
     "grad_loss_fn": ("loss", [
         #"mse", 
-        #"mae", 
-        #"huber", 
+        "mae", 
+        "huber", 
         "mile", 
         "mire"
     ]),
@@ -97,11 +97,11 @@ PARAM_SPACE = {
         #"AVERAGE_NO_MUL",
         "AVERAGE_MUL"
     ]),
-    "g_loss_mul": ("log_float", 1e-5, 0.001),
+    "g_loss_mul": ("log_float", 1e-5, 0.1),
     "non_role_model_mul": ("log_float", 1e-5, 1.0),
     "mse_mag": ("conditional", {
         "mse_mag": True,
-        "mse_mag_target": ("log_float", 1.6, 1.8),
+        "mse_mag_target": ("log_float", 0.005, 1.0),
     }),
     #"mag_corr": ("conditional", {
     "mag_corr": True,
@@ -109,11 +109,11 @@ PARAM_SPACE = {
     "mag_corr_only_sign": False,
     "mag_corr_sign": BOOLEAN,
     #}),
-    # "cos_loss": ("conditional", {
-    #     "cos_loss": True,
-    #     "cos_loss_target": ("log_float", 0.003, 0.62),
-    #     "cos_loss_only_sign": True,
-    # }),
+    "cos_loss": ("conditional", {
+        "cos_loss": True,
+        "cos_loss_target": ("log_float", 0.003, 0.62),
+        "cos_loss_only_sign": True,
+    }),
     # Common model args
     "d_model": ("int_exp_2", 32, 128), 
     #"dropout": ("bool_float", 0.15, 0.5), 
@@ -124,7 +124,7 @@ PARAM_SPACE = {
     #"isab_skip_small": BOOLEAN,
     #"skip_small": False,
     #"loss_clamp": ("log_float", 0.6, 1.0), #almost random
-    "grad_clip": ("log_float", 2.2, 2.9),
+    "grad_clip": ("log_float", 0.25, 2.9),
     "bias": BOOLEAN,
     #"bias": False,
     "bias_final": BOOLEAN,
@@ -132,9 +132,9 @@ PARAM_SPACE = {
     "attn_activation": ("activation", [
         "tanh",  
         # #"sigmoid", 
-        # #"relu",
+        "relu",
         "leakyrelu", 
-        # "selu",
+        "selu",
         # #"prelu",
         # "rrelu",
         # #"relu6",
@@ -157,12 +157,12 @@ PARAM_SPACE = {
     "tf_activation": ("activation", [
         # "tanh", 
         # #"sigmoid",
-        # #"relu", 
-        # #"leakyrelu", 
+        "relu", 
+        "leakyrelu", 
         # "selu",
         "prelu",
         # "rrelu",
-        # #"relu6",
+        "relu6",
         # #hardtanh",
         "hardsigmoid",
         # #"softsign",
@@ -172,8 +172,8 @@ PARAM_SPACE = {
     "tf_num_inds": ("int_exp_2", 8, 32),
     "tf_isab_mode": ("categorical", (
         ISABMode.SEPARATE, 
-        #ISABMode.SHARED,
-        #ISABMode.MINI, # best
+        ISABMode.SHARED,
+        ISABMode.MINI,
     )),
     #}),
     # "tf_isab_rank": ("bool_int_exp_2", 1, 32), #doesn't matter so true it is
@@ -210,7 +210,7 @@ PARAM_SPACE = {
     "ada_d_hid": ("int_exp_2", 128, 512), 
     "ada_n_layers": ("int", 4, 5), 
     "ada_activation": ("activation", [
-        # #"tanh",  
+        "tanh",  
         # #"sigmoid", 
         "relu",
         # #"leakyrelu", 
@@ -220,12 +220,12 @@ PARAM_SPACE = {
         "relu6",
         # #"hardtanh",
         # #"hardsigmoid",
-        # #"softsign",
+        "softsign",
     ]),
     "ada_activation_final": ("activation", [
         # "tanh", 
         "sigmoid", 
-        # "relu6",
+        "relu6",
         "hardtanh",
         # #"hardsigmoid",
         "softsign",
@@ -241,10 +241,10 @@ PARAM_SPACE = {
         # #"relu",
         # "leakyrelu", 
         "selu", 
-        # #"prelu",
+        "prelu",
         "rrelu",
         # "relu6",
-        # "hardtanh",
+        "hardtanh",
         # #"hardsigmoid",
         "softsign",
     ]),
