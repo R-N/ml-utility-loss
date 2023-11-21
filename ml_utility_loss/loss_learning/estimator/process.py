@@ -1072,7 +1072,7 @@ def train_epoch(
                 )
 
             # If forward_once, this will be 0 and the other computes won't have g_loss
-            if not forward_once or calc_grad_m:
+            if not forward_once or calc_grad_m and len(computes) > 1:
                 non_role_model_g_mag_loss = sum([
                     compute["g_mag_loss"] 
                     for model, compute in computes.items() 
