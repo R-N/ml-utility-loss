@@ -43,6 +43,7 @@ NON_MODEL_PARAMS = (
     "scheduler_patience",
     "lr_mul",
     "n_warmup_steps",
+    "single_model",
 )
 
 def remove_non_model_params(params, entries_to_remove=NON_MODEL_PARAMS):
