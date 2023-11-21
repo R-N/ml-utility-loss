@@ -305,7 +305,7 @@ class Adapter(nn.Module):
                 self.pma = PoolingByMultiheadAttention(
                     n_seeds, 
                     n_head, 
-                    d_model, 
+                    d_embed, 
                     d_qk=d_qk, 
                     skip_small=pma_skip_small,
                     softmax=softmax,
