@@ -234,7 +234,7 @@ def create_model(
             "pma_layer_norm": pma_layer_norm,
             "attn_residual": attn_residual,
             "inds_init_mode": inds_init_mode,
-            "n_seeds_2": head_n_seeds_2,
+            #"n_seeds_2": head_n_seeds_2,
         },
         head_args={
             "d_model": body.d_output,

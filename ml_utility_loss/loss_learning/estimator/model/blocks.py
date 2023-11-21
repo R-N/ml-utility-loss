@@ -274,7 +274,7 @@ class Adapter(nn.Module):
         pma_layer_norm=False,
         attn_residual=True,
         inds_init_mode=IndsInitMode.TORCH,
-        n_seeds_2=0,
+        #n_seeds_2=0,
         **kwargs,
     ):
         super().__init__()
@@ -299,7 +299,6 @@ class Adapter(nn.Module):
         #self.input_w = TensorInductionPoint(d_input, 1)
         
         assert n_seeds >= 1
-        n_seeds_2 = n_seeds_2 or n_seeds
         self.pma = PoolingByMultiheadAttention(
             n_seeds, 
             n_head, 
@@ -348,7 +347,7 @@ class Adapter(nn.Module):
             )
         first_dim = d_input
         if d_embed:
-            first_dim = max(1, n_seeds_2)*d_embed
+            first_dim = max(1, n_seeds)*d_embed
         self.linear = nn.Sequential(*[
             Linear_(first_dim, d_hid, layer_norm=False),
             *[Linear_(d_hid, d_hid) for i in range(n_layers-2)],
