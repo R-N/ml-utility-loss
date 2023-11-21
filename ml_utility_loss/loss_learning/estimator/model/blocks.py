@@ -430,6 +430,7 @@ class Adapter(nn.Module):
                     w = self.input_w()
                     w = torch.repeat_interleave(w, self.d_embed, dim=-1)
                     y = torch.mul(w, y)
+                    y = torch.sum(y, dim=-2)
                 else:
                     raise RuntimeError("Either PMA or input_w must be present")
                 y = y.view(*shape0, -1)
