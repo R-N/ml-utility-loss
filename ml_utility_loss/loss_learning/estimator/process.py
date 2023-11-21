@@ -571,7 +571,8 @@ def forward_pass_1_avg(
     m_test = torch.mean(torch.stack(m_test_s), dim=0)
     compute["m"] = m
     compute["m_test"] = m_test
-    return m, m_test
+    #computes["avg_non_role_model"] = compute
+    return compute
 
 
 def forward_pass_2(
