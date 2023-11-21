@@ -25,6 +25,7 @@ from ...loss_balancer import FixedWeights, MyLossTransformer, LossBalancer, MyLo
 from ...metrics import mean_penalty, mean_penalty_rational, mean_penalty_rational_half, ScaledLoss, scale_divider, mean_penalty_log, mean_penalty_log_half
 from ...optim import ScheduledOptim
 from ...early_stopping import StopOnPlateau
+from ...tuning import pop_repack, pop_update, unpack_params
 
 def augment(df, info, save_dir, n=1, test=0.2, augmenter=None):
     mkdir(save_dir)
@@ -704,35 +705,6 @@ def eval(
 
     return eval_loss
 
-def pop_update(kwargs, arg_name, out_kwargs=None):
-    arg = kwargs.pop(arg_name, None)
-    out_kwargs = kwargs if out_kwargs is None else out_kwargs
-    if arg is not None:
-        if isinstance(arg, dict):
-            out_kwargs.update(arg)
-        else:
-            out_kwargs[arg_name] = arg
-    return out_kwargs
-
-def pop_repack(kwargs, arg_name, out_kwargs=None):
-    arg = kwargs.pop(arg_name, None)
-    out_kwargs = kwargs if out_kwargs is None else out_kwargs
-    if arg is not None:
-        l = len(arg_name) + 1
-        if isinstance(arg, dict):
-            out_kwargs[arg_name] = arg.pop(arg_name)
-            arg_kwargs = kwargs.pop(f"{arg_name}_kwargs", {})
-            arg_kwargs.update({k[l:]: v for k, v in arg.items()})
-            out_kwargs[f"{arg_name}_kwargs"] = arg_kwargs
-        else:
-            out_kwargs[arg_name] = arg
-            arg_kwargs = kwargs.pop(f"{arg_name}_kwargs", {})
-            for k in list(kwargs.keys()):
-                if k.startswith(arg_name):
-                    arg_kwargs[k[l:]] = kwargs.pop(k)
-            out_kwargs[f"{arg_name}_kwargs"] = arg_kwargs
-    return out_kwargs
-
 
 def train_2(
     datasets,
@@ -745,20 +717,7 @@ def train_2(
     patience=50,
     **kwargs
 ):
-    kwargs = pop_update(kwargs, "tf_pma")
-    kwargs = pop_update(kwargs, "tf_lora")
-    kwargs = pop_update(kwargs, "ada_lora")
-    kwargs = pop_update(kwargs, "head_lora")
-    kwargs = pop_update(kwargs, "tf_num_inds")
-    kwargs = pop_update(kwargs, "ada_n_seeds")
-
-    gradient_penalty_kwargs = kwargs.pop("gradient_penalty_kwargs", {})
-    gradient_penalty_kwargs = pop_repack(kwargs, "mse_mag", gradient_penalty_kwargs)
-    gradient_penalty_kwargs = pop_repack(kwargs, "mag_corr", gradient_penalty_kwargs)
-    gradient_penalty_kwargs = pop_repack(kwargs, "cos_loss", gradient_penalty_kwargs)
-        
-    kwargs = {k: v for k, v in kwargs.items() if not k.endswith("_bool")}
-    kwargs = {k: v for k, v in kwargs.items() if not k.endswith("_boolc")}
+    kwargs = unpack_params(kwargs)
 
     if not early_stopping and patience:
         early_stopping = StopOnPlateau(patience=patience)
