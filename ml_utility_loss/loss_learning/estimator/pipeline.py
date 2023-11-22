@@ -358,6 +358,7 @@ def train(
     prune_timeout=False,
     wandb_watch=None,
     retry_wandb=3,
+    run_name=None,
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
@@ -435,7 +436,7 @@ def train(
         wandb_inited = False
         for i in range(retry_wandb):
             try:
-                wandb.init(project=study_name)
+                wandb.init(project=study_name, name=run_name)
                 wandb_inited = True
                 break
             except Exception as ex:
@@ -723,12 +724,15 @@ def train_2(
     verbose=False,
     early_stopping=None,
     patience=50,
+    run_name=None,
     **kwargs
 ):
     kwargs = unpack_params(kwargs)
 
     if not early_stopping and patience:
         early_stopping = StopOnPlateau(patience=patience)
+
+    run_name = str(trial.number) if trial else run_name
 
     train_results = train(
         datasets,
@@ -737,6 +741,7 @@ def train_2(
         epoch_callback=None, # for now
         checkpoint_dir=checkpoint_dir,
         log_dir=log_dir,
+        run_name=run_name,
         **kwargs
     )
     return train_results
