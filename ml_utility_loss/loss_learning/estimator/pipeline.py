@@ -356,6 +356,8 @@ def train(
     lr_mul=0.0,
     n_warmup_steps=100,
     prune_timeout=False,
+    wandb_watch=None,
+    retry_wandb=3,
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
@@ -430,9 +432,11 @@ def train(
         )
 
     if wandb:
-        while True:
+        wandb_inited = False
+        for i in range(retry_wandb):
             try:
                 wandb.init(project=study_name)
+                wandb_inited = True
                 break
             except Exception as ex:
                 msg = str(ex)
@@ -440,7 +444,11 @@ def train(
                     continue
                 else:
                     raise
-        wandb.watch(whole_model, log='all', log_freq=1)
+        if wandb_inited:
+            if wandb_watch:
+                wandb.watch(whole_model, log_freq=1)
+        else:
+            wandb = None
 
     if not optim:
         optim = Optim(
