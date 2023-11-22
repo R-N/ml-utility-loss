@@ -454,7 +454,7 @@ def train(
                 pass
         if wandb_inited:
             if wandb_watch:
-                wandb.watch(whole_model, log_freq=1)
+                wandb.watch(whole_model, log=wandb_watch, log_freq=1)
         else:
             wandb = None
 
