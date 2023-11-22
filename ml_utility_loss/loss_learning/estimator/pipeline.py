@@ -357,7 +357,7 @@ def train(
     n_warmup_steps=100,
     prune_timeout=False,
     wandb_watch=None,
-    retry_wandb=3,
+    wandb_try=1,
     run_name=None,
     **model_args
 ):
@@ -434,7 +434,7 @@ def train(
 
     if wandb:
         wandb_inited = False
-        for i in range(retry_wandb):
+        for i in range(wandb_try):
             try:
                 wandb.init(project=study_name, name=run_name)
                 wandb_inited = True
