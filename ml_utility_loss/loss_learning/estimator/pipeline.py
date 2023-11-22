@@ -618,7 +618,8 @@ def train(
                 raise
 
     if wandb:
-        wandb.unwatch(whole_model)
+        if wandb_watch:
+            wandb.unwatch(whole_model)
         while True:
             try:
                 wandb.finish()
