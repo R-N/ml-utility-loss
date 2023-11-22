@@ -445,6 +445,13 @@ def train(
                     continue
                 else:
                     raise
+        if not wandb_inited:
+            try:
+                wandb.init(project=study_name, name=run_name, mode="offline")
+                wandb_inited = True
+            except Exception as ex:
+                print(ex)
+                pass
         if wandb_inited:
             if wandb_watch:
                 wandb.watch(whole_model, log_freq=1)
