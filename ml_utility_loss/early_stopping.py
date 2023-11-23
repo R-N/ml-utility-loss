@@ -3,6 +3,7 @@ from torch.utils.tensorboard import SummaryWriter
 from copy import deepcopy
 import optuna
 from torch import inf
+import torch
 
 class StopOnPlateau:
     """
