@@ -58,9 +58,9 @@ class Hardtanh(nn.Module):
     
 def leaky_clamp(x, min=None, max=None, slope=0.01):
     if min is not None:
-        x = torch.where(x <= min, slope * (x - min) + min)
+        x = torch.where(x <= min, slope * (x - min) + min, x)
     if max is not None:
-        x = torch.where(x >= max, slope * (x - max) + max)
+        x = torch.where(x >= max, slope * (x - max) + max, x)
     return x
 
     
