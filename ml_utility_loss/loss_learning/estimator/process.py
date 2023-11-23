@@ -170,7 +170,7 @@ def calc_g_cos_loss_opposing(
     grad_loss_fn=F.mse_loss,
     reduction=torch.mean,
     target=1e-3, #0.2588190451,
-    cos_matrix=True,
+    cos_matrix=False,
     only_sign=True,
     forgive_over=True,
 ):
@@ -467,7 +467,7 @@ def calc_g_loss(
     eps=1e-8,
     mag_loss=True,
     cos_loss=True,
-    cos_matrix=True,
+    cos_matrix=False,
     opposing_dir_w=0.5,
     same_dir_w=0.5,
     forgive_over=True,
