@@ -741,6 +741,9 @@ def train_2(
 ):
     kwargs = unpack_params(kwargs)
 
+    if not early_stopping and patience:
+        early_stopping = StopOnPlateau(patience=patience)
+
     run_name = str(trial.number) if trial else run_name
 
     train_results = train(
