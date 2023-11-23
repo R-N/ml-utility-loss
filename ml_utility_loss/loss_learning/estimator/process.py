@@ -1232,7 +1232,6 @@ def eval(
     allow_same_prediction=True,
     fixed_role_model=None,
     eps=1e-8,
-    
 ):
     size = len(eval_loader.dataset)
 
@@ -1401,15 +1400,40 @@ def eval(
 
     total_duration = {model: (pred_duration[model] + grad_duration[model]) for model in models}
 
-    avg_loss = sum(avg_losses.values()) / len(models)
-    avg_g_mag_loss = sum(avg_g_mag_losses.values()) / len(models)
-    avg_g_cos_loss = sum(avg_g_cos_losses.values()) / len(models)
-    avg_pred_duration = sum(pred_duration.values()) / len(models)
-    avg_grad_duration = sum(grad_duration.values()) / len(models)
-    avg_total_duration = sum(total_duration.values()) / len(models)
-    avg_pred_std = mean(pred_stds.values())
-    avg_std_loss = mean(std_losses.values())
-    avg_mean_pred_loss = mean(mean_pred_losses.values())
+    def calculate_avg(
+        avg_losses,
+        avg_g_mag_losses,
+        avg_g_cos_losses,
+        pred_duration,
+        grad_duration,
+        total_duration,
+        pred_stds,
+        std_losses,
+        mean_pred_losses,
+    ):
+        return dict(
+            avg_loss = mean(avg_losses.values()),
+            avg_g_mag_loss = mean(avg_g_mag_losses.values()),
+            avg_g_cos_loss = mean(avg_g_cos_losses.values()),
+            avg_pred_duration = mean(pred_duration.values()),
+            avg_grad_duration = mean(grad_duration.values()),
+            avg_total_duration = mean(total_duration.values()),
+            avg_pred_std = mean(pred_stds.values()),
+            avg_std_loss = mean(std_losses.values()),
+            avg_mean_pred_loss = mean(mean_pred_losses.values()),
+        )
+    
+    metrics = (
+        avg_losses,
+        avg_g_mag_losses,
+        avg_g_cos_losses,
+        pred_duration,
+        grad_duration,
+        total_duration,
+        pred_stds,
+        std_losses,
+        mean_pred_losses,
+    )
 
     model_metrics = {
         model: {
@@ -1428,21 +1452,24 @@ def eval(
         for model in models
     }
 
+    min_metrics = model_metrics[role_model]
+    role_model_metrics = model_metrics[fixed_role_model or role_model]
+    avg_metrics = calculate_avg(*metrics)
+    non_role_model_metrics = avg_metrics
+    fixed_role_model = fixed_role_model or role_model
+    non_role_model = [m for m in models if m != fixed_role_model]
+    non_role_model_metrics = [filter_dict(m, non_role_model) for m in metrics]
+    non_role_model_metrics = calculate_avg(*non_role_model_metrics)
+
     clear_memory()
     return {
         "role_model": role_model, 
-        "min_loss": min_loss,
-        "avg_loss": avg_loss,
-        "avg_std_loss": avg_std_loss,
-        "avg_g_mag_loss": avg_g_mag_loss,
-        "avg_g_cos_loss": avg_g_cos_loss,
-        "avg_pred_std": avg_pred_std,
-        "avg_mean_pred_loss": avg_mean_pred_loss,
         "n_size": n_size,
         "n_batch": n_batch,
-        "avg_pred_duration": avg_pred_duration,
-        "avg_grad_duration": avg_grad_duration,
-        "avg_total_duration": avg_total_duration,
+        "role_model_metrics": role_model_metrics,
+        "non_role_model_metrics": non_role_model_metrics,
+        "avg_metrics": avg_metrics,
+        "min_metrics": min_metrics,
         "model_metrics": model_metrics,
     }
 

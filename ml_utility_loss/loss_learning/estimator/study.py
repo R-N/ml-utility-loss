@@ -26,7 +26,18 @@ def objective(
         )
         eval_loss = train_results["eval_loss"]
         #return eval_loss["avg_loss"] + std_loss_mul * eval_loss["avg_std_loss"] +  mean_loss_mul * eval_loss["avg_mean_pred_loss"] + g_loss_mul * 0.5 * (eval_loss["avg_g_mag_loss"] + eval_loss["avg_g_cos_loss"])
-        return eval_loss["avg_loss"] + g_loss_mul * 0.5 * (eval_loss["avg_g_mag_loss"] + eval_loss["avg_g_cos_loss"])
+        role_model_metrics = eval_loss["role_model_metrics"]
+        non_role_model_metrics = eval_loss["non_role_model_metrics"]
+        return (
+            role_model_metrics["avg_loss"],
+            g_loss_mul * 0.5 * (
+                role_model_metrics["avg_g_mag_loss"] + role_model_metrics["avg_g_cos_loss"]
+            ),
+            non_role_model_metrics["avg_loss"],
+            g_loss_mul * 0.5 * (
+                non_role_model_metrics["avg_g_mag_loss"] + non_role_model_metrics["avg_g_cos_loss"]
+            ),
+        )
     except AssertionError as ex:
         msg = str(ex)
         if "model predicts the same for every input" in msg:
@@ -77,7 +88,18 @@ def objective_2(
         )
         eval_loss = train_results["eval_loss"]
         #return eval_loss["avg_loss"] + std_loss_mul * eval_loss["avg_std_loss"] +  mean_loss_mul * eval_loss["avg_mean_pred_loss"] + g_loss_mul * 0.5 * (eval_loss["avg_g_mag_loss"] + eval_loss["avg_g_cos_loss"])
-        return eval_loss["avg_loss"] + g_loss_mul * 0.5 * (eval_loss["avg_g_mag_loss"] + eval_loss["avg_g_cos_loss"])
+        role_model_metrics = eval_loss["role_model_metrics"]
+        non_role_model_metrics = eval_loss["non_role_model_metrics"]
+        return (
+            role_model_metrics["avg_loss"],
+            g_loss_mul * 0.5 * (
+                role_model_metrics["avg_g_mag_loss"] + role_model_metrics["avg_g_cos_loss"]
+            ),
+            non_role_model_metrics["avg_loss"],
+            g_loss_mul * 0.5 * (
+                non_role_model_metrics["avg_g_mag_loss"] + non_role_model_metrics["avg_g_cos_loss"]
+            ),
+        )
 
     except AssertionError as ex:
         msg = str(ex)
