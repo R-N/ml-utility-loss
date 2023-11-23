@@ -359,8 +359,11 @@ def train(
     wandb_watch=None,
     wandb_try=0,
     run_name=None,
+    use_early_stopping=True,
     **model_args
 ):
+    if use_early_stopping:
+        assert early_stopping, "Early stopping is None"
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
     
     timer = timer or (Timer(max_seconds=max_seconds) if max_seconds else None)
@@ -579,7 +582,8 @@ def train(
                 del train_loader
                 del val_loader
                 clear_memory()
-                early_stopping.reset_counter(reset_best=False)
+                if early_stopping:
+                    early_stopping.reset_counter(reset_best=False)
                 train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
                 val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
 
