@@ -47,11 +47,39 @@ class Hardsigmoid(nn.Module):
         return torch.clamp(x/self.range + 0.5, min=0, max=1)
 
 class Hardtanh(nn.Module):
-    def __init__(self, min_val=-1.0, max_val=1.0, range=1):
+    def __init__(self, min=-1.0, max=1.0, range=1):
         super().__init__()
-        self.min_val = min_val
-        self.max_val = max_val
+        self.min = min
+        self.max = max
         self.range=range
     
     def forward(self, x):
-        return torch.clamp(x/self.range, min=self.min_val, max=self.max_val)
+        return torch.clamp(x/self.range, min=self.min, max=self.max)
+    
+def leaky_clamp(x, min=None, max=None, slope=0.01):
+    if min is not None:
+        x = torch.where(x <= min, slope * (x - min) + min)
+    if max is not None:
+        x = torch.where(x >= max, slope * (x - max) + max)
+    return x
+
+    
+class LeakyHardsigmoid(nn.Module):
+    def __init__(self, range=6, slope=0.01):
+        super().__init__()
+        self.range = range
+        self.slope = slope
+    
+    def forward(self, x):
+        return leaky_clamp(x/self.range + 0.5, min=0.0, max=1.0, slope=self.slope)
+
+class LeakyHardtanh(nn.Module):
+    def __init__(self, min=-1.0, max=1.0, range=1, slope=0.01):
+        super().__init__()
+        self.min = min
+        self.max = max
+        self.range=range
+        self.slope=slope
+    
+    def forward(self, x):
+        return leaky_clamp(x/self.range, min=self.min, max=self.max, slope=self.slope)
