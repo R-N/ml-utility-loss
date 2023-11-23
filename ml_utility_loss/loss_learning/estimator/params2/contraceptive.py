@@ -80,14 +80,14 @@ PARAM_SPACE = {
         "mae", 
         "huber", 
         "mile", 
-        "mire"
+        "mire",
     ]),
     "adapter_loss_fn": ("loss", [
         "mse", 
         "mae", 
         "huber", 
         "mile", 
-        "mire"
+        "mire",
     ]),
     "fixed_role_model": ("categorical", [
         #None, 
@@ -104,7 +104,7 @@ PARAM_SPACE = {
         "ONCE",
         "ESTIMATE",
         #"AVERAGE_NO_MUL",
-        "AVERAGE_MUL"
+        "AVERAGE_MUL",
     ]),
     "g_loss_mul": ("log_float", 1e-5, 0.1),
     "non_role_model_mul": ("log_float", 1e-5, 1.0),
@@ -151,6 +151,8 @@ PARAM_SPACE = {
         # "hardsigmoid",
         # "softsign",
         # #"identity",
+        "leakyhardtanh",
+        "leakyhardsigmoid",
     ]),
     #"attn_residual": BOOLEAN,
     "inds_init_mode": ("categorical", [
@@ -175,6 +177,8 @@ PARAM_SPACE = {
         # "hardtanh",
         "hardsigmoid",
         # "softsign",
+        "leakyhardtanh",
+        "leakyhardsigmoid",
     ]),
     #"tf_num_inds": ("bool_int_exp_2", 16, 64),
     #"tf_num_inds": ("conditional", {
@@ -235,6 +239,8 @@ PARAM_SPACE = {
         # #"hardtanh",
         # #"hardsigmoid",
         "softsign",
+        "leakyhardtanh",
+        "leakyhardsigmoid",
     ]),
     "ada_activation_final": ("activation", [
         # "tanh", 
@@ -244,6 +250,8 @@ PARAM_SPACE = {
         # "hardsigmoid",
         "softsign",
         "identity",
+        "leakyhardtanh",
+        "leakyhardsigmoid",
     ]),
     # Head args
     "head_d_hid": ("int_exp_2", 64, 256), 
@@ -261,10 +269,13 @@ PARAM_SPACE = {
         "hardtanh",
         # #"hardsigmoid",
         "softsign",
+        "leakyhardtanh",
+        "leakyhardsigmoid",
     ]),
     "head_activation_final": ("activation", [
         #"sigmoid", 
         "hardsigmoid",
+        "leakyhardsigmoid",
     ]),
     "patience": ("log_int", 70, 100),
 }

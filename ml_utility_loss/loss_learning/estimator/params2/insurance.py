@@ -143,6 +143,8 @@ PARAM_SPACE = {
         # #"hardsigmoid",
         # "softsign",
         # #"identity",
+        "leakyhardtanh",
+        "leakyhardsigmoid",
     ]),
     #"attn_residual": BOOLEAN,
     "inds_init_mode": ("categorical", [
@@ -167,6 +169,8 @@ PARAM_SPACE = {
         # #hardtanh",
         "hardsigmoid",
         # #"softsign",
+        "leakyhardtanh",
+        "leakyhardsigmoid",
     ]),
     #"tf_num_inds": ("bool_int_exp_2", 16, 128),
     #"tf_num_inds": ("conditional", {
@@ -226,6 +230,8 @@ PARAM_SPACE = {
         # #"hardtanh",
         # #"hardsigmoid",
         "softsign",
+        "leakyhardtanh",
+        "leakyhardsigmoid",
     ]),
     "ada_activation_final": ("activation", [
         # "tanh", 
@@ -235,6 +241,8 @@ PARAM_SPACE = {
         # #"hardsigmoid",
         "softsign",
         "identity",
+        "leakyhardtanh",
+        "leakyhardsigmoid",
     ]),
     # Head args
     "head_d_hid": ("int_exp_2", 64, 128), 
@@ -252,6 +260,8 @@ PARAM_SPACE = {
         "hardtanh",
         # #"hardsigmoid",
         "softsign",
+        "leakyhardtanh",
+        "leakyhardsigmoid",
     ]),
     "head_activation_final": ("activation", [
         #"sigmoid", 
@@ -260,6 +270,7 @@ PARAM_SPACE = {
         "softsign",
         #"logsigmoid",
         "identity",
+        "leakyhardtanh",
     ]),
     #"head_final_mul": ("categorical", [
     #    "identity",
