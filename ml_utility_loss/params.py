@@ -4,7 +4,7 @@ import catboost.metrics
 import sklearn.metrics
 from entmax import sparsemax, entmax15, Sparsemax, Entmax15
 from alpharelu import relu15, ReLU15
-from .activations import AlphaSigmoid, AlphaTanh, AlphaReLU15, LearnableLeakyReLU, Hardsigmoid, Hardtanh
+from .activations import AlphaSigmoid, AlphaTanh, AlphaReLU15, LearnableLeakyReLU, Hardsigmoid, Hardtanh, LeakyHardsigmoid, LeakyHardtanh
 import torch.nn.functional as F
 from .Padam import Padam
 from functools import partial
@@ -246,12 +246,14 @@ SIGMOIDS = {
     "alphasigmoid": AlphaSigmoid,
     "hardsigmoid": Hardsigmoid,
     "sigmoid": torch.nn.Sigmoid,
+    "leakyhardsigmoid": LeakyHardsigmoid,
 }
 TANHS = {
     "alphatanh": AlphaTanh,
     "tanh": torch.nn.Tanh,
     "hardtanh": Hardtanh,
     "softsign": torch.nn.Softsign,
+    "leakyhardtanh": LeakyHardtanh,
 }
 ACTIVATIONS = {
     **IDENTITIES,
