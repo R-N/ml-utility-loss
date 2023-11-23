@@ -279,10 +279,10 @@ PARAM_SPACE = {
 }
 
 PARAM_SPACE_2 = {
-    "dataset_size_low": ("int_exp_2", 4096, 4096),
-    "dataset_size_high": ("int_exp_2", 4096, 4096),
-    #"dataset_size_low": ("int_exp_2", 64, 256),
-    #"dataset_size_high": ("int_exp_2", 1024, 4096),
+    #"dataset_size_low": ("int_exp_2", 4096, 4096),
+    #"dataset_size_high": ("int_exp_2", 4096, 4096),
+    "dataset_size_low": ("int_exp_2", 256, 2048),
+    "dataset_size_high": ("int_exp_2", 2048, 4096),
     "batch_size_low": ("int_exp_2", 4, 4),
     "batch_size_high": ("int_exp_2", 4, 4), 
     "scheduler_patience": ("log_int", 30, 60),
