@@ -1438,8 +1438,8 @@ def eval(
     model_metrics = {
         model: {
             "avg_loss": avg_losses[model],
-            "avg_g_mag_losses": avg_g_mag_losses[model],
-            "avg_g_cos_losses": avg_g_cos_losses[model],
+            "avg_g_mag_loss": avg_g_mag_losses[model],
+            "avg_g_cos_loss": avg_g_cos_losses[model],
             "pred_duration": pred_duration[model],
             "grad_duration": grad_duration[model],
             "total_duration": total_duration[model],
