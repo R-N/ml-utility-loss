@@ -743,6 +743,8 @@ def train_2(
 
     if not early_stopping and patience:
         early_stopping = StopOnPlateau(patience=patience)
+    if patience:
+        assert early_stopping
 
     run_name = str(trial.number) if trial else run_name
 
