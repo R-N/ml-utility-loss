@@ -359,11 +359,8 @@ def train(
     wandb_watch=None,
     wandb_try=0,
     run_name=None,
-    use_early_stopping=True,
     **model_args
 ):
-    if use_early_stopping:
-        assert early_stopping, "Early stopping is None"
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
     
     timer = timer or (Timer(max_seconds=max_seconds) if max_seconds else None)
