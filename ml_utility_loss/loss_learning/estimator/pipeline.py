@@ -357,7 +357,7 @@ def train(
     n_warmup_steps=100,
     prune_timeout=False,
     wandb_watch=None,
-    wandb_try=1,
+    wandb_try=0,
     run_name=None,
     **model_args
 ):
