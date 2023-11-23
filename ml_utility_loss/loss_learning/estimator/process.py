@@ -241,7 +241,7 @@ def calc_g_cos_loss_same(
 # Gradient of error with opposing sign should have opposing direction
 def calc_g_cos_loss(
     dbody_dx, error,
-    cos_matrix=True,
+    cos_matrix=False,
     target=1e-3, #0.2588190451, # 75 degrees # 60 degrees, times 2
     opposing_dir_w=0.75,
     same_dir_w=0.25,
