@@ -743,8 +743,6 @@ def train_2(
 
     if not early_stopping and patience:
         early_stopping = StopOnPlateau(patience=patience)
-    if patience:
-        assert early_stopping
 
     run_name = str(trial.number) if trial else run_name
 
@@ -756,6 +754,7 @@ def train_2(
         checkpoint_dir=checkpoint_dir,
         log_dir=log_dir,
         run_name=run_name,
+        early_stopping=early_stopping,
         **kwargs
     )
     return train_results
@@ -789,11 +788,9 @@ def train_3(
     )
     kwargs["dataset_size"] = size_scheduler.get_size()
     kwargs["batch_size"] = size_scheduler.get_batch_size()
-    #early_stopping = size_scheduler
     return objective(
         *args, 
         size_scheduler=size_scheduler, 
-        #early_stopping=early_stopping, 
         checkpoint_dir=checkpoint_dir,
         log_dir=log_dir,
         trial=trial,
