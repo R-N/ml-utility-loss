@@ -49,16 +49,16 @@ PARAM_SPACE = {
     "n_warmup_steps": ("log_float", 35, 270),
     "Optim": ("optimizer", [
         # #"adamw", 
-        "sgdmomentum", 
+        #"sgdmomentum", 
         "amsgradw",
-        # #"adadelta",
-        "padam", 
+        # ##"adadelta",
+        #"padam", 
         "nadam",
-        "adabound",
+        #"adabound",
         # ##"adahessian",
         "adamp",
         "diffgrad",
-        # #"qhadam",
+        # "qhadam",
         # #"yogi",
     ]),
     # Training args
@@ -155,10 +155,10 @@ PARAM_SPACE = {
         IndsInitMode.XAVIER,
     ]),
     # Transformer args
-    "tf_d_inner": ("int_exp_2", 128, 512),
-    "tf_n_layers_enc": ("int", 2, 4), 
+    "tf_d_inner": ("int_exp_2", 256, 512),
+    "tf_n_layers_enc": ("int", 2, 5), 
     #"tf_n_layers_dec": ("bool_int", 2, 3), #better false
-    "tf_n_head": ("int_exp_2", 4, 8), 
+    "tf_n_head": ("int_exp_2", 8, 32), 
     "tf_activation": ("activation", [
         # "tanh", 
         # #"sigmoid",
@@ -176,7 +176,7 @@ PARAM_SPACE = {
     ]),
     #"tf_num_inds": ("bool_int_exp_2", 16, 128),
     #"tf_num_inds": ("conditional", {
-    "tf_num_inds": ("int_exp_2", 8, 32),
+    "tf_num_inds": ("int_exp_2", 16, 64),
     "tf_isab_mode": ("categorical", (
         ISABMode.SEPARATE, 
         ISABMode.SHARED,
@@ -202,7 +202,7 @@ PARAM_SPACE = {
     # Transformer PMA args
     #"tf_pma": ("conditional", { #better true
     #"tf_pma_start": ("int", -2, -1),
-    "tf_pma_low": ("int_exp_2", 1, 2),
+    "tf_pma_low": ("int_exp_2", 1, 4),
     #"tf_pma_high": ("int_exp_2", 4, 8),
     # "tf_pma_rank": ("bool_int_exp_2", 2, 32), #true better
     # #}),
@@ -247,8 +247,8 @@ PARAM_SPACE = {
         "leakyhardsigmoid",
     ]),
     # Head args
-    "head_d_hid": ("int_exp_2", 64, 128), 
-    "head_n_layers": ("int", 2, 3), 
+    "head_d_hid": ("int_exp_2", 64, 256), 
+    "head_n_layers": ("int", 2, 4), 
     "head_n_head": ("int_exp_2", 16, 32),
     "head_activation": ("activation", [
         # #"tanh",  
@@ -286,7 +286,7 @@ PARAM_SPACE = {
 PARAM_SPACE_2 = {
     #"dataset_size_low": ("int_exp_2", 2048, 2048),
     #"dataset_size_high": ("int_exp_2", 2048, 2048),
-    "dataset_size_low": ("int_exp_2", 256, 1024),
+    "dataset_size_low": ("int_exp_2", 512, 1024),
     "dataset_size_high": ("int_exp_2", 1024, 2048), # param must exist
     "batch_size_low": ("int_exp_2", 4, 4),
     "batch_size_high": ("int_exp_2", 4, 8),
