@@ -30,13 +30,13 @@ def objective(
         non_role_model_metrics = eval_loss["non_role_model_metrics"]
         return (
             role_model_metrics["avg_loss"],
-            g_loss_mul * 0.5 * (
-                role_model_metrics["avg_g_mag_loss"] + role_model_metrics["avg_g_cos_loss"]
-            ),
+            # g_loss_mul * 0.5 * (
+            #     role_model_metrics["avg_g_mag_loss"] + role_model_metrics["avg_g_cos_loss"]
+            # ),
             non_role_model_metrics["avg_loss"],
-            g_loss_mul * 0.5 * (
-                non_role_model_metrics["avg_g_mag_loss"] + non_role_model_metrics["avg_g_cos_loss"]
-            ),
+            # g_loss_mul * 0.5 * (
+            #     non_role_model_metrics["avg_g_mag_loss"] + non_role_model_metrics["avg_g_cos_loss"]
+            # ),
         )
     except AssertionError as ex:
         msg = str(ex)
@@ -92,13 +92,13 @@ def objective_2(
         non_role_model_metrics = eval_loss["non_role_model_metrics"]
         return (
             role_model_metrics["avg_loss"],
-            g_loss_mul * 0.5 * (
-                role_model_metrics["avg_g_mag_loss"] + role_model_metrics["avg_g_cos_loss"]
-            ),
+            # g_loss_mul * 0.5 * (
+            #     role_model_metrics["avg_g_mag_loss"] + role_model_metrics["avg_g_cos_loss"]
+            # ),
             non_role_model_metrics["avg_loss"],
-            g_loss_mul * 0.5 * (
-                non_role_model_metrics["avg_g_mag_loss"] + non_role_model_metrics["avg_g_cos_loss"]
-            ),
+            # g_loss_mul * 0.5 * (
+            #     non_role_model_metrics["avg_g_mag_loss"] + non_role_model_metrics["avg_g_cos_loss"]
+            # ),
         )
 
     except AssertionError as ex:
