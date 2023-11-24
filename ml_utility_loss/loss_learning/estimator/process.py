@@ -310,8 +310,8 @@ def calc_g_mse_mag_loss(
         target=target,
     )
     # gradient penalty
-    #grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g).item()) if grad_loss_scale else grad_loss_fn
-    g_loss = grad_loss_fn(dbody_dx_norm, g, reduction="none")
+    grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g).item()) if grad_loss_scale else grad_loss_fn
+    g_loss = grad_loss_fn_(dbody_dx_norm, g, reduction="none")
     #g_loss = g_loss + eps
     if reduction and reduction != "none":
         g_loss = reduction(g_loss)
