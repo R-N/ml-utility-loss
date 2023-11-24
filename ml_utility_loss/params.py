@@ -100,7 +100,7 @@ class PMAFFNMode:
 class GradientPenaltyMode:
     NONE = {
         "gradient_penalty": False,
-        "forward_once": False,
+        #"forward_once": False,
         "calc_grad_m": False,
         "avg_non_role_model_m": False,
         "inverse_avg_non_role_model_m": False,

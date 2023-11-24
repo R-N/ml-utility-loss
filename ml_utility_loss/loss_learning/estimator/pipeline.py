@@ -359,6 +359,7 @@ def train(
     wandb_watch=None,
     wandb_try=0,
     run_name=None,
+    forward_once=None,
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
@@ -478,6 +479,14 @@ def train(
         g_loss_mul = scale_divider(grad_loss_fn, g_loss_mul)
 
     print("g_loss_mul", g_loss_mul)
+    
+    if forward_once is not None:
+        gradient_penalty_mode = gradient_penalty_mode or {}
+        gradient_penalty_mode = {
+            **gradient_penalty_mode,
+            "forward_once": forward_once,
+        }
+
 
     def train_epoch_(
         train_loader,

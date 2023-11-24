@@ -1007,7 +1007,7 @@ def train_epoch(
             timer.check_time()
 
         non_role_model_embed_loss = zero_tensor(device=whole_model.device)
-        if len(computes) > 1:
+        if len(computes) > 1:# and forward_once:
             # Calculate role model adapter embedding as the correct one as it has lowest error
             # dim 0 is batch, dim 1 is size, not sure which to use but size I guess
             # anyway that means -3 and -2
