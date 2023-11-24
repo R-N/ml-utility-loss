@@ -5,6 +5,7 @@ from torch.nn import functional as F
 DEFAULTS = {
     "Body": "twin_encoder",
     "loss_balancer_meta": True,
+    "loss_balancer_lbtw": False,
     "pma_skip_small": False, #for now, don't skip
     "isab_skip_small": False, #for now, don't skip
     "layer_norm": False,
@@ -69,7 +70,7 @@ PARAM_SPACE = {
     "loss_balancer_beta": ("float", 0.65, 0.98),
     "loss_balancer_r": ("float", 0.9, 0.98),
     "loss_balancer_log": BOOLEAN,
-    "loss_balancer_lbtw": BOOLEAN,
+    #"loss_balancer_lbtw": BOOLEAN,
     #"loss_fn": ("loss", "mse"),
     #"grad_loss_fn": ("loss", "huber"),
     "std_loss_fn": ("loss", ["mean_penalty_log_half"]),
