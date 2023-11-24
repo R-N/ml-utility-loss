@@ -19,9 +19,9 @@ DEFAULTS = {
     "head_n_seeds": 0,
     "tf_pma_low": 1,
     "gradient_penalty_kwargs": {
-        "mag_loss": True,
-        "mse_mag": True,
-        "mag_corr": True,
+        "mag_loss": False,
+        "mse_mag": False,
+        "mag_corr": False,
         "seq_mag": False,
         "cos_loss": True,
         "mag_corr_kwargs": {
@@ -29,6 +29,7 @@ DEFAULTS = {
         },
         "cos_loss_kwargs": {
             "only_sign": True,
+            "cos_matrix": False,
         },
     },
     "dropout": 0,
@@ -96,30 +97,30 @@ PARAM_SPACE = {
         "realtabformer_latent",
     ]),
     "gradient_penalty_mode": ("gradient_penalty_mode", [
-        #"NONE", # for now, let's not grad penalty
-        "ALL", # ALL was the best, but it takes a long time to train
-        "ONCE",
-        "ESTIMATE",
-        #"AVERAGE_NO_MUL",
-        "AVERAGE_MUL"
+        "NONE", # for now, let's not grad penalty
+        # "ALL", # ALL was the best, but it takes a long time to train
+        # "ONCE",
+        # "ESTIMATE",
+        # #"AVERAGE_NO_MUL",
+        # "AVERAGE_MUL"
     ]),
-    "g_loss_mul": ("log_float", 1e-5, 0.1),
-    "non_role_model_mul": ("log_float", 1e-5, 1.0),
-    "mse_mag": ("conditional", {
-        "mse_mag": True,
-        "mse_mag_target": ("log_float", 0.005, 1.0),
-    }),
-    #"mag_corr": ("conditional", {
-    "mag_corr": True,
-    "mag_corr_target": ("log_float", 0.005, 0.006),
-    "mag_corr_only_sign": False,
-    "mag_corr_sign": BOOLEAN,
-    #}),
-    "cos_loss": ("conditional", {
-        "cos_loss": True,
-        "cos_loss_target": ("log_float", 0.003, 0.62),
-        "cos_loss_only_sign": True,
-    }),
+    # "g_loss_mul": ("log_float", 1e-5, 0.1),
+    # "non_role_model_mul": ("log_float", 1e-5, 1.0),
+    # "mse_mag": ("conditional", {
+    #     "mse_mag": True,
+    #     "mse_mag_target": ("log_float", 0.005, 1.0),
+    # }),
+    # #"mag_corr": ("conditional", {
+    # "mag_corr": True,
+    # "mag_corr_target": ("log_float", 0.005, 0.006),
+    # "mag_corr_only_sign": False,
+    # "mag_corr_sign": BOOLEAN,
+    # #}),
+    # "cos_loss": ("conditional", {
+    #     "cos_loss": True,
+    #     "cos_loss_target": ("log_float", 0.003, 0.62),
+    #     "cos_loss_only_sign": True,
+    # }),
     # Common model args
     "d_model": ("int_exp_2", 64, 128), 
     #"dropout": ("bool_float", 0.15, 0.5), 
