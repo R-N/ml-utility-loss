@@ -1118,22 +1118,39 @@ def train_epoch(
 
         # Finally, backprop
         #batch_loss = role_model_total_loss + non_role_model_loss
-        batch_loss = (
-            role_model_loss, 
-            role_model_g_mag_loss, 
-            role_model_g_cos_loss, 
-            non_role_model_avg_mul * non_role_model_embed_loss, 
-            non_role_model_avg_mul * non_role_model_g_mag_loss,
-            non_role_model_avg_mul * non_role_model_g_cos_loss,
-        )
-        loss_weights = (
-            1,
-            g_loss_mul * 0.5,
-            g_loss_mul * 0.5,
-            non_role_model_mul,
-            non_role_model_mul * g_loss_mul * 0.5,
-            non_role_model_mul * g_loss_mul * 0.5,
-        )
+        batch_loss = (role_model_loss,)
+        loss_weights = (1.0,)
+        if gradient_penalty:
+            batch_loss = (
+                *batch_loss, 
+                role_model_g_mag_loss, 
+                role_model_g_cos_loss,
+            )
+            loss_weights = (
+                *loss_weights, 
+                g_loss_mul * 0.5, 
+                g_loss_mul * 0.5,
+            )
+        if non_role_model_count:
+            batch_loss = (
+                *batch_loss, 
+                non_role_model_avg_mul * non_role_model_embed_loss,
+            )
+            loss_weights = (
+                *loss_weights,
+                non_role_model_mul,
+            )
+            if gradient_penalty:
+                batch_loss = (
+                    *batch_loss, 
+                    non_role_model_avg_mul * non_role_model_g_mag_loss,
+                    non_role_model_avg_mul * non_role_model_g_cos_loss,
+                )
+                loss_weights = (
+                    *loss_weights, 
+                    non_role_model_mul * g_loss_mul * 0.5,
+                    non_role_model_mul * g_loss_mul * 0.5,
+                )
         if include_std_loss:
             batch_loss = (*batch_loss, role_model_std_loss)
             loss_weights = (*loss_weights, 0.5)
