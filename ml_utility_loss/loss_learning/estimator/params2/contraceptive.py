@@ -126,7 +126,7 @@ PARAM_SPACE = {
     #     "cos_loss_only_sign": True,
     # }),
     # Common model args
-    "d_model": ("int_exp_2", 64, 128), 
+    "d_model": ("int_exp_2", 64, 256), 
     #"dropout": ("bool_float", 0.15, 0.5), 
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
@@ -163,8 +163,8 @@ PARAM_SPACE = {
         IndsInitMode.XAVIER,
     ]),
     # Transformer args
-    "tf_d_inner": ("int_exp_2", 64, 512),
-    "tf_n_layers_enc": ("int", 2, 5), 
+    "tf_d_inner": ("int_exp_2", 128, 256),
+    "tf_n_layers_enc": ("int", 3, 5), 
     #"tf_n_layers_dec": ("bool_int", 2, 3),  #better false
     "tf_n_head": ("int_exp_2", 32, 64), 
     "tf_activation": ("activation", [
@@ -184,7 +184,7 @@ PARAM_SPACE = {
     ]),
     #"tf_num_inds": ("bool_int_exp_2", 16, 64),
     #"tf_num_inds": ("conditional", {
-    "tf_num_inds": ("int_exp_2", 2, 8),
+    "tf_num_inds": ("int_exp_2", 4, 8),
     "tf_isab_mode": ("categorical", (
         ISABMode.SEPARATE, 
         ISABMode.SHARED,
@@ -210,7 +210,7 @@ PARAM_SPACE = {
     # Transformer PMA args
     #"tf_pma": ("conditional", { # better true
     #"tf_pma_start": ("int", -2, -1),
-    "tf_pma_low": ("int_exp_2", 1, 4),
+    "tf_pma_low": ("int_exp_2", 2, 4),
     #"tf_pma_high": ("int_exp_2", 4, 8),
     # "tf_pma_high": ("int_exp_2", 16, 128),
     # "tf_pma_rank": ("bool_int_exp_2", 2, 16), # better true
@@ -228,7 +228,7 @@ PARAM_SPACE = {
     #     "ada_n_head": ("int_exp_2", 4, 32),
     # }),
     "ada_d_hid": ("int_exp_2", 512, 2048), 
-    "ada_n_layers": ("int", 5, 7), 
+    "ada_n_layers": ("int", 5, 6), 
     "ada_activation": ("activation", [
         "tanh",  
         # #"sigmoid", 
@@ -256,7 +256,7 @@ PARAM_SPACE = {
         "leakyhardsigmoid",
     ]),
     # Head args
-    "head_d_hid": ("int_exp_2", 128, 512), 
+    "head_d_hid": ("int_exp_2", 64, 512), 
     "head_n_layers": ("int", 4, 5), 
     "head_n_head": ("int_exp_2", 32, 64),
     "head_activation": ("activation", [

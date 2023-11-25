@@ -118,7 +118,7 @@ PARAM_SPACE = {
     #     "cos_loss_only_sign": True,
     # }),
     # Common model args
-    "d_model": ("int_exp_2", 32, 128), 
+    "d_model": ("int_exp_2", 64, 256), 
     #"dropout": ("bool_float", 0.15, 0.5), 
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
@@ -156,7 +156,7 @@ PARAM_SPACE = {
     ]),
     # Transformer args
     "tf_d_inner": ("int_exp_2", 256, 512),
-    "tf_n_layers_enc": ("int", 2, 5), 
+    "tf_n_layers_enc": ("int", 3, 5), 
     #"tf_n_layers_dec": ("bool_int", 2, 3), #better false
     "tf_n_head": ("int_exp_2", 8, 32), 
     "tf_activation": ("activation", [
@@ -218,8 +218,8 @@ PARAM_SPACE = {
     #     "ada_n_seeds": ("int_exp_2", 1, 2),
     #     "ada_n_head": ("int_exp_2", 4, 32),
     # }),
-    "ada_d_hid": ("int_exp_2", 128, 512), 
-    "ada_n_layers": ("int", 4, 5), 
+    "ada_d_hid": ("int_exp_2", 256, 512), 
+    "ada_n_layers": ("int", 4, 6), 
     "ada_activation": ("activation", [
         "tanh",  
         # #"sigmoid", 
@@ -247,9 +247,9 @@ PARAM_SPACE = {
         "leakyhardsigmoid",
     ]),
     # Head args
-    "head_d_hid": ("int_exp_2", 64, 256), 
-    "head_n_layers": ("int", 2, 4), 
-    "head_n_head": ("int_exp_2", 16, 32),
+    "head_d_hid": ("int_exp_2", 128, 256), 
+    "head_n_layers": ("int", 3, 4), 
+    "head_n_head": ("int_exp_2", 32, 64),
     "head_activation": ("activation", [
         # #"tanh",  
         # #"sigmoid", 

@@ -123,7 +123,7 @@ PARAM_SPACE = {
     #     "cos_loss_only_sign": True,
     # }),
     # Common model args
-    "d_model": ("int_exp_2", 128, 256), 
+    "d_model": ("int_exp_2", 128, 512), 
     #"dropout": ("bool_float", 0.15, 0.5), 
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
@@ -160,10 +160,10 @@ PARAM_SPACE = {
         IndsInitMode.XAVIER,
     ]),
     # Transformer args
-    "tf_d_inner": ("int_exp_2", 128, 256),
+    "tf_d_inner": ("int_exp_2", 128, 512),
     "tf_n_layers_enc": ("int", 4, 5), 
     #"tf_n_layers_dec": ("bool_int", 3, 4), #better false
-    "tf_n_head": ("int_exp_2", 8, 16), 
+    "tf_n_head": ("int_exp_2", 8, 32), 
     "tf_activation": ("activation", [
         # #"tanh", 
         # ##"sigmoid",
@@ -181,7 +181,7 @@ PARAM_SPACE = {
     ]),
     #"tf_num_inds": ("bool_int_exp_2", 16, 64),
     #"tf_num_inds": ("conditional", {
-    "tf_num_inds": ("int_exp_2", 2, 16),
+    "tf_num_inds": ("int_exp_2", 8, 32),
     "tf_isab_mode": ("categorical", (
         ISABMode.SEPARATE, 
         ISABMode.SHARED,
@@ -207,7 +207,7 @@ PARAM_SPACE = {
     # Transformer PMA args
     #"tf_pma": ("conditional", { # doesn't matter
     #"tf_pma_start": ("int", -2, -1),
-    "tf_pma_low": ("int_exp_2", 1, 4),
+    "tf_pma_low": ("int_exp_2", 2, 8),
     #"tf_pma_high": ("int_exp_2", 4, 8),
     # "tf_pma_start": ("int", -2, -1),
     # "tf_pma_high": ("int_exp_2", 16, 64),
@@ -226,7 +226,7 @@ PARAM_SPACE = {
     #     "ada_n_head": ("int_exp_2", 4, 32),
     # }),
     "ada_d_hid": ("int_exp_2", 64, 256), 
-    "ada_n_layers": ("int", 5, 7), 
+    "ada_n_layers": ("int", 6, 7), 
     "ada_activation": ("activation", [
         "tanh",  
         # "sigmoid", 
@@ -254,9 +254,9 @@ PARAM_SPACE = {
         "leakyhardsigmoid",
     ]),
     # Head args
-    "head_d_hid": ("int_exp_2", 128, 512), 
-    "head_n_layers": ("int", 3, 6), 
-    "head_n_head": ("int_exp_2", 16, 32), #16 was never sampled but 8 was top
+    "head_d_hid": ("int_exp_2", 64, 256), 
+    "head_n_layers": ("int", 4, 6), 
+    "head_n_head": ("int_exp_2", 8, 32), 
     "head_activation": ("activation", [
         # #"tanh",  
         # #"sigmoid", 
@@ -283,7 +283,7 @@ PARAM_SPACE = {
 PARAM_SPACE_2 = {
     #"dataset_size_low": ("int_exp_2", 4096, 4096),
     #"dataset_size_high": ("int_exp_2", 4096, 4096),
-    "dataset_size_low": ("int_exp_2", 512, 2048),
+    "dataset_size_low": ("int_exp_2", 1024, 2048),
     "dataset_size_high": ("int_exp_2", 2048, 4096),
     "batch_size_low": ("int_exp_2", 4, 4),
     "batch_size_high": ("int_exp_2", 4, 8),
