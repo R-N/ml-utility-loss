@@ -161,7 +161,7 @@ PARAM_SPACE = {
     ]),
     # Transformer args
     "tf_d_inner": ("int_exp_2", 256, 512),
-    "tf_n_layers_enc": ("int", 5, 6), 
+    "tf_n_layers_enc": ("int", 4, 5), 
     #"tf_n_layers_dec": ("bool_int", 3, 4), #better false
     "tf_n_head": ("int_exp_2", 32, 64), 
     "tf_activation": ("activation", [
