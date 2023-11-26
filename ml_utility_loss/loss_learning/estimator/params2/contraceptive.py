@@ -126,7 +126,7 @@ PARAM_SPACE = {
     #     "cos_loss_only_sign": True,
     # }),
     # Common model args
-    "d_model": ("int_exp_2", 256, 512), 
+    "d_model": ("int_exp_2", 256, 256), 
     #"dropout": ("bool_float", 0.15, 0.5), 
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
@@ -227,7 +227,7 @@ PARAM_SPACE = {
     #     "ada_n_seeds": ("int_exp_2", 1, 2),
     #     "ada_n_head": ("int_exp_2", 4, 32),
     # }),
-    "ada_d_hid": ("int_exp_2", 1024, 4096), 
+    "ada_d_hid": ("int_exp_2", 1024, 2048), 
     "ada_n_layers": ("int", 5, 6), 
     "ada_activation": ("activation", [
         # "tanh",  

@@ -123,7 +123,7 @@ PARAM_SPACE = {
     #     "cos_loss_only_sign": True,
     # }),
     # Common model args
-    "d_model": ("int_exp_2", 128, 512), 
+    "d_model": ("int_exp_2", 128, 256), 
     #"dropout": ("bool_float", 0.15, 0.5), 
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
