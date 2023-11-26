@@ -161,7 +161,7 @@ PARAM_SPACE = {
         IndsInitMode.XAVIER,
     ]),
     # Transformer args
-    "tf_d_inner": ("int_exp_2", 256, 512),
+    "tf_d_inner": ("int_exp_2", 256, 1024),
     "tf_n_layers_enc": ("int", 4, 5), 
     #"tf_n_layers_dec": ("bool_int", 2, 3), #better false
     "tf_n_head": ("int_exp_2", 16, 32), 
