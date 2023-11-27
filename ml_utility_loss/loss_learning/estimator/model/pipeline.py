@@ -74,6 +74,7 @@ def create_body(
     tf_n_layers_dec=2, 
     tf_n_head=8, 
     tf_activation=nn.ReLU,
+    tf_activation_final=nn.ReLU,
     tf_isab_mode=ISABMode.SEPARATE,
     tf_isab_rank=0,
     tf_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
@@ -116,6 +117,7 @@ def create_body(
         n_head=tf_n_head, 
         #dropout=dropout, 
         activation=tf_activation,
+        activation_final=tf_activation_final,
         #softmax=softmax,
         #flip=flip,
         pma_start=tf_pma_start,

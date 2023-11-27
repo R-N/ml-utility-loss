@@ -66,6 +66,8 @@ class Encoder(nn.Module):
         self, 
         n_layers=2, 
         d_model=64, 
+        activation=nn.ReLU,
+        activation_final=nn.Tanh,
         pma_start=None,
         pma_high=128,
         pma_low=1,
@@ -96,7 +98,7 @@ class Encoder(nn.Module):
         self.lora_rank = lora_rank
         LinearLora = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
 
-        def EncoderLayer_(pma=0, Linear=LinearLora, bias=bias):
+        def EncoderLayer_(pma=0, Linear=LinearLora, bias=bias, last=False):
             return EncoderLayer(
                 d_model=d_model, 
                 pma=pma,
@@ -104,11 +106,12 @@ class Encoder(nn.Module):
                 Linear=Linear,
                 bias=bias,
                 init=False,
+                activation=activation_final if last else activation,
                 **kwargs,
             )
 
         self.layer_stack = nn.ModuleList([
-            *[EncoderLayer_(pma=pma_steps[i]) for i in range(0, n_layers)]
+            *[EncoderLayer_(pma=pma_steps[i], last=(i==n_layers-1)) for i in range(0, n_layers)],
         ])
 
         if lora_mode == LoRAMode.LORA:
@@ -160,6 +163,8 @@ class Decoder(nn.Module):
         self, 
         n_layers=2, 
         d_model=64, 
+        activation=nn.ReLU,
+        activation_final=nn.Tanh,
         pma_start=None,
         pma_high=128,
         pma_low=1,
@@ -191,7 +196,7 @@ class Decoder(nn.Module):
         self.lora_rank = lora_rank
         LinearLora = TryLoRA(lora_mode=lora_mode, lora_rank=lora_rank)
 
-        def DecoderLayer_(pma, Linear=LinearLora, bias=bias):
+        def DecoderLayer_(pma, Linear=LinearLora, bias=bias, last=False):
             return DecoderLayer(
                 d_model=d_model, 
                 pma=pma,
@@ -199,11 +204,12 @@ class Decoder(nn.Module):
                 Linear=Linear,
                 bias=bias,
                 init=False,
+                activation=activation_final if last else activation,
                 **kwargs,
             )
 
         self.layer_stack = nn.ModuleList([
-            *[DecoderLayer_(pma=pma_steps[i]) for i in range(0, n_layers)]
+            *[DecoderLayer_(pma=pma_steps[i], last=(i==n_layers-1)) for i in range(0, n_layers)]
         ])
 
         if lora_mode == LoRAMode.LORA:

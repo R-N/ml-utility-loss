@@ -5,6 +5,7 @@ from torch.nn import functional as F
 DEFAULTS = {
     "Body": "twin_encoder",
     "loss_balancer_meta": True,
+    "loss_balancer_log": False,
     "loss_balancer_lbtw": False,
     "pma_skip_small": False, #for now, don't skip
     "isab_skip_small": False, #for now, don't skip
@@ -45,8 +46,8 @@ PARAM_SPACE = {
     # Training args
     "epochs": ("log_int", 250, 1000),
     #"lr": ("log_float", 5e-4, 1e-2),
-    "lr_mul": ("log_float", 0.01, 0.1),
-    "n_warmup_steps": ("log_float", 35, 270),
+    "lr_mul": ("log_float", 0.03, 0.2),
+    "n_warmup_steps": ("log_float", 35, 120),
     "Optim": ("optimizer", [
         # #"adamw", 
         #"sgdmomentum", 
@@ -62,14 +63,16 @@ PARAM_SPACE = {
         # #"yogi",
     ]),
     # Training args
-    #"non_role_model_mul": ("float", 0.75, 1.0), #almost random
+    "non_role_model_mul": ("float", 0.1, 2.0),
     #"non_role_model_avg": BOOLEAN,
     #"non_role_model_avg": True, 
     #"std_loss_mul": ("float", 0.5, 2.0),
     #"grad_loss_mul": ("float", 0.6, 1.0), #almost random
-    "loss_balancer_beta": ("float", 0.65, 0.98),
-    "loss_balancer_r": ("float", 0.9, 0.98),
-    "loss_balancer_log": BOOLEAN,
+    "loss_balancer_meta": ("conditional", {
+        "loss_balancer_beta": ("float", 0.65, 0.98),
+        "loss_balancer_r": ("float", 0.9, 0.98),
+    }),
+    #"loss_balancer_log": BOOLEAN,
     #"loss_balancer_lbtw": BOOLEAN,
     #"loss_fn": ("loss", "mse"),
     #"grad_loss_fn": ("loss", "huber"),
@@ -123,7 +126,7 @@ PARAM_SPACE = {
     #     "cos_loss_only_sign": True,
     # }),
     # Common model args
-    "d_model": ("int_exp_2", 128, 256), 
+    "d_model": ("int_exp_2", 128, 128), 
     #"dropout": ("bool_float", 0.15, 0.5), 
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
@@ -142,7 +145,7 @@ PARAM_SPACE = {
         # # "sigmoid", 
         # "relu",
         # "leakyrelu", 
-        # "selu",
+        "selu",
         # # #"prelu",
         # # ##"rrelu",
         # # "relu6",
@@ -161,21 +164,25 @@ PARAM_SPACE = {
     ]),
     # Transformer args
     "tf_d_inner": ("int_exp_2", 256, 512),
-    "tf_n_layers_enc": ("int", 4, 5), 
+    "tf_n_layers_enc": ("int", 4, 4), 
     #"tf_n_layers_dec": ("bool_int", 3, 4), #better false
     "tf_n_head": ("int_exp_2", 32, 64), 
     "tf_activation": ("activation", [
-        # # #"tanh", 
+        "tanh", 
         # # ##"sigmoid",
         # "relu", 
         # "leakyrelu", 
-        # # "selu",
+        "selu",
         # "prelu",
         # # ##"rrelu",
         # "relu6",
         # # #"hardtanh",
         # #"hardsigmoid",
         # # ##"softsign",
+        "leakyhardtanh",
+        "leakyhardsigmoid",
+    ]),
+    "tf_activation_final": ("activation", [
         "leakyhardtanh",
         "leakyhardsigmoid",
     ]),
@@ -225,17 +232,17 @@ PARAM_SPACE = {
     #     "ada_n_seeds": ("int_exp_2", 1, 2),
     #     "ada_n_head": ("int_exp_2", 4, 32),
     # }),
-    "ada_d_hid": ("int_exp_2", 256, 512), 
+    "ada_d_hid": ("int_exp_2", 512, 512), 
     "ada_n_layers": ("int", 7, 8), 
     "ada_activation": ("activation", [
-        # "tanh",  
+        "tanh",  
         # "sigmoid", 
-        "relu",
+        #"relu",
         # #"leakyrelu", 
-        # "selu",
+        "selu",
         # #"prelu",
         # #"rrelu",
-        "relu6",
+        #"relu6",
         # #"hardtanh",
         # #"hardsigmoid",
         # "softsign",
@@ -255,16 +262,16 @@ PARAM_SPACE = {
     ]),
     # Head args
     "head_d_hid": ("int_exp_2", 128, 256), 
-    "head_n_layers": ("int", 6, 7), 
+    "head_n_layers": ("int", 7, 8), 
     "head_n_head": ("int_exp_2", 16, 32), 
     "head_activation": ("activation", [
-        # #"tanh",  
+        "tanh",  
         # #"sigmoid", 
         # #"relu",
         # #"leakyrelu", 
-        #"selu", 
-        "prelu",
-        "rrelu",
+        "selu", 
+        #"prelu",
+        #"rrelu",
         # ##"relu6",
         #"hardtanh",
         # #"hardsigmoid",
@@ -277,13 +284,13 @@ PARAM_SPACE = {
         #"hardsigmoid",
         "leakyhardsigmoid",
     ]),
-    "patience": ("log_int", 50, 100),
+    "patience": ("log_int", 70, 100),
 }
 
 PARAM_SPACE_2 = {
     #"dataset_size_low": ("int_exp_2", 4096, 4096),
     #"dataset_size_high": ("int_exp_2", 4096, 4096),
-    "dataset_size_low": ("int_exp_2", 1024, 2048),
+    "dataset_size_low": ("int_exp_2", 2048, 2048),
     "dataset_size_high": ("int_exp_2", 2048, 4096),
     "batch_size_low": ("int_exp_2", 4, 4),
     "batch_size_high": ("int_exp_2", 4, 4),

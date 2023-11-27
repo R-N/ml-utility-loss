@@ -5,6 +5,7 @@ from torch.nn import functional as F
 DEFAULTS = {
     "Body": "twin_encoder",
     "loss_balancer_meta": True,
+    "loss_balancer_log": False,
     "loss_balancer_lbtw": False,
     "pma_skip_small": False, #for now, don't skip
     "isab_skip_small": False, #for now, don't skip
@@ -45,8 +46,8 @@ PARAM_SPACE = {
     # Training args
     "epochs": ("log_int", 500, 1000),
     #"lr": ("log_float", 5e-4, 1e-2),
-    "lr_mul": ("log_float", 0.01, 0.1),
-    "n_warmup_steps": ("log_float", 100, 400),
+    "lr_mul": ("log_float", 0.05, 0.2),
+    "n_warmup_steps": ("log_float", 200, 500),
     "Optim": ("optimizer", [
         # #"adamw", 
         #"sgdmomentum", 
@@ -62,15 +63,17 @@ PARAM_SPACE = {
         # #"yogi",
     ]),
     # Training args
-    #"non_role_model_mul": ("float", 0.8, 1.0),
+    "non_role_model_mul": ("float", 0.1, 2.0),
     #"non_role_model_avg": BOOLEAN,
     #"non_role_model_avg": True, # doesnt matter
     #"std_loss_mul": ("float", 0.5, 2.0),
     #"grad_loss_mul": ("float", 0.6, 1.0), #almost random
-    "loss_balancer_beta": ("float", 0.65, 0.98),
-    "loss_balancer_r": ("float", 0.9, 0.98),
+    "loss_balancer_meta": ("conditional", {
+        "loss_balancer_beta": ("float", 0.65, 0.8),
+        "loss_balancer_r": ("float", 0.9, 0.95),
+    }),
     #"loss_balancer_log": True, 
-    "loss_balancer_log": BOOLEAN, #True
+    #"loss_balancer_log": BOOLEAN, #True
     #"loss_balancer_lbtw": True,
     #"loss_balancer_lbtw": BOOLEAN, #True
     #"loss_fn": ("loss", "mse"),
@@ -163,16 +166,16 @@ PARAM_SPACE = {
         IndsInitMode.XAVIER,
     ]),
     # Transformer args
-    "tf_d_inner": ("int_exp_2", 128, 256),
-    "tf_n_layers_enc": ("int", 3, 5), 
+    "tf_d_inner": ("int_exp_2", 256, 512),
+    "tf_n_layers_enc": ("int", 3, 4), 
     #"tf_n_layers_dec": ("bool_int", 2, 3),  #better false
-    "tf_n_head": ("int_exp_2", 32, 64), 
+    "tf_n_head": ("int_exp_2", 64, 128), 
     "tf_activation": ("activation", [
-        # # "tanh", 
+        "tanh", 
         # # #"sigmoid",
         # "relu", 
         # "leakyrelu", 
-        # # "selu",
+        "selu",
         # "prelu",
         # # "rrelu",
         # "relu6",
@@ -182,9 +185,13 @@ PARAM_SPACE = {
         "leakyhardtanh",
         "leakyhardsigmoid",
     ]),
+    "tf_activation_final": ("activation", [
+        "leakyhardtanh",
+        "leakyhardsigmoid",
+    ]),
     #"tf_num_inds": ("bool_int_exp_2", 16, 64),
     #"tf_num_inds": ("conditional", {
-    "tf_num_inds": ("int_exp_2", 4, 8),
+    "tf_num_inds": ("int_exp_2", 8, 16),
     "tf_isab_mode": ("categorical", (
         ISABMode.SEPARATE, 
         ISABMode.SHARED,
@@ -210,7 +217,7 @@ PARAM_SPACE = {
     # Transformer PMA args
     #"tf_pma": ("conditional", { # better true
     #"tf_pma_start": ("int", -2, -1),
-    "tf_pma_low": ("int_exp_2", 4, 8),
+    "tf_pma_low": ("int_exp_2", 8, 16),
     #"tf_pma_high": ("int_exp_2", 4, 8),
     # "tf_pma_high": ("int_exp_2", 16, 128),
     # "tf_pma_rank": ("bool_int_exp_2", 2, 16), # better true
@@ -227,14 +234,14 @@ PARAM_SPACE = {
     #     "ada_n_seeds": ("int_exp_2", 1, 2),
     #     "ada_n_head": ("int_exp_2", 4, 32),
     # }),
-    "ada_d_hid": ("int_exp_2", 1024, 2048), 
-    "ada_n_layers": ("int", 5, 6), 
+    "ada_d_hid": ("int_exp_2", 1024, 1024), 
+    "ada_n_layers": ("int", 5, 5), 
     "ada_activation": ("activation", [
-        # "tanh",  
+        "tanh",  
         # # #"sigmoid", 
         # "relu",
         # # #"leakyrelu", 
-        # # "selu",
+        "selu",
         # # #"prelu",
         # # #"rrelu",
         # "relu6",
@@ -245,22 +252,15 @@ PARAM_SPACE = {
         "leakyhardsigmoid",
     ]),
     "ada_activation_final": ("activation", [
-        # "tanh", 
-        #"sigmoid", 
-        #"relu6",
-        #"hardtanh",
-        # #"hardsigmoid",
-        "softsign",
-        #"identity",
         "leakyhardtanh",
         "leakyhardsigmoid",
     ]),
     # Head args
-    "head_d_hid": ("int_exp_2", 64, 256), 
-    "head_n_layers": ("int", 5, 6), 
-    "head_n_head": ("int_exp_2", 64, 128),
+    "head_d_hid": ("int_exp_2", 128, 256), 
+    "head_n_layers": ("int", 6, 7), 
+    "head_n_head": ("int_exp_2", 64, 64),
     "head_activation": ("activation", [
-        # "tanh",  
+        "tanh",  
         # "sigmoid", 
         # "relu",
         # #"leakyrelu", 
@@ -279,7 +279,7 @@ PARAM_SPACE = {
         #"hardsigmoid",
         "leakyhardsigmoid",
     ]),
-    "patience": ("log_int", 60, 80),
+    "patience": ("log_int", 70, 100),
 }
 
 PARAM_SPACE_2 = {
@@ -289,7 +289,7 @@ PARAM_SPACE_2 = {
     "dataset_size_high": ("int_exp_2", 1024, 2048),
     "batch_size_low": ("int_exp_2", 4, 4),
     "batch_size_high": ("int_exp_2", 4, 4),
-    "scheduler_patience": ("log_int", 20, 70),
+    "scheduler_patience": ("log_int", 5, 30),
 }
 
 #GOOD = [12, 13, 21, 33, 44, 45, 65, 66, 84, 87, 101, 102]
