@@ -314,7 +314,7 @@ def calc_g_mse_mag_loss(
             target=target,
         )
     else:
-        g = torch.full(dbody_dx_norm.shape, target, device=dbody_dx_norm.device)
+        g = torch.full(dbody_dx_norm.shape, target, device=dbody_dx_norm.device, dtype=dbody_dx_norm.dtype)
     # gradient penalty
     grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g).item()) if grad_loss_scale else grad_loss_fn
     g_loss = grad_loss_fn_(dbody_dx_norm, g, reduction="none")
