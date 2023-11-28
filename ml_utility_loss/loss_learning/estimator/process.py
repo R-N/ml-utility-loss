@@ -202,7 +202,7 @@ def calc_g_cos_loss_opposing(
     # Cos is bounded -1 to 1
     # So the loss is bounded by 2
     # Thus we just half it to bound it to 1
-    g_loss = 0.5 * grad_loss_fn(cos, torch.full(cos.shape, -target, device=cos.device)) #negative
+    g_loss = 0.5 * grad_loss_fn(cos, torch.full(cos.shape, -target, device=cos.device, dtype=cos.dtype)) #negative
     if reduction:
         g_loss = reduction(g_loss)
     return g_loss
@@ -232,7 +232,7 @@ def calc_g_cos_loss_same(
     # Cos is bounded -1 to 1
     # So the loss is bounded by 2
     # Thus we just half it to bound it to 1
-    g_loss = 0.5 * grad_loss_fn(cos, torch.full(cos.shape, target, device=cos.device))
+    g_loss = 0.5 * grad_loss_fn(cos, torch.full(cos.shape, target, device=cos.device, dtype=cos.dtype))
 
     g_loss = torch.triu(g_loss)
 
@@ -353,7 +353,7 @@ def calc_g_mag_corr_loss(
     elif only_sign not in (False, None):
         corr[corr >= only_sign] = target
 
-    g_loss = grad_loss_fn(corr, torch.full(corr.shape, target, device=corr.device))
+    g_loss = grad_loss_fn(corr, torch.full(corr.shape, target, device=corr.device, dtype=corr.dtype))
 
     return g_loss
 
@@ -398,7 +398,7 @@ def calc_g_seq_mag_loss(
         grad[grad >= only_sign] = target
     
     if grad_loss_fn:
-        g_loss = grad_loss_fn(grad, torch.full(grad.shape, target, device=grad.device), reduction="none")
+        g_loss = grad_loss_fn(grad, torch.full(grad.shape, target, device=grad.device, dtype=grad.dtype), reduction="none")
     else:
         g_loss = -grad
     if reduction:
@@ -683,7 +683,7 @@ def calc_mean_pred_loss(
 
     y_mean = torch.mean(y).item()
     y_mean_loss = loss_fn(
-        torch.full(pred.shape, y_mean, device=loss.device),
+        torch.full(pred.shape, y_mean, device=loss.device, dtype=loss.dtype),
         y,
         reduction="none"
     ).detach()
@@ -1381,7 +1381,7 @@ def eval(
     pred_stds = {k: v.item() for k, v in pred_stds.items()}
 
     y_mean_loss = {k: loss_fn(
-        torch.full(v.shape, torch.mean(v).item()).to(v.device), 
+        torch.full(v.shape, torch.mean(v).item(), device=v.device, dtype=v.dtype), 
         v,
         reduction="none"
     ) for k, v in ys.items()}

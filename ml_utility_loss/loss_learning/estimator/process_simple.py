@@ -120,7 +120,7 @@ def train_epoch(
 
         y_mean = torch.mean(y).item()
         y_mean_loss = loss_fn(
-            torch.full(pred.shape, y_mean).to(whole_model.device),
+            torch.full(pred.shape, y_mean, device=pred.device, dtype=pred.dtype),
             y,
             reduction="none"
         ).detach()
@@ -298,7 +298,7 @@ def eval(
     pred_std = pred_std.item()
 
     y_mean_losses = loss_fn(
-        torch.full(ys.shape, torch.mean(ys).item()).to(ys.device), 
+        torch.full(ys.shape, torch.mean(ys).item(), device=ys.device, dtype=ys.dtype), 
         ys,
         reduction="none"
     )
