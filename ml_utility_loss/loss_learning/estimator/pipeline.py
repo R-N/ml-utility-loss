@@ -350,7 +350,7 @@ def train(
     grad_loss_scale="mean",
     g_loss_mul=0.1,
     non_role_model_mul=0.5,
-    single_model=True,
+    single_model=False,
     study_name="ml_utility",
     gradient_penalty_kwargs={},
     lr_mul=0.0,

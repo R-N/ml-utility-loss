@@ -1390,7 +1390,7 @@ def eval(
     mean_pred_losses = {k: mean_pred_loss_fn(
         v,
         torch.zeros(v.shape).to(v.device)
-    ) for k, v in mean_pred_losses.items()}
+    ).item() for k, v in mean_pred_losses.items()}
     
     for k, pred_std in pred_stds.items():
         assert allow_same_prediction or batch_size == 1 or pred_std, f"model predicts the same for every input, {k}, {pred_std}, {preds[k][0].item()}"
@@ -1521,7 +1521,7 @@ def pred(
     y_real = y_real.to(model.device)
 
     train.requires_grad_()
-    pred = model(
+    train, pred = model(
         train, test
     )
     # We reduce directly because no further need for shape
