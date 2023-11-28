@@ -22,10 +22,14 @@ DEFAULTS = {
     "tf_pma_low": 1,
     "gradient_penalty_kwargs": {
         "mag_loss": True,
-        "mse_mag": False,
+        "mse_mag": True,
         "mag_corr": False,
         "seq_mag": False,
-        "cos_loss": True,
+        "cos_loss": False,
+        "mse_mag_kwargs": {
+            "target": 0.0,
+            "multiply": False,
+        },
         "mag_corr_kwargs": {
             "only_sign": False,
         },
