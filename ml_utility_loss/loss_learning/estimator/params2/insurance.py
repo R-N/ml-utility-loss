@@ -46,8 +46,8 @@ PARAM_SPACE = {
     # Training args
     "epochs": ("log_int", 500, 700),
     #"lr": ("log_float", 5e-3, 1e-2),
-    "lr_mul": ("log_float", 0.01, 0.2),
-    "n_warmup_steps": ("log_float", 35, 120),
+    "lr_mul": ("log_float", 0.09, 0.2),
+    "n_warmup_steps": ("log_float", 35, 100),
     "Optim": ("optimizer", [
         # #"adamw", 
         #"sgdmomentum", 
@@ -63,7 +63,7 @@ PARAM_SPACE = {
         # #"yogi",
     ]),
     # Training args
-    "non_role_model_mul": ("float", 0.1, 2.0),
+    "non_role_model_mul": ("float", 1.0, 2.0),
     #"non_role_model_avg": BOOLEAN,
     #"non_role_model_avg": True, 
     #"std_loss_mul": ("float", 0.5, 2.0),
@@ -136,7 +136,7 @@ PARAM_SPACE = {
     #"isab_skip_small": BOOLEAN,
     #"skip_small": False,
     #"loss_clamp": ("log_float", 0.6, 1.0), #almost random
-    "grad_clip": ("log_float", 0.25, 2.9),
+    "grad_clip": ("log_float", 0.25, 1.0),
     "bias": BOOLEAN,
     #"bias": False,
     "bias_final": BOOLEAN,
@@ -231,8 +231,8 @@ PARAM_SPACE = {
     #     "ada_n_seeds": ("int_exp_2", 1, 2),
     #     "ada_n_head": ("int_exp_2", 4, 32),
     # }),
-    "ada_d_hid": ("int_exp_2", 512, 1024), 
-    "ada_n_layers": ("int", 6, 7), 
+    "ada_d_hid": ("int_exp_2", 512, 512), 
+    "ada_n_layers": ("int", 6, 6), 
     "ada_activation": ("activation", [
         "tanh",  
         # #"sigmoid", 
@@ -261,7 +261,7 @@ PARAM_SPACE = {
     ]),
     # Head args
     "head_d_hid": ("int_exp_2", 128, 128), 
-    "head_n_layers": ("int", 5, 6), 
+    "head_n_layers": ("int", 6, 7), 
     "head_n_head": ("int_exp_2", 32, 32),
     "head_activation": ("activation", [
         "tanh",  
@@ -303,7 +303,7 @@ PARAM_SPACE_2 = {
     "dataset_size_high": ("int_exp_2", 1024, 2048), # param must exist
     "batch_size_low": ("int_exp_2", 4, 4),
     "batch_size_high": ("int_exp_2", 4, 4),
-    "scheduler_patience": ("log_int", 20, 70),
+    "scheduler_patience": ("log_int", 10, 30),
 }
 
 #GOOD = [22, 24, 25, 26, 27, 28, 35, 36, 37, 46, 51, 53]
