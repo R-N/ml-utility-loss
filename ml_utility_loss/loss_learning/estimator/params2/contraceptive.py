@@ -36,6 +36,7 @@ DEFAULTS = {
     },
     "dropout": 0,
     "combine_mode": CombineMode.DIFF_LEFT,
+    "tf_isab_mode": ISABMode.SEPARATE,
 }
 
 PARAM_SPACE = {
@@ -97,9 +98,9 @@ PARAM_SPACE = {
     "fixed_role_model": ("categorical", [
         #None, 
         "tvae", 
-        "lct_gan", 
+        #"lct_gan", 
         #"lct_gan_latent", 
-        "tab_ddpm_concat", 
+        #"tab_ddpm_concat", 
         #"realtabformer",
         #"realtabformer_latent",
     ]),
@@ -144,11 +145,11 @@ PARAM_SPACE = {
     "bias_final": BOOLEAN,
     #"pma_layer_norm": BOOLEAN,
     "attn_activation": ("activation", [
-        "tanh",  
+        #"tanh",  
         # #"sigmoid", 
         # "relu",
         # "leakyrelu", 
-        "selu",
+        #"selu",
         # "prelu",
         # #"rrelu",
         # "relu6",
@@ -156,14 +157,14 @@ PARAM_SPACE = {
         # #"hardsigmoid",
         # "softsign",
         # #"identity",
-        "leakyhardtanh",
+        #"leakyhardtanh",
         "leakyhardsigmoid",
     ]),
     #"attn_residual": BOOLEAN,
     "inds_init_mode": ("categorical", [
         IndsInitMode.TORCH,
         #IndsInitMode.FIXNORM,
-        IndsInitMode.XAVIER,
+        #IndsInitMode.XAVIER,
     ]),
     # Transformer args
     "tf_d_inner": ("int_exp_2", 256, 256),
@@ -171,7 +172,7 @@ PARAM_SPACE = {
     #"tf_n_layers_dec": ("bool_int", 2, 3),  #better false
     "tf_n_head": ("int_exp_2", 128, 128), 
     "tf_activation": ("activation", [
-        "tanh", 
+        #"tanh", 
         # # #"sigmoid",
         # "relu", 
         # "leakyrelu", 
@@ -182,20 +183,20 @@ PARAM_SPACE = {
         # # #"hardtanh",
         # #"hardsigmoid",
         # # "softsign",
-        "leakyhardtanh",
-        "leakyhardsigmoid",
+        #"leakyhardtanh",
+        #"leakyhardsigmoid",
     ]),
     "tf_activation_final": ("activation", [
         "leakyhardtanh",
-        "leakyhardsigmoid",
+        #"leakyhardsigmoid",
     ]),
     #"tf_num_inds": ("bool_int_exp_2", 16, 64),
     #"tf_num_inds": ("conditional", {
     "tf_num_inds": ("int_exp_2", 8, 8),
     "tf_isab_mode": ("categorical", (
-        ISABMode.SEPARATE, 
+        #ISABMode.SEPARATE, 
         ISABMode.SHARED,
-        ISABMode.MINI,
+        #ISABMode.MINI,
     )),
     #}),
     # "tf_isab_rank": ("bool_int_exp_2", 1, 8), #true is better
@@ -241,18 +242,18 @@ PARAM_SPACE = {
         # # #"sigmoid", 
         # "relu",
         # # #"leakyrelu", 
-        "selu",
+        #"selu",
         # # #"prelu",
         # # #"rrelu",
         # "relu6",
         # # #"hardtanh",
         # # #"hardsigmoid",
         # "softsign",
-        "leakyhardtanh",
-        "leakyhardsigmoid",
+        #"leakyhardtanh",
+        #"leakyhardsigmoid",
     ]),
     "ada_activation_final": ("activation", [
-        "leakyhardtanh",
+        #"leakyhardtanh",
         "leakyhardsigmoid",
     ]),
     # Head args
@@ -260,11 +261,11 @@ PARAM_SPACE = {
     "head_n_layers": ("int", 7, 8), 
     "head_n_head": ("int_exp_2", 64, 64),
     "head_activation": ("activation", [
-        "tanh",  
+        #"tanh",  
         # "sigmoid", 
         # "relu",
         # #"leakyrelu", 
-        "selu",
+        #"selu",
         # "prelu",
         # "rrelu",
         # "relu6",
@@ -272,7 +273,7 @@ PARAM_SPACE = {
         # #"hardsigmoid",
         #"softsign",
         "leakyhardtanh",
-        "leakyhardsigmoid",
+        #"leakyhardsigmoid",
     ]),
     "head_activation_final": ("activation", [
         #"sigmoid", 
