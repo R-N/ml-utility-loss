@@ -43,3 +43,6 @@ class ScheduledOptim():
         for param_group in self._optimizer.param_groups:
             param_group['lr'] = lr
 
+    def state_dict(self):
+        return self._optimizer.state_dict()
+

@@ -131,7 +131,7 @@ PARAM_SPACE = {
     # }),
     # Common model args
     "d_model": ("int_exp_2", 256, 256), 
-    #"dropout": ("bool_float", 0.15, 0.5), 
+    "dropout": ("bool_float", 0.15, 0.5), 
     #"dropout": ("float", 0.15, 0.15), #close to random
     #"softmax": ("softmax", "relu15"),
     #"flip": BOOLEAN, #doesn't matter
