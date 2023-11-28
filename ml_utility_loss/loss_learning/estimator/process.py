@@ -11,6 +11,8 @@ import math
 Tensor = torch.FloatTensor
 
 def mean(x):
+    if len(x) == 0:
+        return 0
     return sum(x)/len(x)
 
 def try_tensor_item(tensor, detach=True):
