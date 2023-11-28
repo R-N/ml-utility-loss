@@ -141,6 +141,7 @@ def unpack_params(kwargs):
         
     kwargs = {k: v for k, v in kwargs.items() if not k.endswith("_bool")}
     kwargs = {k: v for k, v in kwargs.items() if not k.endswith("_boolc")}
+    kwargs["gradient_penalty_kwargs"] = gradient_penalty_kwargs
     return kwargs
 
 def map_parameters(params_raw, param_space={}, param_map={}, unpack=True):

@@ -300,6 +300,7 @@ def calc_g_mse_mag_loss(
     grad_loss_scale="mean", 
     reduction=torch.mean,
     target=1.0,
+    multiply=True,
 ):
 
     assert dbody_dx_norm.dim() == 1 and error.dim() == 1 and len(dbody_dx_norm) == len(error)
@@ -307,10 +308,13 @@ def calc_g_mse_mag_loss(
     # the expected gradient g is 2*error
     #g = 2 * torch.sqrt(loss.detach())
     # The gradient norm can't be negative
-    g = get_g(
-        error=error,
-        target=target,
-    )
+    if multiply:
+        g = get_g(
+            error=error,
+            target=target,
+        )
+    else:
+        g = torch.full(dbody_dx_norm.shape, target, device=dbody_dx_norm.device)
     # gradient penalty
     grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g).item()) if grad_loss_scale else grad_loss_fn
     g_loss = grad_loss_fn_(dbody_dx_norm, g, reduction="none")
