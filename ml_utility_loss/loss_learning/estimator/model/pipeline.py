@@ -44,6 +44,8 @@ NON_MODEL_PARAMS = (
     "lr_mul",
     "n_warmup_steps",
     "single_model",
+    "non_role_model_mul",
+    "dropout",
 )
 
 def remove_non_model_params(params, entries_to_remove=NON_MODEL_PARAMS):
