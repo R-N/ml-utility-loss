@@ -86,8 +86,8 @@ def train_epoch(
         m = whole_model.adapters[model](train)
         m_test = whole_model.adapters[model](test)
         
-        assert torch.isfinite(m).any(), f"{model} m has nan or inf"
-        assert torch.isfinite(m_test).any(), f"{model} m_test has nan or inf"
+        assert torch.isfinite(m).all(), f"{model} m has nan or inf"
+        assert torch.isfinite(m_test).all(), f"{model} m_test has nan or inf"
 
         y = y.to(torch.float32)
 
@@ -99,10 +99,10 @@ def train_epoch(
             skip_test_adapter=True
         )
 
-        assert torch.isfinite(pred).any(), f"{model} prediction has nan or inf"
+        assert torch.isfinite(pred).all(), f"{model} prediction has nan or inf"
         # none reduction to retain the batch shape
         loss = loss_fn(pred, y, reduction="none")
-        assert torch.isfinite(loss).any(), f"{model} main loss has nan or inf"
+        assert torch.isfinite(loss).all(), f"{model} main loss has nan or inf"
 
         y_std = torch.std(y).detach()
         #compute["y_std"] = y_std
@@ -135,7 +135,7 @@ def train_epoch(
         if timer:
             timer.check_time()
 
-        assert isinstance(loss, int) or torch.isfinite(loss).any(), f"role_model_loss has nan or inf"
+        assert isinstance(loss, int) or torch.isfinite(loss).all(), f"role_model_loss has nan or inf"
         # Finally, backprop
         loss = reduction(loss)
         std_loss = reduction(std_loss)
