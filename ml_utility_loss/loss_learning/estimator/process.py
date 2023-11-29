@@ -734,7 +734,7 @@ def calc_embed_loss(
     #embed_loss = embed_loss + eps
     embed_loss_0 = embed_loss
     embed_loss = embed_loss.norm(2, dim=-1)
-    assert torch.isfinite(embed_loss).all(), f"{model} embed_loss has nan or inf 2, {torch.min(embed_loss_0)} {torch.max(embed_loss_0)}"
+    assert torch.isfinite(embed_loss).all(), f"{model} embed_loss has nan or inf 2, embed_loss {torch.min(embed_loss_0)} {torch.max(embed_loss_0)}, embed_pred {torch.min(embed_pred)} {torch.max(embed_pred)}, embed_y {torch.min(embed_y)} {torch.max(embed_y)},"
     embed_loss = reduction(embed_loss)
 
     assert torch.isfinite(embed_loss).all(), f"{model} embed_loss has nan or inf"
