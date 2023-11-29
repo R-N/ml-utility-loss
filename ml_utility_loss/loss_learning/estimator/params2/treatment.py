@@ -350,29 +350,29 @@ BEST = {
     'scheduler_patience': 24
 }
 
-#[0.00573128298856318, 0.018443797482177615]
+#[0.004965972388163209, 0.020191592164337635]
 BEST_SINGLE = {
     **DEFAULTS,
     'loss_balancer_meta_boolc': False,
     'tf_pma_low_exp_2': 3,
-    'epochs': 782,
-    'lr_mul': 0.046683362429927794,
-    'n_warmup_steps': 54.044346720407475,
+    'epochs': 873,
+    'lr_mul': 0.05704553921733385,
+    'n_warmup_steps': 35.885510218305875,
     'Optim': 'adamp',
-    'non_role_model_mul': 1.7112501388588641,
+    'non_role_model_mul': 1.8146420804497672,
     'adapter_loss_fn': 'mse',
     'fixed_role_model': 'lct_gan',
     'gradient_penalty_mode': 'NONE',
     'd_model_exp_2': 7,
-    'grad_clip': 0.7403767626385784,
+    'grad_clip': 0.6059017984719697,
     'bias': True,
     'bias_final': False,
-    'attn_activation': 'leakyhardsigmoid',
+    'attn_activation': 'leakyhardtanh',
     'inds_init_mode': 'xavier',
     'tf_d_inner_exp_2': 8,
     'tf_n_layers_enc': 4,
-    'tf_n_head_exp_2': 5,
-    'tf_activation': 'selu',
+    'tf_n_head_exp_2': 6,
+    'tf_activation': 'tanh',
     'tf_activation_final': 'leakyhardsigmoid',
     'tf_num_inds_exp_2': 5,
     'tf_isab_mode': 'separate',
@@ -385,10 +385,10 @@ BEST_SINGLE = {
     'head_n_head_exp_2': 4,
     'head_activation': 'leakyhardsigmoid',
     'head_activation_final': 'leakyhardsigmoid',
-    'patience': 92,
+    'patience': 98,
     'dataset_size_low_exp_2': 11,
     'dataset_size_high_exp_2': 12,
     'batch_size_low_exp_2': 2,
     'batch_size_high_exp_2': 2,
-    'scheduler_patience': 24
+    'scheduler_patience': 23
 }
