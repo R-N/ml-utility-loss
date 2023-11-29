@@ -46,6 +46,7 @@ NON_MODEL_PARAMS = (
     "single_model",
     "non_role_model_mul",
     "dropout",
+    "max_seconds",
 )
 
 def remove_non_model_params(params, entries_to_remove=NON_MODEL_PARAMS):
