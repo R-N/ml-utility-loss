@@ -592,7 +592,7 @@ class Head(nn.Module):
             print("check_cuda b", check_cuda(self), check_cuda(self.linear), x.is_cuda)
             raise
         #y = self.final_activation(y)
-        #if not torch.isnan(y).any():
+        #if torch.isfinite(y).any():
             #y_max, y_min = torch.max(y), torch.min(y)
             #assert y_max <= 1.2 and y_min >= 0.0, f"Invalid sigmoid range: {(y_min, y_max)}"
         y = y.squeeze(dim=-1)

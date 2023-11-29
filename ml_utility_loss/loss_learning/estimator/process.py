@@ -68,19 +68,19 @@ def handle_zero(tensor, inplace=False):
 def clamp_tensor(tensor, loss_clamp, dim=-1, detach_mag=True):
     # We treat it as a vector, having direction
     # We use keep_dim because we need it to stay (batch, dim) for denominator
-    #assert not torch.isnan(tensor).any(), f"tensor has nan 0 {tensor}"
+    #assert torch.isfinite(tensor).any(), f"tensor has nan or inf 0 {tensor}"
     tensor_mag = tensor.norm(2, dim=dim, keepdim=True)
-    #assert not torch.isnan(tensor_mag).any(), f"tensor_mag has nan 1"
+    #assert torch.isfinite(tensor_mag).any(), f"tensor_mag has nan or inf 1"
     # We clamp min to loss clamp=1 because this will be denominator
     # Meaning a loss magnitude of 0.5 will clamp to 1 so it will stay 0.5
     # Meanwhile loss magnitude of 2 will not clamp so it will be 2/2=1
     tensor_mag = torch.clamp(tensor_mag, min=loss_clamp)
-    #assert not torch.isnan(tensor_mag).any(), f"tensor_mag has nan 2"
+    #assert torch.isfinite(tensor_mag).any(), f"tensor_mag has nan or inf 2"
     tensor_mag = handle_zero(tensor_mag)
-    #assert not torch.isnan(tensor_mag).any(), f"tensor_mag has nan 3"
+    #assert torch.isfinite(tensor_mag).any(), f"tensor_mag has nan or inf 3"
     tensor_mag = tensor_mag.detach() if detach_mag else tensor_mag
     tensor = tensor / tensor_mag
-    #assert not torch.isnan(tensor).any(), f"tensor has nan 4, {tensor_mag} {tensor}"
+    #assert torch.isfinite(tensor).any(), f"tensor has nan or inf 4, {tensor_mag} {tensor}"
     #tensor = handle_nan(tensor)
     return tensor
 
@@ -548,8 +548,8 @@ def forward_pass_1(whole_model, model, train, test, y, y_real, compute):
     test, m_test = whole_model.adapters[model](test)
     compute["m_test"] = m_test
     
-    assert not torch.isnan(m).any(), f"{model} m has nan"
-    assert not torch.isnan(m_test).any(), f"{model} m_test has nan"
+    assert torch.isfinite(m).any(), f"{model} m has nan or inf"
+    assert torch.isfinite(m_test).any(), f"{model} m_test has nan or inf"
 
     # Somehow y keeps being 64 bit tensor
     # I have no idea what went wrong, I converted it in dataset
@@ -605,17 +605,17 @@ def forward_pass_2(
     )
     compute["pred"] = pred
 
-    assert not torch.isnan(pred).any(), f"{model} prediction has nan"
+    assert torch.isfinite(pred).any(), f"{model} prediction has nan or inf"
     # none reduction to retain the batch shape
     y = compute["y"]
     compute["loss"] = loss = loss_fn(pred, y, reduction="none")
     compute["error"] = pred - y
-    assert not torch.isnan(loss).any(), f"{model} main loss has nan"
+    assert torch.isfinite(loss).any(), f"{model} main loss has nan or inf"
     """
     y_real = compute["y_real"]
     compute["loss_real"] = loss_real = loss_fn(pred, y_real, reduction="none")
     compute["error"] = pred - y_real
-    assert not torch.isnan(loss_real).any(), f"{model} main loss has nan"
+    assert torch.isfinite(loss_real).any(), f"{model} main loss has nan or inf"
     """
 
     return pred, loss
@@ -644,7 +644,7 @@ def forward_pass_gradient(
     else:
         train = compute["train"]
         compute["grad"] = grad = calc_gradient(train, loss)
-    assert not torch.isnan(grad).any(), f"{model} grad has nan"
+    assert torch.isfinite(grad).any(), f"{model} grad has nan or inf"
 
     return grad
 
@@ -722,12 +722,12 @@ def calc_embed_loss(
     # This has to be averaging so we won't be using the reduction parameter
     # keep_dim=False by default so this should result in shape (batch, dim)
     embed_loss = torch.mean(embed_loss, dim=-2)
-    assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan 1"
+    assert torch.isfinite(embed_loss).any(), f"{model} embed_loss has nan or inf 1"
     # Now we clamp embed loss because it overpowers the rest
     if loss_clamp:
         embed_loss_0 = embed_loss
         embed_loss = clamp_tensor(embed_loss, loss_clamp=loss_clamp)
-        assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan 2 {embed_loss_0} {embed_pred} {embed_y}"
+        assert torch.isfinite(embed_loss).any(), f"{model} embed_loss has nan or inf 2 {embed_loss_0} {embed_pred} {embed_y}"
     
     # Again we'll take the norm because it is a vector
     # But no keep_dim so it results in (batch)
@@ -735,7 +735,7 @@ def calc_embed_loss(
     embed_loss = embed_loss.norm(2, dim=-1)
     embed_loss = reduction(embed_loss)
 
-    assert not torch.isnan(embed_loss).any(), f"{model} embed_loss has nan"
+    assert torch.isfinite(embed_loss).any(), f"{model} embed_loss has nan or inf"
 
     compute["embed_loss"] = embed_loss
 
@@ -805,12 +805,12 @@ def calc_g_loss_2(
                 dbody_dadapter = dbody_dadapter + m_grad
                 dbody_dadapter = dbody_dadapter.detach()
 
-        assert not torch.isnan(dbody_dadapter).any(), f"{model} dbody_dadapter has nan"
+        assert torch.isfinite(dbody_dadapter).any(), f"{model} dbody_dadapter has nan or inf"
         train = compute["train"]
         dbody_dx = calc_gradient(train, m, dbody_dadapter)
     else:
         dbody_dx = grad_compute["grad"]
-    assert not torch.isnan(dbody_dx).any(), f"{model} dbody_dx has nan"
+    assert torch.isfinite(dbody_dx).any(), f"{model} dbody_dx has nan or inf"
     #loss = grad_compute["loss"]
     error = grad_compute["error"]
     g_mag_loss, g_cos_loss = calc_g_loss(
@@ -830,8 +830,8 @@ def calc_g_loss_2(
     # This needs to be fixed
     compute["g_mag_loss"] = g_mag_loss
     compute["g_cos_loss"] = g_cos_loss
-    assert not torch.isnan(g_mag_loss).any(), f"{model} g_mag_loss has nan"
-    assert not torch.isnan(g_cos_loss).any(), f"{model} g_cos_loss has nan"
+    assert torch.isfinite(g_mag_loss).any(), f"{model} g_mag_loss has nan or inf"
+    assert torch.isfinite(g_cos_loss).any(), f"{model} g_cos_loss has nan or inf"
 
     return g_mag_loss, g_cos_loss
 
@@ -1101,9 +1101,9 @@ def train_epoch(
         # But we only want g_loss from role model to populate the rest (non-adapter) of the model
         # So first we'll call backward on non-rolemodel
         # and zero the grads of the rest of the model
-        assert isinstance(non_role_model_embed_loss, int) or not torch.isnan(non_role_model_embed_loss).any(), f"non_role_model_embed_loss has nan"
-        assert isinstance(non_role_model_g_mag_loss, int) or not torch.isnan(non_role_model_g_mag_loss).any(), f"non_role_model_g_mag_loss has nan"
-        assert isinstance(non_role_model_g_cos_loss, int) or not torch.isnan(non_role_model_g_cos_loss).any(), f"non_role_model_g_cos_loss has nan"
+        assert isinstance(non_role_model_embed_loss, int) or torch.isfinite(non_role_model_embed_loss).any(), f"non_role_model_embed_loss has nan or inf"
+        assert isinstance(non_role_model_g_mag_loss, int) or torch.isfinite(non_role_model_g_mag_loss).any(), f"non_role_model_g_mag_loss has nan or inf"
+        assert isinstance(non_role_model_g_cos_loss, int) or torch.isfinite(non_role_model_g_cos_loss).any(), f"non_role_model_g_cos_loss has nan or inf"
         #non_role_model_loss = non_role_model_embed_loss + non_role_model_g_loss
         #non_role_model_loss = non_role_model_avg_mul * non_role_model_loss
         #if not val and hasattr(non_role_model_loss, "backward"):
@@ -1115,9 +1115,9 @@ def train_epoch(
         # Now we backward the role model
         role_model_g_mag_loss = reduction(role_model_compute["g_mag_loss"]) if gradient_penalty else zero_tensor(device=whole_model.device)
         role_model_g_cos_loss = reduction(role_model_compute["g_cos_loss"]) if gradient_penalty else zero_tensor(device=whole_model.device)
-        assert isinstance(role_model_g_mag_loss, int) or not torch.isnan(role_model_g_mag_loss).any(), f"role_model_g_mag_loss has nan"
-        assert isinstance(role_model_g_cos_loss, int) or not torch.isnan(role_model_g_cos_loss).any(), f"role_model_g_cos_loss has nan"
-        assert isinstance(role_model_loss, int) or not torch.isnan(role_model_loss).any(), f"role_model_loss has nan"
+        assert isinstance(role_model_g_mag_loss, int) or torch.isfinite(role_model_g_mag_loss).any(), f"role_model_g_mag_loss has nan or inf"
+        assert isinstance(role_model_g_cos_loss, int) or torch.isfinite(role_model_g_cos_loss).any(), f"role_model_g_cos_loss has nan or inf"
+        assert isinstance(role_model_loss, int) or torch.isfinite(role_model_loss).any(), f"role_model_loss has nan or inf"
         #role_model_total_loss = role_model_loss + role_model_std_loss + role_model_g_loss
         #if not val:
         #    role_model_total_loss.backward()

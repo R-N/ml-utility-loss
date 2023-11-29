@@ -118,11 +118,11 @@ class LowRankLinear(nn.Module):
 
     def forward(self, x):
         try:
-            assert not torch.isnan(x).any(), "LowRank Linear Input x has nan"
+            assert torch.isfinite(x).any(), "LowRank Linear Input x has nan or inf"
             x0 = x
             x1 = x = self.lin_1(x0)
             x2 = x = self.lin_2(x1)
-            assert not torch.isnan(x).any(), "LowRank Linear Output x has nan"
+            assert torch.isfinite(x).any(), "LowRank Linear Output x has nan or inf"
             return x
         except IndexError as ex:
             msg = str(ex)

@@ -39,7 +39,6 @@ class StopOnPlateau:
         self.best_state = None
         self.last_epoch = -1
         self.best_epoch = -1
-        self.aug_counter = 0
         self.cooldown_counter = 0
         self.reset_counter(reset_best=True)
 
