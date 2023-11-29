@@ -732,8 +732,9 @@ def calc_embed_loss(
     # Again we'll take the norm because it is a vector
     # But no keep_dim so it results in (batch)
     #embed_loss = embed_loss + eps
+    embed_loss_0 = embed_loss
     embed_loss = embed_loss.norm(2, dim=-1)
-    assert torch.isfinite(embed_loss).all(), f"{model} embed_loss has nan or inf 2"
+    assert torch.isfinite(embed_loss).all(), f"{model} embed_loss has nan or inf 2, {torch.min(embed_loss_0)} {torch.max(embed_loss_0)}"
     embed_loss = reduction(embed_loss)
 
     assert torch.isfinite(embed_loss).all(), f"{model} embed_loss has nan or inf"
