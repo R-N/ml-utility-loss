@@ -41,6 +41,7 @@ DEFAULTS = {
     "dropout": 0,
     "combine_mode": CombineMode.DIFF_LEFT,
     "tf_isab_mode": ISABMode.SEPARATE,
+    "grad_loss_fn": "mse",
 }
 
 PARAM_SPACE = {
@@ -79,7 +80,7 @@ PARAM_SPACE = {
     }),
     #"loss_balancer_log": BOOLEAN,
     #"loss_balancer_lbtw": BOOLEAN,
-    #"loss_fn": ("loss", "mse"),
+    "grad_loss_fn": ("loss", "mse"),
     #"grad_loss_fn": ("loss", "huber"),
     #"std_loss_fn": ("loss", ["mean_penalty_log_half"]),
     # "grad_loss_fn": ("loss", [

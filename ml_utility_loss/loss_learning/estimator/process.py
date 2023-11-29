@@ -701,7 +701,7 @@ def calc_mean_pred_loss(
 def calc_embed_loss(
     compute,
     embed_y,
-    adapter_loss_fn=F.l1_loss,
+    adapter_loss_fn=F.mse_loss,
     loss_clamp=None,
     reduction=torch.mean,
     model=None,
@@ -846,7 +846,7 @@ def train_epoch(
     std_loss_fn=mean_penalty_log_half,
     grad_loss_fn=F.mse_loss, # It's fine as long as loss_fn is MSE
     grad_loss_scale="mean",
-    adapter_loss_fn=F.l1_loss, # Values can get very large and MSE loss will result in infinity, or maybe use kl_div
+    adapter_loss_fn=F.mse_loss, # Values can get very large and MSE loss will result in infinity, or maybe use kl_div
     reduction=torch.mean,
     val=False,
     fixed_role_model="lct_gan",
