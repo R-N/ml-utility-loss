@@ -411,7 +411,6 @@ class Adapter(nn.Module):
             b = x.shape[0]
             shape0 = x.shape[:2]
             if self.embedding and self.use_embedding:
-                print("[*] Using embedding")
                 x = x1 = self.embedding(x.to(torch.int))
                 x = x.view(*shape0, -1)
             if x is not x0 and x0.requires_grad and not x.requires_grad:
@@ -419,7 +418,6 @@ class Adapter(nn.Module):
             y = x
             pma_attn = None
             if self.embedding:
-                print("[*] Has embedding")
                 """
                 w = self.input_w()
                 w = torch.repeat_interleave(w, self.d_embed, dim=-1)
