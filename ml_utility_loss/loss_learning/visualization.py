@@ -154,3 +154,15 @@ def plot_synths_box(info_dir, sizes=None, fig=None, ax=None, col="synth_value", 
     df.boxplot(column=list(df.columns), **kwargs)
     ax.set_xticklabels(sizes)
     return fig
+
+def plot_box_3(values, y=None, y_name="target"):
+    values = dict(values)
+    if y is not None:
+        values[y_name] = y
+    fig, ax = plt.subplots()
+    df_box = pd.DataFrame()
+    for k, v in values.items():
+        df_box[k] = v
+    df_box.boxplot(ax=ax)
+    ax.set_xticklabels(list(df_box.columns))
+    return fig
