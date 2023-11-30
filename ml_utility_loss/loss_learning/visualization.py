@@ -175,6 +175,6 @@ def plot_density_3(values, y=None, y_name="target"):
     df_box = pd.DataFrame()
     for k, v in values.items():
         df_box[k] = v
-    df_box.density(ax=ax)
+    df_box.plot.density(ax=ax)
     ax.set_xticklabels(list(df_box.columns))
     return fig
