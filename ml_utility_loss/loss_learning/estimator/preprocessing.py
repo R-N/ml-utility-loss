@@ -204,7 +204,7 @@ class DataAugmenter:
         return df
 
 MODELS = ["tvae", "realtabformer", "realtabformer_latent", "lct_gan_latent", "lct_gan", "tab_ddpm", "tab_ddpm_concat"]
-DEFAULT_MODELS = ["tvae", "realtabformer_latent", "lct_gan", "tab_ddpm_concat"]
+DEFAULT_MODELS = ["tvae", "realtabformer", "lct_gan", "tab_ddpm_concat"]
 
 def emb2indices(output, emb_layer):
     # output is size: [batch, sequence, emb_length], emb_layer is size: [num_tokens, emb_length]
