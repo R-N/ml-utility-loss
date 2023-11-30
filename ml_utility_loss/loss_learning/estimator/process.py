@@ -1591,7 +1591,7 @@ def pred_1(model, inputs, batch_size=4, **kwargs):
     for batch, batch_dict in enumerate(inputs):
         clear_memory()
         outputs_i = pred(model, batch_dict, **kwargs)
-        if not outputs:
+        if outputs is None:
             outputs = outputs_i
         else:
             outputs = np.append(outputs, outputs_i)
