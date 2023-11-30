@@ -1292,6 +1292,8 @@ def eval(
 
         batch_dict = filter_dict(batch_dict, models)
 
+        clear_memory()
+
         batch_size = 1
         # Compute prediction and loss for all adapters
         for model, (train, test, y, y_real) in batch_dict.items():
@@ -1608,4 +1610,5 @@ def pred_1(model, inputs, batch_size=4, **kwargs):
 
 def pred_2(whole_model, batch_dict, **kwargs):
     batch_dict = filter_dict(batch_dict, whole_model.models)
+    clear_memory()
     return {m: pred_1(whole_model[m], s, **kwargs) for m, s in batch_dict.items()}
