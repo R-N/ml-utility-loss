@@ -47,10 +47,9 @@ def plot_grad_3(error, grad, fig=None, ax=None, name=None, g_name="g_corr", **kw
     #y1 = sign * y1
 
     plot_grad(error, sign*y1, fig=fig, ax=ax, name=g_name, **kwargs)
-    plot_grad(error, y1, fig=fig, ax=ax, name="2", **kwargs)
 
     if name:
-        ax.legend([name, g_name, "2"])
+        ax.legend([name, g_name])
     return fig
 
 def plot_density(series, *args, **kwargs):
