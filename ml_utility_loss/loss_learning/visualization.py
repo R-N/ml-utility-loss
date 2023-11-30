@@ -166,3 +166,15 @@ def plot_box_3(values, y=None, y_name="target"):
     df_box.boxplot(ax=ax)
     ax.set_xticklabels(list(df_box.columns))
     return fig
+
+def plot_density_3(values, y=None, y_name="target"):
+    values = dict(values)
+    if y is not None:
+        values[y_name] = y
+    fig, ax = plt.subplots()
+    df_box = pd.DataFrame()
+    for k, v in values.items():
+        df_box[k] = v
+    df_box.density(ax=ax)
+    ax.set_xticklabels(list(df_box.columns))
+    return fig
