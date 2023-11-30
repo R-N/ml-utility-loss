@@ -1581,7 +1581,7 @@ def pred(
     }
 
 def pred_1(model, inputs, batch_size=4, **kwargs):
-    if not batch_size:
+    if not batch_size and not isinstance(inputs, (Dataset, DataLoader)):
         return pred(model, inputs, **kwargs)
 
     if not isinstance(inputs, DataLoader):
