@@ -915,6 +915,8 @@ def train_epoch(
 
         batch_dict = filter_dict(batch_dict, models)
 
+        clear_memory()
+
         if timer:
             timer.check_time()
         if not val:
