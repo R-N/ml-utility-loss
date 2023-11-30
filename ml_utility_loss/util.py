@@ -330,3 +330,6 @@ def count_parameters(model):
 def zero_tensor(value=0.0, device=DEFAULT_DEVICE):
     #print(value, device)
     return torch.full(tuple(), value, device=device)
+def transpose_dict(y):
+    keys = y[next(iter(y.keys()))].keys()
+    return {key: {k: v[key] for k, v in y.items()} for key in keys}
