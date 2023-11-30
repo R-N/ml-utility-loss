@@ -7,6 +7,7 @@ import time
 import numpy as np
 from ...loss_balancer import FixedWeights, MyLossWeighter, LossBalancer, MyLossTransformer
 import math
+from torch.utils.data import DataLoader, Dataset
 
 Tensor = torch.FloatTensor
 
@@ -1578,6 +1579,23 @@ def pred(
         "error": (pred-y),
     }
 
+def pred_1(model, inputs, batch_size=4, **kwargs):
+    if batch_size:
+        if not isinstance(inputs, DataLoader):
+            if not isinstance(inputs, Dataset) and hasattr(inputs, "__iter__"):
+                inputs = Dataset(inputs)
+            inputs = DataLoader(inputs, batch_size=batch_size)
+
+    outputs = None
+    for batch, batch_dict in enumerate(inputs):
+        clear_memory()
+        outputs_i = pred(model, batch_dict, **kwargs)
+        if not outputs:
+            outputs = outputs_i
+        else:
+            outputs = np.append(outputs, outputs_i)
+    return outputs
+
 def pred_2(whole_model, batch_dict, **kwargs):
     batch_dict = filter_dict(batch_dict, whole_model.models)
-    return {m: pred(whole_model[m], s, **kwargs) for m, s in batch_dict.items()}
+    return {m: pred_1(whole_model[m], s, **kwargs) for m, s in batch_dict.items()}
