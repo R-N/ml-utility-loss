@@ -4,6 +4,7 @@ import os
 from ..util import sorted_nicely
 import pandas as pd
 from scipy.linalg import LinAlgError
+from sklearn.linear_model import LinearRegression
 
 
 def plot_grad(error, grad, fig=None, ax=None, name=None, sqrt=False, abs=False, **kwargs):
@@ -31,6 +32,25 @@ def plot_grad_2(y, models, error="error", grad="grad", g="g", **kwargs):
             plot_grad(yi[error], yi[g], fig=fig, ax=ax, **kwargs)
             axes.append(f"{m}_{g}")
     ax.legend(axes)
+    return fig
+
+def plot_grad_3(error, grad, fig=None, ax=None, name=None, g_name="g_corr", **kwargs):
+    if not ax:
+        fig, ax = plt.subplots()
+
+    plot_grad(error, grad, fig=fig, ax=ax, name=name, **kwargs)
+    
+    sign = np.sign(error)
+    X = error[..., np.newaxis]
+    y = sign * grad
+    reg = LinearRegression().fit(X, y)
+    y1 = reg.predict(X)
+    y1 = sign * y1
+
+    plot_grad(error, y1, fig=fig, ax=ax, name=g_name, **kwargs)
+
+    if name:
+        ax.legend([name, g_name])
     return fig
 
 def plot_density(series, *args, **kwargs):
