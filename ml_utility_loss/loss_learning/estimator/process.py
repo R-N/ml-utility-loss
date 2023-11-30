@@ -1578,6 +1578,7 @@ def pred(
         "y": y,
         "g": g,
         "error": (pred-y),
+        "y_real": y_real,
     }
 
 def pred_1(model, inputs, batch_size=4, **kwargs):
