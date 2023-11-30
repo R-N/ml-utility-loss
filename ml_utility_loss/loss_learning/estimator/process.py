@@ -1567,6 +1567,7 @@ def pred(
     g_cos_loss = g_cos_loss.detach().cpu().numpy()
     y = y.detach().cpu().numpy()
     g = g.detach().cpu().numpy()
+    y_real = y_real.detach().cpu().numpy()
 
     clear_memory()
     return {
