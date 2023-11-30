@@ -43,14 +43,14 @@ def plot_grad_3(error, grad, fig=None, ax=None, name=None, g_name="g_corr", **kw
     sign = np.sign(error)
     X = error[..., np.newaxis]
     y = sign * grad
-    reg = LinearRegression().fit(X, y)
-    y1 = reg.predict(X)
-    y1 = sign * y1
+    y1 = LinearRegression().fit(X, y).predict(X)
+    #y1 = sign * y1
 
-    plot_grad(error, y1, fig=fig, ax=ax, name=g_name, **kwargs)
+    plot_grad(error, sign*y1, fig=fig, ax=ax, name=g_name, **kwargs)
+    plot_grad(error, y1, fig=fig, ax=ax, name="2", **kwargs)
 
     if name:
-        ax.legend([name, g_name])
+        ax.legend([name, g_name, "2"])
     return fig
 
 def plot_density(series, *args, **kwargs):
