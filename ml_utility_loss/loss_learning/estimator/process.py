@@ -1598,7 +1598,7 @@ def pred_1(model, inputs, batch_size=4, **kwargs):
         else:
             outputs = {
                 k: np.append(outputs[k], outputs_i[k])
-                for k, v in outputs_i.keys()
+                for k in outputs_i.keys()
             }
     return outputs
 
