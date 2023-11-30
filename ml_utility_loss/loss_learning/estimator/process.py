@@ -1596,7 +1596,10 @@ def pred_1(model, inputs, batch_size=4, **kwargs):
         if outputs is None:
             outputs = outputs_i
         else:
-            outputs = np.append(outputs, outputs_i)
+            outputs = {
+                k: np.append(outputs[k], outputs_i[k])
+                for k, v in outputs_i.keys()
+            }
     return outputs
 
 def pred_2(whole_model, batch_dict, **kwargs):
