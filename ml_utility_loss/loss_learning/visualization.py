@@ -44,9 +44,9 @@ def plot_grad_3(error, grad, fig=None, ax=None, name=None, g_name="g_corr", **kw
     X = error[..., np.newaxis]
     y = sign * grad
     y1 = LinearRegression(positive=True, fit_intercept=False).fit(X, y).predict(X)
-    #y1 = sign * y1
+    y1 = sign * y1
 
-    plot_grad(error, sign*y1, fig=fig, ax=ax, name=g_name, **kwargs)
+    plot_grad(error, y1, fig=fig, ax=ax, name=g_name, **kwargs)
 
     if name:
         ax.legend([name, g_name])
