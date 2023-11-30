@@ -73,6 +73,9 @@ class BaseDataset(Dataset):
         self.cache_dir = cache_dir
         self.create_cache(max_cache=max_cache, cache_dir=cache_dir, **kwargs)
 
+    def items(self):
+        raise RuntimeError("Not implemented")
+
     def calculate_stats(self):
         self.calculate_stats_()
 
@@ -244,6 +247,9 @@ class WrapperDataset(BaseDataset):
         self.y = self.dataset.y
         self.calculate_stats_()
 
+    def items(self):
+        return self.dataset.items()
+
     @property
     def index(self):
         return self.dataset.index
@@ -290,6 +296,9 @@ class SubDataset(WrapperDataset):
 
         if calculate_stats:
             self.calculate_stats()
+
+    def items(self):
+        return [(k, SubDataset(v, self.index_, **self.sub_kwargs)) for k, v in self.dataset.items]
 
     def calculate_stats(self):
         self.y = self.dataset.y.iloc[self.index]
@@ -529,6 +538,9 @@ class MultiPreprocessedDataset(WrapperDataset):
             for m in self.models
         }
 
+    def items(self):
+        return self.datasets.items()
+
     @property
     def models(self):
         return self.preprocessor.models
@@ -589,6 +601,19 @@ class ConcatDataset(BaseDataset):
 
         if calculate_stats:
             self.calculate_stats()
+
+    def items(self):
+        dataset_dicts = [dict(d.items()) for d in self.datasets]
+        return [
+            (
+                k,
+                ConcatDataset(
+                    [d[k] for d in dataset_dicts],
+                    **self.concat_kwargs,
+                )
+            )
+            for k in dataset_dicts[0].keys()
+        ]
 
     def calculate_stats(self):
         self.y = pd.concat([d.y for d in self.datasets])
