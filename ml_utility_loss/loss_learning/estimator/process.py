@@ -1581,11 +1581,13 @@ def pred(
     }
 
 def pred_1(model, inputs, batch_size=4, **kwargs):
-    if batch_size:
-        if not isinstance(inputs, DataLoader):
-            if not isinstance(inputs, Dataset) and hasattr(inputs, "__iter__"):
-                inputs = Dataset(inputs)
-            inputs = DataLoader(inputs, batch_size=batch_size, collate_fn=collate_fn)
+    if not batch_size:
+        return pred(model, inputs, **kwargs)
+
+    if not isinstance(inputs, DataLoader):
+        if not isinstance(inputs, Dataset) and hasattr(inputs, "__iter__"):
+            inputs = Dataset(inputs)
+        inputs = DataLoader(inputs, batch_size=batch_size, collate_fn=collate_fn)
 
     outputs = None
     for batch, batch_dict in enumerate(inputs):
