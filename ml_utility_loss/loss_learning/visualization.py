@@ -168,13 +168,15 @@ def plot_box_3(values, y=None, y_name="target"):
     return fig
 
 def plot_density_3(values, y=None, y_name="target"):
-    values = dict(values)
-    if y is not None:
-        values[y_name] = y
     fig, ax = plt.subplots()
-    df_box = pd.DataFrame()
+
+    axes = []
     for k, v in values.items():
-        df_box[k] = v
-    df_box.plot.density(ax=ax)
-    ax.set_xticklabels(list(df_box.columns))
+        if plot_density(pd.Series(v), alpha=0.5, ax=ax, linestyle="dashed", **kwargs):
+            axes.append(k)
+        
+    if y is not None and plot_density(pd.Series(y), alpha=0.5, ax=ax, linestyle=real_linestyle, **kwargs):
+        axes.append(y_name)
+
+    leg = ax.legend(axes)
     return fig
