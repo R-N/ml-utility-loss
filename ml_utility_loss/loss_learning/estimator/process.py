@@ -8,6 +8,7 @@ import numpy as np
 from ...loss_balancer import FixedWeights, MyLossWeighter, LossBalancer, MyLossTransformer
 import math
 from torch.utils.data import DataLoader, Dataset
+from .data import collate_fn
 
 Tensor = torch.FloatTensor
 
@@ -1584,7 +1585,7 @@ def pred_1(model, inputs, batch_size=4, **kwargs):
         if not isinstance(inputs, DataLoader):
             if not isinstance(inputs, Dataset) and hasattr(inputs, "__iter__"):
                 inputs = Dataset(inputs)
-            inputs = DataLoader(inputs, batch_size=batch_size)
+            inputs = DataLoader(inputs, batch_size=batch_size, collate_fn=collate_fn)
 
     outputs = None
     for batch, batch_dict in enumerate(inputs):
