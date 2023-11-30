@@ -167,7 +167,7 @@ def plot_box_3(values, y=None, y_name="target"):
     ax.set_xticklabels(list(df_box.columns))
     return fig
 
-def plot_density_3(values, y=None, y_name="target"):
+def plot_density_3(values, y=None, y_name="target", real_linestyle="solid", **kwargs):
     fig, ax = plt.subplots()
 
     axes = []
