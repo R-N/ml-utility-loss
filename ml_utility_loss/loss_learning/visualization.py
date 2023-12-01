@@ -43,7 +43,7 @@ def plot_grad_3(error, grad, fig=None, ax=None, name=None, g_name="g_corr", **kw
     sign = np.sign(error)
     X = error[..., np.newaxis]
     y = sign * grad
-    y1 = LinearRegression(positive=True, fit_intercept=False).fit(X, y).predict(np.concatenate(X, [[0]]))
+    y1 = LinearRegression(positive=True, fit_intercept=False).fit(X, y).predict(np.concatenate([X, [[0]]]))
     y1 = sign * y1
 
     plot_grad(error, y1, fig=fig, ax=ax, name=g_name, **kwargs)
