@@ -43,10 +43,14 @@ def plot_grad_3(error, grad, fig=None, ax=None, name=None, g_name="g_corr", **kw
     sign = np.sign(error)
     X = error[..., np.newaxis]
     y = sign * grad
-    y1 = LinearRegression(positive=True, fit_intercept=False).fit(X, y).predict(np.concatenate([X, [[0]]]))
+    y1 = LinearRegression(positive=True, fit_intercept=False).fit(X, y).predict(X)
     y1 = sign * y1
 
-    plot_grad(error, y1, fig=fig, ax=ax, name=g_name, **kwargs)
+    plot_grad(
+        np.concatenate([error, [0]]), 
+        np.concatenate([y1, [0]]), 
+        fig=fig, ax=ax, name=g_name, **kwargs
+    )
 
     if name:
         ax.legend([name, g_name])
@@ -100,10 +104,11 @@ def plot_pred_density_2(results, **kwargs):
     for model, result in results.items():
         plot_pred_density(result["pred"], y=result["y"], title=model, **kwargs)
 
-def plot_synths_density(info_dir, sizes=None, fig=None, ax=None, real=False, **kwargs):
+def plot_synths_density(info_dir, sizes=None, fig=None, ax=None, real=False, start_size=0, **kwargs):
     if not ax:
         fig, ax = plt.subplots()
     sizes = sizes or list(sorted_nicely(os.listdir(info_dir)))
+    sizes = sizes[start_size:]
     for size in sizes:
         info_dir_1 = os.path.join(info_dir, size)
         info_path = os.path.join(info_dir_1, "info.csv")
@@ -153,11 +158,12 @@ def plot_pred_box_2(results, **kwargs):
     for model, result in results.items():
         plot_pred_box(result["pred"], y=result["y"], title=model, **kwargs)
 
-def plot_synths_box(info_dir, sizes=None, fig=None, ax=None, col="synth_value", limit=None, **kwargs):
+def plot_synths_box(info_dir, sizes=None, fig=None, ax=None, col="synth_value", limit=None, start_size=0, **kwargs):
     if not ax:
         fig, ax = plt.subplots()
   
     sizes = sizes or list(sorted_nicely(os.listdir(info_dir)))
+    sizes = sizes[start_size:]
     df = pd.DataFrame()
     for size in sizes:
         info_dir_1 = os.path.join(info_dir, size)
