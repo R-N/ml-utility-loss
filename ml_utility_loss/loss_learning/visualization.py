@@ -104,11 +104,13 @@ def plot_pred_density_2(results, **kwargs):
     for model, result in results.items():
         plot_pred_density(result["pred"], y=result["y"], title=model, **kwargs)
 
-def plot_synths_density(info_dir, sizes=None, fig=None, ax=None, real=False, start_size=0, **kwargs):
+def plot_synths_density(info_dir, sizes=None, fig=None, ax=None, real=False, start_size=0, skip_last=True, **kwargs):
     if not ax:
         fig, ax = plt.subplots()
     sizes = sizes or list(sorted_nicely(os.listdir(info_dir)))
     sizes = sizes[start_size:]
+    if skip_last:
+        sizes = sizes[:-2] + sizes[-1:]
     for size in sizes:
         info_dir_1 = os.path.join(info_dir, size)
         info_path = os.path.join(info_dir_1, "info.csv")
@@ -158,12 +160,15 @@ def plot_pred_box_2(results, **kwargs):
     for model, result in results.items():
         plot_pred_box(result["pred"], y=result["y"], title=model, **kwargs)
 
-def plot_synths_box(info_dir, sizes=None, fig=None, ax=None, col="synth_value", limit=None, start_size=0, **kwargs):
+def plot_synths_box(info_dir, sizes=None, fig=None, ax=None, col="synth_value", limit=None, start_size=0, skip_last=True, **kwargs):
     if not ax:
         fig, ax = plt.subplots()
   
     sizes = sizes or list(sorted_nicely(os.listdir(info_dir)))
     sizes = sizes[start_size:]
+    if skip_last:
+        sizes = sizes[:-2] + sizes[-1:]
+
     df = pd.DataFrame()
     for size in sizes:
         info_dir_1 = os.path.join(info_dir, size)
