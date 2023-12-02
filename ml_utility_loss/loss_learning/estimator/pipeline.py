@@ -663,7 +663,7 @@ def train(
         models=models,
         _eval=_eval,
         fixed_role_model=fixed_role_model,
-        grad_loss_scale=grad_loss_scale,
+        #grad_loss_scale=grad_loss_scale,
     )
     if eval_val and val_set is not test_set:
         val_set.set_size(None)
@@ -679,7 +679,7 @@ def train(
             models=models,
             _eval=_eval,
             fixed_role_model=fixed_role_model,
-            grad_loss_scale=grad_loss_scale,
+            #grad_loss_scale=grad_loss_scale,
         )
     if verbose:
         print("Eval loss", eval_loss)
