@@ -299,7 +299,7 @@ def get_g(
 def calc_g_mse_mag_loss(
     dbody_dx_norm, error, 
     grad_loss_fn=F.mse_loss, 
-    grad_loss_scale="mean", 
+    grad_loss_scale=None, 
     reduction=torch.mean,
     target=1.0,
     multiply=True,
@@ -315,11 +315,12 @@ def calc_g_mse_mag_loss(
             error=error,
             target=target,
         )
+        grad_loss_fn = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g).item()) if grad_loss_scale else grad_loss_fn
     else:
         g = torch.full(dbody_dx_norm.shape, target, device=dbody_dx_norm.device, dtype=dbody_dx_norm.dtype)
+        grad_loss_fn = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](error).item()) if grad_loss_scale else grad_loss_fn
     # gradient penalty
-    grad_loss_fn_ = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](g).item()) if grad_loss_scale else grad_loss_fn
-    g_loss = grad_loss_fn_(dbody_dx_norm, g, reduction="none")
+    g_loss = grad_loss_fn(dbody_dx_norm, g, reduction="none")
     #g_loss = g_loss + eps
     if reduction and reduction != "none":
         g_loss = reduction(g_loss)
@@ -412,7 +413,7 @@ def calc_g_seq_mag_loss(
 def calc_g_mag_loss(
     dbody_dx, error, 
     grad_loss_fn=F.mse_loss, 
-    grad_loss_scale="mean", 
+    grad_loss_scale=None, 
     eps=1e-8,
     loss_clamp=None, 
     reduction=torch.mean,
@@ -469,7 +470,7 @@ def calc_g_mag_loss(
 def calc_g_loss(
     dbody_dx, error, 
     grad_loss_fn=F.mse_loss, 
-    grad_loss_scale="mean", 
+    grad_loss_scale=None, 
     loss_clamp=None, 
     reduction=torch.mean,
     eps=1e-8,
@@ -759,7 +760,7 @@ def calc_g_loss_2(
     role_model_compute=None,
     calc_grad_m=None,
     grad_loss_fn=F.mse_loss,
-    grad_loss_scale="mean",
+    grad_loss_scale=None,
     loss_clamp=None,
     reduction=torch.mean,
     eps=1e-8,
@@ -851,7 +852,7 @@ def train_epoch(
     mean_pred_loss_fn=None,
     std_loss_fn=mean_penalty_log_half,
     grad_loss_fn=F.mse_loss, # It's fine as long as loss_fn is MSE
-    grad_loss_scale="mean",
+    grad_loss_scale=None,
     adapter_loss_fn=F.mse_loss, # Values can get very large and MSE loss will result in infinity, or maybe use kl_div
     reduction=torch.mean,
     val=False,
@@ -1257,7 +1258,7 @@ def eval(
     mean_pred_loss_fn=None,
     std_loss_fn=mean_penalty_log_half,
     grad_loss_fn=F.mse_loss, #for RMSE,
-    grad_loss_scale="mean",
+    grad_loss_scale=None,
     reduction=torch.mean,
     models=None,
     allow_same_prediction=True,
@@ -1518,7 +1519,7 @@ def pred(
     batch, 
     loss_fn=F.mse_loss,
     grad_loss_fn=F.mse_loss, #for RMSE,
-    grad_loss_scale="mean",
+    grad_loss_scale=None,
     eps=1e-8,
 ):
 
