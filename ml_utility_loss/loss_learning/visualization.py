@@ -34,7 +34,7 @@ def plot_grad_2(y, models, error="error", grad="grad", g="g", **kwargs):
     ax.legend(axes)
     return fig
 
-def plot_grad_3(error, grad, fig=None, ax=None, name=None, g_name="g_corr", **kwargs):
+def plot_grad_3(error, grad, fig=None, ax=None, name=None, g_name="g_linear", **kwargs):
     if not ax:
         fig, ax = plt.subplots()
 
