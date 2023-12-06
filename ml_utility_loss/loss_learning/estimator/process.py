@@ -1204,6 +1204,7 @@ def train_epoch(
     
         n_size += batch_size
         n_batch += 1
+        clear_memory()
         if timer:
             timer.check_time()
     if timer:
@@ -1376,6 +1377,7 @@ def eval(
 
         n_size += batch_size
         n_batch += 1
+        clear_memory()
 
 
     #n = n_batch if reduction == torch.mean else n_size
