@@ -60,7 +60,7 @@ class MLUtilityWrapper:
 
         self.model.to(device)
         test = test.to(device)
-        est = self.model(samples, test)
+        samples, est = self.model(samples, test)
         target = self.target or y.flatten().item
         loss = self.loss_mul * self.loss_fn(
             est, 
