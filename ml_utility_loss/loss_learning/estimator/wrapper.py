@@ -48,6 +48,7 @@ class MLUtilityTrainer:
 
     def create_optim(self, parameters, Optim=None, **kwargs):
         Optim = Optim or self.Optim
+        parameters = list(parameters)
         self.parameters = parameters
         optim_kwargs = {**self.optim_kwargs, **kwargs}
         self.optim = Optim(parameters, **optim_kwargs)
@@ -90,7 +91,7 @@ class MLUtilityTrainer:
         print("MLU loss", loss)
         loss.backward()
 
-        for param in self.parameters():
+        for param in self.parameters:
             assert torch.isfinite(param.grad).all(), "Grad is not populated"
 
         self.optim.step()
