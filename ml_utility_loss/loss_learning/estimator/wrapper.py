@@ -73,7 +73,7 @@ class MLUtilityTrainer:
         if train.dim() < 3:
             train = train.unsqueeze(0)
 
-        assert train.shape[1:] == samples.shape[1:], f"Mismatching shapes. train {train.shape}, samples {samples.shape}"
+        assert train.dim() == samples.dim() and train.shape[0] == samples.shape[0] == 1 and train.shape[-1] == samples.shape[-1], f"Mismatching shapes. train {train.shape}, samples {samples.shape}"
 
         n = train.shape[-2]
         n_samples = samples.shape[-2]

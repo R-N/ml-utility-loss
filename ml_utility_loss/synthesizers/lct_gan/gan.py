@@ -231,7 +231,6 @@ class LatentGAN:
                 fake = fake.cpu().detach().numpy()
             data.append(fake)
 
-        data = data[:n]
         if not raw:
             data = np.concatenate(data)
         else:
@@ -243,6 +242,12 @@ class LatentGAN:
             if self.decoder:
                 data = self.decoder.decode(data, batch=True, raw=raw)
 
+        if len(data.shape) > 2:
+            if not raw:
+                data = np.concatenate(data)
+            else:
+                data = torch.cat(data)
         data = data[:n]
+        print("Decoded data length", len(data))
 
         return data
