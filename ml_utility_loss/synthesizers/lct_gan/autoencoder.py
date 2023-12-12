@@ -114,7 +114,8 @@ class LatentTAE:
         table = []
         batch_start = 0
         if batch:
-            latent = latent if type(latent).__module__ == np.__name__ else latent.cpu().detach()
+            if torch.is_tensor(latent) and not raw:
+                latent = latent.cpu().detach()
 
         steps = (len(latent) // self.batch_size) + 1
 
