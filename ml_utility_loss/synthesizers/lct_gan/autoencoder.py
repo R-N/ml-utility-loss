@@ -142,7 +142,7 @@ class LatentTAE:
         if not raw:
             return pd.concat(table)
         else:
-            table = torch.stack(table)
+            table = torch.cat(table)
         return table
     
     def postprocess(self, reconstructed):
