@@ -246,7 +246,7 @@ class LatentGAN:
             if not raw:
                 data = np.concatenate(data)
             elif torch.is_tensor(data):
-                data = torch.flatten(data, end_dim=0)
+                data = torch.flatten(data, end_dim=-2)
             else:
                 data = torch.cat(data)
         data = data[:n]
