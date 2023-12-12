@@ -10,6 +10,7 @@ import math
 import numpy as np
 #from .util import *
 from undecorated import undecorated
+from types import MethodType
 
 """
 Based in part on: https://github.com/lucidrains/denoising-diffusion-pytorch/blob/5989f4c77eafcdc6be0fb4739f0f277a6dd7f7d8/denoising_diffusion_pytorch/denoising_diffusion_pytorch.py#L281
@@ -1051,7 +1052,7 @@ class GaussianMultinomialDiffusion(torch.nn.Module):
         else:
             sample_fn = self.sample
         if raw:
-            sample_fn = undecorated(sample_fn)
+            sample_fn = MethodType(undecorated(sample_fn), self)
         
         b = batch_size
 
