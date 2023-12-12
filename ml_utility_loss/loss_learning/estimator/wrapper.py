@@ -96,4 +96,4 @@ class MLUtilityTrainer:
 
         self.optim.step()
 
-        return loss
+        return loss.detach().cpu().item()
