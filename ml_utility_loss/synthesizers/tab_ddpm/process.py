@@ -84,6 +84,7 @@ class Trainer:
                     n_samples = self.ml_utility_model.n_samples
                     batch_size = self.ml_utility_model.sample_batch_size
                     samples = sample(
+                        self.diffusion,
                         batch_size=batch_size, 
                         num_samples=n_samples, 
                         raw=True
