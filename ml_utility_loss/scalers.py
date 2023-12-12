@@ -6,16 +6,16 @@ class StandardScaler(StandardScaler_):
         check_is_fitted(self)
 
         if self.with_mean:
-            X -= self.mean_
+            X = X - self.mean_
         if self.with_std:
-            X /= self.scale_
+            X = X / self.scale_
         return X
 
     def inverse_transform(self, X, copy=None):
         check_is_fitted(self)
 
         if self.with_std:
-            X *= self.scale_
+            X = X * self.scale_
         if self.with_mean:
-            X += self.mean_
+            X = X + self.mean_
         return X
