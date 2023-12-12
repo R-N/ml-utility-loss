@@ -109,7 +109,9 @@ class LatentGAN:
 
                 original_idx = data_sampler.sample_idx(self.batch_size, col, opt)
                 real = latent_data[original_idx]
-                real = torch.from_numpy(real.astype('float32')).to(self.device)
+                if isinstance(real, np.ndarray):
+                    real = torch.from_numpy(real.astype('float32'))
+                real = real.to(self.device)
                 
                 ### TRAIN DISCRIMINATOR
                 self.optimizer_D.zero_grad()
