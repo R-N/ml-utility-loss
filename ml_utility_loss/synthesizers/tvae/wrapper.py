@@ -163,6 +163,8 @@ class TVAE(BaseSynthesizer):
         if self.ml_utility_model:
             self.ml_utility_model.create_optim(self.parameters())
 
+        return train_data
+
     @random_state
     def fit(self, train_data, discrete_columns=()):
         """Fit the TVAE Synthesizer models to the training data.
@@ -176,11 +178,12 @@ class TVAE(BaseSynthesizer):
                 contain the integer indices of the columns. Otherwise, if it is
                 a ``pandas.DataFrame``, this list should contain the column names.
         """
-        dataset = TensorDataset(torch.from_numpy(train_data.astype('float32')).to(self.device))
-        loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True, drop_last=False)
 
         if not self.model:
             self.prepare(train_data, discrete_columns=discrete_columns)
+
+        dataset = TensorDataset(torch.from_numpy(train_data.astype('float32')).to(self.device))
+        loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True, drop_last=False)
         
         return train(
             self.model, 
