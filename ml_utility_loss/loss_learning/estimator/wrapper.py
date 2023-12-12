@@ -1,15 +1,16 @@
 import torch
 import torch.nn.functional as F
 from ...util import zero_tensor
+from ...data import FastDataLoader as DataLoader
+from .data import collate_fn
 
 class MLUtilityWrapper:
     def __init__(
         self,
         model,
-        train_set,
-        test_set,
+        dataset,
         n_samples=1024,
-        target=1.0,
+        target=None,
         t_steps=5,
         n_steps=1,
         loss_fn=F.mse_loss,
@@ -24,28 +25,44 @@ class MLUtilityWrapper:
         self.target = target
         self.loss_mul = loss_mul
         self.sample_batch_size=sample_batch_size
-        self.train_set = train_set
-        self._test_set = test_set
-
-    @property
-    def test_set(self):
-        return self._test_set
+        
+        self.dataloader = DataLoader(
+            dataset, 
+            batch_size=1, 
+            shuffle=True, 
+            collate_fn=collate_fn,
+        )
 
     def step(self, samples):
         assert samples.grad_fn
         if samples.dim() < 3:
             samples = samples.unsqueeze(0)
-        if self.train_set is not None:
-            data = self.train_set
-            if data.dim() < 3:
-                data = data.unsqueeze(0)
-            n = data.shape[-2]
-            n_samples = samples.shape[-2]
-            n_remain = max(0, n-n_samples)
-            if n_remain:
-                idx =  torch.randperm(n)[:n_remain]
-                samples = torch.cat([samples, self.data[:, idx]], dim=-2)
-        est = self.model(samples, self.test_set)
-        loss = self.loss_mul * self.loss_fn(est, zero_tensor(self.target, device=est.device))
+        device = samples.device
+            
+        batch = next(self.dataloader)
+        if isinstance(batch, dict):
+            batch = batch[self.model.name]
+        
+        train, test, y, y_real = batch
+        assert y == y_real
+        
+        if train.dim() < 3:
+            train = train.unsqueeze(0)
+        n = train.shape[-2]
+        n_samples = samples.shape[-2]
+        n_remain = max(0, n-n_samples)
+        if n_remain:
+            idx =  torch.randperm(n)[:n_remain]
+            train = train.to(device)
+            samples = torch.cat([samples, train[:, idx]], dim=-2)
+
+        self.model.to(device)
+        test = test.to(device)
+        est = self.model(samples, test)
+        target = self.target or y.flatten().item
+        loss = self.loss_mul * self.loss_fn(
+            est, 
+            torch.full(target, shape=est.shape, device=est.device)
+        )
         loss.backward()
         return loss
