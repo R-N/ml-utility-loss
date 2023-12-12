@@ -180,7 +180,7 @@ class TVAE(BaseSynthesizer):
         """
 
         if not self.model:
-            self.prepare(train_data, discrete_columns=discrete_columns)
+            train_data = self.prepare(train_data, discrete_columns=discrete_columns)
 
         dataset = TensorDataset(torch.from_numpy(train_data.astype('float32')).to(self.device))
         loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True, drop_last=False)
