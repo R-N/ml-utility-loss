@@ -64,7 +64,7 @@ class MLUtilityWrapper:
         target = self.target or y.flatten().item
         loss = self.loss_mul * self.loss_fn(
             est, 
-            torch.full(target, shape=est.shape, device=est.device)
+            torch.full(est.shape, target, device=est.device)
         )
         loss.backward()
         return loss
