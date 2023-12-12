@@ -6,6 +6,7 @@ from .preprocessing import transform_dataset, prepare_fast_dataloader
 from .model import MLPDiffusion
 import pandas as pd
 from .gaussian_multinomial_diffusion import GaussianMultinomialDiffusion
+from ...util import clear_memory
 
 DEFAULT_DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else "cpu")
 
@@ -81,6 +82,7 @@ class Trainer:
 
             if self.ml_utility_model and step % self.ml_utility_model.t_steps == 0:
                 for i in range(self.ml_utility_model.n_steps):
+                    clear_memory()
                     n_samples = self.ml_utility_model.n_samples
                     batch_size = self.ml_utility_model.sample_batch_size
                     samples = sample(
@@ -90,6 +92,8 @@ class Trainer:
                         raw=True
                     )
                     self.ml_utility_model.step(samples)
+                    del samples
+                clear_memory()
 
 
             step += 1
