@@ -74,7 +74,8 @@ class LatentGAN:
         parameters.extend(self.generator.parameters())
         parameters.extend(self.discriminator.parameters())
         if self.decoder:
-            parameters.extend(self.decoder.parameters())
+            decoder_params = self.decoder.parameters()
+            parameters.extend([p for p in decoder_params if p.requires_grad])
         return parameters
 
     def fit(
