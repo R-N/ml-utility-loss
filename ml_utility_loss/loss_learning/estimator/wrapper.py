@@ -3,6 +3,7 @@ import torch.nn.functional as F
 from ...util import zero_tensor
 from ...data import FastDataLoader as DataLoader
 from .data import collate_fn
+from itertools import cycle
 
 class MLUtilityWrapper:
     def __init__(
@@ -32,6 +33,7 @@ class MLUtilityWrapper:
             shuffle=True, 
             collate_fn=collate_fn,
         )
+        self.dataloader = cycle(self.dataloader)
 
     def step(self, samples):
         assert samples.grad_fn
