@@ -61,7 +61,7 @@ class MLUtilityWrapper:
         self.model.to(device)
         test = test.to(device)
         samples, est = self.model(samples, test)
-        target = self.target or y.flatten().item
+        target = self.target or y.flatten().item()
         loss = self.loss_mul * self.loss_fn(
             est, 
             torch.full(est.shape, target, device=est.device)
