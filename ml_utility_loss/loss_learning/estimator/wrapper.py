@@ -67,6 +67,9 @@ class MLUtilityTrainer:
         train, test, y, y_real = batch
         assert y == y_real
         
+        if train.dtype != samples.dtype:
+            samples = samples.type(train.dtype)
+        
         if train.dim() < 3:
             train = train.unsqueeze(0)
         n = train.shape[-2]
