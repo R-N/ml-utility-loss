@@ -225,7 +225,7 @@ def sample(
         x_gen, y_gen = diffusion.sample_all(num_samples, batch_size, empirical_class_dist.float(), ddim=False, raw=raw)
 
     if raw:
-        return torch.cat([x_gen, y_gen], dim=-1)
+        return torch.cat([x_gen, y_gen.reshape(-1, 1)], dim=-1)
 
     X_gen, y_gen = x_gen.numpy(), y_gen.numpy()
 
