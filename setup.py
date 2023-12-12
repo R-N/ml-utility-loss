@@ -50,6 +50,7 @@ setup(
         "transformers==4.28.0",
         #"torchmetrics",
         "torch_optimizer",
+        "undecorated",
     ],
 
     classifiers=[
