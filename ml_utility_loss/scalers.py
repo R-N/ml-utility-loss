@@ -14,10 +14,10 @@ class StandardScaler(StandardScaler_):
         return ret
     
     def mean(self, X=None):
-        return (torch.Tensor(self.mean_, dtype=X.dtype, device=X.device) if torch.is_tensor(X) else self.mean_)
+        return (self.mean_tensor.type(X.dtype).to(X.device) if torch.is_tensor(X) else self.mean_)
         
     def scale(self, X=None):
-        return (torch.Tensor(self.scale_, dtype=X.dtype, device=X.device) if torch.is_tensor(X) else self.scale_)
+        return (self.scale_tensor.type(X.dtype).to(X.device) if torch.is_tensor(X) else self.scale_)
 
     def transform(self, X, copy=None):
         check_is_fitted(self)
