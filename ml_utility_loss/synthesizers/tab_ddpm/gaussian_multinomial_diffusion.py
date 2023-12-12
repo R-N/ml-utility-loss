@@ -9,6 +9,7 @@ import math
 
 import numpy as np
 #from .util import *
+from undecorated import undecorated
 
 """
 Based in part on: https://github.com/lucidrains/denoising-diffusion-pytorch/blob/5989f4c77eafcdc6be0fb4739f0f277a6dd7f7d8/denoising_diffusion_pytorch/denoising_diffusion_pytorch.py#L281
@@ -1049,6 +1050,8 @@ class GaussianMultinomialDiffusion(torch.nn.Module):
             sample_fn = self.sample_ddim
         else:
             sample_fn = self.sample
+        if raw:
+            sample_fn = undecorated(sample_fn)
         
         b = batch_size
 
