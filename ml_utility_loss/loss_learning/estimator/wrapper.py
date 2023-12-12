@@ -5,7 +5,7 @@ from ...data import FastDataLoader as DataLoader
 from .data import collate_fn
 from itertools import cycle
 
-class MLUtilityWrapper:
+class MLUtilityTrainer:
     def __init__(
         self,
         model,
@@ -17,6 +17,8 @@ class MLUtilityWrapper:
         loss_fn=F.mse_loss,
         loss_mul=1.0,
         sample_batch_size=512,
+        Optim=torch.optim.AdamW,
+        **optim_kwargs
     ):
         self.model = model
         self.t_steps = t_steps
@@ -34,8 +36,23 @@ class MLUtilityWrapper:
             collate_fn=collate_fn,
         )
         self.dataloader = cycle(self.dataloader)
+        self.parameters = None
+        self.optim = None
+        self.Optim = Optim
+        self.optim_kwargs = {
+            **dict(
+                lr=1e-3,
+            ),
+            **optim_kwargs,
+        }
+
+    def create_optim(self, parameters, Optim=None, **kwargs):
+        Optim = Optim or self.Optim
+        self.parameters = parameters
+        self.optim = Optim(parameters, {**self.optim_kwargs, **kwargs})
 
     def step(self, samples):
+        assert self.optim
         assert samples.grad_fn
         if samples.dim() < 3:
             samples = samples.unsqueeze(0)
@@ -60,11 +77,21 @@ class MLUtilityWrapper:
 
         self.model.to(device)
         test = test.to(device)
+
+        self.optim.zero_grad()
+
         samples, est = self.model(samples, test)
         target = self.target or y.flatten().item()
         loss = self.loss_mul * self.loss_fn(
             est, 
             torch.full(est.shape, target, device=est.device)
         )
+        print("MLU loss", loss)
         loss.backward()
+
+        for param in self.parameters():
+            assert torch.isfinite(param.grad).all(), "Grad is not populated"
+
+        self.optim.step()
+
         return loss

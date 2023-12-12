@@ -141,6 +141,27 @@ class TVAE(BaseSynthesizer):
 
         self.device = torch.device(device)
         self.ml_utility_model = ml_utility_model
+        self.model = None
+
+    def parameters(self):
+        return self.model.parameters()
+
+    def prepare(self, train_data, discrete_columns=()):
+        self.transformer, train_data = preprocess(
+            train_data, discrete_columns
+        )
+
+        data_dim = self.transformer.output_dimensions
+
+        self.model = TVAEModel(
+            data_dim=data_dim,
+            compress_dims=self.compress_dims,
+            embedding_dim=self.embedding_dim,
+            decompress_dims=self.decompress_dims,
+            device=self.device
+        )
+        if self.ml_utility_model:
+            self.ml_utility_model.create_optim(self.parameters())
 
     @random_state
     def fit(self, train_data, discrete_columns=()):
@@ -155,21 +176,11 @@ class TVAE(BaseSynthesizer):
                 contain the integer indices of the columns. Otherwise, if it is
                 a ``pandas.DataFrame``, this list should contain the column names.
         """
-        self.transformer, train_data = preprocess(
-            train_data, discrete_columns
-        )
         dataset = TensorDataset(torch.from_numpy(train_data.astype('float32')).to(self.device))
         loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True, drop_last=False)
 
-        data_dim = self.transformer.output_dimensions
-
-        self.model = TVAEModel(
-            data_dim=data_dim,
-            compress_dims=self.compress_dims,
-            embedding_dim=self.embedding_dim,
-            decompress_dims=self.decompress_dims,
-            device=self.device
-        )
+        if not self.model:
+            self.prepare(train_data, discrete_columns=discrete_columns)
         
         return train(
             self.model, 
