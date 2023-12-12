@@ -66,6 +66,17 @@ class LatentGAN:
         self.optimizer_G = torch.optim.Adam(self.generator.parameters(), lr=self.lr, betas=(self.b1, self.b2))
         self.optimizer_D = torch.optim.Adam(self.discriminator.parameters(), lr=self.lr, betas=(self.b1, self.b2))
 
+        if self.ml_utility_model:
+            self.ml_utility_model.create_optim(self.parameters())
+
+    def parameters(self):
+        parameters = []
+        parameters.extend(self.generator.parameters())
+        parameters.extend(self.discriminator.parameters())
+        if self.decoder:
+            parameters.extend(self.decoder.parameters())
+        return parameters
+
     def fit(
         self, 
         latent_data, 
