@@ -1,6 +1,6 @@
 from .autoencoder import LatentTAE
 from .gan import LatentGAN
-from sklearn.preprocessing import StandardScaler
+from ...scalers import StandardScaler
 import torch
 from .params.default import AE_PARAMS, GAN_PARAMS
 from ...util import filter_dict_2
