@@ -49,6 +49,37 @@ class SaveEpochEndCallback(TrainerCallback):
         return control
 
 
+class MLUtilityCallback(TrainerCallback):
+    """This callback forces a checkpoint save at each epoch end."""
+
+    def __init__(self, model, ml_utility_model=None) -> None:
+        super().__init__()
+        self.ml_utility_model = ml_utility_model
+        self.model = model
+        self.epoch = -1
+
+    def on_epoch_end(
+        self,
+        args: TrainingArguments,
+        state: TrainerState,
+        control: TrainerControl,
+        **kwargs,
+    ):
+        self.epoch += 1
+        if self.ml_utility_model and self.epoch%self.ml_utility_model.t_steps == 0:
+            for i in range(self.ml_utility_model.n_steps):
+                n_samples = self.ml_utility_model.n_samples
+                batch_size=self.ml_utility_model.sample_batch_size
+                samples = self.model.sample(
+                    n_samples=n_samples,
+                    gen_batch=batch_size,
+                    raw=True,
+                )
+                self.ml_utility_model.step(samples)
+
+
+
+
 class ResumableTrainer(Trainer):
     """This trainer makes the scheduler consistent over pauses
     in the training. The scheduler should return values similar
@@ -76,6 +107,7 @@ class ResumableTrainer(Trainer):
         preprocess_logits_for_metrics: Callable[
             [torch.Tensor, torch.Tensor], torch.Tensor
         ] = None,
+        ml_utility_model=None,
     ):
         # Declare here for typing
         self.lr_scheduler: torch.optim.lr_scheduler.LambdaLR = None
@@ -84,6 +116,8 @@ class ResumableTrainer(Trainer):
             callbacks = []
 
         callbacks.append(SaveEpochEndCallback(save_epochs=save_epochs))
+        if ml_utility_model:
+            callbacks.append(MLUtilityCallback(self, ml_utility_model))
 
         super().__init__(
             model,

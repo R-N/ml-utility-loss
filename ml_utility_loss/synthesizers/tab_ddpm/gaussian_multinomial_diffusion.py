@@ -959,7 +959,7 @@ class GaussianMultinomialDiffusion(torch.nn.Module):
         return out
 
     @torch.no_grad()
-    def sample_ddim(self, num_samples, y_dist):
+    def sample_ddim(self, num_samples, y_dist, raw=False):
         b = num_samples
         device = self.log_alpha.device
         z_norm = torch.randn((b, self.num_numerical_features), device=device)
@@ -995,12 +995,14 @@ class GaussianMultinomialDiffusion(torch.nn.Module):
         z_cat = log_z
         if has_cat:
             z_cat = ohe_to_categories(z_ohe, self.num_classes)
-        sample = torch.cat([z_norm, z_cat], dim=1).cpu()
+        sample = torch.cat([z_norm, z_cat], dim=1)
+        if not raw:
+            sample = sample.cpu()
         return sample, out_dict
     
 
     @torch.no_grad()
-    def sample(self, num_samples, y_dist):
+    def sample(self, num_samples, y_dist, raw=False):
         b = num_samples
         device = self.log_alpha.device
         z_norm = torch.randn((b, self.num_numerical_features), device=device)
@@ -1036,10 +1038,12 @@ class GaussianMultinomialDiffusion(torch.nn.Module):
         z_cat = log_z
         if has_cat:
             z_cat = ohe_to_categories(z_ohe, self.num_classes)
-        sample = torch.cat([z_norm, z_cat], dim=1).cpu()
+        sample = torch.cat([z_norm, z_cat], dim=1)
+        if not raw:
+            sample = sample.cpu()
         return sample, out_dict
     
-    def sample_all(self, num_samples, batch_size, y_dist, ddim=False):
+    def sample_all(self, num_samples, batch_size, y_dist, ddim=False, raw=False):
         if ddim:
             print('Sample using DDIM.')
             sample_fn = self.sample_ddim
@@ -1052,7 +1056,7 @@ class GaussianMultinomialDiffusion(torch.nn.Module):
         all_samples = []
         num_generated = 0
         while num_generated < num_samples:
-            sample, out_dict = sample_fn(b, y_dist)
+            sample, out_dict = sample_fn(b, y_dist, raw=raw)
             mask_nan = torch.any(sample.isnan(), dim=1)
             sample = sample[~mask_nan]
             out_dict['y'] = out_dict['y'][~mask_nan]

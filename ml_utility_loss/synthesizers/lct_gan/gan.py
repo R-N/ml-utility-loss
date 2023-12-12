@@ -26,7 +26,8 @@ class LatentGAN:
         b2=0.999, 
         n_critic=5, 
         decoder=None,
-        scaler=None
+        scaler=None,
+        ml_utility_model=None,
     ):
         self.input_size = input_size
         self.generator = None
@@ -44,6 +45,7 @@ class LatentGAN:
         self.n_critic=n_critic
         self.decoder=decoder
         self.scaler=scaler
+        self.ml_utility_model = ml_utility_model
 
         self.prepare_training()
 
@@ -156,6 +158,13 @@ class LatentGAN:
                     loss_g.backward()
 
                     self.optimizer_G.step()
+                    
+                if self.ml_utility_model and epoch%self.ml_utility_model.t_steps == 0:
+                    for i in range(self.ml_utility_model.n_steps):
+                        n_samples = self.ml_utility_model.n_samples
+                        samples = self.sample(n_samples, raw=True)
+                        self.ml_utility_model.step(samples)
+
 
             print("[Epoch %d/%d] [D loss: %f] [G loss: %f]" 
                 % (epoch + 1, epochs, loss_d.item(), loss_g.item())
@@ -187,7 +196,7 @@ class LatentGAN:
 
         return gradient_penalty
 
-    def sample(self, n):
+    def sample(self, n, raw=False):
         
         # turning the generator into inference mode to effectively use running statistics in batch norm layers
         self.generator.eval()
@@ -204,16 +213,22 @@ class LatentGAN:
             # z = torch.cat([z, z_cond], dim=1).to(self.device)
             z = torch.cat([z], dim=1).to(self.device)
 
-            fake = self.generator(z).cpu().detach().numpy()
+            fake = self.generator(z)
+            if not raw:
+                fake = fake.cpu().detach().numpy()
             data.append(fake)
 
-        data = np.concatenate(data[0:n])
+        data = data[:n]
+        if not raw:
+            data = np.concatenate(data)
+        else:
+            data = torch.cat(data)
         print("Sampled data length", len(data))
 
         if self.scaler:
             data = self.scaler.inverse_transform(data)
             if self.decoder:
-                data = self.decoder.decode(data, batch=True)
+                data = self.decoder.decode(data, batch=True, raw=raw)
 
         data = data[:n]
 

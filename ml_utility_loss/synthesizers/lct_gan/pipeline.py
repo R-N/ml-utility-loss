@@ -16,6 +16,7 @@ def create_gan(
     batch_size=512,
     lr=0.0002,
     sample=None,
+    ml_utility_model=None,
 ):
 
     # EVALUATING AUTO-ENCODER
@@ -34,7 +35,8 @@ def create_gan(
         n_critic=n_critic, 
         decoder=ae,
         lr=lr,
-        scaler=sscaler
+        scaler=sscaler,
+        ml_utility_model=ml_utility_model,
     )
 
     gan.fit(
@@ -58,6 +60,7 @@ def create_ae(
     batch_size=512,
     embedding_size=64,
     lr=1e-3,
+    ml_utility_model=None,
 ):
     ae = LatentTAE(
         batch_size=batch_size,
@@ -67,10 +70,15 @@ def create_ae(
         integer_columns=integer_columns,
         mixed_columns=mixed_columns, #dict(col: 0)
         lr=lr,
+        ml_utility_model=ml_utility_model,
     )
     ae.fit_preprocessor(df)
     preprocessed = ae.preprocess(df)
-    ae.fit(preprocessed, n_epochs=epochs, preprocessed=True)
+    ae.fit(
+        preprocessed, 
+        n_epochs=epochs, 
+        preprocessed=True, 
+    )
     
 
     latent_data = ae.encode(preprocessed, preprocessed=True) # could be loaded from file

@@ -35,11 +35,15 @@ class LatentTAE:
         mixed_columns={}, #dict(col: 0)
         batch_size=512,
         lr=1e-3, 
+        ml_utility_model=None,
     ):
 
         self.__name__ = 'AutoEncoder'
         self.lr = lr
-        self.ae = AutoEncoder(embedding_size=embedding_size)
+        self.ae = AutoEncoder(
+            embedding_size=embedding_size,
+            ml_utility_model=ml_utility_model,
+        )
         self.embedding_size = embedding_size
         self.categorical_columns = categorical_columns
         self.log_columns = log_columns
@@ -54,6 +58,7 @@ class LatentTAE:
             mixed_columns=self.mixed_columns,
             integer_columns=self.integer_columns
         )
+        self.ml_utility_model = ml_utility_model
 
     def state_dict(self):
         return self.ae.state_dict()
@@ -94,17 +99,18 @@ class LatentTAE:
 
         latent = self.ae.encode(real)
         reconstructed = self.ae.decode(latent)
+
         l = reconstructed.cpu().detach().numpy()
 
-        table_real = self.postprocess(real)
-        table_recon = self.postprocess(l)
+        #table_real = self.postprocess(real)
+        #table_recon = self.postprocess(l)
 
         #print(table_real)
         #print()
         #print(table_recon)
         #### END OF TEST ####
 
-    def decode(self, latent, batch=False, postprocessing=True):
+    def decode(self, latent, batch=False, raw=False):
         table = []
         batch_start = 0
         if batch:
@@ -124,14 +130,18 @@ class LatentTAE:
                 l = torch.cat(l).to(self.ae.device)
 
             reconstructed = self.ae.decode(l)
-            reconstructed = reconstructed.cpu().detach().numpy()
 
-            if postprocessing:
+            if not raw:
+                reconstructed = reconstructed.cpu().detach().numpy()
+
+            if not raw:
                 reconstructed = self.postprocess(reconstructed)
             table.append(reconstructed)
 
-        if postprocessing:
+        if not raw:
             return pd.concat(table)
+        else:
+            table = torch.stack(table)
         return table
     
     def postprocess(self, reconstructed):
@@ -183,13 +193,14 @@ class AENetwork(nn.Module):
 
 class AutoEncoder(object):
 
-    def __init__(self, **kwargs):
+    def __init__(self, ml_utility_model=None, **kwargs):
         self.kwargs = kwargs  # has to have 'embedding_size' and 'cuda' = True
         self.device = torch.device(
             "cuda:0" if torch.cuda.is_available() else "cpu")
         self.model = None
         self.cond_generator = None
         self.last_loss = None
+        self.ml_utility_model = ml_utility_model
 
     def loss_function(self, recon_x, x, input_size):
         # BCE = F.binary_cross_entropy(recon_x, x.view(-1, input_size), reduction='sum')
@@ -244,6 +255,22 @@ class AutoEncoder(object):
                 self.optimizer.step()
 
                 last_loss = (loss.item() / len(batch))
+
+            if self.ml_utility_model and e%self.ml_utility_model.t_steps == 0:
+                for i in range(self.ml_utility_model.n_steps):
+                    n_samples = self.ml_utility_model.n_samples
+                    _, _, col, opt = cond_generator.sample_train(n_samples)
+                    samples = []
+                    while len(samples) < n_samples:
+                        sample = data_sampler.sample(
+                            batch_size, col, opt,
+                        )
+                        sample = self.encode(sample)
+                        sample = self.decode(sample)
+                        samples.append(sample)
+                    samples = samples[:n_samples]
+                    samples = torch.cat(samples, dim=0)
+                    self.ml_utility_model.step(samples)
 
         #print(last_loss)
         self.loss = last_loss

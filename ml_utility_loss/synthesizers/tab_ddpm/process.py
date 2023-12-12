@@ -14,7 +14,7 @@ def update_ema(target_params, source_params, rate=0.999):
         targ.detach().mul_(rate).add_(src.detach(), alpha=1 - rate)
 
 class Trainer:
-    def __init__(self, diffusion, train_iter, lr, weight_decay, steps, device=DEFAULT_DEVICE):
+    def __init__(self, diffusion, train_iter, lr, weight_decay, steps, device=DEFAULT_DEVICE, ml_utility_model=None):
         self.diffusion = diffusion
         self.ema_model = deepcopy(self.diffusion._denoise_fn)
         for param in self.ema_model.parameters():
@@ -29,6 +29,7 @@ class Trainer:
         self.log_every = 10
         self.print_every = 10
         self.ema_every = 1000
+        self.ml_utility_model=ml_utility_model
 
     def _anneal_lr(self, step):
         frac_done = step / self.steps
@@ -77,6 +78,18 @@ class Trainer:
 
             update_ema(self.ema_model.parameters(), self.diffusion._denoise_fn.parameters())
 
+            if self.ml_utility_model and step % self.ml_utility_model.t_steps == 0:
+                for i in range(self.ml_utility_model.n_steps):
+                    n_samples = self.ml_utility_model.n_samples
+                    batch_size = self.ml_utility_model.sample_batch_size
+                    samples = self.sample(
+                        batch_size=batch_size, 
+                        num_samples=n_samples, 
+                        raw=True
+                    )
+                    self.ml_utility_model.step(samples)
+
+
             step += 1
 
 def train(
@@ -92,6 +105,7 @@ def train(
     device = DEFAULT_DEVICE,
     seed = 0,
     cat_encoding = "ordinal", #'one-hot',
+    ml_utility_model=None,
     **model_params
 ):
 
@@ -161,7 +175,8 @@ def train(
         lr=lr,
         weight_decay=weight_decay,
         steps=steps,
-        device=device
+        device=device,
+        ml_utility_model=ml_utility_model,
     )
     trainer.run_loop()
 
@@ -175,6 +190,7 @@ def sample(
     num_samples = 10,
     disbalance = None,
     seed = 0,
+    raw=False,
 ):
     zero.improve_reproducibility(seed)
 
@@ -184,7 +200,7 @@ def sample(
     
     if disbalance == 'fix':
         empirical_class_dist[0], empirical_class_dist[1] = empirical_class_dist[1], empirical_class_dist[0]
-        x_gen, y_gen = diffusion.sample_all(num_samples, batch_size, empirical_class_dist.float(), ddim=False)
+        x_gen, y_gen = diffusion.sample_all(num_samples, batch_size, empirical_class_dist.float(), ddim=False, raw=raw)
 
     elif disbalance == 'fill':
         ix_major = empirical_class_dist.argmax().item()
@@ -196,7 +212,7 @@ def sample(
             distrib = torch.zeros_like(empirical_class_dist)
             distrib[i] = 1
             num_samples = val_major - empirical_class_dist[i].item()
-            x_temp, y_temp = diffusion.sample_all(num_samples, batch_size, distrib.float(), ddim=False)
+            x_temp, y_temp = diffusion.sample_all(num_samples, batch_size, distrib.float(), ddim=False, raw=raw)
             x_gen.append(x_temp)
             y_gen.append(y_temp)
         
@@ -204,8 +220,10 @@ def sample(
         y_gen = torch.cat(y_gen, dim=0)
 
     else:
-        x_gen, y_gen = diffusion.sample_all(num_samples, batch_size, empirical_class_dist.float(), ddim=False)
+        x_gen, y_gen = diffusion.sample_all(num_samples, batch_size, empirical_class_dist.float(), ddim=False, raw=raw)
 
+    if raw:
+        return torch.cat([x_gen, y_gen], dim=-1)
 
     X_gen, y_gen = x_gen.numpy(), y_gen.numpy()
 

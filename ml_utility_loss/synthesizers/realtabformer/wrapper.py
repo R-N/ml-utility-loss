@@ -846,6 +846,7 @@ class REaLTabFormer:
         suppress_tokens: Optional[List[int]] = None,
         forced_decoder_ids: Optional[List[List[int]]] = None,
         #related_num: Optional[Union[int, List[int]]] = None,
+        raw=False,
         **generate_kwargs,
     ) -> pd.DataFrame:
         self._check_model()
@@ -873,6 +874,7 @@ class REaLTabFormer:
                 continuous_empty_limit=continuous_empty_limit,
                 suppress_tokens=suppress_tokens,
                 forced_decoder_ids=forced_decoder_ids,
+                raw=raw,
                 **generate_kwargs,
             )
 

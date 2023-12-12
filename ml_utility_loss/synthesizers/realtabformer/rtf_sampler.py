@@ -13,6 +13,11 @@ from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from transformers import DefaultDataCollator, PreTrainedModel
 
+from undecorated import undecorated
+from types import MethodType
+from functools import partial
+
+
 from .data_utils import (
     INVALID_NUMS_RE,
     NUMERIC_NA_TOKEN,
@@ -217,8 +222,10 @@ class REaLSampler:
         device: torch.device,
         as_numpy: Optional[bool] = True,
         constrain_tokens_gen: Optional[bool] = True,
+        raw = False,
         **generate_kwargs,
     ) -> Union[torch.tensor, np.ndarray]:
+        as_numpy = as_numpy and not raw
         # This leverages the generic interface of HuggingFace transformer models' `.generate` method.
         # Refer to the transformers documentation for valid arguments to `generate_kwargs`.
         self.model.eval()
@@ -248,7 +255,13 @@ class REaLSampler:
         if "eos_token_id" not in generate_kwargs:
             generate_kwargs["eos_token_id"] = vocab["token2id"][SpecialTokens.EOS]
 
-        _samples = self.model.generate(**generate_kwargs)
+        generate = self.model.generate
+        if raw:
+            generate = self.model.greedy_search
+            #generate = partial(undecorated(generate), num_beams=1)
+            #model.generate_with_grad = MethodType(generate_with_grad, model)
+
+        _samples = generate(**generate_kwargs)
 
         if as_numpy:
             if device == torch.device("cpu"):
@@ -372,11 +385,11 @@ class REaLSampler:
 
     def processes_sample(
         self,
-        sample_outputs: np.ndarray,
+        sample_outputs,
         vocab: Dict,
         relate_ids: Optional[List[Any]] = None,
         validator: Optional[ObservationValidator] = None,
-    ) -> pd.DataFrame:
+    ):
         assert isinstance(sample_outputs, np.ndarray)
 
         print(len(sample_outputs[0]))
@@ -469,8 +482,8 @@ class REaLSampler:
         return synth_df
 
     def _validate_data(
-        self, synth_df: pd.DataFrame, validator: Optional[ObservationValidator] = None
-    ) -> pd.DataFrame:
+        self, synth_df, validator: Optional[ObservationValidator] = None
+    ):
         if validator is not None:
             synth_df = synth_df.loc[validator.validate_df(synth_df)]
 
@@ -609,6 +622,7 @@ class TabularSampler(REaLSampler):
         continuous_empty_limit: int = 10,
         suppress_tokens: Optional[List[int]] = None,
         forced_decoder_ids: Optional[List[List[int]]] = None,
+        raw=False,
         **generate_kwargs,
     ) -> pd.DataFrame:
         device = torch.device(device)
@@ -637,7 +651,7 @@ class TabularSampler(REaLSampler):
                 # https://huggingface.co/docs/transformers/internal/generation_utils
                 sample_outputs = self._generate(
                     device=device,
-                    as_numpy=True,
+                    as_numpy=not raw,
                     constrain_tokens_gen=constrain_tokens_gen,
                     inputs=generated,
                     do_sample=True,

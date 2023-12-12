@@ -101,7 +101,7 @@ PARAM_SPACE = {
     "fixed_role_model": ("categorical", [
         #None, 
         #"tvae", 
-        "lct_gan", 
+        "tvae", 
         #"lct_gan_latent", 
         #"tab_ddpm_concat", 
         #"realtabformer",

@@ -119,7 +119,8 @@ class TVAE(BaseSynthesizer):
         batch_size=500,
         epochs=300,
         loss_factor=2,
-        cuda=True
+        cuda=True,
+        ml_utility_model=None,
     ):
 
         self.embedding_dim = embedding_dim
@@ -139,6 +140,7 @@ class TVAE(BaseSynthesizer):
             device = 'cuda'
 
         self.device = torch.device(device)
+        self.ml_utility_model = ml_utility_model
 
     @random_state
     def fit(self, train_data, discrete_columns=()):
@@ -176,6 +178,7 @@ class TVAE(BaseSynthesizer):
             loss_factor=self.loss_factor,
             l2scale=self.l2scale,
             epochs=self.epochs,
+            ml_utility_model=self.ml_utility_model,
         )
 
     @random_state

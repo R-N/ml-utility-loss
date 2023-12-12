@@ -37,7 +37,8 @@ def train(
     loss_factor=2,
     l2scale=1e-5,
     epochs=300,
-    Optimizer=Adam
+    Optimizer=Adam,
+    ml_utility_model=None,
 ):
     model.train()
 
@@ -58,6 +59,14 @@ def train(
             loss.backward()
             optimizerAE.step()
             model.decoder.sigma.data.clamp_(0.01, 1.0)
+                    
+        if ml_utility_model and i%ml_utility_model.t_steps == 0:
+            for _ in range(ml_utility_model.n_steps):
+                n_samples = ml_utility_model.n_samples
+                batch_size = ml_utility_model.sample_batch_size
+                samples = sample(model=model, transformer=transformer, samples=n_samples, batch_size=batch_size, raw=True)
+                ml_utility_model.step(samples)
+
     return loss_1.item(), loss_2.item()
 
 
@@ -66,6 +75,7 @@ def sample(
     transformer, 
     samples, 
     batch_size=500,
+    raw=False,
 ):
     model.eval()
 
@@ -77,10 +87,19 @@ def sample(
         noise = torch.normal(mean=mean, std=std).to(model.device)
         fake, sigmas = model.decoder(noise)
         fake = torch.tanh(fake)
-        data.append(fake.detach().cpu().numpy())
+        if not raw:
+            fake = fake.detach().cpu().numpy()
+        data.append(fake)
 
-    data = np.concatenate(data, axis=0)
+    if not raw:
+        data = np.concatenate(data, axis=0)
+    else:
+        data = torch.cat(data, dim=0)
     data = data[:samples]
+
+    if raw:
+        return data
+
     sigmas = sigmas.detach().cpu().numpy()
     if not transformer:
         return data
