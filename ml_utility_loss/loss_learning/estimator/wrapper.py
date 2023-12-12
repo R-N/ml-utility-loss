@@ -49,7 +49,9 @@ class MLUtilityTrainer:
     def create_optim(self, parameters, Optim=None, **kwargs):
         Optim = Optim or self.Optim
         self.parameters = parameters
-        self.optim = Optim(parameters, {**self.optim_kwargs, **kwargs})
+        optim_kwargs = {**self.optim_kwargs, **kwargs}
+        print(optim_kwargs)
+        self.optim = Optim(parameters, optim_kwargs)
 
     def step(self, samples):
         assert self.optim
