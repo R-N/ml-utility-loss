@@ -1062,7 +1062,7 @@ class GaussianMultinomialDiffusion(torch.nn.Module):
             out_dict['y'] = out_dict['y'][~mask_nan]
 
             all_samples.append(sample)
-            all_y.append(out_dict['y'].cpu())
+            all_y.append(out_dict['y'])
             if sample.shape[0] != b:
                 raise FoundNANsError
             num_generated += sample.shape[0]
