@@ -2,11 +2,6 @@ from sklearn.preprocessing import StandardScaler as StandardScaler_
 from sklearn.preprocessing._data import check_is_fitted
 
 class StandardScaler(StandardScaler_):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-
     def transform(self, X, copy=None):
         check_is_fitted(self)
 
@@ -24,6 +19,3 @@ class StandardScaler(StandardScaler_):
         if self.with_mean:
             X += self.mean_
         return X
-
-    def _more_tags(self):
-        return {"allow_nan": True, "preserves_dtype": [np.float64, np.float32]}
