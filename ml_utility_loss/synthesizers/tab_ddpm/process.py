@@ -30,6 +30,7 @@ class Trainer:
         self.print_every = 10
         self.ema_every = 1000
         self.ml_utility_model=ml_utility_model
+        ml_utility_model.create_optim(diffusion.parameters())
 
     def _anneal_lr(self, step):
         frac_done = step / self.steps
@@ -82,7 +83,7 @@ class Trainer:
                 for i in range(self.ml_utility_model.n_steps):
                     n_samples = self.ml_utility_model.n_samples
                     batch_size = self.ml_utility_model.sample_batch_size
-                    samples = self.sample(
+                    samples = sample(
                         batch_size=batch_size, 
                         num_samples=n_samples, 
                         raw=True
