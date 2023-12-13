@@ -899,4 +899,5 @@ def sample_hidden(
             else:
                 this_peer_finished = True
 
+    decoder_hidden_states = torch.stack(decoder_hidden_states)
     return decoder_hidden_states
