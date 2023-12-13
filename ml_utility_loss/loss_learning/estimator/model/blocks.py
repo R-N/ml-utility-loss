@@ -412,7 +412,7 @@ class Adapter(nn.Module):
             shape0 = x.shape[:2]
             if self.embedding and self.use_embedding:
                 x = x1 = self.embedding(x.to(torch.int))
-                x = x.view(*shape0, -1)
+            x = x.view(*shape0, -1)
             if x is not x0 and x0.requires_grad and not x.requires_grad:
                 x.requires_grad_()
             y = x
