@@ -18,6 +18,7 @@ import torch
 from datasets import Dataset
 from sklearn.metrics.pairwise import manhattan_distances
 from .data_utils import map_input_ids
+from torchinfo import summary
 
 # from sklearn.metrics import accuracy_score
 from transformers import ( 
@@ -768,6 +769,7 @@ class REaLTabFormer:
             self.tabular_config.n_positions = 128 + len(self.vocab["column_token_ids"])
 
         self.model = GPT2LMHeadModel(self.tabular_config)
+        print(summary(self.model, input_size=(24,), depth=1, batch_dim=1, dtypes=['torch.IntTensor']))
 
         # Tell pytorch to run this model on the GPU.
         device = torch.device(device)
