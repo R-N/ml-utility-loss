@@ -79,13 +79,14 @@ class MLUtilityTrainer:
             test = self.model.adapter.embedding(test.to(torch.int))
 
         assert train.dim() == samples.dim() and train.shape[0] == samples.shape[0] == 1 and train.shape[-1] == samples.shape[-1], f"Mismatching shapes. train {train.shape}, samples {samples.shape}"
+        if "realtabformer" in self.model.name.lower():
+            assert train.shape[-2] == samples.shape[-2], f"Mismatching shapes. train {train.shape}, samples {samples.shape}"
 
         n = train.shape[1]
         n_samples = samples.shape[1]
         n_remain = max(0, n-n_samples)
         if n_remain:
             idx =  torch.randperm(n)[:n_remain]
-            train = train.to(device)
             samples = torch.cat([samples, train[:, idx]], dim=1)
 
         self.model.to(device)
