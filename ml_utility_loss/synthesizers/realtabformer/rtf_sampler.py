@@ -17,11 +17,11 @@ from undecorated import undecorated
 from types import MethodType
 from functools import partial
 import torch.distributed as dist
-from transformers.generation_stopping_criteria import (
+from transformers.generation.stopping_criteria import (
     StoppingCriteriaList,
     validate_stopping_criteria,
 )
-from transformers.generation_logits_process import LogitsProcessorList
+from transformers.generation.logits_process import LogitsProcessorList
 
 
 from .data_utils import (
