@@ -684,8 +684,11 @@ class TabularSampler(REaLSampler):
                 else:
                     self.invalid_gen_samples += len(sample_outputs)
                     try:
+                        sample_outputs_1 = sample_outputs
+                        if torch.is_tensor(sample_outputs_1):
+                            sample_outputs_1 = sample_outputs_1.detach().cpu().numpy()
                         synth_sample = self.processes_sample(
-                            sample_outputs=sample_outputs.detach().cpu().numpy(),
+                            sample_outputs=sample_outputs_1,
                             vocab=self.vocab,
                             validator=validator,
                         )
