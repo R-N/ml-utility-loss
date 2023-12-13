@@ -72,11 +72,11 @@ class MLUtilityTrainer:
         if train.dtype != samples.dtype:
             samples = samples.type(train.dtype)
 
-        assert train.dim() == samples.dim() and train.shape[0] == samples.shape[0] == 1 and train.shape[-1] == samples.shape[-1], f"Mismatching shapes. train {train.shape}, samples {samples.shape}"
-
         if self.model.adapter.embedding and train.dim() < 4:
             train = self.model.adapter.embedding(train)
             test = self.model.adapter.embedding(test)
+
+        assert train.dim() == samples.dim() and train.shape[0] == samples.shape[0] == 1 and train.shape[-1] == samples.shape[-1], f"Mismatching shapes. train {train.shape}, samples {samples.shape}"
 
         n = train.shape[1]
         n_samples = samples.shape[1]
