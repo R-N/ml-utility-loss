@@ -828,6 +828,7 @@ class REaLTabFormer:
             data_collator=None,  # Use the default_data_collator
             callbacks=callbacks,
             ml_utility_model=self.ml_utility_model,
+            sampler=self,
             **self.dataset,
         )
 
