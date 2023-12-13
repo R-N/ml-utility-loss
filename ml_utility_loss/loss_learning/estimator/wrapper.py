@@ -45,6 +45,7 @@ class MLUtilityTrainer:
             ),
             **optim_kwargs,
         }
+        self.dim = 4 if "realtabformer" in model.name.lower() else 3
 
     def create_optim(self, parameters, Optim=None, **kwargs):
         Optim = Optim or self.Optim
@@ -56,7 +57,7 @@ class MLUtilityTrainer:
     def step(self, samples):
         assert self.optim
         assert samples.grad_fn
-        if samples.dim() < 3:
+        if samples.dim() < self.dim:
             samples = samples.unsqueeze(0)
         device = samples.device
             
@@ -69,19 +70,16 @@ class MLUtilityTrainer:
         
         if train.dtype != samples.dtype:
             samples = samples.type(train.dtype)
-        
-        if train.dim() < 3:
-            train = train.unsqueeze(0)
 
         assert train.dim() == samples.dim() and train.shape[0] == samples.shape[0] == 1 and train.shape[-1] == samples.shape[-1], f"Mismatching shapes. train {train.shape}, samples {samples.shape}"
 
-        n = train.shape[-2]
-        n_samples = samples.shape[-2]
+        n = train.shape[1]
+        n_samples = samples.shape[1]
         n_remain = max(0, n-n_samples)
         if n_remain:
             idx =  torch.randperm(n)[:n_remain]
             train = train.to(device)
-            samples = torch.cat([samples, train[:, idx]], dim=-2)
+            samples = torch.cat([samples, train[:, idx]], dim=1)
 
         self.model.to(device)
         test = test.to(device)
