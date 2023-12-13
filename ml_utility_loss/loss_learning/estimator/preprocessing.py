@@ -234,6 +234,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         tab_ddpm_is_y_cond=True,
         model=None,
         models=DEFAULT_MODELS,
+        realtabformer_params=None,
         realtabformer_embedding=None,
         cuda=False,
         freeze=True,
@@ -260,10 +261,17 @@ class DataPreprocessor: #preprocess all with this. save all model here
         if "tvae" in self.models:
             self.tvae_transformer = TVAEDataTransformer()
         if "realtabformer" in self.models or "realtabformer_latent" in self.models:
+            realtabformer_params = realtabformer_params or {}
+            realtabformer_params = {
+                **realtabformer_params,
+                **dict(
+                    gradient_accumulation_steps=1,
+                    epochs=1,
+                )
+            }
             self.rtf_model = REaLTabFormer(
                 model_type="tabular",
-                gradient_accumulation_steps=1,
-                epochs=1
+                **realtabformer_params
             )
             self.realtabformer_embedding = realtabformer_embedding
             if self.realtabformer_embedding:
