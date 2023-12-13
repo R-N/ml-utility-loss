@@ -16,6 +16,12 @@ from transformers import DefaultDataCollator, PreTrainedModel
 from undecorated import undecorated
 from types import MethodType
 from functools import partial
+import torch.distributed as dist
+from transformers.generation_stopping_criteria import (
+    StoppingCriteriaList,
+    validate_stopping_criteria,
+)
+from transformers.generation_logits_process import LogitsProcessorList
 
 
 from .data_utils import (
@@ -258,7 +264,8 @@ class REaLSampler:
 
         generate = self.model.generate
         if raw:
-            generate = self.model.greedy_search
+            generate = MethodType(sample_hidden, self.model)
+            #generate = self.model.greedy_search
             generate_kwargs["input_ids"] = generate_kwargs.pop("inputs")
             #generate = partial(MethodType(undecorated(generate), self.model), num_beams=1)
 
@@ -792,3 +799,104 @@ class TabularSampler(REaLSampler):
 
         return pd.Series(preds, index=data.index)
 
+
+def sample_hidden(
+    self,
+    input_ids: torch.LongTensor,
+    logits_processor = None,
+    stopping_criteria = None,
+    max_length: Optional[int] = None,
+    pad_token_id: Optional[int] = None,
+    eos_token_id: Optional[int] = None,
+    synced_gpus: Optional[bool] = False,
+    hidden_state_index=-1,
+    **model_kwargs,
+) :
+    # init values
+    logits_processor = logits_processor if logits_processor is not None else LogitsProcessorList()
+    stopping_criteria = stopping_criteria if stopping_criteria is not None else StoppingCriteriaList()
+    if max_length is not None:
+        warnings.warn(
+            "`max_length` is deprecated in this function, use `stopping_criteria=StoppingCriteriaList([MaxLengthCriteria(max_length=max_length)])` instead.",
+            UserWarning,
+        )
+        stopping_criteria = validate_stopping_criteria(stopping_criteria, max_length)
+    pad_token_id = pad_token_id if pad_token_id is not None else self.config.pad_token_id
+    eos_token_id = eos_token_id if eos_token_id is not None else self.config.eos_token_id
+
+    # init attention / hidden states / scores tuples
+    decoder_hidden_states = ()
+
+    # if model is an encoder-decoder, retrieve encoder attention weights and hidden states
+    if self.config.is_encoder_decoder:
+        encoder_hidden_states = model_kwargs["encoder_outputs"].get("hidden_states")
+
+    # keep track of which sequences are already finished
+    unfinished_sequences = input_ids.new(input_ids.shape[0]).fill_(1)
+    cur_len = input_ids.shape[-1]
+
+    this_peer_finished = False  # used by synced_gpus only
+    while True:
+
+        if synced_gpus:
+            # Under synced_gpus the `forward` call must continue until all gpus complete their sequence.
+            # The following logic allows an early break if all peers finished generating their sequence
+            this_peer_finished_flag = torch.tensor(0.0 if this_peer_finished else 1.0).to(input_ids.device)
+            # send 0.0 if we finished, 1.0 otherwise
+            dist.all_reduce(this_peer_finished_flag, op=dist.ReduceOp.SUM)
+            # did all peers finish? the reduced sum will be 0.0 then
+            if this_peer_finished_flag.item() == 0.0:
+                break
+
+        # prepare model inputs
+        model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
+
+        # forward pass to get next token
+        outputs = self(
+            **model_inputs,
+            return_dict=True,
+            output_hidden_states=True,
+        )
+
+        if synced_gpus and this_peer_finished:
+            cur_len = cur_len + 1
+            continue  # don't waste resources running the code we don't need
+
+        next_token_logits = outputs.logits[:, -1, :]
+
+        # Store scores, attentions and hidden_states when required
+        hidden_states = outputs.decoder_hidden_states if self.config.is_encoder_decoder else outputs.hidden_states
+        hidden_states = hidden_states[hidden_state_index]
+        decoder_hidden_states += (hidden_states,)
+
+        # pre-process distribution
+        next_tokens_scores = logits_processor(input_ids, next_token_logits)
+
+        # argmax
+        next_tokens = torch.argmax(next_tokens_scores, dim=-1)
+
+        # finished sentences should have their next token be a padding token
+        if eos_token_id is not None:
+            if pad_token_id is None:
+                raise ValueError("If `eos_token_id` is defined, make sure that `pad_token_id` is defined.")
+            next_tokens = next_tokens * unfinished_sequences + pad_token_id * (1 - unfinished_sequences)
+
+        # update generated ids, model inputs, and length for next step
+        input_ids = torch.cat([input_ids, next_tokens[:, None]], dim=-1)
+        model_kwargs = self._update_model_kwargs_for_generation(
+            outputs, model_kwargs, is_encoder_decoder=self.config.is_encoder_decoder
+        )
+        cur_len = cur_len + 1
+
+        # if eos_token was found in one sentence, set sentence to finished
+        if eos_token_id is not None:
+            unfinished_sequences = unfinished_sequences.mul((next_tokens != eos_token_id).long())
+
+        # stop when each sentence is finished, or if we exceed the maximum length
+        if unfinished_sequences.max() == 0 or stopping_criteria(input_ids, None):
+            if not synced_gpus:
+                break
+            else:
+                this_peer_finished = True
+
+    return decoder_hidden_states
