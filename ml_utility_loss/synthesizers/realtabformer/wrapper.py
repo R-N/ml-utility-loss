@@ -769,13 +769,12 @@ class REaLTabFormer:
             self.tabular_config.n_positions = 128 + len(self.vocab["column_token_ids"])
 
         self.model = GPT2LMHeadModel(self.tabular_config)
-        print("Summarizing on ", device)
-        print(summary(self.model, input_size=(24,), depth=1, batch_dim=1, dtypes=['torch.IntTensor'], device=device))
 
         # Tell pytorch to run this model on the GPU.
         device = torch.device(device)
         if device == torch.device("cuda"):
             self.model.cuda()
+        print(summary(self.model, input_size=(24,), depth=1, batch_dim=1, dtypes=['torch.IntTensor'], device=device))
 
         return self._build_tabular_trainer(
             device=device,
