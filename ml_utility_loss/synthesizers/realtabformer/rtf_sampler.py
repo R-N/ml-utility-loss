@@ -876,6 +876,7 @@ def sample_hidden(
         # Store scores, attentions and hidden_states when required
         hidden_states = outputs.decoder_hidden_states if self.config.is_encoder_decoder else outputs.hidden_states
         hidden_states = hidden_states[hidden_state_index]
+        decoder_hidden_states += (hidden_states,)
 
         # pre-process distribution
         next_tokens_scores = logits_processor(input_ids, next_token_logits)
@@ -891,7 +892,6 @@ def sample_hidden(
 
         # update generated ids, model inputs, and length for next step
         input_ids = torch.cat([input_ids, next_tokens[:, None]], dim=-1)
-        decoder_hidden_states = torch.cat([decoder_hidden_states, hidden_states], dim=-2)
         model_kwargs = self._update_model_kwargs_for_generation(
             outputs, model_kwargs, is_encoder_decoder=self.config.is_encoder_decoder
         )
@@ -908,5 +908,5 @@ def sample_hidden(
             else:
                 this_peer_finished = True
 
-    #decoder_hidden_states = torch.stack(decoder_hidden_states)
+    decoder_hidden_states = torch.cat(decoder_hidden_states, dim=-2)
     return decoder_hidden_states
