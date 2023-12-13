@@ -269,6 +269,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
                     epochs=1,
                 )
             }
+            print("rtf_params", realtabformer_params)
             self.rtf_model = REaLTabFormer(
                 model_type="tabular",
                 **realtabformer_params
