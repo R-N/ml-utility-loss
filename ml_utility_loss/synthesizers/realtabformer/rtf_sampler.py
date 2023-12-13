@@ -228,7 +228,8 @@ class REaLSampler:
         as_numpy = as_numpy and not raw
         # This leverages the generic interface of HuggingFace transformer models' `.generate` method.
         # Refer to the transformers documentation for valid arguments to `generate_kwargs`.
-        self.model.eval()
+        if not raw:
+            self.model.eval()
 
         if constrain_tokens_gen:
             generate_kwargs["prefix_allowed_tokens_fn"] = self._prefix_allowed_tokens_fn
@@ -257,8 +258,8 @@ class REaLSampler:
 
         generate = self.model.generate
         if raw:
-            #generate = self.model.greedy_search
-            generate = partial(MethodType(undecorated(generate), self.model), num_beams=1)
+            generate = self.model.greedy_search
+            #generate = partial(MethodType(undecorated(generate), self.model), num_beams=1)
 
         _samples = generate(**generate_kwargs)
 
