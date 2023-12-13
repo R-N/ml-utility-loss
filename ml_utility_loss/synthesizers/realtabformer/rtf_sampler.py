@@ -678,11 +678,11 @@ class TabularSampler(REaLSampler):
                 )
 
                 self.total_gen_samples += len(sample_outputs)
-                self.invalid_gen_samples += len(sample_outputs)
 
                 if raw:
                     synth_sample = sample_outputs
                 else:
+                    self.invalid_gen_samples += len(sample_outputs)
                     try:
                         synth_sample = self.processes_sample(
                             sample_outputs=sample_outputs.detach().cpu().numpy(),
@@ -721,9 +721,10 @@ class TabularSampler(REaLSampler):
             idx =  torch.randperm(synth_df.shape[0])[:n_samples]
             synth_df = synth_df[idx]
 
-        print(
-            f"Generated {self.invalid_gen_samples} invalid samples out of total {self.total_gen_samples} samples generated. Sampling efficiency is: {100 * (1 -  self.invalid_gen_samples / self.total_gen_samples):.4f}%"
-        )
+        if not raw:
+            print(
+                f"Generated {self.invalid_gen_samples} invalid samples out of total {self.total_gen_samples} samples generated. Sampling efficiency is: {100 * (1 -  self.invalid_gen_samples / self.total_gen_samples):.4f}%"
+            )
 
         return synth_df
 
