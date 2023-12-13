@@ -662,29 +662,31 @@ class TabularSampler(REaLSampler):
                     eos_token_id=self.vocab["token2id"][SpecialTokens.EOS],
                     suppress_tokens=suppress_tokens,
                     forced_decoder_ids=forced_decoder_ids,
+                    raw=raw,
                     **generate_kwargs,
                 )
 
                 self.total_gen_samples += len(sample_outputs)
                 self.invalid_gen_samples += len(sample_outputs)
 
-                try:
-                    synth_sample = self.processes_sample(
-                        sample_outputs=sample_outputs,
-                        vocab=self.vocab,
-                        validator=validator,
-                    )
-                    empty_limit = continuous_empty_limit
-                    self.invalid_gen_samples -= len(synth_sample)
+                if not raw:
+                    try:
+                        synth_sample = self.processes_sample(
+                            sample_outputs=sample_outputs,
+                            vocab=self.vocab,
+                            validator=validator,
+                        )
+                        empty_limit = continuous_empty_limit
+                        self.invalid_gen_samples -= len(synth_sample)
 
-                except SampleEmptyError as exc:
-                    logging.warning("This batch returned an empty valid synth_sample!")
-                    empty_limit -= 1
-                    if empty_limit <= 0:
-                        raise SampleEmptyLimitError(
-                            f"The model has generated empty sample batches for {continuous_empty_limit} consecutive rounds!"
-                        ) from exc
-                    continue
+                    except SampleEmptyError as exc:
+                        logging.warning("This batch returned an empty valid synth_sample!")
+                        empty_limit -= 1
+                        if empty_limit <= 0:
+                            raise SampleEmptyLimitError(
+                                f"The model has generated empty sample batches for {continuous_empty_limit} consecutive rounds!"
+                            ) from exc
+                        continue
 
                 num_generated += len(synth_sample)
                 synth_df.append(synth_sample)
@@ -693,10 +695,15 @@ class TabularSampler(REaLSampler):
                 pbar.update(num_generated - pbar_num_gen)
                 pbar_num_gen = num_generated
 
-        synth_df = pd.concat(synth_df).sample(
-            n=n_samples, replace=False, random_state=self.random_state
-        )
-        synth_df = synth_df.reset_index(drop="index")
+        if not raw:
+            synth_df = pd.concat(synth_df).sample(
+                n=n_samples, replace=False, random_state=self.random_state
+            )
+            synth_df = synth_df.reset_index(drop="index")
+        else:
+            synth_df = torch.cat(synth_df)
+            idx =  torch.randperm(synth_df.shape[0])[:n_samples]
+            synth_df = synth_df[idx]
 
         print(
             f"Generated {self.invalid_gen_samples} invalid samples out of total {self.total_gen_samples} samples generated. Sampling efficiency is: {100 * (1 -  self.invalid_gen_samples / self.total_gen_samples):.4f}%"
