@@ -2,7 +2,7 @@
 # 0.5544708705220815
 BEST = {
     "vocab_size": 32337, 
-    "n_positions_exp_2": 1024, #10, 
+    "n_positions": 1024, #10, 
     "n_embd": 672, 
     "n_layer": 11, 
     "n_head": 8, #3,
