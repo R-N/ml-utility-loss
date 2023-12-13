@@ -686,6 +686,8 @@ class TabularSampler(REaLSampler):
                                 f"The model has generated empty sample batches for {continuous_empty_limit} consecutive rounds!"
                             ) from exc
                         continue
+                else:
+                    synth_sample = sample_outputs
 
                 num_generated += len(synth_sample)
                 synth_df.append(synth_sample)
