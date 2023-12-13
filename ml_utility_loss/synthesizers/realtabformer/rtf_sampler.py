@@ -257,9 +257,8 @@ class REaLSampler:
 
         generate = self.model.generate
         if raw:
-            generate = self.model.greedy_search
-            #generate = partial(undecorated(generate), num_beams=1)
-            #model.generate_with_grad = MethodType(generate_with_grad, model)
+            #generate = self.model.greedy_search
+            generate = partial(MethodType(undecorated(generate), self.model), num_beams=1)
 
         _samples = generate(**generate_kwargs)
 
