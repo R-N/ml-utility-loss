@@ -876,6 +876,13 @@ def sample_hidden(
 
         # Store scores, attentions and hidden_states when required
         hidden_states = outputs.decoder_hidden_states if self.config.is_encoder_decoder else outputs.hidden_states
+        if first:
+            # The model predicts next token
+            # Therefore there'll only be l-1 hidden states
+            # Because the first token is not predicted
+            # Thus we'll use its embedding value
+            decoder_hidden_states += (hidden_states[0],)
+            first = False
         hidden_states = hidden_states[hidden_state_index]
         decoder_hidden_states += (hidden_states,)
 
