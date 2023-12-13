@@ -844,6 +844,7 @@ def sample_hidden(
     cur_len = input_ids.shape[-1]
 
     this_peer_finished = False  # used by synced_gpus only
+    first = True
     while True:
 
         if synced_gpus:
@@ -874,6 +875,9 @@ def sample_hidden(
 
         # Store scores, attentions and hidden_states when required
         hidden_states = outputs.decoder_hidden_states if self.config.is_encoder_decoder else outputs.hidden_states
+        if first:
+            print([h.shape for h in hidden_states])
+            first = False
         hidden_states = hidden_states[hidden_state_index]
         decoder_hidden_states += (hidden_states,)
 
