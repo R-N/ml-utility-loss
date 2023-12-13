@@ -58,9 +58,6 @@ class MLUtilityCallback(TrainerCallback):
         self.sampler = sampler
         self.epoch = -1
 
-    def create_optim(self, *args, **kwargs):
-        return self.ml_utility_model.create_optim(*args, **kwargs)
-
     def on_epoch_end(
         self,
         args: TrainingArguments,
@@ -140,8 +137,8 @@ class ResumableTrainer(Trainer):
         )
         self.target_epochs = target_epochs
         model = self.model or model
-        mlu_callback.create_optim(model.parameters())
-        mlu_callback.set_embedding(model.transformer.wte)
+        mlu_callback.ml_utility_model.create_optim(model.parameters())
+        mlu_callback.ml_utility_model.set_embedding(model.transformer.wte)
 
     def create_scheduler(
         self, num_training_steps: int, optimizer: torch.optim.Optimizer = None
