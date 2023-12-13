@@ -72,6 +72,8 @@ class MLUtilityTrainer:
         if train.dtype != samples.dtype:
             samples = samples.type(train.dtype)
 
+        train = train.to(device)
+        test = test.to(device)
         if self.model.adapter.embedding and train.dim() < 4:
             train = self.model.adapter.embedding(train.to(torch.int))
             test = self.model.adapter.embedding(test.to(torch.int))
@@ -87,7 +89,6 @@ class MLUtilityTrainer:
             samples = torch.cat([samples, train[:, idx]], dim=1)
 
         self.model.to(device)
-        test = test.to(device)
 
         self.optim.zero_grad()
 
