@@ -773,6 +773,7 @@ class REaLTabFormer:
         # Tell pytorch to run this model on the GPU.
         device = torch.device(device)
         if device == torch.device("cuda"):
+            print("Model is cuda!")
             self.model.cuda()
         print(summary(self.model, input_size=(24,), depth=1, batch_dim=1, dtypes=['torch.IntTensor'], device=device))
 
