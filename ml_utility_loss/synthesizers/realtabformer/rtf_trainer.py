@@ -52,11 +52,14 @@ class SaveEpochEndCallback(TrainerCallback):
 class MLUtilityCallback(TrainerCallback):
     """This callback forces a checkpoint save at each epoch end."""
 
-    def __init__(self, model, ml_utility_model=None) -> None:
+    def __init__(self, model, ml_utility_model=None):
         super().__init__()
         self.ml_utility_model = ml_utility_model
         self.model = model
         self.epoch = -1
+
+    def create_optim(self, *args, **kwargs):
+        return self.ml_utility_model.create_optim(*args, **kwargs)
 
     def on_epoch_end(
         self,
