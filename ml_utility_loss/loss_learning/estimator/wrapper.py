@@ -45,8 +45,13 @@ class MLUtilityTrainer:
             ),
             **optim_kwargs,
         }
-        self.dim = 4 if "realtabformer" in model.name.lower() else 3
-        self.model.adapter.use_embedding = False
+        self.dim = 3
+        if "realtabformer" in model.name.lower():
+            self.dim = 4
+            self.model.adapter.use_embedding = False
+
+    def set_embedding(self, embedding):
+        self.model.adapter.embedding = embedding
 
     def create_optim(self, parameters, Optim=None, **kwargs):
         Optim = Optim or self.Optim

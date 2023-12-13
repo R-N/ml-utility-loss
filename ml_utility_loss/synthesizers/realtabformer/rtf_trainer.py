@@ -141,6 +141,7 @@ class ResumableTrainer(Trainer):
         self.target_epochs = target_epochs
         model = self.model or model
         mlu_callback.create_optim(model.parameters())
+        mlu_callback.set_embedding(model.transformer.wte)
 
     def create_scheduler(
         self, num_training_steps: int, optimizer: torch.optim.Optimizer = None
