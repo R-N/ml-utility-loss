@@ -236,6 +236,8 @@ class REaLSampler:
         # Refer to the transformers documentation for valid arguments to `generate_kwargs`.
         if not raw:
             self.model.eval()
+        else:
+            self.model.train()
 
         if constrain_tokens_gen:
             generate_kwargs["prefix_allowed_tokens_fn"] = self._prefix_allowed_tokens_fn
@@ -264,10 +266,13 @@ class REaLSampler:
 
         generate = self.model.generate
         if raw:
+            print("GENERATING RAW")
             generate = MethodType(sample_hidden, self.model)
             #generate = self.model.greedy_search
             generate_kwargs["input_ids"] = generate_kwargs.pop("inputs")
             #generate = partial(MethodType(undecorated(generate), self.model), num_beams=1)
+        else:
+            print("GENERATING NOT RAW")
 
         _samples = generate(**generate_kwargs)
 
@@ -399,8 +404,6 @@ class REaLSampler:
         validator: Optional[ObservationValidator] = None,
     ):
         assert isinstance(sample_outputs, np.ndarray)
-
-        print(len(sample_outputs[0]))
 
         def _decode_tokens(s):
             # No need to remove [BOS] and [EOS] tokens
@@ -638,7 +641,10 @@ class TabularSampler(REaLSampler):
         if self.model.device != device:
             self.model = self.model.to(device)
 
-        self.model.eval()
+        if not raw:
+            self.model.eval()
+        else:
+            self.model.train()
         synth_df = []
 
         if seed_input is None:
@@ -816,10 +822,12 @@ def sample_hidden(
     logits_processor = logits_processor if logits_processor is not None else LogitsProcessorList()
     stopping_criteria = stopping_criteria if stopping_criteria is not None else StoppingCriteriaList()
     if max_length is not None:
+        """
         warnings.warn(
             "`max_length` is deprecated in this function, use `stopping_criteria=StoppingCriteriaList([MaxLengthCriteria(max_length=max_length)])` instead.",
             UserWarning,
         )
+        """
         stopping_criteria = validate_stopping_criteria(stopping_criteria, max_length)
     pad_token_id = pad_token_id if pad_token_id is not None else self.config.pad_token_id
     eos_token_id = eos_token_id if eos_token_id is not None else self.config.eos_token_id
