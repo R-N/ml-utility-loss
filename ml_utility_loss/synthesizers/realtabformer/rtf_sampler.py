@@ -266,13 +266,10 @@ class REaLSampler:
 
         generate = self.model.generate
         if raw:
-            print("GENERATING RAW")
             generate = MethodType(sample_hidden, self.model)
             #generate = self.model.greedy_search
             generate_kwargs["input_ids"] = generate_kwargs.pop("inputs")
             #generate = partial(MethodType(undecorated(generate), self.model), num_beams=1)
-        else:
-            print("GENERATING NOT RAW")
 
         _samples = generate(**generate_kwargs)
 
@@ -683,26 +680,29 @@ class TabularSampler(REaLSampler):
                 self.total_gen_samples += len(sample_outputs)
                 self.invalid_gen_samples += len(sample_outputs)
 
-                try:
-                    synth_sample = self.processes_sample(
-                        sample_outputs=sample_outputs.detach().cpu().numpy(),
-                        vocab=self.vocab,
-                        validator=validator,
-                    )
-                    empty_limit = continuous_empty_limit
-                    self.invalid_gen_samples -= len(synth_sample)
-                    if raw:
-                        idx = synth_sample.index.values.astype(int)
-                        synth_sample = sample_outputs[idx]
+                if raw:
+                    synth_sample = sample_outputs
+                else:
+                    try:
+                        synth_sample = self.processes_sample(
+                            sample_outputs=sample_outputs.detach().cpu().numpy(),
+                            vocab=self.vocab,
+                            validator=validator,
+                        )
+                        empty_limit = continuous_empty_limit
+                        self.invalid_gen_samples -= len(synth_sample)
+                        if raw:
+                            idx = synth_sample.index.values.astype(int)
+                            synth_sample = sample_outputs[idx]
 
-                except SampleEmptyError as exc:
-                    logging.warning("This batch returned an empty valid synth_sample!")
-                    empty_limit -= 1
-                    if empty_limit <= 0:
-                        raise SampleEmptyLimitError(
-                            f"The model has generated empty sample batches for {continuous_empty_limit} consecutive rounds!"
-                        ) from exc
-                    continue
+                    except SampleEmptyError as exc:
+                        logging.warning("This batch returned an empty valid synth_sample!")
+                        empty_limit -= 1
+                        if empty_limit <= 0:
+                            raise SampleEmptyLimitError(
+                                f"The model has generated empty sample batches for {continuous_empty_limit} consecutive rounds!"
+                            ) from exc
+                        continue
 
                 num_generated += len(synth_sample)
                 synth_df.append(synth_sample)
