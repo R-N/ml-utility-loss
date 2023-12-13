@@ -447,7 +447,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
             if isinstance(x, np.ndarray):
                 y = np.squeeze(x[:,-1])
                 n_num = self.tab_ddpm_preprocessor.n_num_1
-                n_cat = self.tab_ddpm_preprocessor.n_cat_2
+                n_cat = self.tab_ddpm_preprocessor.n_cat_1
                 X_num = x[:, :n_num]
                 X_cat = x[:, n_num:n_num+n_cat]
                 return self.tab_ddpm_preprocessor.postprocess(X_num, X_cat, y)
