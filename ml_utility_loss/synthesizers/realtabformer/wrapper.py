@@ -773,8 +773,10 @@ class REaLTabFormer:
         # Tell pytorch to run this model on the GPU.
         device = torch.device(device)
         if device == torch.device("cuda"):
-            print("Model is cuda!")
+            print("Model is cuda! Device is", device)
             self.model.cuda()
+        else:
+            print("Model is not cuda! Device is", device)
         print(summary(self.model, input_size=(24,), depth=1, batch_dim=1, dtypes=['torch.IntTensor'], device=device))
 
         return self._build_tabular_trainer(
