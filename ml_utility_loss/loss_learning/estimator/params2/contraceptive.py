@@ -351,4 +351,23 @@ BEST = {
     'scheduler_patience': 25
 }
 
+BEST = {
+    **BEST,
+    'dataset_size_low_exp_2': 11,
+    'dataset_size_high_exp_2': 11,
+    'epochs': 1000,
+    'adapter_loss_fn': 'mse',
+    'loss_balancer_meta_boolc': False,
+    'loss_balancer_meta': False,
+    'tf_isab_mode': 'separate',
+    'dropout': 0.15,
+    'gradient_penalty_mode': 'ALL',
+    'mse_mag': True,
+    'mse_mag_target': 1,
+    'mse_mag_multiply': True,
+    'mag_corr': False,
+    'cos_loss': False,
+    'max_seconds': 3600,
+    'patience': 50,
+}
 BEST_SINGLE = BEST
