@@ -93,6 +93,6 @@ def objective_mlu(
     )
     return objective(
         *args,
-        ml_utiltiy_model=mlu_trainer,
+        ml_utility_model=mlu_trainer,
         **kwargs,
     )
