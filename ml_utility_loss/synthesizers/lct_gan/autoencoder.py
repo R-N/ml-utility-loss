@@ -262,12 +262,15 @@ class AutoEncoder(object):
             if self.mlu_trainer and e%self.mlu_trainer.t_steps == 0:
                 for i in range(self.mlu_trainer.n_steps):
                     n_samples = self.mlu_trainer.n_samples
-                    _, _, col, opt = cond_generator.sample_train(n_samples)
+                    #_, _, col, opt = cond_generator.sample_train(n_samples)
                     samples = []
+                    data_2 = np.random.choice(np.arange(len(data)), n_samples)
+                    i = 0
                     while len(samples) < n_samples:
-                        sample = data_sampler.sample(
-                            batch_size, col, opt,
-                        )
+                        #sample = data_sampler.sample(
+                        #    batch_size, col, opt,
+                        #)
+                        sample = data_2[i*batch_size:(i+1)*batch_size]
                         sample = self.encode(sample)
                         sample = self.decode(sample)
                         samples.append(sample)
