@@ -241,7 +241,7 @@ class LatentGAN:
         if self.scaler:
             data = self.scaler.inverse_transform(data)
             if self.decoder:
-                data = self.decoder.decode(data, batch=True, raw=raw)
+                data = self.decoder.decode(data.type("float32"), batch=True, raw=raw)
 
         if len(data.shape) > 2:
             if not raw:
