@@ -26,11 +26,8 @@ def objective(
 ):
     train, test, *_ = datasets
 
-    gan_params = filter_dict_2(kwargs, GAN_PARAMS)
-    ae_params = filter_dict_2(kwargs, AE_PARAMS)
-
-    print(ae_params)
-    print(gan_params)
+    #gan_params = filter_dict_2(kwargs, GAN_PARAMS)
+    #ae_params = filter_dict_2(kwargs, AE_PARAMS)
 
     ae, recon = create_ae_2(
         train,
@@ -41,7 +38,7 @@ def objective(
         checkpoint_dir=checkpoint_dir,
         log_dir=log_dir,
         trial=trial,
-        **ae_params
+        **kwargs
     )
 
     gan, synth = create_gan_2(
@@ -50,7 +47,7 @@ def objective(
         checkpoint_dir=checkpoint_dir,
         log_dir=log_dir,
         trial=trial,
-        **gan_params
+        **kwargs
     )
 
     try:
