@@ -276,13 +276,13 @@ class DataPreprocessor: #preprocess all with this. save all model here
             self.realtabformer_embedding = realtabformer_embedding
             if self.realtabformer_embedding:
                 self.realtabformer_embedding_size = self.realtabformer_embedding.weight.shape[-1]
-                if self.freeze:
+                if self.freeze and self.realtabformer_embedding is not None:
                     for param in self.realtabformer_embedding.parameters(): 
                         param.requires_grad = False
         if "lct_gan" in self.models or "lct_gan_latent" in self.models:
             self.lct_ae = lct_ae
             self.lct_ae_embedding_size = lct_ae_embedding_size
-            if self.freeze:
+            if self.freeze and self.lct_ae is not None:
                 for param in self.lct_ae.parameters(): 
                     param.requires_grad = False
         if self.lct_ae:
