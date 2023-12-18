@@ -93,11 +93,10 @@ def train_2(
     trial=None,
     **kwargs
 ):
-    _train = train
     if isinstance(datasets, tuple):
-        train, test, *_ = datasets
+        train_, test, *_ = datasets
     else:
-        train = datasets
+        train_ = datasets
 
     n_layers = kwargs.pop("n_layers")
     d_layers_0 = kwargs.pop("d_layers_0")
@@ -116,8 +115,8 @@ def train_2(
     kwargs = {k: v for k, v in kwargs.items() if k not in rtdl_params}
     kwargs["rtdl_params"] = rtdl_params
 
-    model, diffusion, trainer = _train(
-        train,
+    model, diffusion, trainer = train(
+        train_,
         task_type=task,
         target=target,
         cat_features=cat_features,
