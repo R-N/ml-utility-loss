@@ -105,7 +105,6 @@ class MLUtilityTrainer:
             est, 
             torch.full(est.shape, target, device=est.device)
         )
-        print("MLU loss", loss)
         loss.backward()
 
         for param in self.parameters:
@@ -114,6 +113,7 @@ class MLUtilityTrainer:
         self.optim.step()
 
         loss = loss.detach().cpu().item()
+        print("MLU loss", loss)
 
         clear_memory()
 
