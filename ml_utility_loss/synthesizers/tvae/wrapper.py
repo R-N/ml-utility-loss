@@ -121,6 +121,7 @@ class TVAE(BaseSynthesizer):
         loss_factor=2,
         cuda=True,
         mlu_trainer=None,
+        transformer=None,
     ):
 
         self.embedding_dim = embedding_dim
@@ -142,13 +143,14 @@ class TVAE(BaseSynthesizer):
         self.device = torch.device(device)
         self.mlu_trainer = mlu_trainer
         self.model = None
+        self.transformer = transformer
 
     def parameters(self):
         return self.model.parameters()
 
-    def prepare(self, train_data, discrete_columns=()):
+    def prepare(self, train_data, discrete_columns=(), transformer=None):
         self.transformer, train_data = preprocess(
-            train_data, discrete_columns
+            train_data, discrete_columns, transformer=transformer or self.transformer
         )
 
         data_dim = self.transformer.output_dimensions
@@ -166,7 +168,7 @@ class TVAE(BaseSynthesizer):
         return train_data
 
     @random_state
-    def fit(self, train_data, discrete_columns=()):
+    def fit(self, train_data, discrete_columns=(), transformer=None):
         """Fit the TVAE Synthesizer models to the training data.
 
         Args:
@@ -180,7 +182,7 @@ class TVAE(BaseSynthesizer):
         """
 
         if not self.model:
-            train_data = self.prepare(train_data, discrete_columns=discrete_columns)
+            train_data = self.prepare(train_data, discrete_columns=discrete_columns, transformer=transformer)
 
         dataset = TensorDataset(torch.from_numpy(train_data.astype('float32')).to(self.device))
         loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True, drop_last=False)

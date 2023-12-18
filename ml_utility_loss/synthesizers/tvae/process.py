@@ -109,9 +109,10 @@ def sample(
         sigmas=sigmas
     )
 
-def preprocess(train_data, discrete_columns):
-    transformer = DataTransformer()
-    transformer.fit(train_data, discrete_columns)
+def preprocess(train_data, discrete_columns, transformer=None):
+    if not transformer:
+        transformer = DataTransformer()
+        transformer.fit(train_data, discrete_columns)
     train_data = transformer.transform(train_data)
     return transformer, train_data
 
