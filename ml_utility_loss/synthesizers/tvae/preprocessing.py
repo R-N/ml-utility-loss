@@ -122,6 +122,7 @@ class DataTransformer(object):
             output_dimensions=ohe.output_dimensions)
 
     def fit(self, raw_data, discrete_columns=()):
+        print(discrete_columns)
         """Fit the ``DataTransformer``.
 
         Fits a ``ClusterBasedNormalizer`` for continuous columns and a
