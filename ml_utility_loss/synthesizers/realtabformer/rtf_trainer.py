@@ -52,11 +52,12 @@ class SaveEpochEndCallback(TrainerCallback):
 class MLUtilityCallback(TrainerCallback):
     """This callback forces a checkpoint save at each epoch end."""
 
-    def __init__(self, sampler, mlu_trainer=None):
+    def __init__(self, sampler, mlu_trainer=None, batch_size=8):
         super().__init__()
         self.mlu_trainer = mlu_trainer
         self.sampler = sampler
         self.epoch = -1
+        self.batch_size = batch_size
 
     def on_epoch_end(
         self,
@@ -69,7 +70,8 @@ class MLUtilityCallback(TrainerCallback):
         if self.mlu_trainer and self.epoch%self.mlu_trainer.t_steps == 0:
             for i in range(self.mlu_trainer.n_steps):
                 n_samples = self.mlu_trainer.n_samples
-                batch_size=self.mlu_trainer.sample_batch_size
+                batch_size = self.batch_size
+                #batch_size=self.mlu_trainer.sample_batch_size
                 samples = self.sampler.sample(
                     n_samples=n_samples,
                     gen_batch=batch_size,
@@ -109,6 +111,7 @@ class ResumableTrainer(Trainer):
         ] = None,
         mlu_trainer=None,
         sampler=None,
+        batch_size=8,
     ):
         # Declare here for typing
         self.lr_scheduler: torch.optim.lr_scheduler.LambdaLR = None
@@ -119,7 +122,7 @@ class ResumableTrainer(Trainer):
         callbacks.append(SaveEpochEndCallback(save_epochs=save_epochs))
         mlu_callback = None
         if mlu_trainer:
-            mlu_callback = MLUtilityCallback(sampler, mlu_trainer)
+            mlu_callback = MLUtilityCallback(sampler, mlu_trainer, batch_size=batch_size)
             callbacks.append(mlu_callback)
 
         super().__init__(

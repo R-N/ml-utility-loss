@@ -272,6 +272,7 @@ class REaLTabFormer:
         orig_samples_rounds: int = 5,
         load_from_best_mean_sensitivity: bool = False,
         target_col: str = None,
+        fit_preprocess=True,
     ):
         assert len(df.index.unique()) == len(df.index), "Index must be unique"
 
@@ -291,7 +292,7 @@ class REaLTabFormer:
 
         if self.model_type == ModelType.tabular:
             if n_critic <= 0:
-                trainer = self._fit_tabular(df, device=device)
+                trainer = self._fit_tabular(df, device=device, fit_preprocess=fit_preprocess)
                 trainer.train(resume_from_checkpoint=resume_from_checkpoint)
             else:
                 trainer = self._train_with_sensitivity(
@@ -316,6 +317,7 @@ class REaLTabFormer:
                     sensitivity_orig_frac_multiple=sensitivity_orig_frac_multiple,
                     orig_samples_rounds=orig_samples_rounds,
                     load_from_best_mean_sensitivity=load_from_best_mean_sensitivity,
+                    fit_preprocess=fit_preprocess
                 )
 
             del self.dataset
@@ -361,6 +363,7 @@ class REaLTabFormer:
         sensitivity_orig_frac_multiple: int = 4,
         orig_samples_rounds: int = 5,
         load_from_best_mean_sensitivity: bool = False,
+        fit_preprocess=True,
     ):
         assert gen_rounds >= 1
 
@@ -516,6 +519,7 @@ class REaLTabFormer:
                     device=device,
                     num_train_epochs=last_epoch,
                     target_epochs=self.epochs,
+                    fit_preprocess=fit_preprocess
                 )
 
         np.random.seed(self.random_state)
@@ -532,6 +536,7 @@ class REaLTabFormer:
                     device=device,
                     num_train_epochs=num_train_epochs,
                     target_epochs=self.epochs,
+                    fit_preprocess=fit_preprocess
                 )
                 trainer.train(resume_from_checkpoint=False)
             else:
@@ -752,8 +757,9 @@ class REaLTabFormer:
         device="cuda",
         num_train_epochs: int = None,
         target_epochs: int = None,
+        fit_preprocess=True,
     ) -> Trainer:
-        dataset = self.make_dataset(df)
+        dataset = self.make_dataset(df, fit_preprocess=fit_preprocess)
 
         # Create train-eval split if specified
         self.dataset = self._split_train_eval_dataset(dataset)
@@ -834,6 +840,7 @@ class REaLTabFormer:
             callbacks=callbacks,
             mlu_trainer=self.mlu_trainer,
             sampler=self,
+            batch_size=self.batch_size,
             **self.dataset,
         )
 

@@ -8,6 +8,7 @@ def train_2(
     checkpoint_dir=None,
     log_dir=None,
     trial=None,
+    preprocess_df=None,
     **kwargs
 ):
     if isinstance(datasets, tuple):
@@ -27,9 +28,14 @@ def train_2(
     )
     
     rtf_model.experiment_id = str(trial.number)
+    fit_preprocess=True
+    if preprocess_df is not None:
+        rtf_model.fit_preprocess(preprocess_df)
+        fit_preprocess=False
     rtf_model.fit(
         train,
-        num_bootstrap=num_bootstrap
+        num_bootstrap=num_bootstrap,
+        fit_preprocess=fit_preprocess
     )
 
     return rtf_model
