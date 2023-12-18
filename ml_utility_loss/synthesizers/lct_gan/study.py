@@ -29,6 +29,9 @@ def objective(
     gan_params = filter_dict_2(kwargs, GAN_PARAMS)
     ae_params = filter_dict_2(kwargs, AE_PARAMS)
 
+    print(ae_params)
+    print(gan_params)
+
     ae, recon = create_ae_2(
         train,
         categorical_columns = cat_features,
