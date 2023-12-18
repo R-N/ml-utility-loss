@@ -52,9 +52,9 @@ class SaveEpochEndCallback(TrainerCallback):
 class MLUtilityCallback(TrainerCallback):
     """This callback forces a checkpoint save at each epoch end."""
 
-    def __init__(self, sampler, ml_utility_model=None):
+    def __init__(self, sampler, mlu_trainer=None):
         super().__init__()
-        self.ml_utility_model = ml_utility_model
+        self.mlu_trainer = mlu_trainer
         self.sampler = sampler
         self.epoch = -1
 
@@ -66,16 +66,16 @@ class MLUtilityCallback(TrainerCallback):
         **kwargs,
     ):
         self.epoch += 1
-        if self.ml_utility_model and self.epoch%self.ml_utility_model.t_steps == 0:
-            for i in range(self.ml_utility_model.n_steps):
-                n_samples = self.ml_utility_model.n_samples
-                batch_size=self.ml_utility_model.sample_batch_size
+        if self.mlu_trainer and self.epoch%self.mlu_trainer.t_steps == 0:
+            for i in range(self.mlu_trainer.n_steps):
+                n_samples = self.mlu_trainer.n_samples
+                batch_size=self.mlu_trainer.sample_batch_size
                 samples = self.sampler.sample(
                     n_samples=n_samples,
                     gen_batch=batch_size,
                     raw=True,
                 )
-                self.ml_utility_model.step(samples)
+                self.mlu_trainer.step(samples)
 
 
 
@@ -107,7 +107,7 @@ class ResumableTrainer(Trainer):
         preprocess_logits_for_metrics: Callable[
             [torch.Tensor, torch.Tensor], torch.Tensor
         ] = None,
-        ml_utility_model=None,
+        mlu_trainer=None,
         sampler=None,
     ):
         # Declare here for typing
@@ -118,8 +118,8 @@ class ResumableTrainer(Trainer):
 
         callbacks.append(SaveEpochEndCallback(save_epochs=save_epochs))
         mlu_callback = None
-        if ml_utility_model:
-            mlu_callback = MLUtilityCallback(sampler, ml_utility_model)
+        if mlu_trainer:
+            mlu_callback = MLUtilityCallback(sampler, mlu_trainer)
             callbacks.append(mlu_callback)
 
         super().__init__(
@@ -137,8 +137,8 @@ class ResumableTrainer(Trainer):
         )
         self.target_epochs = target_epochs
         model = self.model or model
-        mlu_callback.ml_utility_model.create_optim(model.parameters())
-        mlu_callback.ml_utility_model.set_embedding(model.transformer.wte)
+        mlu_callback.mlu_trainer.create_optim(model.parameters())
+        mlu_callback.mlu_trainer.set_embedding(model.transformer.wte)
 
     def create_scheduler(
         self, num_training_steps: int, optimizer: torch.optim.Optimizer = None

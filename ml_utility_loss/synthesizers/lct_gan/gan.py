@@ -27,7 +27,7 @@ class LatentGAN:
         n_critic=5, 
         decoder=None,
         scaler=None,
-        ml_utility_model=None,
+        mlu_trainer=None,
     ):
         self.input_size = input_size
         self.generator = None
@@ -45,7 +45,7 @@ class LatentGAN:
         self.n_critic=n_critic
         self.decoder=decoder
         self.scaler=scaler
-        self.ml_utility_model = ml_utility_model
+        self.mlu_trainer = mlu_trainer
 
         self.prepare_training()
 
@@ -66,8 +66,8 @@ class LatentGAN:
         self.optimizer_G = torch.optim.Adam(self.generator.parameters(), lr=self.lr, betas=(self.b1, self.b2))
         self.optimizer_D = torch.optim.Adam(self.discriminator.parameters(), lr=self.lr, betas=(self.b1, self.b2))
 
-        if self.ml_utility_model:
-            self.ml_utility_model.create_optim(self.parameters())
+        if self.mlu_trainer:
+            self.mlu_trainer.create_optim(self.parameters())
 
     def parameters(self):
         parameters = []
@@ -173,11 +173,11 @@ class LatentGAN:
 
                     self.optimizer_G.step()
                     
-                if self.ml_utility_model and epoch%self.ml_utility_model.t_steps == 0:
-                    for i in range(self.ml_utility_model.n_steps):
-                        n_samples = self.ml_utility_model.n_samples
+                if self.mlu_trainer and epoch%self.mlu_trainer.t_steps == 0:
+                    for i in range(self.mlu_trainer.n_steps):
+                        n_samples = self.mlu_trainer.n_samples
                         samples = self.sample(n_samples, raw=True)
-                        self.ml_utility_model.step(samples)
+                        self.mlu_trainer.step(samples)
 
 
             print("[Epoch %d/%d] [D loss: %f] [G loss: %f]" 

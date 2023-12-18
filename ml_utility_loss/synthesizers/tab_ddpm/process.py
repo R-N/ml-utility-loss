@@ -15,7 +15,7 @@ def update_ema(target_params, source_params, rate=0.999):
         targ.detach().mul_(rate).add_(src.detach(), alpha=1 - rate)
 
 class Trainer:
-    def __init__(self, diffusion, train_iter, lr, weight_decay, steps, device=DEFAULT_DEVICE, ml_utility_model=None):
+    def __init__(self, diffusion, train_iter, lr, weight_decay, steps, device=DEFAULT_DEVICE, mlu_trainer=None):
         self.diffusion = diffusion
         self.ema_model = deepcopy(self.diffusion._denoise_fn)
         for param in self.ema_model.parameters():
@@ -30,8 +30,8 @@ class Trainer:
         self.log_every = 10
         self.print_every = 10
         self.ema_every = 1000
-        self.ml_utility_model=ml_utility_model
-        ml_utility_model.create_optim(diffusion.parameters())
+        self.mlu_trainer=mlu_trainer
+        mlu_trainer.create_optim(diffusion.parameters())
 
     def _anneal_lr(self, step):
         frac_done = step / self.steps
@@ -80,18 +80,18 @@ class Trainer:
 
             update_ema(self.ema_model.parameters(), self.diffusion._denoise_fn.parameters())
 
-            if self.ml_utility_model and step % self.ml_utility_model.t_steps == 0:
-                for i in range(self.ml_utility_model.n_steps):
+            if self.mlu_trainer and step % self.mlu_trainer.t_steps == 0:
+                for i in range(self.mlu_trainer.n_steps):
                     clear_memory()
-                    n_samples = self.ml_utility_model.n_samples
-                    batch_size = self.ml_utility_model.sample_batch_size
+                    n_samples = self.mlu_trainer.n_samples
+                    batch_size = self.mlu_trainer.sample_batch_size
                     samples = sample(
                         self.diffusion,
                         batch_size=batch_size, 
                         num_samples=n_samples, 
                         raw=True
                     )
-                    self.ml_utility_model.step(samples)
+                    self.mlu_trainer.step(samples)
                     del samples
                 clear_memory()
 
@@ -111,7 +111,7 @@ def train(
     device = DEFAULT_DEVICE,
     seed = 0,
     cat_encoding = "ordinal", #'one-hot',
-    ml_utility_model=None,
+    mlu_trainer=None,
     **model_params
 ):
 
@@ -182,7 +182,7 @@ def train(
         weight_decay=weight_decay,
         steps=steps,
         device=device,
-        ml_utility_model=ml_utility_model,
+        mlu_trainer=mlu_trainer,
     )
     trainer.run_loop()
 

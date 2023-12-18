@@ -36,5 +36,5 @@ PARAM_SPACE = {
 GPT2_PARAMS = list(GPT2_PARAM_SPACE.keys())
 REALTABFORMER_PARAMS = [
     *list(REALTABFORMER_PARAM_SPACE.keys()),
-    "ml_utility_model"
+    "mlu_trainer"
 ]

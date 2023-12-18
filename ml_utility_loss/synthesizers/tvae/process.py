@@ -38,7 +38,7 @@ def train(
     l2scale=1e-5,
     epochs=300,
     Optimizer=Adam,
-    ml_utility_model=None,
+    mlu_trainer=None,
 ):
     model.train()
 
@@ -60,12 +60,12 @@ def train(
             optimizerAE.step()
             model.decoder.sigma.data.clamp_(0.01, 1.0)
                     
-        if ml_utility_model and i%ml_utility_model.t_steps == 0:
-            for _ in range(ml_utility_model.n_steps):
-                n_samples = ml_utility_model.n_samples
-                batch_size = ml_utility_model.sample_batch_size
+        if mlu_trainer and i%mlu_trainer.t_steps == 0:
+            for _ in range(mlu_trainer.n_steps):
+                n_samples = mlu_trainer.n_samples
+                batch_size = mlu_trainer.sample_batch_size
                 samples = sample(model=model, transformer=transformer, samples=n_samples, batch_size=batch_size, raw=True)
-                ml_utility_model.step(samples)
+                mlu_trainer.step(samples)
 
     return loss_1.item(), loss_2.item()
 

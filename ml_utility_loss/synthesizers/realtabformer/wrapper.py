@@ -66,11 +66,11 @@ class REaLTabFormer:
         numeric_nparts: int = 1,
         numeric_precision: int = 4,
         numeric_max_len: int = 10,
-        ml_utility_model=None,
+        mlu_trainer=None,
         **training_args_kwargs,
     ) -> None:
         self.model: PreTrainedModel = None
-        self.ml_utility_model = ml_utility_model
+        self.mlu_trainer = mlu_trainer
 
         # This will be set during and will also be deleted after training.
         self.dataset = None
@@ -832,7 +832,7 @@ class REaLTabFormer:
             args=TrainingArguments(**training_args_kwargs),
             data_collator=None,  # Use the default_data_collator
             callbacks=callbacks,
-            ml_utility_model=self.ml_utility_model,
+            mlu_trainer=self.mlu_trainer,
             sampler=self,
             **self.dataset,
         )

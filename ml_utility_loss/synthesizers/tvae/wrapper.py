@@ -120,7 +120,7 @@ class TVAE(BaseSynthesizer):
         epochs=300,
         loss_factor=2,
         cuda=True,
-        ml_utility_model=None,
+        mlu_trainer=None,
     ):
 
         self.embedding_dim = embedding_dim
@@ -140,7 +140,7 @@ class TVAE(BaseSynthesizer):
             device = 'cuda'
 
         self.device = torch.device(device)
-        self.ml_utility_model = ml_utility_model
+        self.mlu_trainer = mlu_trainer
         self.model = None
 
     def parameters(self):
@@ -160,8 +160,8 @@ class TVAE(BaseSynthesizer):
             decompress_dims=self.decompress_dims,
             device=self.device
         )
-        if self.ml_utility_model:
-            self.ml_utility_model.create_optim(self.parameters())
+        if self.mlu_trainer:
+            self.mlu_trainer.create_optim(self.parameters())
 
         return train_data
 
@@ -192,7 +192,7 @@ class TVAE(BaseSynthesizer):
             loss_factor=self.loss_factor,
             l2scale=self.l2scale,
             epochs=self.epochs,
-            ml_utility_model=self.ml_utility_model,
+            mlu_trainer=self.mlu_trainer,
         )
 
     @random_state

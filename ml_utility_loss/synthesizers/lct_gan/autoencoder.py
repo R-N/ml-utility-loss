@@ -35,14 +35,14 @@ class LatentTAE:
         mixed_columns={}, #dict(col: 0)
         batch_size=512,
         lr=1e-3, 
-        ml_utility_model=None,
+        mlu_trainer=None,
     ):
 
         self.__name__ = 'AutoEncoder'
         self.lr = lr
         self.ae = AutoEncoder(
             embedding_size=embedding_size,
-            ml_utility_model=ml_utility_model,
+            mlu_trainer=mlu_trainer,
         )
         self.embedding_size = embedding_size
         self.categorical_columns = categorical_columns
@@ -58,7 +58,7 @@ class LatentTAE:
             mixed_columns=self.mixed_columns,
             integer_columns=self.integer_columns
         )
-        self.ml_utility_model = ml_utility_model
+        self.mlu_trainer = mlu_trainer
 
     def state_dict(self):
         return self.ae.state_dict()
@@ -194,14 +194,14 @@ class AENetwork(nn.Module):
 
 class AutoEncoder(object):
 
-    def __init__(self, ml_utility_model=None, **kwargs):
+    def __init__(self, mlu_trainer=None, **kwargs):
         self.kwargs = kwargs  # has to have 'embedding_size' and 'cuda' = True
         self.device = torch.device(
             "cuda:0" if torch.cuda.is_available() else "cpu")
         self.model = None
         self.cond_generator = None
         self.last_loss = None
-        self.ml_utility_model = ml_utility_model
+        self.mlu_trainer = mlu_trainer
 
     def loss_function(self, recon_x, x, input_size):
         # BCE = F.binary_cross_entropy(recon_x, x.view(-1, input_size), reduction='sum')
@@ -226,8 +226,8 @@ class AutoEncoder(object):
         self.model = AENetwork(input_dim=col_size_d, **self.kwargs)
         self.model.to(self.device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
-        if self.ml_utility_model:
-            self.ml_utility_model.create_optim(self.model.parameters())
+        if self.mlu_trainer:
+            self.mlu_trainer.create_optim(self.model.parameters())
 
         self.model.train()
         train_loss = 0
@@ -259,9 +259,9 @@ class AutoEncoder(object):
 
                 last_loss = (loss.item() / len(batch))
 
-            if self.ml_utility_model and e%self.ml_utility_model.t_steps == 0:
-                for i in range(self.ml_utility_model.n_steps):
-                    n_samples = self.ml_utility_model.n_samples
+            if self.mlu_trainer and e%self.mlu_trainer.t_steps == 0:
+                for i in range(self.mlu_trainer.n_steps):
+                    n_samples = self.mlu_trainer.n_samples
                     _, _, col, opt = cond_generator.sample_train(n_samples)
                     samples = []
                     while len(samples) < n_samples:
@@ -273,7 +273,7 @@ class AutoEncoder(object):
                         samples.append(sample)
                     samples = samples[:n_samples]
                     samples = torch.cat(samples, dim=0)
-                    self.ml_utility_model.step(samples)
+                    self.mlu_trainer.step(samples)
 
         #print(last_loss)
         self.loss = last_loss
