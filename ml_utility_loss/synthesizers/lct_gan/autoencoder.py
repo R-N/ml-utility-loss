@@ -226,6 +226,8 @@ class AutoEncoder(object):
         self.model = AENetwork(input_dim=col_size_d, **self.kwargs)
         self.model.to(self.device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
+        if self.ml_utility_model:
+            self.ml_utility_model.create_optim(self.model.parameters())
 
         self.model.train()
         train_loss = 0
