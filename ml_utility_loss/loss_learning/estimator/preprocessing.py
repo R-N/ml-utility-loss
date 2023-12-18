@@ -227,6 +227,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         longtail_features=[],
         integer_features=[],
         lct_ae=None,
+        lct_ae_params={},
         lct_ae_embedding_size=64,
         tab_ddpm_normalization="quantile",
         tab_ddpm_cat_encoding="ordinal", # Make sure to set this according to the dataset
@@ -257,6 +258,11 @@ class DataPreprocessor: #preprocess all with this. save all model here
         self.dtypes = None
         self.freeze = freeze
         self.realtabformer_embedding_size = 0
+
+        self.lct_ae_params = {
+            "embedding_sizes": lct_ae_embedding_size,
+            **lct_ae_params,
+        }
 
         if "tvae" in self.models:
             self.tvae_transformer = TVAEDataTransformer()
@@ -315,12 +321,12 @@ class DataPreprocessor: #preprocess all with this. save all model here
             if not self.lct_ae:
                 self.lct_ae, recon = create_ae(
                     train,
-                    categorical_columns = self.cat_features,
-                    mixed_columns = self.mixed_features,
-                    integer_columns = self.integer_features,
-                    embedding_size = self.lct_ae_embedding_size,
-                    epochs = 1,
-                    batch_size=1,
+                    categorical_columns=self.cat_features,
+                    mixed_columns=self.mixed_features,
+                    integer_columns=self.integer_features,
+                    log_columns=self.longtail_features,
+                    epochs=1,
+                    **self.lct_ae_params
                 )
                 if self.freeze:
                     for param in self.lct_ae.parameters(): 
