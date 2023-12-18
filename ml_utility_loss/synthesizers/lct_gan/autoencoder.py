@@ -70,7 +70,9 @@ class LatentTAE:
         self.data_preprocessor.fit(raw_df)
 
     def preprocess(self, raw_df):
-        return self.data_preprocessor.preprocess(raw_df)
+        ret = self.data_preprocessor.preprocess(raw_df)
+        print(ret.shape)
+        return ret
 
 
     def fit(self, df, n_epochs, preprocessed=False):
