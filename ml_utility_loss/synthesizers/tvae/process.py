@@ -39,6 +39,7 @@ def train(
     epochs=300,
     Optimizer=Adam,
     mlu_trainer=None,
+    batch_size=512,
 ):
     model.train()
 
@@ -63,7 +64,7 @@ def train(
         if mlu_trainer and i%mlu_trainer.t_steps == 0:
             for _ in range(mlu_trainer.n_steps):
                 n_samples = mlu_trainer.n_samples
-                batch_size = mlu_trainer.sample_batch_size
+                #batch_size = mlu_trainer.sample_batch_size
                 samples = sample(model=model, transformer=transformer, samples=n_samples, batch_size=batch_size, raw=True)
                 mlu_trainer.step(samples)
 

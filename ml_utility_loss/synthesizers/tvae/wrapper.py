@@ -195,6 +195,7 @@ class TVAE(BaseSynthesizer):
             l2scale=self.l2scale,
             epochs=self.epochs,
             mlu_trainer=self.mlu_trainer,
+            batch_size=self.batch_size,
         )
 
     @random_state

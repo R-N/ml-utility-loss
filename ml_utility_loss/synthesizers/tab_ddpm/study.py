@@ -4,6 +4,9 @@ from optuna.exceptions import TrialPruned
 from ...util import filter_dict
 from .pipeline import train_2, sample
 from .params.default import RTDL_PARAMS
+from ...loss_learning.estimator.wrapper import MLUtilityTrainer
+import torch
+import torch.nn.functional as F
 
 def objective(
     datasets,
@@ -52,3 +55,35 @@ def objective(
     except CatBoostError:
         raise TrialPruned()
     return value
+
+def objective_mlu(
+    *args,
+    mlu_model=None,
+    mlu_dataset=None,
+    n_samples=512,
+    #sample_batch_size=512,
+    mlu_target=None,
+    t_steps=5,
+    n_steps=1,
+    loss_fn=F.mse_loss,
+    loss_mul=1.0,
+    Optim=torch.optim.AdamW,
+    **kwargs
+):
+    mlu_trainer = MLUtilityTrainer(
+        model=mlu_model["tab_ddpm_concat"],
+        dataset=mlu_dataset,
+        n_samples=n_samples,
+        target=mlu_target,
+        t_steps=t_steps,
+        n_steps=n_steps,
+        loss_fn=loss_fn,
+        loss_mul=loss_mul,
+        #sample_batch_size=sample_batch_size,
+        Optim=Optim,
+    )
+    return objective(
+        *args,
+        mlu_trainer=mlu_trainer,
+        **kwargs,
+    )
