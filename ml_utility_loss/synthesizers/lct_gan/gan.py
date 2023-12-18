@@ -184,7 +184,6 @@ class LatentGAN:
                 % (epoch + 1, epochs, loss_d.item(), loss_g.item())
             )
 
-
     def compute_gradient_penalty(self, D, real_samples, fake_samples):
 
         """Calculates the gradient penalty loss for WGAN GP"""
@@ -235,13 +234,13 @@ class LatentGAN:
         if not raw:
             data = np.concatenate(data)
         else:
-            data = torch.cat(data)
+            data = torch.cat(data).type("float32")
         print("Sampled data length", len(data), data.dtype, torch.is_tensor(data), raw)
 
         if self.scaler:
             data = self.scaler.inverse_transform(data)
             if self.decoder:
-                data = self.decoder.decode(data.type("float32"), batch=True, raw=raw)
+                data = self.decoder.decode(data, batch=True, raw=raw)
 
         if len(data.shape) > 2:
             if not raw:
