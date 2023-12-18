@@ -26,7 +26,7 @@ class StandardScaler(StandardScaler_):
             X = X - self.mean(X)
         if self.with_std:
             X = X / self.scale(X)
-        return X.type(X.dtype)
+        return X
 
     def inverse_transform(self, X, copy=None):
         check_is_fitted(self)
@@ -35,4 +35,4 @@ class StandardScaler(StandardScaler_):
             X = X * self.scale(X)
         if self.with_mean:
             X = X + self.mean(X)
-        return X.type(X.dtype)
+        return X
