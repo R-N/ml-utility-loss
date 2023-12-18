@@ -177,6 +177,7 @@ class GaussianMultinomialDiffusion(torch.nn.Module):
         self.gaussian_parametrization = gaussian_parametrization
         self.multinomial_loss_type = multinomial_loss_type
         self.num_timesteps = num_timesteps
+        print("num_timesteps", num_timesteps)
         self.parametrization = parametrization
         self.scheduler = scheduler
 
