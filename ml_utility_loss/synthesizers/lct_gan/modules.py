@@ -23,6 +23,7 @@ class FCDecoder(nn.Module):
         self.fc6 = nn.Linear(128, input_size)
 
     def forward(self, z):
+        print(z.dtype, self.fc4.w.dtype)
         h3 = F.relu(self.fc4(z))
         h4 = F.relu(self.fc5(h3))
         return torch.sigmoid(self.fc6(h4))
