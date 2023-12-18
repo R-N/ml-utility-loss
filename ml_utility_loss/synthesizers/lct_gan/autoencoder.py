@@ -71,7 +71,7 @@ class LatentTAE:
 
     def preprocess(self, raw_df):
         ret = self.data_preprocessor.preprocess(raw_df)
-        print(ret.shape)
+        #print(ret.shape)
         return ret
 
 
