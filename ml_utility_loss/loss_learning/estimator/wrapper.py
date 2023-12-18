@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from ...util import zero_tensor
+from ...util import zero_tensor, clear_memory
 from ...data import FastDataLoader as DataLoader
 from .data import collate_fn
 from itertools import cycle
@@ -63,6 +63,7 @@ class MLUtilityTrainer:
     def step(self, samples):
         assert self.optim
         assert samples.grad_fn
+        #clear_memory()
         if samples.dim() < self.dim:
             samples = samples.unsqueeze(0)
         device = samples.device
@@ -111,5 +112,7 @@ class MLUtilityTrainer:
             assert torch.isfinite(param.grad).all(), "Grad is not populated"
 
         self.optim.step()
+
+        clear_memory()
 
         return loss.detach().cpu().item()
