@@ -234,7 +234,7 @@ class LatentGAN:
         if not raw:
             data = np.concatenate(data)
         else:
-            data = torch.cat(data).type("float32")
+            data = torch.cat(data)#.type("torch.FloatTensor")
         print("Sampled data length", len(data), data.dtype, torch.is_tensor(data), raw)
 
         if self.scaler:
