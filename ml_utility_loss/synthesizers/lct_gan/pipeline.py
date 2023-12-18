@@ -95,6 +95,7 @@ def create_ae_2(
     checkpoint_dir=None,
     log_dir=None,
     trial=None,
+    mlu_trainer=None,
     **kwargs
 ):
     if isinstance(datasets, tuple):
@@ -110,6 +111,7 @@ def create_ae_2(
         mixed_columns = mixed_features,
         integer_columns = integer_features,
         log_columns=longtail_features,
+        mlu_trainer=mlu_trainer,
         **ae_kwargs
     )
     return ae, recon
@@ -117,6 +119,7 @@ def create_ae_2(
 def create_gan_2(
     ae,
     datasets,
+    mlu_trainer=None,
     **kwargs
 ):
     if isinstance(datasets, tuple):
@@ -128,6 +131,7 @@ def create_gan_2(
     gan, synth = create_gan (
         ae, train,
         sample=None,
+        mlu_trainer=mlu_trainer,
         **gan_kwargs
     )
     return gan, synth
