@@ -24,7 +24,7 @@ def objective(
 
     model, diffusion, trainer = train_2(
         train,
-        task_type=task,
+        task=task,
         target=target,
         cat_features=cat_features,
         checkpoint_dir=checkpoint_dir,
