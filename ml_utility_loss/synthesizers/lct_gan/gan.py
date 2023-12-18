@@ -236,7 +236,7 @@ class LatentGAN:
             data = np.concatenate(data)
         else:
             data = torch.cat(data)
-        print("Sampled data length", len(data))
+        print("Sampled data length", len(data), data.dtype, torch.is_tensor(data))
 
         if self.scaler:
             data = self.scaler.inverse_transform(data)
