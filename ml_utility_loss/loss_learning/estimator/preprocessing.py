@@ -262,7 +262,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
         lct_ae_params = dict(lct_ae_params)
         lct_ae_params.pop("epochs", 0)
         self.lct_ae_params = {
-            "embedding_sizes": lct_ae_embedding_size,
+            "embedding_size": lct_ae_embedding_size,
             **lct_ae_params,
         }
 
