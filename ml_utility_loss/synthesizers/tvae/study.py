@@ -54,6 +54,7 @@ def objective_mlu(
     mlu_model=None,
     mlu_dataset=None,
     n_samples=512,
+    sample_batch_size=512,
     mlu_target=None,
     t_steps=5,
     n_steps=1,
@@ -71,6 +72,7 @@ def objective_mlu(
         n_steps=n_steps,
         loss_fn=loss_fn,
         loss_mul=loss_mul,
+        sample_batch_size=sample_batch_size,
         Optim=Optim,
     )
     return objective(
