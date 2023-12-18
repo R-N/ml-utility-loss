@@ -64,7 +64,7 @@ def objective_mlu(
     **kwargs
 ):
     mlu_trainer = MLUtilityTrainer(
-        model=mlu_model["lct_gan"],
+        model=mlu_model["tvae"],
         dataset=mlu_dataset,
         n_samples=n_samples,
         target=mlu_target,
