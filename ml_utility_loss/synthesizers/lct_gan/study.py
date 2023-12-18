@@ -5,6 +5,9 @@ from ...util import filter_dict_2
 from catboost import CatBoostError
 from optuna.exceptions import TrialPruned
 from .params.default import AE_PARAMS, GAN_PARAMS
+from ...loss_learning.estimator.wrapper import MLUtilityTrainer
+import torch
+import torch.nn.functional as F
 
 def objective(
     datasets,
@@ -23,6 +26,9 @@ def objective(
 ):
     train, test, *_ = datasets
 
+    gan_params = filter_dict_2(kwargs, GAN_PARAMS)
+    ae_params = filter_dict_2(kwargs, AE_PARAMS)
+
     ae, recon = create_ae_2(
         train,
         categorical_columns = cat_features,
@@ -32,7 +38,7 @@ def objective(
         checkpoint_dir=checkpoint_dir,
         log_dir=log_dir,
         trial=trial,
-        **kwargs
+        **ae_params
     )
 
     gan, synth = create_gan_2(
@@ -41,7 +47,7 @@ def objective(
         checkpoint_dir=checkpoint_dir,
         log_dir=log_dir,
         trial=trial,
-        **kwargs
+        **gan_params
     )
 
     try:
@@ -59,3 +65,34 @@ def objective(
         raise TrialPruned()
 
     return value
+
+
+def objective_mlu(
+    *args,
+    mlu_model=None,
+    mlu_dataset=None,
+    n_samples=512,
+    target=None,
+    t_steps=5,
+    n_steps=1,
+    loss_fn=F.mse_loss,
+    loss_mul=1.0,
+    Optim=torch.optim.AdamW,
+    **kwargs
+):
+    mlu_trainer = MLUtilityTrainer(
+        model=mlu_model["lct_gan"],
+        dataset=mlu_dataset,
+        n_samples=n_samples,
+        target=target,
+        t_steps=t_steps,
+        n_steps=n_steps,
+        loss_fn=loss_fn,
+        loss_mul=loss_mul,
+        Optim=Optim,
+    )
+    return objective(
+        *args,
+        ml_utiltiy_model=mlu_trainer,
+        **kwargs,
+    )
