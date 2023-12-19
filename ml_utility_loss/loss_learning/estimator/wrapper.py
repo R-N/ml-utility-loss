@@ -66,7 +66,6 @@ class MLUtilityTrainer:
     def step(self, samples):
         assert self.optim
         assert samples.grad_fn
-        #clear_memory()
         if samples.dim() < self.dim:
             samples = samples.unsqueeze(0)
         device = samples.device
@@ -74,6 +73,8 @@ class MLUtilityTrainer:
         batch = next(self.dataloader)
         if isinstance(batch, dict):
             batch = batch[self.model.name]
+
+        clear_memory()
         
         train, test, y, y_real = batch
         assert y == y_real
