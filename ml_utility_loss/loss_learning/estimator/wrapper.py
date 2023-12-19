@@ -23,8 +23,9 @@ class MLUtilityTrainer:
         self.model = model
         self.t_steps = t_steps
         self.n_steps = n_steps
-        n_samples = min(n_samples, dataset[0][model.name][0].shape[0])
-        print("mlu samples", n_samples)
+        dataset_size = dataset[0][model.name][0].shape[0]
+        n_samples = min(n_samples, dataset_size)
+        print("mlu samples", n_samples, "/", dataset_size)
         self.n_samples = n_samples
         self.loss_fn = loss_fn
         self.target = target
