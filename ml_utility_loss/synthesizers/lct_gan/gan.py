@@ -173,7 +173,7 @@ class LatentGAN:
 
                     self.optimizer_G.step()
                     
-                if self.mlu_trainer and epoch%self.mlu_trainer.t_steps == 0:
+                if self.mlu_trainer and (epoch+1)%self.mlu_trainer.t_steps == 0:
                     for i in range(self.mlu_trainer.n_steps):
                         n_samples = self.mlu_trainer.n_samples
                         samples = self.sample(n_samples, raw=True)

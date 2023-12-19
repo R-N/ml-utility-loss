@@ -261,7 +261,7 @@ class AutoEncoder(object):
 
                 last_loss = (loss.item() / len(batch))
 
-            if self.mlu_trainer and e%self.mlu_trainer.t_steps == 0:
+            if self.mlu_trainer and (e+1)%self.mlu_trainer.t_steps == 0:
                 for i in range(self.mlu_trainer.n_steps):
                     n_samples = self.mlu_trainer.n_samples
                     #_, _, col, opt = cond_generator.sample_train(n_samples)

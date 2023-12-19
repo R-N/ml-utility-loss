@@ -67,7 +67,7 @@ class MLUtilityCallback(TrainerCallback):
         **kwargs,
     ):
         self.epoch += 1
-        if self.mlu_trainer and self.epoch%self.mlu_trainer.t_steps == 0:
+        if self.mlu_trainer and (self.epoch+1)%self.mlu_trainer.t_steps == 0:
             for i in range(self.mlu_trainer.n_steps):
                 n_samples = self.mlu_trainer.n_samples
                 batch_size = self.batch_size
@@ -140,8 +140,9 @@ class ResumableTrainer(Trainer):
         )
         self.target_epochs = target_epochs
         model = self.model or model
-        mlu_callback.mlu_trainer.create_optim(model.parameters())
-        mlu_callback.mlu_trainer.set_embedding(model.transformer.wte)
+        if mlu_callback:
+            mlu_callback.mlu_trainer.create_optim(model.parameters())
+            mlu_callback.mlu_trainer.set_embedding(model.transformer.wte)
 
     def create_scheduler(
         self, num_training_steps: int, optimizer: torch.optim.Optimizer = None
