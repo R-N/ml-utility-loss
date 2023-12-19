@@ -117,7 +117,7 @@ class MLUtilityTrainer:
         self.optim.step()
 
         loss = loss.detach().cpu().item()
-        print("MLU loss", loss)
+        #print("MLU loss", loss)
 
         clear_memory()
 
