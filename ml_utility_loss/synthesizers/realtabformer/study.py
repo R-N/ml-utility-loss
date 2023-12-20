@@ -63,6 +63,7 @@ def objective_mlu(
     loss_fn=F.mse_loss,
     loss_mul=1.0,
     Optim=torch.optim.AdamW,
+    lr=1e-3,
     **kwargs
 ):
     mlu_trainer = MLUtilityTrainer(
@@ -76,6 +77,7 @@ def objective_mlu(
         loss_mul=loss_mul,
         #sample_batch_size=sample_batch_size,
         Optim=Optim,
+        lr=lr,
     )
     return objective(
         *args,

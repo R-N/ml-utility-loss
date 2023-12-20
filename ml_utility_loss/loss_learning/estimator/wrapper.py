@@ -18,6 +18,7 @@ class MLUtilityTrainer:
         loss_mul=1.0,
         sample_batch_size=512,
         Optim=torch.optim.AdamW,
+        lr=1e-3,
         **optim_kwargs
     ):
         self.model = model
@@ -44,7 +45,7 @@ class MLUtilityTrainer:
         self.Optim = Optim
         self.optim_kwargs = {
             **dict(
-                lr=1e-3,
+                lr=lr,
             ),
             **optim_kwargs,
         }
