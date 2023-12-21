@@ -198,8 +198,7 @@ class AutoEncoder(object):
 
     def __init__(self, mlu_trainer=None, **kwargs):
         self.kwargs = kwargs  # has to have 'embedding_size' and 'cuda' = True
-        self.device = torch.device(
-            "cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         self.model = None
         self.cond_generator = None
         self.last_loss = None
