@@ -98,6 +98,7 @@ def create_ae_2(
     log_dir=None,
     trial=None,
     mlu_trainer=None,
+    preprocess_df=None,
     **kwargs
 ):
     if isinstance(datasets, tuple):
@@ -114,6 +115,7 @@ def create_ae_2(
         integer_columns = integer_features,
         log_columns=longtail_features,
         mlu_trainer=mlu_trainer,
+        preprocess_df=preprocess_df,
         **ae_kwargs
     )
     return ae, recon
