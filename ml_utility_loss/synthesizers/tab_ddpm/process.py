@@ -234,7 +234,7 @@ def sample(
     if raw:
         return torch.cat([x_gen, y_gen.reshape(-1, 1)], dim=-1)
 
-    X_gen, y_gen = x_gen.numpy(), y_gen.numpy()
+    X_gen, y_gen = x_gen.cpu().numpy(), y_gen.cpu().numpy()
 
     X_num, X_cat, y_gen = diffusion.transformer.inverse_transform(X_gen, y_gen)
 
