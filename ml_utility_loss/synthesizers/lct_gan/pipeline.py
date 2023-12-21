@@ -63,7 +63,7 @@ def create_ae(
     mlu_trainer=None,
     preprocess_df=None,
 ):
-    preprocess_df = preprocess_df or df
+    preprocess_df = preprocess_df if preprocess_df is not None else df
     ae = LatentTAE(
         batch_size=batch_size,
         embedding_size = embedding_size,
