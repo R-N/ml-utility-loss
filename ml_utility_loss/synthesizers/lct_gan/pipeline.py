@@ -61,7 +61,9 @@ def create_ae(
     embedding_size=64,
     lr=1e-3,
     mlu_trainer=None,
+    preprocess_df=None,
 ):
+    preprocess_df = preprocess_df or df
     ae = LatentTAE(
         batch_size=batch_size,
         embedding_size = embedding_size,
@@ -72,7 +74,7 @@ def create_ae(
         lr=lr,
         mlu_trainer=mlu_trainer,
     )
-    ae.fit_preprocessor(df)
+    ae.fit_preprocessor(preprocess_df)
     preprocessed = ae.preprocess(df)
     ae.fit(
         preprocessed, 

@@ -22,6 +22,7 @@ def objective(
     log_dir=None,
     trial=None,
     diff=False,
+    preprocess_df=None,
     **kwargs
 ):
     train, test, *_ = datasets
@@ -42,6 +43,7 @@ def objective(
         checkpoint_dir=checkpoint_dir,
         log_dir=log_dir,
         trial=trial,
+        preprocess_df=preprocess_df,
         **kwargs
     )
 
