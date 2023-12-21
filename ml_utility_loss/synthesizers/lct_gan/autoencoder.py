@@ -11,11 +11,11 @@ from .preprocessing import DataPreprocessor
 
 Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
-def handle_type(x, device=None):
+def handle_type(x, device=None, Tensor=torch.Tensor):
     if isinstance(x, np.ndarray):
         x = torch.from_numpy(x)
     elif not isinstance(x, torch.Tensor):
-        x = torch.Tensor(x).to(device)
+        x = Tensor(x).to(device)
     if x.dim() == 1:
         x = [x]
     if isinstance(x, list):
@@ -204,6 +204,7 @@ class AutoEncoder(object):
         self.cond_generator = None
         self.last_loss = None
         self.mlu_trainer = mlu_trainer
+        self.tensor_type = "torch.cuda.FloatTensor" if "cuda" in self.device else "torch.FloatTensor"
 
     def loss_function(self, recon_x, x, input_size):
         # BCE = F.binary_cross_entropy(recon_x, x.view(-1, input_size), reduction='sum')
@@ -215,6 +216,7 @@ class AutoEncoder(object):
         return self.model.encode(x)
 
     def decode(self, z):
+        z = z.type(self.tensor_type)
         return self.model.decode(z)
 
     def train(self, data, output_dim: int, output_info, epochs, batch_size, lr=1e-3):
