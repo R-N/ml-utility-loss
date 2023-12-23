@@ -58,6 +58,7 @@ class Trainer:
         curr_loss_gauss = 0.0
 
         curr_count = 0
+
         while step < self.steps:
             x, y = next(self.train_iter)
             out_dict = {'y': y}
