@@ -60,9 +60,12 @@ def plot_grad_3(error, grad, fig=None, ax=None, name=None, g_name="g_linear", **
         ax.legend([name, g_name])
     return fig
 
-def plot_density(series, *args, xlabel="ML Utility", **kwargs):
+def plot_density(series, *args, xlabel="ML Utility", ylabel="Density", **kwargs):
     try:
-        return series.plot.kde(*args, xlabel=xlabel, **kwargs)
+        ax = series.plot.kde(*args, xlabel=xlabel, ylabel=ylabel, **kwargs)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        return ax
     except LinAlgError:
         pass
 
@@ -122,7 +125,14 @@ def plot_synths_density(info_dir, sizes=None, fig=None, ax=None, real=False, sta
     ax.legend(sizes)
     return fig
 
-def plot_synth_real_box(info_path, synth="synth", fig=None, ax=None, real=True, col="synth_value", real_col="real_value", label="", limit=None, ylabel="ML Utility", **kwargs):
+def plot_box(df, column=None, ax=None, xlabel="ML utility", ylabel="Dataset", **kwargs):
+    ax = df.boxplot(column=column, ax=ax, ylabel=ylabel, xlabel=xlabel, **kwargs)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_xticklabels(column or list(df.columns))
+    return ax
+
+def plot_synth_real_box(info_path, synth="synth", fig=None, ax=None, real=True, col="synth_value", real_col="real_value", label="", limit=None, **kwargs):
     if not ax:
         fig, ax = plt.subplots()
 
@@ -139,12 +149,12 @@ def plot_synth_real_box(info_path, synth="synth", fig=None, ax=None, real=True, 
         axes.append(f"{label}_real" if label else "real")
         cols.append(real_col)
 
-    df.boxplot(column=cols, ylabel=ylabel, **kwargs)
+    ax = plot_box(df, ax=ax, column=cols, **kwargs)
     ax.set_xticklabels(axes)
     return fig
 
 
-def plot_pred_box(pred, y, fig=None, ax=None, title=None, ylabel="ML Utility", **kwargs):
+def plot_pred_box(pred, y, fig=None, ax=None, title=None,  **kwargs):
     if not ax:
         fig, ax = plt.subplots()
     df = pd.DataFrame()
@@ -152,8 +162,7 @@ def plot_pred_box(pred, y, fig=None, ax=None, title=None, ylabel="ML Utility", *
     df["y"] = y
 
     cols = list(df.columns)
-    df.boxplot(column=cols, ylabel=ylabel, **kwargs)
-    ax.set_xticklabels(cols)
+    ax = plot_box(df, ax=ax, column=cols, **kwargs)
 
     if title:
         ax.set_title(title)
@@ -164,7 +173,7 @@ def plot_pred_box_2(results, **kwargs):
     for model, result in results.items():
         plot_pred_box(result["pred"], y=result["y"], title=model, **kwargs)
 
-def plot_synths_box(info_dir, sizes=None, fig=None, ax=None, col="synth_value", limit=None, start_size=0, skip_last=True, ylabel="ML Utility", **kwargs):
+def plot_synths_box(info_dir, sizes=None, fig=None, ax=None, col="synth_value", limit=None, start_size=0, skip_last=True, **kwargs):
     if not ax:
         fig, ax = plt.subplots()
   
@@ -185,11 +194,10 @@ def plot_synths_box(info_dir, sizes=None, fig=None, ax=None, col="synth_value", 
     if limit:
         df = df[:limit]
 
-    df.boxplot(column=list(df.columns), ylabel=ylabel, **kwargs)
-    ax.set_xticklabels(sizes)
+    plot_box(df, ax=ax, column=list(df.columns), **kwargs)
     return fig
 
-def plot_box_3(values, y=None, y_name="target", ylabel="ML Utility"):
+def plot_box_3(values, y=None, y_name="target", **kwargs):
     values = dict(values)
     if y is not None:
         values[y_name] = y
@@ -197,8 +205,7 @@ def plot_box_3(values, y=None, y_name="target", ylabel="ML Utility"):
     df_box = pd.DataFrame()
     for k, v in values.items():
         df_box[k] = v
-    df_box.boxplot(ax=ax, ylabel=ylabel)
-    ax.set_xticklabels(list(df_box.columns))
+    plot_box(df_box, ax=ax, **kwargs)
     return fig
 
 def plot_density_3(values, y=None, y_name="target", real_linestyle="solid", **kwargs):
