@@ -642,7 +642,8 @@ class TabularSampler(REaLSampler):
             self.model.eval()
         else:
             self.model.train()
-        synth_df = []
+
+        synth_df = None
 
         if seed_input is None:
             generated = torch.tensor(
@@ -707,20 +708,32 @@ class TabularSampler(REaLSampler):
                             ) from exc
                         continue
 
+                if synth_df is None:
+                    synth_df = synth_sample
+                else:
+                    if not raw:
+                        synth_df = pd.concat([synth_df, synth_sample]).sample(
+                            n=n_samples, replace=False, random_state=self.random_state
+                        )
+                    else:
+                        try:
+                            synth_df = torch.cat([synth_df, synth_sample])
+                        except RuntimeError as ex:
+                            msg = str(ex)
+                            if "Sizes of tensors must match" in msg:
+                                continue
+                            else:
+                                raise
+
                 num_generated += len(synth_sample)
-                synth_df.append(synth_sample)
 
                 # Update process bar
                 pbar.update(num_generated - pbar_num_gen)
                 pbar_num_gen = num_generated
 
         if not raw:
-            synth_df = pd.concat(synth_df).sample(
-                n=n_samples, replace=False, random_state=self.random_state
-            )
             synth_df = synth_df.reset_index(drop="index")
         else:
-            synth_df = torch.cat(synth_df)
             idx =  torch.randperm(synth_df.shape[0])[:n_samples]
             synth_df = synth_df[idx]
 
