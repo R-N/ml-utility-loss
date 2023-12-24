@@ -712,9 +712,7 @@ class TabularSampler(REaLSampler):
                     synth_df = synth_sample
                 else:
                     if not raw:
-                        synth_df = pd.concat([synth_df, synth_sample]).sample(
-                            n=n_samples, replace=False, random_state=self.random_state
-                        )
+                        synth_df = pd.concat([synth_df, synth_sample])
                     else:
                         try:
                             synth_df = torch.cat([synth_df, synth_sample])
@@ -732,6 +730,9 @@ class TabularSampler(REaLSampler):
                 pbar_num_gen = num_generated
 
         if not raw:
+            synth_df = synth_df.sample(
+                n=n_samples, replace=False, random_state=self.random_state
+            )
             synth_df = synth_df.reset_index(drop="index")
         else:
             idx =  torch.randperm(synth_df.shape[0])[:n_samples]
