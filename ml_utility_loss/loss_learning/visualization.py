@@ -7,7 +7,7 @@ from scipy.linalg import LinAlgError
 from sklearn.linear_model import LinearRegression
 
 
-def plot_grad(error, grad, fig=None, ax=None, name=None, sqrt=False, abs=False, **kwargs):
+def plot_grad(error, grad, fig=None, ax=None, name=None, sqrt=False, abs=False, xlabel="Error", ylabel="Gradient norm", **kwargs):
     if not ax:
         fig, ax = plt.subplots()
     if sqrt:
@@ -17,11 +17,13 @@ def plot_grad(error, grad, fig=None, ax=None, name=None, sqrt=False, abs=False, 
     series = np.array(list(zip(error, grad)))
     series = series[series[:, 0].argsort()]
     ax.plot(series[:, 0], series[:, 1], **kwargs)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
     if name:
         ax.legend([name])
     return fig
 
-def plot_grad_2(y, models, error="error", grad="grad", g="g", **kwargs):
+def plot_grad_2(y, models, error="error", grad="grad", g="g", xlabel="Error", ylabel="Gradient norm", **kwargs):
     fig, ax = plt.subplots()
     axes = []
     for m in models:
@@ -31,6 +33,8 @@ def plot_grad_2(y, models, error="error", grad="grad", g="g", **kwargs):
         if g in yi:
             plot_grad(yi[error], yi[g], fig=fig, ax=ax, **kwargs)
             axes.append(f"{m}_{g}")
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
     ax.legend(axes)
     return fig
 
@@ -56,9 +60,9 @@ def plot_grad_3(error, grad, fig=None, ax=None, name=None, g_name="g_linear", **
         ax.legend([name, g_name])
     return fig
 
-def plot_density(series, *args, **kwargs):
+def plot_density(series, *args, xlabel="ML Utility", **kwargs):
     try:
-        return series.plot.kde(*args, **kwargs)
+        return series.plot.kde(*args, xlabel=xlabel, **kwargs)
     except LinAlgError:
         pass
 
@@ -118,7 +122,7 @@ def plot_synths_density(info_dir, sizes=None, fig=None, ax=None, real=False, sta
     ax.legend(sizes)
     return fig
 
-def plot_synth_real_box(info_path, synth="synth", fig=None, ax=None, real=True, col="synth_value", real_col="real_value", label="", limit=None, **kwargs):
+def plot_synth_real_box(info_path, synth="synth", fig=None, ax=None, real=True, col="synth_value", real_col="real_value", label="", limit=None, ylabel="ML Utility", **kwargs):
     if not ax:
         fig, ax = plt.subplots()
 
@@ -135,12 +139,12 @@ def plot_synth_real_box(info_path, synth="synth", fig=None, ax=None, real=True, 
         axes.append(f"{label}_real" if label else "real")
         cols.append(real_col)
 
-    df.boxplot(column=cols, **kwargs)
+    df.boxplot(column=cols, ylabel=ylabel, **kwargs)
     ax.set_xticklabels(axes)
     return fig
 
 
-def plot_pred_box(pred, y, fig=None, ax=None, title=None, **kwargs):
+def plot_pred_box(pred, y, fig=None, ax=None, title=None, ylabel="ML Utility", **kwargs):
     if not ax:
         fig, ax = plt.subplots()
     df = pd.DataFrame()
@@ -148,7 +152,7 @@ def plot_pred_box(pred, y, fig=None, ax=None, title=None, **kwargs):
     df["y"] = y
 
     cols = list(df.columns)
-    df.boxplot(column=cols, **kwargs)
+    df.boxplot(column=cols, ylabel=ylabel, **kwargs)
     ax.set_xticklabels(cols)
 
     if title:
@@ -160,7 +164,7 @@ def plot_pred_box_2(results, **kwargs):
     for model, result in results.items():
         plot_pred_box(result["pred"], y=result["y"], title=model, **kwargs)
 
-def plot_synths_box(info_dir, sizes=None, fig=None, ax=None, col="synth_value", limit=None, start_size=0, skip_last=True, **kwargs):
+def plot_synths_box(info_dir, sizes=None, fig=None, ax=None, col="synth_value", limit=None, start_size=0, skip_last=True, ylabel="ML Utility", **kwargs):
     if not ax:
         fig, ax = plt.subplots()
   
@@ -181,11 +185,11 @@ def plot_synths_box(info_dir, sizes=None, fig=None, ax=None, col="synth_value", 
     if limit:
         df = df[:limit]
 
-    df.boxplot(column=list(df.columns), **kwargs)
+    df.boxplot(column=list(df.columns), ylabel=ylabel, **kwargs)
     ax.set_xticklabels(sizes)
     return fig
 
-def plot_box_3(values, y=None, y_name="target"):
+def plot_box_3(values, y=None, y_name="target", ylabel="ML Utility"):
     values = dict(values)
     if y is not None:
         values[y_name] = y
@@ -193,7 +197,7 @@ def plot_box_3(values, y=None, y_name="target"):
     df_box = pd.DataFrame()
     for k, v in values.items():
         df_box[k] = v
-    df_box.boxplot(ax=ax)
+    df_box.boxplot(ax=ax, ylabel=ylabel)
     ax.set_xticklabels(list(df_box.columns))
     return fig
 
