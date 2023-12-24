@@ -60,7 +60,7 @@ def plot_grad_3(error, grad, fig=None, ax=None, name=None, g_name="g_linear", **
         ax.legend([name, g_name])
     return fig
 
-def plot_density(series, *args, xlabel="ML Utility", ylabel="Density", **kwargs):
+def plot_density(series, *args, xlabel="ML utility", ylabel="Density", **kwargs):
     try:
         ax = series.plot.kde(*args, xlabel=xlabel, ylabel=ylabel, **kwargs)
         ax.set_xlabel(xlabel)
@@ -125,7 +125,7 @@ def plot_synths_density(info_dir, sizes=None, fig=None, ax=None, real=False, sta
     ax.legend(sizes)
     return fig
 
-def plot_box(df, column=None, ax=None, xlabel="ML utility", ylabel="Dataset", **kwargs):
+def plot_box(df, column=None, ax=None, ylabel="ML utility", xlabel="Dataset", **kwargs):
     ax = df.boxplot(column=column, ax=ax, ylabel=ylabel, xlabel=xlabel, **kwargs)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
