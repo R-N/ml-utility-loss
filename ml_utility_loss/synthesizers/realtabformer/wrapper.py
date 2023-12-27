@@ -830,6 +830,9 @@ class REaLTabFormer:
                 )
             ]
 
+        #disable wandb
+        training_args_kwargs["report_to"] = None
+
         assert self.dataset
         trainer = ResumableTrainer(
             target_epochs=target_epochs,
