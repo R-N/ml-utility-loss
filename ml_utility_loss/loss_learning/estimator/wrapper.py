@@ -19,6 +19,7 @@ class MLUtilityTrainer:
         sample_batch_size=512,
         Optim=torch.optim.AdamW,
         lr=1e-3,
+        debug=False,
         **optim_kwargs
     ):
         for param in model.parameters():
@@ -56,6 +57,8 @@ class MLUtilityTrainer:
         if "realtabformer" in model.name.lower():
             self.dim = 4
             self.model.adapter.use_embedding = False
+
+        self.debug = debug
 
     def set_embedding(self, embedding):
         self.model.adapter.embedding = embedding
@@ -121,7 +124,8 @@ class MLUtilityTrainer:
         self.optim.step()
 
         loss = loss.detach().cpu().item()
-        #print("MLU loss", loss)
+        if self.debug:
+            print("MLU loss", loss)
 
         clear_memory()
 
