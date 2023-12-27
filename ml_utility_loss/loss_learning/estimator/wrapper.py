@@ -21,6 +21,9 @@ class MLUtilityTrainer:
         lr=1e-3,
         **optim_kwargs
     ):
+        for param in model.parameters():
+            param.requires_grad = False
+
         self.model = model
         self.t_steps = t_steps
         self.n_steps = n_steps
