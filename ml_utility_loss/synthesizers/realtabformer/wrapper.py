@@ -111,6 +111,7 @@ class REaLTabFormer:
             load_best_model_at_end=True,
             save_total_limit=early_stopping_patience + 1,
             optim="adamw_torch",
+            report_to="none",
         )
 
         # Remove experiment params from `training_args_kwargs`
@@ -831,7 +832,7 @@ class REaLTabFormer:
             ]
 
         #disable wandb
-        training_args_kwargs["report_to"] = None
+        training_args_kwargs["report_to"] = "none"
 
         assert self.dataset
         trainer = ResumableTrainer(
