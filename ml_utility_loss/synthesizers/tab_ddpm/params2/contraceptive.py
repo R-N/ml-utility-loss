@@ -1,5 +1,5 @@
 PARAM_SPACE = {
-    "n_samples": ("int_exp_2", 16, 2048),
+    "n_samples": ("int_exp_2", 16, 1024),
     #"sample_batch_size": ("int_exp_2", 256, 1024),
     "t_steps": ("int_exp_2", 256, 1024),
     "mlu_target": ("categorical", [None, 1.0]),
