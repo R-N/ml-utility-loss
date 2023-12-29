@@ -30,10 +30,10 @@ def train_2(
     rtf_model.experiment_id = str(trial.number)
     fit_preprocess=True
     if preprocess_df is not None:
-        rtf_model.fit_preprocess(preprocess_df)
+        rtf_model.fit_preprocess(preprocess_df.copy())
         fit_preprocess=False
     rtf_model.fit(
-        train,
+        train.copy(),
         num_bootstrap=num_bootstrap,
         fit_preprocess=fit_preprocess
     )
