@@ -94,12 +94,12 @@ def privacy_dist(a, b=None, cat_cols=None, frac=.15, random_state=42):
   scaler = StandardScaler().fit(a)
      
   # Sampling smaller sets of a and synthetic data to reduce the time complexity of the evaluation
-  a = scaler.transform(a)
+  a.loc[:, :] = scaler.transform(a)
   a_sampled = a.sample(n=int(len(a)*(frac)), random_state=random_state).to_numpy()
 
   if b is not None:
     b = encode(b, ohe)
-    b = scaler.transform(b)
+    b.loc[:, :] = scaler.transform(b)
     b_sampled = b.sample(n=int(len(b)*(frac)), random_state=random_state).to_numpy()
     # Computing pair-wise distances between a and b 
     dist = metrics.pairwise_distances(a_sampled, Y=b_sampled, metric='minkowski', n_jobs=-1)
