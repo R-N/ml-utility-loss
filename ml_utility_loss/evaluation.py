@@ -78,9 +78,10 @@ def diff_corr(real,fake,cat_cols=None):
   return corr_dist
 
 def encode(X, enc):
+  cols = enc.feature_names_in_
   df = pd.concat([
-      X.drop(enc.feature_names_in_, axis=1),
-      pd.DataFrame(enc.transform(X), columns=enc.get_feature_names_out())
+      X.drop(cols, axis=1),
+      pd.DataFrame(enc.transform(X[cols]), columns=enc.get_feature_names_out())
   ], axis=1, join="inner")
   return df
 
