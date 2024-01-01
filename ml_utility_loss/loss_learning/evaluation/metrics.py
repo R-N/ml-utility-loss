@@ -85,7 +85,7 @@ def encode(X, enc):
   ], axis=1, join="inner")
   return df
 
-def privacy_dist(a, b=None, cat_cols=None, frac=.15, random_state=42):
+def privacy_dist(a, b=None, cat_cols=None, frac=1.0, random_state=42):
   assert cat_cols is not None
 
   ohe = OneHotEncoder(sparse=False, handle_unknown='ignore')

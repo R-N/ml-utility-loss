@@ -5,27 +5,23 @@ import os
 from ...util import mkdir, filter_dict, split_df_kfold, Timer, clear_memory
 from optuna.exceptions import TrialPruned
 from ..ml_utility.pipeline import eval_ml_utility
-from ...params import GradientPenaltyMode, PMAFFNMode
-from .model.models import Transformer, MLUtilityWhole
+from ...params import GradientPenaltyMode
 from .model.pipeline import create_model
 from torch.utils.data import DataLoader
 #from ...data import FastDataLoader as DataLoader
 from .data import collate_fn
 import torch
 from .process import train_epoch, eval as _eval
-from torch import nn
 import torch.nn.functional as F
 import math
-import warnings
 from ...scheduler import SizeScheduler
-from ...params import ISABMode, LoRAMode, HeadFinalMul
 from torch.utils.tensorboard import SummaryWriter
 from copy import deepcopy
-from ...loss_balancer import FixedWeights, MyLossTransformer, LossBalancer, MyLossWeighter, DEFAULT_BETA, DEFAULT_R
-from ...metrics import mean_penalty, mean_penalty_rational, mean_penalty_rational_half, ScaledLoss, scale_divider, mean_penalty_log, mean_penalty_log_half
+from ...loss_balancer import  MyLossTransformer, DEFAULT_BETA, DEFAULT_R
+from ...metrics import scale_divider, mean_penalty_log_half
 from ...optim import ScheduledOptim
 from ...early_stopping import StopOnPlateau
-from ...tuning import pop_repack, pop_update, unpack_params
+from ...tuning import unpack_params
 
 def augment(df, info, save_dir, n=1, test=0.2, augmenter=None):
     mkdir(save_dir)
@@ -226,7 +222,7 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
 
     return info_out
 
-def generate_sizes(n, low=32, exp=2):
+def generate_sizes(n, low=512, exp=2):
     steps = math.ceil(math.log(n/low, exp) + 1)
     return [low*(exp**i) for i in range(steps)]
 
