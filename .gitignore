@@ -159,3 +159,4 @@ cython_debug/
 #.idea/
 position_embedding.pt
 position_embedding.states.pt
+catboost_info/
