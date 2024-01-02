@@ -10,7 +10,7 @@ PARAM_SPACE = {
         "mile",
         "mire",
     ]),
-    "loss_mul": ("log_float", 1e-3, 0.2),
+    "loss_mul": 1,
     "Optim": ("optimizer", [
         "adamw",  
         "amsgradw",
