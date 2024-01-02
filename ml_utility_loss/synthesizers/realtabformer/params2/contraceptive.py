@@ -3,7 +3,7 @@ PARAM_SPACE = {
     #"sample_batch_size": ("int_exp_2", 2, 64),
     "t_steps": ("int", 1, 5),
     "mlu_target": ("categorical", [None, 1.0]),
-    "n_steps": ("int", 5, 16),
+    "n_steps": ("int", 5, 8),
     "loss_fn": ("loss", [
         "mse",
         "mae",#
