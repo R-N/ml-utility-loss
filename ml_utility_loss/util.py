@@ -12,6 +12,7 @@ import time
 import shutil
 import re
 import gc
+import random
 
 def load_json(path, **kwargs):
     return json.loads(Path(path).read_text(), **kwargs)
@@ -333,3 +334,8 @@ def zero_tensor(value=0.0, device=DEFAULT_DEVICE):
 def transpose_dict(y):
     keys = y[next(iter(y.keys()))].keys()
     return {key: {k: v[key] for k, v in y.items()} for key in keys}
+
+def seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
