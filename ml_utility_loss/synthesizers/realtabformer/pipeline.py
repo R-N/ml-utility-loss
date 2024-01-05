@@ -16,7 +16,10 @@ def train_2(
     else:
         train = datasets
 
-    num_bootstrap = kwargs.pop("num_bootstrap")
+    fit_kwargs = {}
+    num_bootstrap = kwargs.pop("num_bootstrap", None)
+    if num_bootstrap:
+        fit_kwargs["num_bootstrap"] = num_bootstrap
 
     gpt2_params = filter_dict(kwargs, GPT2_PARAMS)
     realtabformer_params = filter_dict(kwargs, REALTABFORMER_PARAMS)
@@ -34,8 +37,8 @@ def train_2(
         fit_preprocess=False
     rtf_model.fit(
         train.copy(),
-        num_bootstrap=num_bootstrap,
-        fit_preprocess=fit_preprocess
+        fit_preprocess=fit_preprocess,
+        **fit_kwargs
     )
 
     return rtf_model
