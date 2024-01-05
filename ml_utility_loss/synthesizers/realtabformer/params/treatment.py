@@ -27,6 +27,8 @@ BEST = {
 }
 
 # I mean it was just one trial lol
-BEST = {}
+BEST = {
+    "num_bootstrap": 100
+}
 
 #BEST["epochs"] = min(BEST["epochs"], 100)
