@@ -66,6 +66,7 @@ class MLUtilityTrainer:
     def create_optim(self, parameters, Optim=None, **kwargs):
         Optim = Optim or self.Optim
         parameters = list(parameters)
+        parameters = [p for p in parameters if p.requires_grad]
         self.parameters = parameters
         optim_kwargs = {**self.optim_kwargs, **kwargs}
         self.optim = Optim(parameters, **optim_kwargs)
