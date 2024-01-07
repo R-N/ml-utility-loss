@@ -46,6 +46,9 @@ def objective(
         preprocess_df=preprocess_df,
         **kwargs
     )
+    
+    for p in ae.parameters():
+        p.requires_grad = False
 
     gan, synth = create_gan_2(
         ae, train,
