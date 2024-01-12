@@ -28,5 +28,6 @@ BEST = {
     'n_steps': 4,
     'loss_fn': 'mile',
     'loss_mul': 0.003437020062789059,
-    'Optim': 'adamp'
+    'Optim': 'adamp',
+    'mlu_lr': 1e-3,
 }

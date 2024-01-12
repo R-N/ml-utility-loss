@@ -28,5 +28,6 @@ BEST = {
     'n_steps': 12,
     'loss_fn': 'mae',
     'loss_mul': 7.632449003380145,
-    'Optim': 'adamp'
+    'Optim': 'adamp',
+    'mlu_lr': 1e-3,
 }
