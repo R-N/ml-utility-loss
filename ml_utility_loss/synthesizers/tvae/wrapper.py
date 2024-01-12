@@ -169,7 +169,7 @@ class TVAE(BaseSynthesizer):
 
         return train_data
 
-    @random_state
+    #@random_state
     def fit(self, train_data, discrete_columns=(), transformer=None, preprocess_df=None):
         """Fit the TVAE Synthesizer models to the training data.
 
@@ -200,7 +200,7 @@ class TVAE(BaseSynthesizer):
             batch_size=self.batch_size,
         )
 
-    @random_state
+    #@random_state
     def sample(self, samples):
         """Sample data similar to the training data.
 
