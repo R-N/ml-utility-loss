@@ -148,7 +148,9 @@ class TVAE(BaseSynthesizer):
     def parameters(self):
         return self.model.parameters()
 
-    def prepare(self, train_data, discrete_columns=(), transformer=None):
+    def prepare(self, train_data, discrete_columns=(), transformer=None, preprocess_df=None):
+        if not transformer and preprocess_df is not None:
+            transformer, *_ = preprocess(preprocess_df, discrete_columns)
         self.transformer, train_data = preprocess(
             train_data, discrete_columns, transformer=transformer or self.transformer
         )
@@ -168,7 +170,7 @@ class TVAE(BaseSynthesizer):
         return train_data
 
     @random_state
-    def fit(self, train_data, discrete_columns=(), transformer=None):
+    def fit(self, train_data, discrete_columns=(), transformer=None, preprocess_df=None):
         """Fit the TVAE Synthesizer models to the training data.
 
         Args:
@@ -182,7 +184,7 @@ class TVAE(BaseSynthesizer):
         """
 
         if not self.model:
-            train_data = self.prepare(train_data, discrete_columns=discrete_columns, transformer=transformer)
+            train_data = self.prepare(train_data, discrete_columns=discrete_columns, transformer=transformer, preprocess_df=preprocess_df)
 
         dataset = TensorDataset(torch.from_numpy(train_data.astype('float32')).to(self.device))
         loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True, drop_last=False)
