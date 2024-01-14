@@ -31,7 +31,8 @@ class Trainer:
         self.print_every = 10
         self.ema_every = 1000
         self.mlu_trainer=mlu_trainer
-        mlu_trainer.create_optim(diffusion.parameters())
+        if mlu_trainer:
+            mlu_trainer.create_optim(diffusion.parameters())
         self.batch_size = batch_size
 
     def _anneal_lr(self, step):
