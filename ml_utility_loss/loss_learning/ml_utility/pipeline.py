@@ -1,6 +1,6 @@
 from .wrapper import CatBoostModel
 from .preprocessing import create_pool
-from catboost import Pool
+from catboost import Pool, CatBoostError
 
 def eval_ml_utility(
     datasets,
@@ -29,6 +29,10 @@ def eval_ml_utility(
 
             value = model.eval(test)
             return value
+        except CatBoostError as ex:
+            if "All train targets are equal" in str(ex):
+                return -1.0
+            raise
         except PermissionError:
             pass
 
