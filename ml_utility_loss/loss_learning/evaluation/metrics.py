@@ -117,8 +117,10 @@ def privacy_dist(a, b=None, cat_cols=None, frac=1.0, random_state=42):
 
   # Computing 5th percentiles for DCR and NNDR between and within a and synthetic datasets
   min_dist = np.array([i[0] for i in smallest_two])
+  print(set(min_dist))
   fifth_perc = np.percentile(min_dist,5)
   nn_ratio = np.array([i[0]/i[1] for i in smallest_two])
+  print(set(nn_ratio))
   nn_fifth_perc = np.percentile(nn_ratio,5)
 
   return fifth_perc, nn_fifth_perc #dcr, nndr
