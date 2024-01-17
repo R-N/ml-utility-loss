@@ -15,7 +15,7 @@ class NaiveModel:
         return self
 
     def predict(self, val):
-        return np.full(len(val), self.value)
+        return np.full(val.num_row(), self.value)
     
     def get_best_iteration(self):
         return 0
