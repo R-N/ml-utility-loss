@@ -12,6 +12,7 @@ class NaiveModel:
 
     def fit(self, train):
         self.value = train.get_label()[0]
+        print("NaiveModel", self.value)
         return self
 
     def predict(self, val):
