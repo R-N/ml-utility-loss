@@ -16,6 +16,9 @@ class NaiveModel:
 
     def predict(self, val):
         return np.full(len(val), self.value)
+    
+    def get_best_iteration(self):
+        return 0
 
 class CatBoostModel:
     def __init__(
