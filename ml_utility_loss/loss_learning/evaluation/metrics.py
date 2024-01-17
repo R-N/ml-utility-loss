@@ -96,6 +96,7 @@ def privacy_dist(a, b=None, cat_cols=None, frac=1.0, random_state=42):
   # Sampling smaller sets of a and synthetic data to reduce the time complexity of the evaluation
   a.loc[:, :] = scaler.transform(a)
   a_sampled = a.sample(n=int(len(a)*(frac)), random_state=random_state).to_numpy()
+  assert len(a_sampled) > 0
 
   if b is not None:
     b = encode(b, ohe)
@@ -107,10 +108,12 @@ def privacy_dist(a, b=None, cat_cols=None, frac=1.0, random_state=42):
     # Computing pair-wise distances between a
     dist = metrics.pairwise_distances(a_sampled, Y=None, metric='minkowski', n_jobs=-1) 
     dist = dist[~np.eye(dist.shape[0],dtype=bool)].reshape(dist.shape[0],-1)
+  assert len(dist) > 0
   
   # Computing first and second smallest nearest neighbour distances
   smallest_two_indexes = [dist[i].argsort()[:2] for i in range(len(dist))]
-  smallest_two = [dist[i][smallest_two_indexes[i]] for i in range(len(dist))]       
+  smallest_two = [dist[i][smallest_two_indexes[i]] for i in range(len(dist))] 
+  assert len(smallest_two) > 0      
 
   # Computing 5th percentiles for DCR and NNDR between and within a and synthetic datasets
   min_dist = np.array([i[0] for i in smallest_two])
