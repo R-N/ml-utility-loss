@@ -1,9 +1,21 @@
-from catboost import CatBoostClassifier, CatBoostRegressor
+from catboost import CatBoostClassifier, CatBoostRegressor, CatBoostError
 from ...params import CATBOOST_METRICS, SKLEARN_METRICS
 from ...util import mkdir
 from .params.default import PARAM_SPACE_2
 import os
+import numpy as np
 
+
+class NaiveModel:
+    def __init__(self, value=None):
+        self.value = value
+
+    def fit(self, train):
+        self.value = train.label[0]
+        return self
+
+    def predict(self, val):
+        return np.full(len(val), self.value)
 
 class CatBoostModel:
     def __init__(
@@ -52,12 +64,18 @@ class CatBoostModel:
         )
 
     def fit(self, train, val=None):
-        self.model.fit(
-            train,
-            eval_set=val,
-            #logging_level="Verbose",
-            plot=True
-        )
+        try:
+            self.model.fit(
+                train,
+                eval_set=val,
+                #logging_level="Verbose",
+                plot=False
+            )
+        except CatBoostError as ex:
+            if "All train targets are equal" in str(ex):
+                self.model = NaiveModel(train.label[0])
+            else:
+                raise
         self.epoch = self.model.get_best_iteration() + self.od_wait
         if val:
             return self.eval(val)
