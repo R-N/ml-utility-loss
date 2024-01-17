@@ -88,6 +88,7 @@ class CatBoostModel:
         #ret = self.model.eval_metrics(val, [self.metric])[self.metric]
         #return sum(ret)/len(ret)
         y_pred = self.model.predict(val)
+        print(y_pred.shape, y_pred)
         y_true = val.get_label()
         return SKLEARN_METRICS[self.metric](y_true, y_pred)
 
