@@ -11,7 +11,7 @@ class NaiveModel:
         self.value = value
 
     def fit(self, train):
-        self.value = train.label[0]
+        self.value = train.get_label()[0]
         return self
 
     def predict(self, val):
@@ -73,7 +73,7 @@ class CatBoostModel:
             )
         except CatBoostError as ex:
             if "All train targets are equal" in str(ex):
-                self.model = NaiveModel(train.label[0])
+                self.model = NaiveModel().fit(train)
             else:
                 raise
         self.epoch = self.model.get_best_iteration() + self.od_wait
