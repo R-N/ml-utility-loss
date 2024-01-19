@@ -14,6 +14,7 @@ class MLUtilityTrainer:
         target=None,
         t_steps=5,
         n_steps=1,
+        n_inner_steps=1,
         loss_fn=F.mse_loss,
         loss_mul=1.0,
         sample_batch_size=512,
@@ -28,6 +29,7 @@ class MLUtilityTrainer:
         self.model = model
         self.t_steps = t_steps
         self.n_steps = n_steps
+        self.n_inner_steps = n_inner_steps
         dataset_size = dataset[0][model.name][0].shape[0]
         n_samples = min(n_samples, dataset_size)
         print("mlu samples", n_samples, "/", dataset_size)
@@ -82,42 +84,46 @@ class MLUtilityTrainer:
         if isinstance(batch, dict):
             batch = batch[self.model.name]
 
-        clear_memory()
-        
-        train, test, y, y_real = batch
-        assert y == y_real
-        
-        if train.dtype != samples.dtype:
-            samples = samples.type(train.dtype)
-
-        train = train.to(device)
-        test = test.to(device)
-        if self.model.adapter.embedding and train.dim() < 4:
-            train = self.model.adapter.embedding(train.to(torch.int))
-            test = self.model.adapter.embedding(test.to(torch.int))
-
-        assert train.dim() == samples.dim() and train.shape[0] == samples.shape[0] == 1 and train.shape[-1] == samples.shape[-1], f"Mismatching shapes. train {train.shape}, samples {samples.shape}"
-        if "realtabformer" in self.model.name.lower():
-            assert train.shape[-2] == samples.shape[-2], f"Mismatching shapes. train {train.shape}, samples {samples.shape}"
-
-        n = train.shape[1]
-        n_samples = samples.shape[1]
-        n_remain = max(0, n-n_samples)
-        if n_remain:
-            idx =  torch.randperm(n)[:n_remain]
-            samples = torch.cat([samples, train[:, idx]], dim=1)
-
+        self.optim.zero_grad()
         self.model.to(device)
 
-        self.optim.zero_grad()
+        samples_0 = samples
 
-        samples, est = self.model(samples, test)
-        target = self.target or y.flatten().item()
-        loss = self.loss_mul * self.loss_fn(
-            est, 
-            torch.full(est.shape, target, device=est.device)
-        )
-        loss.backward()
+        for i in self.n_inner_steps:
+            clear_memory()
+
+            samples = samples_0
+            
+            train, test, y, y_real = batch
+            assert y == y_real
+            
+            if train.dtype != samples.dtype:
+                samples = samples.type(train.dtype)
+
+            train = train.to(device)
+            test = test.to(device)
+            if self.model.adapter.embedding and train.dim() < 4:
+                train = self.model.adapter.embedding(train.to(torch.int))
+                test = self.model.adapter.embedding(test.to(torch.int))
+
+            assert train.dim() == samples.dim() and train.shape[0] == samples.shape[0] == 1 and train.shape[-1] == samples.shape[-1], f"Mismatching shapes. train {train.shape}, samples {samples.shape}"
+            if "realtabformer" in self.model.name.lower():
+                assert train.shape[-2] == samples.shape[-2], f"Mismatching shapes. train {train.shape}, samples {samples.shape}"
+
+            n = train.shape[1]
+            n_samples = samples.shape[1]
+            n_remain = max(0, n-n_samples)
+            if n_remain:
+                idx =  torch.randperm(n)[:n_remain]
+                samples = torch.cat([samples, train[:, idx]], dim=1)
+
+            samples, est = self.model(samples, test)
+            target = self.target or y.flatten().item()
+            loss = self.loss_mul * self.loss_fn(
+                est, 
+                torch.full(est.shape, target, device=est.device)
+            )
+            loss.backward()
 
         for param in self.parameters:
             assert torch.isfinite(param.grad).all(), "Grad is not populated"
