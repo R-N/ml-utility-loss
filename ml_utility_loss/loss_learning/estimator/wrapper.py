@@ -89,6 +89,8 @@ class MLUtilityTrainer:
 
         samples_0 = samples
 
+        grads = 0
+
         for i in self.n_inner_steps:
             clear_memory()
 
@@ -123,7 +125,15 @@ class MLUtilityTrainer:
                 est, 
                 torch.full(est.shape, target, device=est.device)
             )
-            loss.backward()
+
+            grads = grads + torch.autograd.grad(
+                inputs=samples_0,
+                outputs=loss,
+                #retain_graph=True
+            )
+            #loss.backward()
+
+        samples_0.backward(gradient=grads)
 
         for param in self.parameters:
             assert torch.isfinite(param.grad).all(), "Grad is not populated"
