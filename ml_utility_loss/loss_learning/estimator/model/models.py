@@ -286,6 +286,17 @@ class MLUtilitySingle(nn.Module):
             return train, out, (body_attn, head_attn)
         return train, out
     
+    def create_student(self, adapter):
+        return MLUtilitySingle(
+            adapter=adapter,
+            body=self.body,
+            head=self.head,
+            name=adapter.name if hasattr(adapter, "name") else None,
+            init=False,
+        )
+
+
+    
 DEFAULT_ADAPTER_DIMS = {
     'tvae': 36,
     'realtabformer': 24,
@@ -380,7 +391,7 @@ class MLUtilityWhole(nn.Module):
             return self.cache[idx]
 
         single = MLUtilitySingle(
-            adapter=self.adapters[model] if model else None,
+            adapter=self.adapters[model] if model and model in self.models else None,
             body=self.body,
             head=self.heads[head],
             name=model,
