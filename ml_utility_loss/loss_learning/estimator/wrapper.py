@@ -94,7 +94,7 @@ class MLUtilityTrainer:
 
         grads = 0
 
-        for i in self.n_inner_steps:
+        for i in range(self.n_inner_steps):
             
             train, test, y, y_real = batch
             assert y == y_real
@@ -108,7 +108,7 @@ class MLUtilityTrainer:
                 train = self.model.adapter.embedding(train.to(torch.int))
                 test = self.model.adapter.embedding(test.to(torch.int))
 
-            for j in self.n_inner_steps_2:
+            for j in range(self.n_inner_steps_2):
                 clear_memory()
 
                 samples = samples_0
