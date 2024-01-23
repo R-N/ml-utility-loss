@@ -135,7 +135,7 @@ class MLUtilityTrainer:
                     inputs=samples_0,
                     outputs=loss,
                     #retain_graph=True
-                )
+                )[0]
             #loss.backward()
 
         grads = grads / (self.n_inner_steps * self.n_inner_steps_2)
