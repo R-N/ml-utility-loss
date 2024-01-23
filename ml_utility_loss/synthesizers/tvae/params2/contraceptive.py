@@ -4,20 +4,22 @@ PARAM_SPACE = {
     "t_steps": ("int", 11, 16),
     "mlu_target": ("categorical", [None, 1.0]),
     "n_steps": ("int", 1, 4),
+    "n_inner_steps": ("int_exp_2", 1, 8),
+    "n_inner_steps_2": ("int_exp_2", 1, 8),
     "loss_fn": ("loss", [
         "mse",
         #"mae",
         "mile",
         "mire",
     ]),
-    "loss_mul": ("log_float", 1e-3, 0.1),
+    "loss_mul": 1.0,
     "Optim": ("optimizer", [
         #"adamw",  
         "amsgradw",
         "adamp",
         #"diffgrad",
     ]),
-    "mlu_lr": ("log_float", 5e-6, 1e-3),
+    "mlu_lr": ("log_float", 1e-6, 1e-3),
 }
 #26
 #0.5609749858184659
