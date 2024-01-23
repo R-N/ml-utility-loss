@@ -952,6 +952,7 @@ def train_epoch(
                 y=y,
                 y_real=y_real,
                 compute=compute,
+                model=model,
             )
 
         # We calculate average m of non role models to do one forward pass for all of them
@@ -972,6 +973,7 @@ def train_epoch(
                 single_model=whole_model[model, head],
                 compute=compute,
                 loss_fn=loss_fn,
+                model=model,
             )
             if gradient_penalty:
                 forward_pass_gradient(
@@ -1350,6 +1352,7 @@ def train_epoch_student(
             single_model=student,
             compute=compute,
             loss_fn=loss_fn,
+            model="student",
         )
         if gradient_penalty:
             forward_pass_gradient(
