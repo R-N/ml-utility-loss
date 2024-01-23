@@ -6,9 +6,9 @@ PARAM_SPACE = {
         None, 
         1.0
     ]),
-    "n_steps": ("int", 4, 15),
-    "n_inner_steps": ("int_exp_2", 1, 8),
-    "n_inner_steps_2": ("int_exp_2", 1, 8),
+    "n_steps": ("int", 1, 4),
+    "n_inner_steps": ("int_exp_2", 1, 4),
+    "n_inner_steps_2": ("int_exp_2", 1, 4),
     "loss_fn": ("loss", [
         "mse",
         "mae",
