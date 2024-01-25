@@ -9,8 +9,6 @@ PARAM_SPACE = {
     "loss_fn": ("loss", [
         "mse",
         "mae",
-        "mile",
-        "mire",
     ]),
     "loss_mul": 1,
     "Optim": ("optimizer", [
@@ -43,3 +41,8 @@ BEST = {
     'Optim': 'adamp',
     'mlu_lr': 7.513511695583268e-05
 }
+BEST = {
+    **BEST,
+    'loss_fn': 'mse',
+}
+

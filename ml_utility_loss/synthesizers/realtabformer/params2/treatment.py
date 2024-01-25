@@ -7,10 +7,8 @@ PARAM_SPACE = {
     "n_inner_steps": ("int_exp_2", 1, 4),
     "n_inner_steps_2": ("int_exp_2", 1, 4),
     "loss_fn": ("loss", [
-        #"mse",
-        #"mae",
-        "mile",
-        #"mire",
+        "mse",
+        "mae",
     ]),
     "loss_mul": 1,
     "Optim": ("optimizer", [
@@ -31,4 +29,8 @@ BEST = {
     'loss_fn': 'mile',
     'Optim': 'adamp',
     'mlu_lr': 0.0007845651354945042
+}
+BEST = {
+    **BEST,
+    'loss_fn': 'mse',
 }

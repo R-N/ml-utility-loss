@@ -9,8 +9,6 @@ PARAM_SPACE = {
     "loss_fn": ("loss", [
         "mse",
         "mae",
-        "mile",
-        "mire",
     ]),
     "loss_mul": 1,
     #"loss_mul": ("log_float", 1e-3, 10),
@@ -44,4 +42,8 @@ BEST = {
     'loss_fn': 'mile',
     'Optim': 'adamw',
     'mlu_lr': 5.9951458946241365e-06
+}
+BEST = {
+    **BEST,
+    'loss_fn': 'mse',
 }
