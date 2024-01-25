@@ -3,7 +3,7 @@ import setuptools
 
 setup(
     name='ml_utility_loss',
-    version='0.1.1',    
+    version='0.1.2',    
     description='',
     url='https://github.com/R-N/ml-utility-loss',
     author='Muhammad Rizqi Nur',
