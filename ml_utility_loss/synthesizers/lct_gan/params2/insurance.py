@@ -1,11 +1,14 @@
 PARAM_SPACE = {
     "n_samples": ("int_exp_2", 512, 2048),
     #"sample_batch_size": ("int_exp_2", 16, 512),
-    "t_steps": ("int", 8, 14),
-    "mlu_target": ("categorical", [None, 1.0]),
-    "n_steps": ("int", 1, 4),
-    "n_inner_steps": ("int_exp_2", 1, 4),
-    "n_inner_steps_2": ("int_exp_2", 1, 4),
+    "t_steps": ("int", 8, 11),
+    "mlu_target": ("categorical", [
+        None, 
+        #1.0
+    ]),
+    "n_steps": ("int", 3, 4),
+    "n_inner_steps": ("int_exp_2", 2, 8),
+    "n_inner_steps_2": ("int_exp_2", 1, 2),
     "loss_fn": ("loss", [
         "mse",
         "mae",
@@ -17,7 +20,7 @@ PARAM_SPACE = {
         "adamp",
         "diffgrad",
     ]),
-    "mlu_lr": ("log_float", 1e-6, 2e-5),
+    "mlu_lr": ("log_float", 2e-6, 7e-6),
 }
 #54
 #0.05163029588081458
@@ -45,4 +48,16 @@ BEST = {
     **BEST,
     'loss_fn': 'mse',
 }
-
+#19
+#0.11374449305652079
+BEST = {
+    'n_samples_exp_2': 10,
+    't_steps': 10,
+    'mlu_target': None,
+    'n_steps': 3,
+    'n_inner_steps_exp_2': 2,
+    'n_inner_steps_2_exp_2': 1,
+    'loss_fn': 'mse',
+    'Optim': 'adamp',
+    'mlu_lr': 2.1302034187763432e-06
+}

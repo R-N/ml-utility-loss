@@ -34,3 +34,16 @@ BEST = {
     **BEST,
     'loss_fn': 'mse',
 }
+#1
+#0.14030732047895156
+BEST = {
+    'n_samples_exp_2': 8,
+    't_steps': 6,
+    'mlu_target': None,
+    'n_steps': 3,
+    'n_inner_steps_exp_2': 0,
+    'n_inner_steps_2_exp_2': 0,
+    'loss_fn': 'mae',
+    'Optim': 'adamw',
+    'mlu_lr': 0.0005213592598423251
+}
