@@ -34,6 +34,7 @@ BEST = {
     **BEST,
     'loss_fn': 'mse',
 }
+#Worse
 #27
 #0.5991735537190083
 BEST = {

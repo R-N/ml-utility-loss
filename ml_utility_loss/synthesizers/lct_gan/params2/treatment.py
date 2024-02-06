@@ -48,6 +48,7 @@ BEST = {
     **BEST,
     'loss_fn': 'mse',
 }
+#Worse
 #1
 #0.5638629283489097
 BEST = {
@@ -61,6 +62,7 @@ BEST = {
     'Optim': 'adamp',
     'mlu_lr': 5.6334531381894664e-06
 }
+#Worse
 #Older
 #12
 #0.5684830633284241
