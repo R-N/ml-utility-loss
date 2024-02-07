@@ -1015,6 +1015,7 @@ class REaLTabFormer:
 
         # Save attributes
         rtf_attrs = self.__dict__.copy()
+        rtf_attrs.pop("mlu_trainer")
         rtf_attrs.pop("model")
 
         # We don't need to store the `parent_config`
