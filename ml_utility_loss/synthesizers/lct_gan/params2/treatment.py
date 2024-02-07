@@ -67,6 +67,7 @@ BEST = {
 #Older
 #12
 #0.5684830633284241
+"""
 BEST = {
     'n_samples_exp_2': 5,
     't_steps': 43,
@@ -78,3 +79,4 @@ BEST = {
     'Optim': 'amsgradw',
     'mlu_lr': 6.907182759642053e-05
 }
+"""
