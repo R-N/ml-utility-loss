@@ -58,7 +58,6 @@ class LatentTAE:
             mixed_columns=self.mixed_columns,
             integer_columns=self.integer_columns
         )
-        self.mlu_trainer = mlu_trainer
 
     def state_dict(self):
         return self.ae.state_dict()
