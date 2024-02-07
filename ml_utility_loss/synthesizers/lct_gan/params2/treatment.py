@@ -33,6 +33,7 @@ BEST = {
     'Optim': 'amsgradw',
     'mlu_lr': 3.625415799027284e-06
 }
+#Fluke
 #29
 #0.6
 BEST = {
