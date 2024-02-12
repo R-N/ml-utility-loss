@@ -40,24 +40,22 @@ BEST = {
     't_steps_exp_2': 8,
     'mlu_target': 1.0,
     'n_steps': 3,
-    'loss_fn': 'mse',
-    'Optim': 'amsgradw',
-    'mlu_lr': 2.2345589890593438e-05
-}
-BEST = {
-    **BEST,
-    'loss_fn': 'mse',
-}
-#29
-#0.623015873015873
-BEST = {
-    'n_samples_exp_2': 5,
-    't_steps_exp_2': 10,
-    'mlu_target': None,
-    'n_steps': 2,
     'n_inner_steps_exp_2': 0,
     'n_inner_steps_2_exp_2': 0,
     'loss_fn': 'mse',
     'Optim': 'amsgradw',
-    'mlu_lr': 0.00029887808400728375
+    'mlu_lr': 2.2345589890593438e-05
 }
+#29
+#0.623015873015873
+# BEST = {
+#     'n_samples_exp_2': 5,
+#     't_steps_exp_2': 10,
+#     'mlu_target': None,
+#     'n_steps': 2,
+#     'n_inner_steps_exp_2': 0,
+#     'n_inner_steps_2_exp_2': 0,
+#     'loss_fn': 'mse',
+#     'Optim': 'amsgradw',
+#     'mlu_lr': 0.00029887808400728375
+# }

@@ -26,6 +26,8 @@ BEST = {
     't_steps': 5,
     'mlu_target': 1.0,
     'n_steps': 4,
+    'n_inner_steps_exp_2': 0,
+    'n_inner_steps_2_exp_2': 0,
     'loss_fn': 'mire',
     'loss_mul': 0.019325689134243883,
     'Optim': 'diffgrad',
@@ -37,14 +39,14 @@ BEST = {
 }
 #29
 #0.5669820384073829
-BEST = {
-    'n_samples_exp_2': 7,
-    't_steps': 5,
-    'mlu_target': None,
-    'n_steps': 4,
-    'n_inner_steps_exp_2': 0,
-    'n_inner_steps_2_exp_2': 2,
-    'loss_fn': 'mse',
-    'Optim': 'adamw',
-    'mlu_lr': 1.6301752153438178e-05
-}
+# BEST = {
+#     'n_samples_exp_2': 7,
+#     't_steps': 5,
+#     'mlu_target': None,
+#     'n_steps': 4,
+#     'n_inner_steps_exp_2': 0,
+#     'n_inner_steps_2_exp_2': 2,
+#     'loss_fn': 'mse',
+#     'Optim': 'adamw',
+#     'mlu_lr': 1.6301752153438178e-05
+# }
