@@ -39,6 +39,8 @@ BEST = {
     't_steps_exp_2': 11,
     'mlu_target': None,
     'n_steps': 1,
+    'n_inner_steps_exp_2': 1,
+    'n_inner_steps_2_exp_2': 1,
     'loss_fn': 'mile',
     'Optim': 'adamw',
     'mlu_lr': 5.9951458946241365e-06
@@ -50,14 +52,14 @@ BEST = {
 #Worse
 #13
 #0.5570993244390962
-BEST = {
-    'n_samples_exp_2': 4,
-    't_steps_exp_2': 10,
-    'mlu_target': None,
-    'n_steps': 1,
-    'n_inner_steps_exp_2': 1,
-    'n_inner_steps_2_exp_2': 1,
-    'loss_fn': 'mse',
-    'Optim': 'adamw',
-    'mlu_lr': 2.7659819365847598e-06
-}
+# BEST = {
+#     'n_samples_exp_2': 4,
+#     't_steps_exp_2': 10,
+#     'mlu_target': None,
+#     'n_steps': 1,
+#     'n_inner_steps_exp_2': 1,
+#     'n_inner_steps_2_exp_2': 1,
+#     'loss_fn': 'mse',
+#     'Optim': 'adamw',
+#     'mlu_lr': 2.7659819365847598e-06
+# }
