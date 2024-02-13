@@ -13,7 +13,7 @@ PARAM_SPACE = {
     "loss_mul": 1,
     "Optim": ("optimizer", [
         "adamw",  
-        #"amsgradw",
+        "amsgradw",
         #"adamp",
         "diffgrad",
     ]),
