@@ -59,3 +59,7 @@ BEST = {
     'Optim': 'amsgradw',
     'mlu_lr': 4.389341093321088e-06
 }
+BEST = {
+    **BEST,
+    'loss_fn': 'mae',
+}

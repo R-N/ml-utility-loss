@@ -49,6 +49,10 @@ BEST = {
     **BEST,
     'loss_fn': 'mse',
 }
+BEST = {
+    **BEST,
+    'loss_fn': 'mae',
+}
 #Worse
 #13
 #0.5570993244390962

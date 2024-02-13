@@ -63,6 +63,10 @@ BEST = {
     'Optim': 'adamp',
     'mlu_lr': 5.6334531381894664e-06
 }
+BEST = {
+    **BEST,
+    'loss_fn': 'mae',
+}
 #Worse
 #Older
 #12
