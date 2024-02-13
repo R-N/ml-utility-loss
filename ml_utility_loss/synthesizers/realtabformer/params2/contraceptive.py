@@ -15,7 +15,7 @@ PARAM_SPACE = {
         "adamw",  
         #"amsgradw",
         #"adamp",
-        #"diffgrad",
+        "diffgrad",
     ]),
     "mlu_lr": ("log_float", 1e-5, 5e-5),
 }
