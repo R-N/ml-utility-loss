@@ -7,13 +7,13 @@ PARAM_SPACE = {
     "n_inner_steps": ("int_exp_2", 1, 2),
     "n_inner_steps_2": ("int_exp_2", 4, 8),
     "loss_fn": ("loss", [
-        "mse",
+        #"mse",
         "mae",
     ]),
     "loss_mul": 1,
     "Optim": ("optimizer", [
         "adamw",  
-        "amsgradw",
+        #"amsgradw",
         #"adamp",
         "diffgrad",
     ]),
