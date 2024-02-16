@@ -47,7 +47,7 @@ BEST = {
     'Optim': 'diffgrad',
     'mlu_lr': 7.158682330325561e-06
 }
-BEST = {
-    **BEST,
-    'loss_fn': 'mae',
-}
+# BEST = {
+#     **BEST,
+#     'loss_fn': 'mae',
+# }

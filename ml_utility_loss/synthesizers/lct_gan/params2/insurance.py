@@ -62,7 +62,7 @@ BEST = {
     'Optim': 'adamp',
     'mlu_lr': 2.1302034187763432e-06
 }
-BEST = {
-    **BEST,
-    'loss_fn': 'mae',
-}
+# BEST = {
+#     **BEST,
+#     'loss_fn': 'mae',
+# }
