@@ -85,7 +85,7 @@ def sample(
     batch_size = 1024,
     num_samples = 10,
     disbalance = None,
-    seed = 0,
+    seed = None,
 ):
     return _sample(
         diffusion,
