@@ -17,6 +17,7 @@ def create_gan(
     lr=0.0002,
     sample=None,
     mlu_trainer=None,
+    train=True,
 ):
 
     # EVALUATING AUTO-ENCODER
@@ -38,6 +39,9 @@ def create_gan(
         scaler=sscaler,
         mlu_trainer=mlu_trainer,
     )
+
+    if not train:
+        return gan, None
 
     gan.fit(
         lat_normalized, 
@@ -62,6 +66,7 @@ def create_ae(
     lr=1e-3,
     mlu_trainer=None,
     preprocess_df=None,
+    train=True,
 ):
     preprocess_df = preprocess_df if preprocess_df is not None else df
     ae = LatentTAE(
@@ -75,6 +80,10 @@ def create_ae(
         mlu_trainer=mlu_trainer,
     )
     ae.fit_preprocessor(preprocess_df)
+    
+    if not train:
+        return ae, None
+
     preprocessed = ae.preprocess(df)
     ae.fit(
         preprocessed, 
