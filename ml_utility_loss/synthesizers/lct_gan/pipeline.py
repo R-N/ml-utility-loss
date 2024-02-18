@@ -93,7 +93,7 @@ def create_ae(
         return ae, None
 
     if state_path and os.path.exists(state_path):
-        ae.ae.load_state_dict(torch.load(state_path))
+        ae.ae.model.load_state_dict(torch.load(state_path))
     else:
         preprocessed = ae.preprocess(df)
         ae.fit(
