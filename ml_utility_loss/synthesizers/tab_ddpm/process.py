@@ -116,6 +116,7 @@ def train(
     seed = 0,
     cat_encoding = "ordinal", #'one-hot',
     mlu_trainer=None,
+    train=True,
     **model_params
 ):
 
@@ -189,7 +190,8 @@ def train(
         mlu_trainer=mlu_trainer,
         batch_size=batch_size
     )
-    trainer.run_loop()
+    if train:
+        trainer.run_loop()
 
     return model, diffusion, trainer
 

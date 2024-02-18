@@ -68,6 +68,8 @@ def train(
         **kwargs,
     )
 
+train__ = train
+
 def sample(
     diffusion, 
     batch_size = 1024,
@@ -91,6 +93,9 @@ def train_2(
     checkpoint_dir=None,
     log_dir=None,
     trial=None,
+    train=True,
+    model_state_path=None,
+    diffusion_state_path=None,
     **kwargs
 ):
     if isinstance(datasets, tuple):
@@ -115,7 +120,10 @@ def train_2(
     kwargs = {k: v for k, v in kwargs.items() if k not in rtdl_params}
     kwargs["rtdl_params"] = rtdl_params
 
-    model, diffusion, trainer = train(
+    #if model_state_path and os.path.exists(model_state_path) and diffusion_state_path and os.path.exists(diffusion_state_path):
+    #    train = False
+
+    model, diffusion, trainer = train__(
         train_,
         task_type=task,
         target=target,
@@ -123,6 +131,13 @@ def train_2(
         checkpoint_dir=checkpoint_dir,
         log_dir=log_dir,
         trial=trial,
+        train=train,
         **kwargs,
     )
+    if not train:
+        if model_state_path and os.path.exists(model_state_path):
+            model.load_state_dict(torch.load(model_state_path))
+        if diffusion_state_path and os.path.exists(diffusion_state_path):
+            diffusion.load_state_dict(torch.load(diffusion_state_path))
+
     return model, diffusion, trainer 
