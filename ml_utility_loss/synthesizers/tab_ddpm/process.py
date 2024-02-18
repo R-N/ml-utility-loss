@@ -202,10 +202,11 @@ def sample(
     batch_size = 1024,
     num_samples = 10,
     disbalance = None,
-    seed = 0,
+    seed=None,
     raw=False,
 ):
-    zero.improve_reproducibility(seed)
+    if seed is not None:
+        zero.improve_reproducibility(seed)
 
     batch_size = min(batch_size, num_samples)
 
