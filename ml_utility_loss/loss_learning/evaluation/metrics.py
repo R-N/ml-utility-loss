@@ -66,11 +66,14 @@ def wasserstein(real,fake,cat_cols,Stat_dict=None):
 
   return np.mean(num_stat)
 
+def corr(df, cat_cols=None):
+  return associations(df, nominal_columns=cat_cols, compute_only=True)['corr']
+
 def diff_corr(real,fake,cat_cols=None):
 
   # Computing the real and synthetic pair-wise correlations
-  real_corr = associations(real, nominal_columns=cat_cols, compute_only=True)['corr']
-  fake_corr = associations(fake, nominal_columns=cat_cols, compute_only=True)['corr']
+  real_corr = corr(real, cat_cols=cat_cols)
+  fake_corr = corr(fake, cat_cols=cat_cols)
 
   # Computing the squared norm of the difference between real and synthetic pair-wise correlations
   corr_dist = np.linalg.norm(real_corr - fake_corr)
