@@ -18,6 +18,8 @@ def create_gan(
     sample=None,
     mlu_trainer=None,
     train=True,
+    g_state_path=None,
+    d_state_path=None,
 ):
 
     # EVALUATING AUTO-ENCODER
@@ -42,12 +44,16 @@ def create_gan(
 
     if not train:
         return gan, None
-
-    gan.fit(
-        lat_normalized, 
-        preprocessed, 
-        epochs=epochs, 
-    )
+    if g_state_path:
+        gan.generator.load_state_dict(torch.load(g_state_path))
+        if d_state_path:
+            gan.discriminator.load_state_dict(torch.load(d_state_path))
+    else:
+        gan.fit(
+            lat_normalized, 
+            preprocessed, 
+            epochs=epochs, 
+        )
 
     n = sample or len(df)
     synth_df = gan.sample(n)[:n]
@@ -67,6 +73,7 @@ def create_ae(
     mlu_trainer=None,
     preprocess_df=None,
     train=True,
+    state_path=None
 ):
     preprocess_df = preprocess_df if preprocess_df is not None else df
     ae = LatentTAE(
@@ -84,12 +91,15 @@ def create_ae(
     if not train:
         return ae, None
 
-    preprocessed = ae.preprocess(df)
-    ae.fit(
-        preprocessed, 
-        n_epochs=epochs, 
-        preprocessed=True, 
-    )
+    if state_path:
+        ae.ae.load_state_dict(torch.load(state_path))
+    else:
+        preprocessed = ae.preprocess(df)
+        ae.fit(
+            preprocessed, 
+            n_epochs=epochs, 
+            preprocessed=True, 
+        )
     
 
     latent_data = ae.encode(preprocessed, preprocessed=True) # could be loaded from file
