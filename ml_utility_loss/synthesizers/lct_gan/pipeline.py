@@ -4,6 +4,7 @@ from ...scalers import StandardScaler
 import torch
 from .params.default import AE_PARAMS, GAN_PARAMS
 from ...util import filter_dict_2
+import os
 
 Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
@@ -44,9 +45,9 @@ def create_gan(
 
     if not train:
         return gan, None
-    if g_state_path:
+    if g_state_path and os.path.exists(g_state_path):
         gan.generator.load_state_dict(torch.load(g_state_path))
-        if d_state_path:
+        if d_state_path and os.path.exists(d_state_path):
             gan.discriminator.load_state_dict(torch.load(d_state_path))
     else:
         gan.fit(
@@ -91,7 +92,7 @@ def create_ae(
     if not train:
         return ae, None
 
-    if state_path:
+    if state_path and os.path.exists(state_path):
         ae.ae.load_state_dict(torch.load(state_path))
     else:
         preprocessed = ae.preprocess(df)
