@@ -1,4 +1,4 @@
-from .autoencoder import LatentTAE
+from .autoencoder import LatentTAE, AENetwork
 from .gan import LatentGAN
 from ...scalers import StandardScaler
 import torch
@@ -61,6 +61,12 @@ def create_gan(
 
     return gan, synth_df
 
+def init_ae(ae):
+    output_dim = ae.data_preprocessor.output_dim
+    ae.ae.input_size = output_dim
+    ae.ae.model = AENetwork(input_dim=output_dim, **ae.ae.kwargs)
+    ae.ae.model.to(ae.ae.device)
+
 def create_ae(
     df,
     categorical_columns=[],
@@ -93,6 +99,7 @@ def create_ae(
         return ae, None
 
     if state_path and os.path.exists(state_path):
+        init_ae(ae)
         ae.ae.model.load_state_dict(torch.load(state_path))
     else:
         preprocessed = ae.preprocess(df)

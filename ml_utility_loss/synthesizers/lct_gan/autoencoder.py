@@ -291,3 +291,8 @@ class AutoEncoder(object):
     
     def parameters(self):
         return self.model.parameters()
+
+    # def init(self, output_dim):
+    #     self.input_size = output_dim
+    #     self.model = AENetwork(input_dim=output_dim, **self.kwargs)
+    #     self.model.to(self.device)
