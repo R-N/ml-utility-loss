@@ -6,64 +6,76 @@ from dython.nominal import associations
 from scipy.stats import wasserstein_distance
 from scipy.spatial import distance
 
-def jsd(real,fake,cat_cols,Stat_dict=None):
+
+def jsd_single(real, fake):
+  # Computing the real and synthetic probabibility mass distributions (pmf) for each categorical column
+  real_pmf=(real.value_counts()/real.value_counts().sum())
+  fake_pmf=(fake.value_counts()/fake.value_counts().sum())
+  categories = (fake.value_counts()/fake.value_counts().sum()).keys().tolist()
+        
+  # Ensuring the pmfs of real and synthetic data have the categories within a column in the same order
+  sorted_categories = sorted(categories)
+        
+  real_pmf_ordered = [] 
+  fake_pmf_ordered = []
+
+  for i in sorted_categories:
+    real_pmf_ordered.append(real_pmf[i])
+    fake_pmf_ordered.append(fake_pmf[i])
+        
+  # If a category of a column is not generated in the synthetic dataset, pmf of zero is assigned
+  if len(real_pmf)!=len(fake_pmf):
+    zero_cats = set(real.value_counts().keys())-set(fake.value_counts().keys())
+    for z in zero_cats:
+      real_pmf_ordered.append(real_pmf[z])
+      fake_pmf_ordered.append(0)
+
+  # Computing the statistical similarity between real and synthetic pmfs 
+  return distance.jensenshannon(real_pmf_ordered,fake_pmf_ordered, 2.0)
+
+
+def jsd(real,fake,cat_cols=None,Stat_dict=None,mean=True):
   Stat_dict = Stat_dict if Stat_dict is not None else {} 
 
-  really = real.copy()
-  fakey = fake.copy()
+  real = real.copy()
+  fake = fake.copy()
 
   cat_stat = []
     
   for column in real.columns:
-    if column in cat_cols:
-
-      # Computing the real and synthetic probabibility mass distributions (pmf) for each categorical column
-      real_pmf=(really[column].value_counts()/really[column].value_counts().sum())
-      fake_pmf=(fakey[column].value_counts()/fakey[column].value_counts().sum())
-      categories = (fakey[column].value_counts()/fakey[column].value_counts().sum()).keys().tolist()
-            
-      # Ensuring the pmfs of real and synthetic data have the categories within a column in the same order
-      sorted_categories = sorted(categories)
-            
-      real_pmf_ordered = [] 
-      fake_pmf_ordered = []
-
-      for i in sorted_categories:
-        real_pmf_ordered.append(real_pmf[i])
-        fake_pmf_ordered.append(fake_pmf[i])
-            
-      # If a category of a column is not generated in the synthetic dataset, pmf of zero is assigned
-      if len(real_pmf)!=len(fake_pmf):
-        zero_cats = set(really[column].value_counts().keys())-set(fakey[column].value_counts().keys())
-        for z in zero_cats:
-          real_pmf_ordered.append(real_pmf[z])
-          fake_pmf_ordered.append(0)
-
+    if cat_cols is None or column in cat_cols:
       # Computing the statistical similarity between real and synthetic pmfs 
-      Stat_dict[column]=(distance.jensenshannon(real_pmf_ordered,fake_pmf_ordered, 2.0))
+      Stat_dict[column]= jsd_single(real[column], fake[column])
       cat_stat.append(Stat_dict[column])  
 
+  if not mean:
+    return cat_stat
   return np.mean(cat_stat)
 
+def wasserstein_single(real, fake):
+  # Scaling the real and synthetic numerical column values between 0 and 1 to obtained normalized statistical similarity
+  scaler = MinMaxScaler()
+  scaler.fit(real.values.reshape(-1,1))
+  l1 = scaler.transform(real.values.reshape(-1,1)).flatten()
+  l2 = scaler.transform(fake.values.reshape(-1,1)).flatten()
+        
+  # Computing the statistical similarity between scaled real and synthetic numerical distributions 
+  return wasserstein_distance(l1,l2)
 
-def wasserstein(real,fake,cat_cols,Stat_dict=None):
+def wasserstein(real,fake,cat_cols=None,Stat_dict=None,mean=True):
   Stat_dict = Stat_dict if Stat_dict is not None else {} 
     
   # Lists to store the results of statistical similarities for categorical and numeric columns respectively
   num_stat = []
     
   for column in real.columns:
-    if column not in cat_cols:
-      # Scaling the real and synthetic numerical column values between 0 and 1 to obtained normalized statistical similarity
-      scaler = MinMaxScaler()
-      scaler.fit(real[column].values.reshape(-1,1))
-      l1 = scaler.transform(real[column].values.reshape(-1,1)).flatten()
-      l2 = scaler.transform(fake[column].values.reshape(-1,1)).flatten()
-            
+    if cat_cols is None or column not in cat_cols:
+      dist = wasserstein_single(real[column], fake[column])
       # Computing the statistical similarity between scaled real and synthetic numerical distributions 
-      Stat_dict[column]= (wasserstein_distance(l1,l2))
-      num_stat.append(Stat_dict[column])
-
+      Stat_dict[column]= dist
+      num_stat.append(dist)
+  if not mean:
+    return num_stat
   return np.mean(num_stat)
 
 def corr(df, cat_cols=None):
@@ -88,7 +100,7 @@ def encode(X, enc):
   ], axis=1, join="inner")
   return df
 
-def privacy_dist(a, b=None, cat_cols=None, frac=1.0, random_state=42):
+def privacy_dist(a, b=None, cat_cols=None, frac=1.0, random_state=42, return_detail=False):
   assert cat_cols is not None
 
   ohe = OneHotEncoder(sparse=False, handle_unknown='ignore')
@@ -98,13 +110,19 @@ def privacy_dist(a, b=None, cat_cols=None, frac=1.0, random_state=42):
      
   # Sampling smaller sets of a and synthetic data to reduce the time complexity of the evaluation
   a.loc[:, :] = scaler.transform(a)
-  a_sampled = a.sample(n=int(len(a)*(frac)), random_state=random_state).to_numpy()
+  if frac==1.0:
+    a_sampled = a
+  else:
+    a_sampled = a.sample(n=int(len(a)*(frac)), random_state=random_state).to_numpy()
   assert len(a_sampled) > 0
 
   if b is not None:
     b = encode(b, ohe)
     b.loc[:, :] = scaler.transform(b)
-    b_sampled = b.sample(n=int(len(b)*(frac)), random_state=random_state).to_numpy()
+    if frac==1.0:
+      b_sampled = b
+    else:
+      b_sampled = b.sample(n=int(len(b)*(frac)), random_state=random_state).to_numpy()
     # Computing pair-wise distances between a and b 
     dist = metrics.pairwise_distances(a_sampled, Y=b_sampled, metric='minkowski', n_jobs=-1)
   else:
@@ -125,4 +143,6 @@ def privacy_dist(a, b=None, cat_cols=None, frac=1.0, random_state=42):
   nn_ratio = np.nan_to_num(nn_ratio, nan=0)
   nn_fifth_perc = np.percentile(nn_ratio,5)
 
+  if return_detail:
+    return smallest_two, smallest_two_indexes
   return fifth_perc, nn_fifth_perc #dcr, nndr

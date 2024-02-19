@@ -208,16 +208,16 @@ def plot_box_3(values, y=None, y_name="target", **kwargs):
     plot_box(df_box, ax=ax, **kwargs)
     return fig
 
-def plot_density_3(values, y=None, y_name="target", real_linestyle="solid", **kwargs):
+def plot_density_3(values, y=None, y_name="target", real_linestyle="solid", linestyle="dashed", legend_loc=None, legend_prop={}, **kwargs):
     fig, ax = plt.subplots()
 
     axes = []
     for k, v in values.items():
-        if plot_density(pd.Series(v), alpha=0.5, ax=ax, linestyle="dashed", **kwargs):
+        if plot_density(pd.Series(v), alpha=0.5, ax=ax, linestyle=linestyle, **kwargs):
             axes.append(k)
         
     if y is not None and plot_density(pd.Series(y), alpha=0.5, ax=ax, linestyle=real_linestyle, **kwargs):
         axes.append(y_name)
 
-    leg = ax.legend(axes)
+    leg = ax.legend(axes, loc=legend_loc, prop=legend_prop)
     return fig
