@@ -98,11 +98,11 @@ def create_ae(
     if not train:
         return ae, None
 
+    preprocessed = ae.preprocess(df)
     if state_path and os.path.exists(state_path):
         init_ae(ae)
         ae.ae.model.load_state_dict(torch.load(state_path))
     else:
-        preprocessed = ae.preprocess(df)
         ae.fit(
             preprocessed, 
             n_epochs=epochs, 
