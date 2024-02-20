@@ -2,6 +2,7 @@ from .pipeline import train_2, train_3
 from optuna.exceptions import TrialPruned
 from ...scheduler import SizeScheduler
 import math
+from ...util import seed as seed_
 
 def objective(
     *args,
@@ -13,8 +14,10 @@ def objective(
     std_loss_mul=0.1,
     g_loss_mul=0.001,
     allow_same_prediction=False,
+    seed=42,
     **kwargs
 ):
+    seed_(seed)
     try:
         train_results = train(
             *args,
@@ -65,8 +68,10 @@ def objective_2(
     std_loss_mul=0.1,
     g_loss_mul=0.001,
     allow_same_prediction=False,
+    seed=42,
     **kwargs
 ):
+    seed_(seed)
     try:
         assert dataset_size_low <= dataset_size_high, "dataset size low must be lower than high"
         size_len = int(math.log(dataset_size_high//dataset_size_low, 2)+1)

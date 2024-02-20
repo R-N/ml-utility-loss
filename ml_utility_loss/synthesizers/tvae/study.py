@@ -6,6 +6,7 @@ from optuna.exceptions import TrialPruned
 from ...loss_learning.estimator.wrapper import MLUtilityTrainer
 import torch
 import torch.nn.functional as F
+from ...util import seed as seed_
 
 def objective(
     datasets,
@@ -17,8 +18,10 @@ def objective(
     log_dir=None,
     trial=None,
     diff=False,
+    seed=42,
     **kwargs
 ):
+    seed_(seed)
     train, test = datasets
 
     tvae = train_2(

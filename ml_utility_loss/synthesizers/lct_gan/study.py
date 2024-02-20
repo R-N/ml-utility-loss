@@ -8,6 +8,7 @@ from .params.default import AE_PARAMS, GAN_PARAMS
 from ...loss_learning.estimator.wrapper import MLUtilityTrainer
 import torch
 import torch.nn.functional as F
+from ...util import seed as seed_
 
 def objective(
     datasets,
@@ -23,8 +24,10 @@ def objective(
     trial=None,
     diff=False,
     preprocess_df=None,
+    seed=42,
     **kwargs
 ):
+    seed_(42)
     train, test, *_ = datasets
 
     #gan_params = filter_dict_2(kwargs, GAN_PARAMS)

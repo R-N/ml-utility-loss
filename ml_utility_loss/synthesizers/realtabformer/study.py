@@ -9,6 +9,7 @@ from .pipeline import train_2
 from ...loss_learning.estimator.wrapper import MLUtilityTrainer
 import torch
 import torch.nn.functional as F
+from ...util import seed as seed_
 
 
 def objective(
@@ -21,8 +22,10 @@ def objective(
     log_dir=None,
     trial=None,
     diff=False,
+    seed=42,
     **kwargs
 ):
+    seed_(seed)
     train, test = datasets
     
     rtf_model = train_2(
