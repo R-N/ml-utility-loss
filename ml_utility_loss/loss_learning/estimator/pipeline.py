@@ -9,7 +9,7 @@ from ...params import GradientPenaltyMode
 from .model.pipeline import create_model
 from torch.utils.data import DataLoader
 #from ...data import FastDataLoader as DataLoader
-from .data import DatasetDataset, MultiPreprocessedDataset, PreprocessedDataset, collate_fn
+from .data import ConcatDataset, DatasetDataset, MultiPreprocessedDataset, PreprocessedDataset, collate_fn
 import torch
 from .process import train_epoch, eval as _eval
 import torch.nn.functional as F
@@ -766,10 +766,86 @@ def load_dataset(
     for i in range(stop):
         _ = dataset[i]
     if not ratio:
+        #print(len(dataset))
         return dataset
     if ratio:
         datasets = dataset.split_ratio(ratio=ratio, val=val, seed=seed, random=random)
+        #print([len(d) for d in datasets])
     return datasets
+
+def load_dataset_2(
+    dataset_kwargs_dicts,
+):
+    datasets_list = []
+    for kwargs in dataset_kwargs_dicts:
+        datasets = load_dataset(**kwargs)
+        print(kwargs["dataset_dir"], [len(d) for d in datasets])
+        datasets.append(datasets_list)
+        
+    datasetsn = [
+        ConcatDataset([
+            datasets[i]
+            for datasets in datasets_list
+        ]) for i in range(len(datasets_list[0]))
+    ]
+    print([len(d) for d in datasetsn])
+    return datasetsn
+
+def load_dataset_3(
+    dataset_dir,
+    dataset_name,
+    preprocessor,
+    model=None
+):
+    datasetsn = load_dataset_2([
+        dict(
+            dataset_dir=os.path.join(dataset_dir, "datasets_2", dataset_name),
+            preprocessor=preprocessor,
+            cache_dir=os.path.join("..", dataset_name, "_cache"),
+            stop=50,
+            ratio=0.2,
+            val=False,
+            drop_first_column=False,
+            model=model,
+        ),
+        dict(
+            dataset_dir=os.path.join(dataset_dir, "datasets_4", dataset_name),
+            preprocessor=preprocessor,
+            cache_dir=os.path.join("..", dataset_name, "_cache4"),
+            stop=50,
+            ratio=0.2,
+            val=False,
+            drop_first_column=False,
+            model=model,
+        ),
+        dict(
+            dataset_dir=os.path.join(dataset_dir, "datasets_5", dataset_name),
+            preprocessor=preprocessor,
+            cache_dir=os.path.join("..", dataset_name, "_cache5"),
+            stop=60,
+            ratio=1/3,
+            val=False,
+            drop_first_column=False,
+            model=model,
+        ),
+    ])
+    print([len(d) for d in datasetsn])
+    return datasetsn
+
+
+def load_dataset_3_factory(
+    dataset_dir,
+    dataset_name,
+    preprocessor,
+):
+    def f(model):
+        return load_dataset_3(
+            dataset_dir=dataset_dir,
+            dataset_name=dataset_name,
+            preprocessor=preprocessor,
+            model=model
+        )
+    return f
 
 def eval(
     # Dataset args
