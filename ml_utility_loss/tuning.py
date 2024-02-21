@@ -222,7 +222,7 @@ def create_objective(
         mkdir(trial_dir)
 
         params, params_raw = sampler(trial, **sampler_kwargs)
-        params = unpack_params(params)
+        #params = unpack_params(params)
         param_path = os.path.join(trial_dir, "params.json")
         with open(param_path, 'w') as f:
             try:
