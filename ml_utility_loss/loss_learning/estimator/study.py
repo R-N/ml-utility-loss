@@ -2,7 +2,7 @@ from .pipeline import train_2, train_3
 from optuna.exceptions import TrialPruned
 from ...scheduler import SizeScheduler
 import math
-from ...util import seed as seed_
+from ...util import clear_memory, seed as seed_
 from torch.cuda import OutOfMemoryError
 
 def objective(
@@ -46,10 +46,12 @@ def objective(
             raise TrialPruned(msg)
         raise
     except OutOfMemoryError as ex:
+        clear_memory()
         raise TrialPruned(str(ex))
     except RuntimeError as ex:
         msg = str(ex)
         if "outofmemory" in msg.lower().replace(" ", ""):
+            clear_memory()
             raise TrialPruned(str(ex))
         raise
 
