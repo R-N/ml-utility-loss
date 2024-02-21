@@ -118,13 +118,13 @@ def pop_repack(kwargs, arg_name, out_kwargs=None):
             if arg_name in arg:
                 out_kwargs[arg_name] = arg.pop(arg_name)
             arg_kwargs = out_kwargs.pop(f"{arg_name}_kwargs", {})
-            arg_kwargs = arg_kwargs.update(kwargs.pop(f"{arg_name}_kwargs", {}))
+            arg_kwargs.update(kwargs.pop(f"{arg_name}_kwargs", {}))
             arg_kwargs.update({k[l:]: v for k, v in arg.items()})
             out_kwargs[f"{arg_name}_kwargs"] = arg_kwargs
         else:
             out_kwargs[arg_name] = arg
             arg_kwargs = out_kwargs.pop(f"{arg_name}_kwargs", {})
-            arg_kwargs = arg_kwargs.update(kwargs.pop(f"{arg_name}_kwargs", {}))
+            arg_kwargs.update(kwargs.pop(f"{arg_name}_kwargs", {}))
             for k in list(kwargs.keys()):
                 if k.startswith(arg_name):
                     arg_kwargs[k[l:]] = kwargs.pop(k)
