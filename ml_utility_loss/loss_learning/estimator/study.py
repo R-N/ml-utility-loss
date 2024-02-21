@@ -3,6 +3,7 @@ from optuna.exceptions import TrialPruned
 from ...scheduler import SizeScheduler
 import math
 from ...util import seed as seed_
+from torch.cuda import OutOfMemoryError
 
 def objective(
     *args,
@@ -43,6 +44,13 @@ def objective(
         if "has nan" in msg:
             print(f"AssertionError: {msg}")
             raise TrialPruned(msg)
+        raise
+    except OutOfMemoryError as ex:
+        raise TrialPruned(str(ex))
+    except RuntimeError as ex:
+        msg = str(ex)
+        if "outofmemory" in msg.lower().replace(" ", ""):
+            raise TrialPruned(str(ex))
         raise
 
 

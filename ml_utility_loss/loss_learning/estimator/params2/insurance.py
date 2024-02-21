@@ -98,7 +98,7 @@ PARAM_SPACE = {
         "mse_mag_target": ("log_float", 0.005, 2.0),
     }),
     # Common model args
-    "d_model": ("int_exp_2", 128, 256), 
+    "d_model": ("int_exp_2", 128, 512), 
     "dropout": ("bool_float", 0.15, 0.5), 
     "grad_clip": ("log_float", 0.25, 1.0),
     "bias": BOOLEAN,
