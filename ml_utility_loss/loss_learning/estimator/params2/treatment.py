@@ -93,7 +93,7 @@ PARAM_SPACE = {
         "ALL",
     ]),
     "mse_mag": ("dict", {
-        #"mse_mag": True,
+        "mse_mag": True,
         "mse_mag_target": ("log_float", 0.005, 2.0),
     }),
     # Common model args
