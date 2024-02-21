@@ -72,7 +72,7 @@ def create_body(
     #pma_skip_small=False,
     #norm_first=True,
     # Transformer args
-    tf_num_inds=32,
+    tf_num_inds=0,
     tf_d_inner=64,
     tf_n_layers_enc=4, 
     tf_n_layers_dec=2, 
