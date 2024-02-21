@@ -48,8 +48,8 @@ DEFAULTS = {
 PARAM_SPACE = {
     **DEFAULTS,
     # Dataset args
-    "dataset_size": ("int_exp_2", 320482, 2048),
-    "batch_size": ("int_exp_2", 4, 8),
+    "dataset_size": ("int_exp_2", 2048, 2048),
+    "batch_size": ("int_exp_2", 4, 4),
     # Training args
     "epochs": ("log_int", 50, 200),
     "lr_mul": ("log_float", 0.02, 0.4),
