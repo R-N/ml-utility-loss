@@ -149,6 +149,7 @@ PARAM_SPACE = {
     "tf_activation_final": ("activation", [
         "leakyhardtanh",
         "leakyhardsigmoid",
+        "identity",
     ]),
     "tf_num_inds": ("conditional", {
         "tf_num_inds": ("int_exp_2", 16, 128),
@@ -187,6 +188,7 @@ PARAM_SPACE = {
     "ada_activation_final": ("activation", [
         "leakyhardtanh",
         "leakyhardsigmoid",
+        "identity",
     ]),
     # Head args
     "head_d_hid": ("int_exp_2", 128, 256), 

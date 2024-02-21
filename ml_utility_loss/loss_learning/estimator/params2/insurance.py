@@ -149,6 +149,7 @@ PARAM_SPACE = {
     "tf_activation_final": ("activation", [
         "leakyhardtanh",
         "leakyhardsigmoid",
+        "identity",
     ]),
     "tf_num_inds": ("conditional", {
         "tf_num_inds": ("int_exp_2", 16, 128),
