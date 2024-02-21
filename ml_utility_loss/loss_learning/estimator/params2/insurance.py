@@ -98,7 +98,7 @@ PARAM_SPACE = {
         "mse_mag_target": ("log_float", 0.005, 2.0),
     }),
     # Common model args
-    "d_model": ("int_exp_2", 128, 512), 
+    "d_model": ("int_exp_2", 32, 512), 
     "dropout": ("bool_float", 0.15, 0.5), 
     "grad_clip": ("log_float", 0.25, 1.0),
     "bias": BOOLEAN,
@@ -106,11 +106,11 @@ PARAM_SPACE = {
     #"pma_layer_norm": BOOLEAN,
     "attn_activation": ("activation", [
         "tanh",  
-        # #"sigmoid", 
+        #"sigmoid", 
         "relu",
         "leakyrelu", 
         "selu",
-        # #"prelu",
+        #"prelu",
         # "rrelu",
         # #"relu6",
         #"hardtanh",
@@ -142,7 +142,7 @@ PARAM_SPACE = {
         "relu6",
         # #hardtanh",
         #"hardsigmoid",
-        # #"softsign",
+        #"softsign",
         "leakyhardtanh",
         "leakyhardsigmoid",
     ]),
@@ -161,7 +161,7 @@ PARAM_SPACE = {
         PMAFFNMode.SHARED,
     )),
     # Adapter args
-    "ada_d_hid": ("int_exp_2", 512, 2048), 
+    "ada_d_hid": ("int_exp_2", 128, 2048), 
     "ada_n_layers": ("int", 5, 10), 
     "ada_activation": ("activation", [
         "tanh",  
@@ -190,9 +190,9 @@ PARAM_SPACE = {
         "leakyhardsigmoid",
     ]),
     # Head args
-    "head_d_hid": ("int_exp_2", 128, 256), 
+    "head_d_hid": ("int_exp_2", 64, 512), 
     "head_n_layers": ("int", 6, 8), 
-    "head_n_head": ("int_exp_2", 16, 64),
+    "head_n_head": ("int_exp_2", 4, 64),
     "head_activation": ("activation", [
         "tanh",  
         # #"sigmoid", 
