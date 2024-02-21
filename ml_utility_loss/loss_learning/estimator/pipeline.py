@@ -780,7 +780,7 @@ def load_dataset_2(
     for kwargs in dataset_kwargs_dicts:
         datasets = load_dataset(**kwargs)
         print(kwargs["dataset_dir"], [len(d) for d in datasets])
-        datasets.append(datasets_list)
+        datasets_list.append(datasets)
         
     datasetsn = [
         ConcatDataset([
