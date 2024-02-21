@@ -743,7 +743,7 @@ def load_dataset(
     if stop:
         dataset = dataset.slice(start=start, stop=stop)
     stop = stop or len(dataset)
-    dtypes = df.dtypes.to_dict() if dtypes or None
+    dtypes = df.dtypes.to_dict() if dtypes else None
     dataset = PreprocessedDataset(
         dataset, 
         preprocessor, 
