@@ -219,7 +219,7 @@ PARAM_SPACE = {
         "hardsigmoid",
         "leakyhardsigmoid",
     ]),
-    "patience": ("log_int", 50, 100),
+    "patience": ("log_int", 5, 20),
 }
 
 PARAM_SPACE_2 = {
