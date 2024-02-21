@@ -738,12 +738,19 @@ def load_dataset(
     size="all", 
     all="all", 
     df=None,
+    drop_first_column=False,
 ):
-    dataset = DatasetDataset(dataset_dir)
+    dtypes = df.dtypes.to_dict() if df is not None else None
+    dataset = DatasetDataset(
+        dataset_dir,
+        size=size, 
+        all=all, 
+        dtypes=dtypes,
+        drop_first_column=drop_first_column,
+    )
     if stop:
         dataset = dataset.slice(start=start, stop=stop)
     stop = stop or len(dataset)
-    dtypes = df.dtypes.to_dict() if df is not None else None
     dataset = PreprocessedDataset(
         dataset, 
         preprocessor, 
@@ -752,9 +759,6 @@ def load_dataset(
         cache_type="pickle",
         model=model,
         as_dict=True,
-        size=size, 
-        all=all, 
-        dtypes=dtypes
     )
     for i in range(stop):
         _ = dataset[i]
