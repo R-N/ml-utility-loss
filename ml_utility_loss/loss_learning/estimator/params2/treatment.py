@@ -86,7 +86,7 @@ PARAM_SPACE = {
         "tvae", 
         "lct_gan", 
         "tab_ddpm_concat", 
-        "realtabformer",
+        #"realtabformer",
     ]),
     "gradient_penalty_mode": ("gradient_penalty_mode", [
         #"NONE",
