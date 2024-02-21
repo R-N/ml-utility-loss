@@ -364,6 +364,9 @@ def train(
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
+
+    if callable(datasets):
+        datasets = datasets(model=fixed_role_model)
     
     timer = timer or (Timer(max_seconds=max_seconds) if max_seconds else None)
     if len(datasets) == 3:
