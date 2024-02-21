@@ -151,14 +151,7 @@ PARAM_SPACE = {
         "leakyhardsigmoid",
         "identity",
     ]),
-    "tf_num_inds": ("conditional", {
-        "tf_num_inds": ("int_exp_2", 16, 128),
-        "tf_isab_mode": ("categorical", (
-            ISABMode.SEPARATE, 
-            #ISABMode.SHARED,
-            #ISABMode.MINI,
-        )),
-    }),
+    "tf_num_inds": ("int_exp_2", 16, 128),
     #"tf_layer_norm": BOOLEAN,
     # Transformer PMA args
     "tf_pma_low": ("int_exp_2", 2, 16),
