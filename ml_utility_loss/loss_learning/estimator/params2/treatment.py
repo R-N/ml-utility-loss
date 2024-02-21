@@ -51,7 +51,7 @@ PARAM_SPACE = {
     "dataset_size": ("int_exp_2", 320482, 2048),
     "batch_size": ("int_exp_2", 4, 8),
     # Training args
-    "epochs": ("log_int", 500, 1000),
+    "epochs": ("log_int", 50, 1000),
     "lr_mul": ("log_float", 0.02, 0.4),
     "n_warmup_steps": ("log_float", 35, 750),
     "Optim": ("optimizer", [
