@@ -164,9 +164,8 @@ PARAM_SPACE = {
     "pma_ffn_mode": ("categorical", (
         PMAFFNMode.NONE,
         PMAFFNMode.SEPARATE,
-        #PMAFFNMode.SHARED,
+        PMAFFNMode.SHARED,
     )),
-    "tf_share_ffn": BOOLEAN, 
     # Adapter args
     "ada_d_hid": ("int_exp_2", 512, 2048), 
     "ada_n_layers": ("int", 5, 10), 
