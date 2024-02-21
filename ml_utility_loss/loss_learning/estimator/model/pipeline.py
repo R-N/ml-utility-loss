@@ -86,7 +86,7 @@ def create_body(
     tf_lora_rank=2,
     tf_layer_norm=False,
     # Transformer PMA args
-    tf_pma_start=-4,
+    tf_pma_start=-1,
     tf_pma_high=512,
     tf_pma_low=1,
     #pma_ffn_mode=PMAFFNMode.NONE,
@@ -161,7 +161,7 @@ def create_model(
     models=None,
     norm_first=True,
     # TF PMA args
-    tf_pma_start=-4,
+    tf_pma_start=-1,
     tf_pma_low=1,
     # Adapter args
     ada_n_seeds=0,
