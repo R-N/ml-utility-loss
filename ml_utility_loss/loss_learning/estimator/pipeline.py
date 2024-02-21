@@ -795,7 +795,8 @@ def load_dataset_3(
     dataset_dir,
     dataset_name,
     preprocessor,
-    model=None
+    model=None,
+    **kwargs,
 ):
     datasetsn = load_dataset_2([
         dict(
@@ -807,6 +808,7 @@ def load_dataset_3(
             val=False,
             drop_first_column=False,
             model=model,
+            **kwargs,
         ),
         dict(
             dataset_dir=os.path.join(dataset_dir, "datasets_4", dataset_name),
@@ -817,6 +819,7 @@ def load_dataset_3(
             val=False,
             drop_first_column=False,
             model=model,
+            **kwargs,
         ),
         dict(
             dataset_dir=os.path.join(dataset_dir, "datasets_5", dataset_name),
@@ -827,6 +830,7 @@ def load_dataset_3(
             val=False,
             drop_first_column=False,
             model=model,
+            **kwargs,
         ),
     ])
     print([len(d) for d in datasetsn])
@@ -837,13 +841,15 @@ def load_dataset_3_factory(
     dataset_dir,
     dataset_name,
     preprocessor,
+    **kwargs,
 ):
     def f(model):
         return load_dataset_3(
             dataset_dir=dataset_dir,
             dataset_name=dataset_name,
             preprocessor=preprocessor,
-            model=model
+            model=model,
+            **kwargs,
         )
     return f
 
