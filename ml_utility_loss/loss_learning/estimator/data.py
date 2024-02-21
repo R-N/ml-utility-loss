@@ -488,7 +488,7 @@ class OverlapDataset(BaseDataset):
         raise NotImplementedError()
 
 class PreprocessedDataset(WrapperDataset):
-    def __init__(self, dataset, preprocessor, model=None, Tensor=Tensor, dtype=float, **kwargs):
+    def __init__(self, dataset, preprocessor, model=None, Tensor=Tensor, dtype=float, as_dict=False, **kwargs):
         super().__init__(dataset=dataset, **kwargs)
         assert model or preprocessor.model
         self.preprocessor = preprocessor
@@ -496,6 +496,7 @@ class PreprocessedDataset(WrapperDataset):
         self.Tensor = Tensor
         self.dtype = dtype
         self.kwargs = kwargs
+        self.as_dict = as_dict
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
@@ -509,6 +510,9 @@ class PreprocessedDataset(WrapperDataset):
         sample = preprocess_sample(sample, self.preprocessor, self.model)
         sample = to_dtype(sample, self.dtype)
         sample = to_tensor(sample, self.Tensor)
+
+        if self.as_dict:
+            sample = {self.model: sample}
 
         if self.cache:
             self.cache[idx] = sample

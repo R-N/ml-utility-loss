@@ -9,7 +9,7 @@ from ...params import GradientPenaltyMode
 from .model.pipeline import create_model
 from torch.utils.data import DataLoader
 #from ...data import FastDataLoader as DataLoader
-from .data import collate_fn
+from .data import DatasetDataset, MultiPreprocessedDataset, PreprocessedDataset, collate_fn
 import torch
 from .process import train_epoch, eval as _eval
 import torch.nn.functional as F
@@ -705,7 +705,64 @@ def train(
         "history": result_df,
     }
 
+def load_lct_ae(dataset_name, model_dir, model_name="lct_ae", df_name="df"):
+    ae_model_dir, ae_model_name, ae_df_name = model_dir, model_name, df_name
+    ae_model_dir_2 = os.path.join(ae_model_dir, ae_model_name, dataset_name, ae_df_name)
+    ae_model_path = os.path.join(ae_model_dir_2, f"model.pt")
+    ae_state_path = os.path.join(ae_model_dir_2, f"state.json")
+    ae_params_path = os.path.join(ae_model_dir_2, f"params.json")
 
+    lct_ae = torch.load(ae_model_path)
+    return lct_ae
+
+def load_rtf_embed(dataset_name, model_dir, model_name="realtabformer", df_name="df", ckpt_type="best-disc-model"):
+    rtf_embed_model_dir, rtf_embed_model_name, rtf_embed_df_name, rtf_embed_type = model_dir, model_name, df_name, ckpt_type
+    rtf_embed_model_dir_2 = os.path.join(rtf_embed_model_dir, rtf_embed_model_name, dataset_name, rtf_embed_df_name, rtf_embed_df_name, rtf_embed_type)
+    rtf_embed_model_path = os.path.join(rtf_embed_model_dir_2, f"text_embedding.pt")
+    rtf_embed_state_path = os.path.join(rtf_embed_model_dir_2, f"text_embedding.states.pt")
+
+    rtf_embed = torch.load(rtf_embed_model_path)
+    return rtf_embed
+
+def load_dataset(
+    dataset_dir,
+    preprocessor,
+    cache_dir=None,
+    start=0,
+    stop=None,
+    model=None,
+    ratio=0.2,
+    seed=42,
+    random=False,
+    val=False,
+    size="all", 
+    all="all", 
+    df=None,
+):
+    dataset = DatasetDataset(dataset_dir)
+    if stop:
+        dataset = dataset.slice(start=start, stop=stop)
+    stop = stop or len(dataset)
+    dtypes = df.dtypes.to_dict() if dtypes or None
+    dataset = PreprocessedDataset(
+        dataset, 
+        preprocessor, 
+        max_cache=True, 
+        cache_dir=f"{cache_dir}/{model}", 
+        cache_type="pickle",
+        model=model,
+        as_dict=True,
+        size=size, 
+        all=all, 
+        dtypes=dtypes
+    )
+    for i in range(stop):
+        _ = dataset[i]
+    if not ratio:
+        return dataset
+    if ratio:
+        datasets = dataset.split_ratio(ratio=ratio, val=val, seed=seed, random=random)
+    return datasets
 
 def eval(
     # Dataset args
