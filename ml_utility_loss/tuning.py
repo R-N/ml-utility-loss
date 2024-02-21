@@ -27,6 +27,8 @@ def sample_parameter_2(trial, k, type_0, args, kwargs=None, param_map={}):
     kwargs = kwargs or {}
     param, param_raw = None, None
     type_1 = type_0
+    if type_0 == "dict":
+        return sample_parameters(trial, args[0], param_map=param_map)
     if type_0 == "conditional":
         sample = trial.suggest_categorical(f"{k}_boolc", [True, False])
         if sample:
@@ -225,7 +227,7 @@ def create_objective(
             except TypeError as ex:
                 print(params_raw)
                 raise
-        print(json.dumps(params_raw, indent=4))
+        print(json.dumps(unpack_params(params_raw), indent=4))
         kwargs = {}
         if checkpoint_dir:
             kwargs["checkpoint_dir"] = os.path.join(trial_dir, checkpoint_dir)

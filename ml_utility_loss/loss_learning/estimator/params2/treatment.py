@@ -92,10 +92,10 @@ PARAM_SPACE = {
         #"NONE",
         "ALL",
     ]),
-    # "mse_mag": ("conditional", {
-    #     "mse_mag": True,
-    "mse_mag_target": ("log_float", 0.005, 2.0),
-    # }),
+    "mse_mag": ("dict", {
+        #"mse_mag": True,
+        "mse_mag_target": ("log_float", 0.005, 2.0),
+    }),
     # Common model args
     "d_model": ("int_exp_2", 128, 512), 
     "dropout": ("bool_float", 0.15, 0.5), 
