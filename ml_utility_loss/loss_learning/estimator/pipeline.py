@@ -828,7 +828,7 @@ def load_dataset_3(
             stop=60,
             ratio=1/3,
             val=False,
-            drop_first_column=False,
+            drop_first_column=True,
             model=model,
             **kwargs,
         ),
