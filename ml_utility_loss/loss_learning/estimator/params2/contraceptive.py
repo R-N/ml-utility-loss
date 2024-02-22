@@ -99,7 +99,7 @@ PARAM_SPACE = {
     }),
     # Common model args
     "d_model": ("int_exp_2", 256, 512), 
-    "dropout": ("bool_float", 0.15, 0.5), 
+    #"dropout": ("bool_float", 0.15, 0.5), 
     "grad_clip": ("log_float", 0.25, 1.0),
     "bias": BOOLEAN,
     "bias_final": BOOLEAN,
