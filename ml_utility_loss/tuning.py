@@ -12,7 +12,13 @@ def map_parameter(param, source):
         return param
 
 def sample_parameter(trial, name, type, args, kwargs):
-    return getattr(trial, f"suggest_{type}")(name, *args, **kwargs)
+    try:
+        return getattr(trial, f"suggest_{type}")(name, *args, **kwargs)
+    except ValueError as ex:
+        msg = str(ex)
+        if "CategoricalDistribution does not support dynamic value space" in msg:
+            print("Offending parameter:", name)
+        raise
 
 def sample_int_exp_2(trial, k, low, high):
     low = max(low, 1)
@@ -91,7 +97,13 @@ def sample_parameters(trial, param_space, param_map={}):
             params[k] = params_raw[k] = v
             continue
         type_0, *args = v
-        param, param_raw = sample_parameter_2(trial, k, type_0, args, param_map=param_map)
+        try:
+            param, param_raw = sample_parameter_2(trial, k, type_0, args, param_map=param_map)
+        except ValueError as ex:
+            msg = str(ex)
+            if "CategoricalDistribution does not support dynamic value space" in msg:
+                print("Offending parameter:", k, type_0, args)
+            raise
         params[k] = param
         params_raw[k] = param_raw
         
