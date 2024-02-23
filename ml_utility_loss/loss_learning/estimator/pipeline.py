@@ -855,6 +855,7 @@ def load_dataset_3_factory(
 ):
     
     def f(model, synth_data=1):
+        print("load_dataset_3_factory", synth_data)
         if synth_data==1:
             stops=[100, 100, 120] # 80, 80, 80
             ratios=[0.2, 0.2, 1/3] # 20, 20, 40
