@@ -361,12 +361,13 @@ def train(
     wandb_try=0,
     run_name=None,
     forward_once=None,
+    synth_data=1,
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
 
     if callable(datasets):
-        datasets = datasets(model=fixed_role_model)
+        datasets = datasets(model=fixed_role_model, synth_data=synth_data)
     
     timer = timer or (Timer(max_seconds=max_seconds) if max_seconds else None)
     if len(datasets) == 3:
@@ -742,6 +743,7 @@ def load_dataset(
     all="all", 
     df=None,
     drop_first_column=False,
+    reverse_split=True,
 ):
     dtypes = df.dtypes.to_dict() if df is not None else None
     dataset = DatasetDataset(
@@ -769,7 +771,13 @@ def load_dataset(
         #print(len(dataset))
         return dataset
     if ratio:
-        datasets = dataset.split_ratio(ratio=ratio, val=val, seed=seed, random=random)
+        datasets = dataset.split_ratio(
+            ratio=ratio, 
+            val=val, 
+            seed=seed, 
+            random=random, 
+            reverse_index=reverse_split
+        )
         #print([len(d) for d in datasets])
     return datasets
 
@@ -796,7 +804,7 @@ def load_dataset_3(
     dataset_name,
     preprocessor,
     model=None,
-    stops=[50, 50, 60],
+    stops=[100, 100, 120],
     ratios=[0.2, 0.2, 1/3],
     **kwargs,
 ):
@@ -845,12 +853,24 @@ def load_dataset_3_factory(
     preprocessor,
     **kwargs,
 ):
-    def f(model):
+    
+    def f(model, synth_data=1):
+        if synth_data==1:
+            stops=[100, 100, 120] # 80, 80, 80
+            ratios=[0.2, 0.2, 1/3] # 20, 20, 40
+        elif synth_data==2:
+            stops=[100, 100, 200] # 80, 80, 160
+            ratios=[0.2, 0.2, 0.2] # 20, 20, 40
+        elif synth_data==3:
+            stops=[60, 60, 280] # 40, 40, 240
+            ratios=[1/3, 1/3, 1/7] # 20, 20, 40
         return load_dataset_3(
             dataset_dir=dataset_dir,
             dataset_name=dataset_name,
             preprocessor=preprocessor,
             model=model,
+            stops=stops,
+            ratios=ratios,
             **kwargs,
         )
     return f

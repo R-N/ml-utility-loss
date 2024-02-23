@@ -30,14 +30,15 @@ def filter_dict(dict, keys):
 def filter_dict_2(dict, keys):
     return {keys[k]: v for k, v in dict.items() if k in keys}
 
-def split_df(df, points, seed=42, random=True):
+def split_df(df, points, seed=42, random=True, reverse_index=False):
     if random:
         df = df.sample(frac=1, random_state=seed)
     else:
         print("Splitting without random!")
+    splits = [int(x*len(df)) for x in points]
     splits = np.split(
         df, 
-        [int(x*len(df)) for x in points]
+        splits
     )
     return splits
 
@@ -53,12 +54,17 @@ def split_df_2(df, points, test=-1, val=None, return_3=False, **kwargs):
         return train_df, val_df, test_df
     return train_df, test_df
 
-def split_df_ratio(df, ratio=0.2, val=False, i=0, return_3=False, **kwargs):
+def split_df_ratio(df, ratio=0.2, val=False, i=0, return_3=False, reverse_index=False, **kwargs):
     count = int(1.0/ratio)
     splits = [k*ratio for k in range(1, count)]
-    splits = split_df(df, splits, **kwargs)
-    test_index = (count - 1 + i)%count
-    val_index = (test_index-1)%count if val else None
+    splits = split_df(df, splits, reverse_index=reverse_index, **kwargs)
+    if not reverse_index:
+        test_index = (count - 1 + i)%count
+        val_index = ((test_index-1)%count) if val else None
+    else:
+        print("Split with reverse index!")
+        test_index = i%count
+        val_index = ((i+1)%count) if val else None
     n = min([len(s) for s in splits])
 
     leftovers = []

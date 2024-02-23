@@ -50,6 +50,7 @@ DEFAULTS = {
 PARAM_SPACE = {
     **DEFAULTS,
     # Dataset args
+    "synth_data": ("int", 1, 3),
     "dataset_size": ("int_exp_2", 2048, 2048),
     "batch_size": ("int_exp_2", 4, 8),
     # Training args
@@ -210,7 +211,7 @@ PARAM_SPACE = {
         #"hardsigmoid",
         "leakyhardsigmoid",
     ]),
-    "patience": ("log_int", 5, 10),
+    "patience": ("log_int", 3, 7),
 }
 
 PARAM_SPACE_2 = {
