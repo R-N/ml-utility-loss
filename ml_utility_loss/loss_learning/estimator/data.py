@@ -71,7 +71,26 @@ class BaseDataset(Dataset):
         self.aug_scale = aug_scale
         self.base_kwargs = kwargs
         self.cache_dir = cache_dir
+        self.cache = None
         self.create_cache(max_cache=max_cache, cache_dir=cache_dir, **kwargs)
+
+    def check_cache_(self, idx):
+        if not self.cache:
+            return False
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+        if hasattr(idx, "__iter__"):
+            ret = True
+            for id in idx:
+                ret = ret and self.check_cache_(id)
+            return ret
+        if idx in self.cache:
+            return True
+        _ = self[idx]
+        return True
+
+    def check_cache(self, idx):
+        return self.check_cache_(idx)
 
     def items(self):
         raise RuntimeError("Not implemented")
@@ -260,6 +279,11 @@ class WrapperDataset(BaseDataset):
     def __getitem__(self, idx):
         return self.dataset[idx]
     
+    def check_cache(self, idx):
+        if not self.cache:
+            return self.dataset.check_cache(idx)
+        return self.check_cache_(idx)
+    
     def set_size(self, size, **kwargs):
         if self.dataset.set_size(size, **kwargs):
             self.size = self.dataset.size
@@ -313,6 +337,11 @@ class SubDataset(WrapperDataset):
 
     def __getitem__(self, idx):
         return self.dataset[self.index[idx]]
+    
+    def check_cache(self, idx):
+        if not self.cache:
+            return self.dataset.check_cache(idx)
+        return self.check_cache_(idx)
     
     def try_copy(self):
         if self.must_copy():
@@ -395,6 +424,11 @@ class MultiSizeDatasetDataset(BaseDataset):
 
     def __getitem__(self, idx):
         return self.dataset[idx]
+    
+    def check_cache(self, idx):
+        if not self.cache:
+            return self.dataset.check_cache(idx)
+        return self.check_cache_(idx)
     
     def must_copy(self):
         return True
@@ -519,6 +553,11 @@ class PreprocessedDataset(WrapperDataset):
 
         return sample
     
+    def check_cache(self, idx):
+        if not self.cache:
+            return self.dataset.check_cache(idx)
+        return self.check_cache_(idx)
+    
     def try_copy(self):
         if self.must_copy():
             return PreprocessedDataset(self.dataset, preprocessor=self.preprocessor, model=self.model, Tensor=self.Tensor, dtype=self.dtype, **self.kwargs)
@@ -576,6 +615,11 @@ class MultiPreprocessedDataset(WrapperDataset):
         if self.cache:
             self.cache[idx] = sample_dict
         return sample_dict
+    
+    def check_cache(self, idx):
+        if not self.cache:
+            return self.dataset.check_cache(idx)
+        return self.check_cache_(idx)
     
     def try_copy(self):
         if self.must_copy():
@@ -642,6 +686,14 @@ class ConcatDataset(BaseDataset):
                 break
             prev = ci
         return self.datasets[i][idx-prev]
+    
+    def check_cache(self, idx):
+        if not self.cache:
+            ret = True
+            for d in self.datasets:
+                ret = ret and d.check_cache(idx)
+            return ret
+        return self.check_cache_(idx)
     
     def set_size(self, size, **kwargs):
         if np.array([dataset.set_size(size, **kwargs) for dataset in self.datasets]).any():
