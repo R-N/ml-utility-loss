@@ -23,6 +23,7 @@ def objective(
     trial=None,
     diff=False,
     seed=42,
+    repeat=5,
     **kwargs
 ):
     seed_(seed)
@@ -36,23 +37,27 @@ def objective(
         **kwargs
     )
 
-    synth = rtf_model.sample(n_samples=len(train))
-
     try:
-        value = eval_ml_utility_2(
-            synth=synth,
-            train=train,
-            test=test,
-            diff=diff,
-            task=task,
-            target=target,
-            cat_features=cat_features,
-            **ml_utility_params
-        )
+        total_value = 0
+        for i in range(repeat):
+            seed_(i)
+            synth = rtf_model.sample(n_samples=len(train))
+            value = eval_ml_utility_2(
+                synth=synth,
+                train=train,
+                test=test,
+                diff=diff,
+                task=task,
+                target=target,
+                cat_features=cat_features,
+                **ml_utility_params
+            )
+            total_value += value
+        total_value /= repeat
     except CatBoostError:
         raise TrialPruned()
 
-    return value
+    return total_value
 
 def objective_mlu(
     *args,

@@ -25,9 +25,10 @@ def objective(
     diff=False,
     preprocess_df=None,
     seed=42,
+    repeat=5,
     **kwargs
 ):
-    seed_(42)
+    seed_(seed)
     train, test, *_ = datasets
 
     #gan_params = filter_dict_2(kwargs, GAN_PARAMS)
@@ -63,20 +64,27 @@ def objective(
     )
 
     try:
-        value = eval_ml_utility_2(
-            synth=synth,
-            train=train,
-            test=test,
-            diff=diff,
-            task=task,
-            target=target,
-            cat_features=cat_features,
-            **ml_utility_params
-        )
+        total_value = 0
+        for i in range(repeat):
+            seed_(i)
+            n = len(train)
+            synth = gan.sample(n)[:n]
+            value = eval_ml_utility_2(
+                synth=synth,
+                train=train,
+                test=test,
+                diff=diff,
+                task=task,
+                target=target,
+                cat_features=cat_features,
+                **ml_utility_params
+            )
+            total_value += value
+        total_value /= repeat
     except CatBoostError:
         raise TrialPruned()
 
-    return value
+    return total_value
 
 
 def objective_mlu(
