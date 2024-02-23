@@ -103,8 +103,8 @@ PARAM_SPACE = {
     "d_model": ("int_exp_2", 128, 512), 
     #"dropout": ("bool_float", 0.15, 0.5), 
     "grad_clip": ("log_float", 0.6, 1.0),
-    #"bias": BOOLEAN,
-    #"bias_final": BOOLEAN,
+    "bias": BOOLEAN,
+    "bias_final": BOOLEAN,
     #"pma_layer_norm": BOOLEAN,
     "attn_activation": ("activation", [
         #"tanh",  
