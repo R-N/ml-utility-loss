@@ -35,7 +35,7 @@ def split_df(df, points, seed=42, random=True, reverse_index=False):
         df = df.sample(frac=1, random_state=seed)
     else:
         print("Splitting without random!")
-    splits = [int(x*len(df)) for x in points]
+    splits = [int(round(x*len(df))) for x in points]
     splits = np.split(
         df, 
         splits
