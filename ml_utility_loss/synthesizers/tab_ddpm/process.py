@@ -113,14 +113,14 @@ def train(
     scheduler = 'cosine',
     num_numerical_features = 0,
     device = DEFAULT_DEVICE,
-    seed = 0,
+    seed = None,
     cat_encoding = "ordinal", #'one-hot',
     mlu_trainer=None,
     train=True,
     **model_params
 ):
-
-    zero.improve_reproducibility(seed)
+    if seed is not None:
+        zero.improve_reproducibility(seed)
 
     if "is_y_cond" not in model_params:
         model_params["is_y_cond"] = not dataset.is_regression

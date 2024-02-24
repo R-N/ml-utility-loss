@@ -82,17 +82,11 @@ train__ = train
 
 def sample(
     diffusion, 
-    batch_size = 1024,
-    num_samples = 10,
-    disbalance = None,
-    seed = None,
+    **kwargs,
 ):
     return _sample(
         diffusion,
-        batch_size=batch_size,
-        num_samples=num_samples,
-        disbalance=disbalance,
-        seed=seed
+        **kwargs,
     )
 
 def train_2(
