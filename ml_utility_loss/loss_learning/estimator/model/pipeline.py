@@ -49,6 +49,8 @@ NON_MODEL_PARAMS = (
     "max_seconds",
     "grad_loss_scale",
     "synth_data",
+    "dataset_size",
+    "batch_size",
 )
 
 def remove_non_model_params(params, entries_to_remove=NON_MODEL_PARAMS):
