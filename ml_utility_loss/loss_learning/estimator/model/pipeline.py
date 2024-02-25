@@ -180,7 +180,7 @@ def create_model(
     head_n_head=8,   
     head_activation=nn.LeakyReLU,
     head_activation_final=nn.Sigmoid,
-    head_final_mul=HeadFinalMul.IDENTITY,
+    head_final_mul=None,
     head_pma_rank=0,
     head_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false
     head_lora_mode=LoRAMode.FULL,

@@ -463,7 +463,7 @@ class Head(nn.Module):
         dropout=0, 
         activation=nn.SELU,
         activation_final=nn.Sigmoid,
-        final_mul=HeadFinalMul.IDENTITY,
+        final_mul=None,
         pma_rank=0,
         softmax=nn.Softmax,
         lora_mode=LoRAMode.FULL,
@@ -504,6 +504,8 @@ class Head(nn.Module):
                     self.final_mul = HeadFinalMul.MINUS
                 else:
                     self.final_mul = HeadFinalMul.ONEMINUS
+        if self.final_mul is None:
+            self.final_mul = HeadFinalMul.IDENTITY
 
         self.lora_mode = lora_mode
         self.lora_rank = lora_rank
