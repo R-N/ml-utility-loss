@@ -86,7 +86,7 @@ PARAM_SPACE = {
         "loss_balancer_r": ("float", 0.92, 0.96), #0.94
     }),
     "grad_loss_fn": ("loss", [
-        #"mse", 
+        "mse", 
         "mae", 
     ]),
     "fixed_role_model": ("categorical", [
@@ -103,6 +103,7 @@ PARAM_SPACE = {
     "mse_mag": ("dict", {
         "mse_mag": True,
         "mse_mag_target": ("log_float", 0.025, 2.0), #0.1
+        "mse_mag_multiply": BOOLEAN,
     }),
     # Common model args
     "d_model": ("int_exp_2", 256, 512), #256

@@ -84,7 +84,7 @@ PARAM_SPACE = {
     }),
     #"loss_fn": ("loss", "mse"),
     "grad_loss_fn": ("loss", [
-        #"mse", 
+        "mse", 
         "mae", 
     ]),
     "fixed_role_model": ("categorical", [
@@ -101,6 +101,7 @@ PARAM_SPACE = {
     "mse_mag": ("dict", {
         "mse_mag": True,
         "mse_mag_target": ("log_float", 0.025, 2.0), #0.1
+        "mse_mag_multiply": BOOLEAN,
     }),
     # Common model args
     "d_model": ("int_exp_2", 128, 256), #256
@@ -391,7 +392,7 @@ BEST = {
     # Dataset args
     "synth_data": 2,
     "dataset_size": 2048,
-    "batch_size": 4,
+    "batch_size": 2,
     # Training args
     "epochs": 60,
     "lr_mul": 0.075,
