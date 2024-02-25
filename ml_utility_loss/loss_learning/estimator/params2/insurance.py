@@ -58,7 +58,7 @@ PARAM_SPACE = {
     # Dataset args
     "synth_data": ("int", 1, 3), #2
     "dataset_size": ("int_exp_2", 2048, 2048),
-    "batch_size": ("int_exp_2", 4, 8), #8
+    "batch_size": ("int_exp_2", 2, 8), #8
     # Training args
     "epochs": ("log_int", 40, 80),
     "lr_mul": ("log_float", 0.05, 0.1),
