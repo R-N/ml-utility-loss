@@ -27,8 +27,8 @@ DEFAULTS = {
         "seq_mag": False,
         "cos_loss": False,
         "mse_mag_kwargs": {
-            "target": 0.0,
-            "multiply": False,
+            "target": 1.0,
+            "multiply": True,
         },
         "mag_corr_kwargs": {
             "only_sign": False,
@@ -105,9 +105,7 @@ PARAM_SPACE = {
     ]),
     "mse_mag": ("dict", {
         "mse_mag": True,
-        "mse_mag_target": ("log_float", 0.1, 0.3), #other
-        "mse_mag_target": ("log_float", 0.04, 0.09), #rtf
-        "mse_mag_target": ("log_float", 0.04, 0.14), #0.1
+        "mse_mag_target": ("log_float", 0.025, 1.0), #0.1
     }),
     # Common model args
     "d_model": ("int_exp_2", 256, 512), #256
