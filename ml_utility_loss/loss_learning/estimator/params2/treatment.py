@@ -453,6 +453,7 @@ BEST = {
     "gradient_penalty_mode": "ALL",
     "mse_mag": True,
     "mse_mag_target": 0.2,
+    "mse_mag_multiply": False,
     # Common model args
     "d_model": 256,
     "grad_clip": 1.0,
