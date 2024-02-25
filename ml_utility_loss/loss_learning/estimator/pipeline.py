@@ -807,13 +807,14 @@ def load_dataset_3(
     model=None,
     stops=[100, 100, 120],
     ratios=[0.2, 0.2, 1/3],
+    cache_dir="..",
     **kwargs,
 ):
     datasetsn = load_dataset_2([
         dict(
             dataset_dir=os.path.join(dataset_dir, "datasets_2", dataset_name),
             preprocessor=preprocessor,
-            cache_dir=os.path.join("..", dataset_name, "_cache"),
+            cache_dir=os.path.join(cache_dir, dataset_name, "_cache"),
             stop=stops[0],
             ratio=ratios[0],
             val=False,
@@ -824,7 +825,7 @@ def load_dataset_3(
         dict(
             dataset_dir=os.path.join(dataset_dir, "datasets_4", dataset_name),
             preprocessor=preprocessor,
-            cache_dir=os.path.join("..", dataset_name, "_cache4"),
+            cache_dir=os.path.join(cache_dir, dataset_name, "_cache4"),
             stop=stops[1],
             ratio=ratios[1],
             val=False,
@@ -835,7 +836,7 @@ def load_dataset_3(
         dict(
             dataset_dir=os.path.join(dataset_dir, "datasets_5", dataset_name),
             preprocessor=preprocessor,
-            cache_dir=os.path.join("..", dataset_name, "_cache5"),
+            cache_dir=os.path.join(cache_dir, dataset_name, "_cache5"),
             stop=stops[2],
             ratio=ratios[2],
             val=False,
