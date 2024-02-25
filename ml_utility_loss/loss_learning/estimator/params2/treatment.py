@@ -161,7 +161,7 @@ PARAM_SPACE = {
         ##"leakyhardsigmoid",
         #"identity",
     ]),
-    "tf_num_inds": ("int_exp_2", 32, 128),
+    "tf_num_inds": ("int_exp_2", 32, 64), #64
     #"tf_layer_norm": BOOLEAN,
     # Transformer PMA args
     "tf_pma_low": ("int_exp_2", 4, 8), #other
@@ -464,7 +464,7 @@ BEST = {
     "tf_n_head": 64,
     "tf_activation": "leakyhardtanh",
     "tf_activation_final": "leakyhardtanh",
-    "tf_num_inds": ("int_exp_2", 32, 128),
+    "tf_num_inds": 64,
     # Transformer PMA args
     "tf_pma_low": 16,
     "pma_ffn_mode": PMAFFNMode.SHARED,
