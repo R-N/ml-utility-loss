@@ -755,6 +755,8 @@ def load_dataset(
     )
     if stop:
         dataset = dataset.slice(start=start, stop=stop)
+    elif start:
+        dataset = dataset.slice(start=start)
     stop = stop or len(dataset)
     dataset = PreprocessedDataset(
         dataset, 
