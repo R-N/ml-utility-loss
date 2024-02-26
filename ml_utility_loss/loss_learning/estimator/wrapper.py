@@ -75,7 +75,7 @@ class MLUtilityTrainer:
         optim_kwargs = {**self.optim_kwargs, **kwargs}
         self.optim = Optim(parameters, **optim_kwargs)
 
-    def step(self, samples):
+    def step(self, samples, batch_size=None):
         assert self.optim
         assert samples.grad_fn
         if samples.dim() < self.dim:
@@ -140,7 +140,15 @@ class MLUtilityTrainer:
 
         grads = grads / (self.n_inner_steps * self.n_inner_steps_2)
 
-        samples_0.backward(gradient=grads)
+        if batch_size:
+            assert grads.shape[0] == samples_0.shape[0]
+            n = grads.shape[0]
+            grads = [grads[i:i+batch_size] for i in range(0, n, batch_size)]
+            samples_0 = [samples_0[i:i+batch_size] for i in range(0, n, batch_size)]
+            for samples_i, grads_i in zip(samples_0, grads):
+                samples_i.backward(gradient=grads_i)
+        else:
+            samples_0.backward(gradient=grads)
 
         for param in self.parameters:
             assert torch.isfinite(param.grad).all(), "Grad is not populated"

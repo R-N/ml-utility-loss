@@ -72,12 +72,13 @@ class MLUtilityCallback(TrainerCallback):
                 n_samples = self.mlu_trainer.n_samples
                 batch_size = self.batch_size
                 #batch_size=self.mlu_trainer.sample_batch_size
-                samples = self.sampler.sample(
-                    n_samples=n_samples,
-                    gen_batch=batch_size,
-                    raw=True,
-                )
-                self.mlu_trainer.step(samples)
+                with torch.autograd.graph.save_on_cpu():
+                    samples = self.sampler.sample(
+                        n_samples=n_samples,
+                        gen_batch=batch_size,
+                        raw=True,
+                    )
+                self.mlu_trainer.step(samples, batch_size=self.batch_size)
 
 
 

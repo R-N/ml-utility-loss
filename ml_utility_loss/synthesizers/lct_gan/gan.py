@@ -176,8 +176,9 @@ class LatentGAN:
                 if self.mlu_trainer and (epoch+1)%self.mlu_trainer.t_steps == 0:
                     for i in range(self.mlu_trainer.n_steps):
                         n_samples = self.mlu_trainer.n_samples
-                        samples = self.sample(n_samples, raw=True)
-                        self.mlu_trainer.step(samples)
+                        with torch.autograd.graph.save_on_cpu():
+                            samples = self.sample(n_samples, raw=True)
+                        self.mlu_trainer.step(samples, batch_size=self.batch_size)
 
 
             print("[Epoch %d/%d] [D loss: %f] [G loss: %f]" 

@@ -89,13 +89,14 @@ class Trainer:
                     n_samples = self.mlu_trainer.n_samples
                     batch_size = self.batch_size
                     #batch_size = self.mlu_trainer.sample_batch_size
-                    samples = sample(
-                        self.diffusion,
-                        batch_size=batch_size, 
-                        num_samples=n_samples, 
-                        raw=True
-                    )
-                    self.mlu_trainer.step(samples)
+                    with torch.autograd.graph.save_on_cpu():
+                        samples = sample(
+                            self.diffusion,
+                            batch_size=batch_size, 
+                            num_samples=n_samples, 
+                            raw=True
+                        )
+                    self.mlu_trainer.step(samples, batch_size=self.batch_size)
                     del samples
                 clear_memory()
 

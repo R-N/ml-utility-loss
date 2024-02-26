@@ -66,7 +66,7 @@ def train(
                 n_samples = mlu_trainer.n_samples
                 #batch_size = mlu_trainer.sample_batch_size
                 samples = sample(model=model, transformer=transformer, samples=n_samples, batch_size=batch_size, raw=True)
-                mlu_trainer.step(samples)
+                mlu_trainer.step(samples, batch_size=batch_size)
 
     return loss_1.item(), loss_2.item()
 
