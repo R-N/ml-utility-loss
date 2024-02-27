@@ -63,9 +63,10 @@ PARAM_SPACE = {
     "lr_mul": ("log_float", 0.02, 0.04), #other
     "lr_mul": ("log_float", 0.04, 0.1), #rtf
     "lr_mul": ("log_float", 0.03, 0.08), #0.05 0.04
+    "lr_mul": ("log_float", 0.035, 0.055), #0.04
     "n_warmup_steps": ("log_float", 120, 180), #other
     "n_warmup_steps": ("log_float", 250, 400), #rtf
-    "n_warmup_steps": ("log_float", 200, 250), #250
+    "n_warmup_steps": ("log_float", 200, 220), #220
     "Optim": ("optimizer", [
         ### #"adamw", 
         ###"sgdmomentum", 
@@ -82,8 +83,8 @@ PARAM_SPACE = {
     ]),
     # Training args
     "loss_balancer_meta": ("dict", {
-        "loss_balancer_beta": ("float", 0.725, 0.735), #0.73
-        "loss_balancer_r": ("float", 0.92, 0.96), #0.94
+        "loss_balancer_beta": ("float", 0.726, 0.734), #0.73
+        "loss_balancer_r": ("float", 0.935, 0.96), #0.94
     }),
     "grad_loss_fn": ("loss", [
         "mse", 
@@ -102,7 +103,7 @@ PARAM_SPACE = {
     ]),
     "mse_mag": ("dict", {
         "mse_mag": True,
-        "mse_mag_target": ("log_float", 0.1, 1.0), #0.1
+        "mse_mag_target": ("log_float", 0.2, 0.7), #0.2
         "mse_mag_multiply": True,
     }),
     # Common model args
@@ -111,7 +112,7 @@ PARAM_SPACE = {
     "grad_clip": ("log_float", 0.5, 0.65), #other
     "grad_clip": ("log_float", 0.95, 1.0), #rtf
     "grad_clip": ("log_float", 0.5, 1.0), #1.0
-    "grad_clip": ("log_float", 0.75, 1.0), #1.0
+    "grad_clip": ("log_float", 0.75, 0.84), #0.8
     #"bias": BOOLEAN,
     #"bias_final": BOOLEAN,
     #"pma_layer_norm": BOOLEAN,
@@ -120,7 +121,7 @@ PARAM_SPACE = {
         ## "sigmoid", 
         ##"relu",
         "leakyrelu", 
-        "selu", #best
+        "selu", 
         ## #"prelu",
         ## ##"rrelu",
         ## "relu6",
@@ -138,7 +139,7 @@ PARAM_SPACE = {
         #IndsInitMode.XAVIER,
     ]),
     # Transformer args
-    "tf_d_inner": ("int_exp_2", 256, 512), #256
+    "tf_d_inner": ("int_exp_2", 256, 512), #512
     "tf_n_layers_enc": ("int", 4, 4), #4
     #"tf_n_layers_dec": ("bool_int", 3, 4), #better false
     "tf_n_head": ("int_exp_2", 32, 64), #64
@@ -167,7 +168,7 @@ PARAM_SPACE = {
     # Transformer PMA args
     "tf_pma_low": ("int_exp_2", 4, 8), #other
     "tf_pma_low": ("int_exp_2", 16, 16), #rtf
-    "tf_pma_low": ("int_exp_2", 4, 16), #16
+    "tf_pma_low": ("int_exp_2", 4, 16), #8
     "pma_ffn_mode": ("categorical", (
         #PMAFFNMode.NONE,
         #PMAFFNMode.SEPARATE,
@@ -175,16 +176,16 @@ PARAM_SPACE = {
     )),
     # Adapter args
     "ada_d_hid": ("int_exp_2", 1024, 2048), #1024
-    "ada_n_layers": ("int", 6, 9),  #6
+    "ada_n_layers": ("int", 6, 8),  #7
     "ada_activation": ("activation", [
         #"tanh",  
         #"sigmoid", 
         #"relu",
         #"leakyrelu", 
-        "selu",
+        "selu", #best
         #"prelu",
         #"rrelu",
-        "relu6", #best
+        "relu6", 
         #"hardtanh",
         #"hardsigmoid",
         #"softsign",
@@ -203,9 +204,9 @@ PARAM_SPACE = {
         "leakyhardsigmoid", #best
     ]),
     # Head args
-    "head_d_hid": ("int_exp_2", 64, 256), #128
-    "head_n_layers": ("int", 7, 8), #7
-    "head_n_head": ("int_exp_2", 32, 64), #32
+    "head_d_hid": ("int_exp_2", 128, 256), #128
+    "head_n_layers": ("int", 7, 8), #8
+    "head_n_head": ("int_exp_2", 32, 64), #64
     "head_activation": ("activation", [
         #"tanh",  
         ##"sigmoid", 
@@ -615,6 +616,139 @@ BEST = {
     "head_d_hid": 128,
     "head_n_layers": 7,
     "head_n_head": 32,
+    "head_activation": "leakyhardsigmoid",
+    "head_activation_final": "leakyhardsigmoid",
+    "patience": 5,
+}
+
+#other
+#29
+#0.056710533797740936
+BEST = {
+    'loss_balancer_beta': 0.7335814388977157,
+    'loss_balancer_r': 0.9378682241521267,
+    'tf_pma_low_exp_2': 2,
+    'grad_loss_fn': 'mae',
+    'pma_ffn_mode': 'shared',
+    'patience': 4,
+    'inds_init_mode': 'torch',
+    'grad_clip': 0.8414093517830329,
+    'gradient_penalty_mode': 'ALL',
+    'synth_data': 3,
+    'dataset_size_exp_2': 11,
+    'batch_size_exp_2': 2,
+    'epochs': 53,
+    'lr_mul': 0.05300458954112505,
+    'n_warmup_steps': 217.15357687052207,
+    'Optim': 'diffgrad',
+    'fixed_role_model': 'tab_ddpm_concat',
+    'mse_mag_target': 0.17256256876354528,
+    'd_model_exp_2': 9,
+    'attn_activation': 'selu',
+    'tf_d_inner_exp_2': 8,
+    'tf_n_layers_enc': 4,
+    'tf_n_head_exp_2': 5,
+    'tf_activation': 'leakyhardtanh',
+    'tf_activation_final': 'leakyhardtanh',
+    'tf_num_inds_exp_2': 6,
+    'ada_d_hid_exp_2': 10,
+    'ada_n_layers': 8,
+    'ada_activation': 'selu',
+    'ada_activation_final': 'leakyhardsigmoid',
+    'head_d_hid_exp_2': 7,
+    'head_n_layers': 8,
+    'head_n_head_exp_2': 6,
+    'head_activation': 'leakyhardsigmoid',
+    'head_activation_final': 'leakyhardsigmoid'
+}
+
+#rtf
+#26
+#0.05888044089078903
+BEST = {
+    'loss_balancer_beta': 0.7250507684777363,
+    'loss_balancer_r': 0.9509019718326895,
+    'tf_pma_low_exp_2': 3,
+    'grad_loss_fn': 'mse',
+    'pma_ffn_mode': 'shared',
+    'patience': 5,
+    'inds_init_mode': 'torch',
+    'grad_clip': 0.7928713463266556,
+    'gradient_penalty_mode': 'ALL',
+    'synth_data': 3,
+    'dataset_size_exp_2': 11,
+    'batch_size_exp_2': 1,
+    'epochs': 55,
+    'lr_mul': 0.04445718438086848,
+    'n_warmup_steps': 219.5525105350929,
+    'Optim': 'diffgrad',
+    'fixed_role_model': 'realtabformer',
+    'mse_mag_target': 0.21640534842275652,
+    'd_model_exp_2': 8,
+    'attn_activation': 'leakyrelu',
+    'tf_d_inner_exp_2': 9,
+    'tf_n_layers_enc': 4,
+    'tf_n_head_exp_2': 6,
+    'tf_activation': 'leakyhardtanh',
+    'tf_activation_final': 'leakyhardtanh',
+    'tf_num_inds_exp_2': 6,
+    'ada_d_hid_exp_2': 10,
+    'ada_n_layers': 7,
+    'ada_activation': 'selu',
+    'ada_activation_final': 'leakyhardsigmoid',
+    'head_d_hid_exp_2': 8,
+    'head_n_layers': 8,
+    'head_n_head_exp_2': 6,
+    'head_activation': 'leakyhardsigmoid',
+    'head_activation_final': 'leakyhardsigmoid'
+}
+
+#manual
+BEST = {
+    **DEFAULTS,
+    # Dataset args
+    "synth_data": 2,
+    "dataset_size": 2048,
+    "batch_size": 4,
+    # Training args
+    "epochs": 60,
+    "lr_mul": 0.04,
+    "n_warmup_steps": 220,
+    "Optim": "diffgrad",
+    # Training args
+    "loss_balancer_meta": True,
+    "loss_balancer_beta": 0.73,
+    "loss_balancer_r": 0.94,
+    "grad_loss_fn": "mae", 
+    "fixed_role_model": "tvae", 
+    "gradient_penalty_mode": "ALL",
+    "mse_mag": True,
+    "mse_mag_target": 0.2,
+    "mse_mag_multiply": False,
+    # Common model args
+    "d_model": 512,
+    "grad_clip": 0.8,
+    "attn_activation": "leakyhardsigmoid", 
+    "inds_init_mode": IndsInitMode.TORCH,
+    # Transformer args
+    "tf_d_inner": 512,
+    "tf_n_layers_enc": 4,
+    "tf_n_head": 64,
+    "tf_activation": "leakyhardtanh",
+    "tf_activation_final": "leakyhardtanh",
+    "tf_num_inds": 64,
+    # Transformer PMA args
+    "tf_pma_low": 16,
+    "pma_ffn_mode": PMAFFNMode.SHARED,
+    # Adapter args
+    "ada_d_hid": 1024,
+    "ada_n_layers": 7,
+    "ada_activation": "selu", 
+    "ada_activation_final": "leakyhardsigmoid", 
+    # Head args
+    "head_d_hid": 128,
+    "head_n_layers": 8,
+    "head_n_head": 64,
     "head_activation": "leakyhardsigmoid",
     "head_activation_final": "leakyhardsigmoid",
     "patience": 5,
