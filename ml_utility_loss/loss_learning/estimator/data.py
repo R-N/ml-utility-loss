@@ -322,7 +322,7 @@ class SubDataset(WrapperDataset):
             self.calculate_stats()
 
     def items(self):
-        return [(k, SubDataset(v, self.index_, **self.sub_kwargs)) for k, v in self.dataset.items]
+        return [(k, SubDataset(v, self.index_, **self.sub_kwargs)) for k, v in self.dataset.items()]
 
     def calculate_stats(self):
         self.y = self.dataset.y.iloc[self.index]
