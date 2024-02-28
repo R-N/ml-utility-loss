@@ -533,14 +533,14 @@ class PreprocessedDataset(WrapperDataset):
         self.as_dict = as_dict
 
     def items(self):
-        return [(self.model, self)]
+        return [(self.model, self.copy_non_dict())]
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
         if isinstance(idx, str):
             assert idx == self.model
-            return self
+            return self.copy_non_dict()
         if hasattr(idx, "__iter__"):
             return stack_samples([self[id] for id in idx])
         if self.cache and idx in self.cache:
@@ -564,10 +564,19 @@ class PreprocessedDataset(WrapperDataset):
             return self.dataset.check_cache(idx)
         return self.check_cache_(idx)
     
+    def copy(self):
+        return PreprocessedDataset(self.dataset, preprocessor=self.preprocessor, model=self.model, Tensor=self.Tensor, dtype=self.dtype, as_dict=self.as_dict, **self.kwargs)
+    
     def try_copy(self):
         if self.must_copy():
-            return PreprocessedDataset(self.dataset, preprocessor=self.preprocessor, model=self.model, Tensor=self.Tensor, dtype=self.dtype, **self.kwargs)
+            return self.copy()
         return self
+    
+    def copy_non_dict(self):
+        ret = self.copy()
+        ret.as_dict = False
+        return ret
+
 
 class MultiPreprocessedDataset(WrapperDataset):
     def __init__(self, dataset, preprocessor, Tensor=Tensor, dtype=float, **kwargs):
