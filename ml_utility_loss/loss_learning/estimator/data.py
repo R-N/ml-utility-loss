@@ -532,9 +532,15 @@ class PreprocessedDataset(WrapperDataset):
         self.kwargs = kwargs
         self.as_dict = as_dict
 
+    def items(self):
+        return [(self.model, self)]
+
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
+        if isinstance(idx, str):
+            assert idx == self.model
+            return self
         if hasattr(idx, "__iter__"):
             return stack_samples([self[id] for id in idx])
         if self.cache and idx in self.cache:
