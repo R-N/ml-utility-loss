@@ -9,7 +9,8 @@ from .pipeline import train_2
 from ...loss_learning.estimator.wrapper import MLUtilityTrainer
 import torch
 import torch.nn.functional as F
-from ...util import seed as seed_
+from ...util import clear_memory, seed as seed_
+from torch.cuda import OutOfMemoryError
 
 
 def objective(
@@ -26,6 +27,7 @@ def objective(
     repeat=5,
     **kwargs
 ):
+    clear_memory()
     seed_(seed)
     train, test = datasets
     
@@ -54,6 +56,15 @@ def objective(
             )
             total_value += value
         total_value /= repeat
+    except OutOfMemoryError as ex:
+        clear_memory()
+        raise TrialPruned(str(ex))
+    except RuntimeError as ex:
+        msg = str(ex)
+        if "outofmemory" in msg.lower().replace(" ", ""):
+            clear_memory()
+            raise TrialPruned(str(ex))
+        raise
     except CatBoostError:
         raise TrialPruned()
 

@@ -18,6 +18,7 @@ def objective(
     seed=42,
     **kwargs
 ):
+    clear_memory()
     seed_(seed)
     try:
         train_results = train(
