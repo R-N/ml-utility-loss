@@ -940,7 +940,7 @@ def train_epoch(
         if fixed_role_model:
             role_model = fixed_role_model
 
-        with torch.autograd.graph.save_on_cpu():
+        with torch.autograd.graph.save_on_cpu(pin_memory=True):
             # Compute prediction and loss for all adapters
             computes = {model: {} for model in models}
             for model, (train, test, y, y_real) in batch_dict.items():
