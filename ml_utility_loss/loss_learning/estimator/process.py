@@ -940,166 +940,164 @@ def train_epoch(
         if fixed_role_model:
             role_model = fixed_role_model
 
-        with torch.autograd.graph.save_on_cpu():
-            # Compute prediction and loss for all adapters
-            computes = {model: {} for model in models}
-            for model, (train, test, y, y_real) in batch_dict.items():
-                batch_size = y.shape[0] if y.dim() > 0 else 1
-                compute = computes[model]
-                forward_pass_1(
-                    single_model=whole_model[model, head],
-                    train=train,
-                    test=test,
-                    y=y,
-                    y_real=y_real,
+        # Compute prediction and loss for all adapters
+        computes = {model: {} for model in models}
+        for model, (train, test, y, y_real) in batch_dict.items():
+            batch_size = y.shape[0] if y.dim() > 0 else 1
+            compute = computes[model]
+            forward_pass_1(
+                single_model=whole_model[model, head],
+                train=train,
+                test=test,
+                y=y,
+                y_real=y_real,
+                compute=compute,
+                model=model,
+            )
+
+        # We calculate average m of non role models to do one forward pass for all of them
+        avg_compute = {}
+        computes_1 = computes
+        if forward_once and role_model and avg_non_role_model_m and len(computes) > 1:
+            avg_compute = forward_pass_1_avg(
+                computes=computes,
+                role_model=role_model,
+            )
+            computes_1 = {**computes, "avg_non_role_model": avg_compute}
+
+        for model, compute in computes_1.items():
+            if forward_once and role_model and model not in (role_model, "avg_non_role_model"):
+                continue
+            
+            forward_pass_2(
+                single_model=whole_model[model, head],
+                compute=compute,
+                loss_fn=loss_fn,
+                model=model,
+            )
+            if gradient_penalty:
+                forward_pass_gradient(
                     compute=compute,
+                    calc_grad_m=calc_grad_m,
                     model=model,
                 )
 
-            # We calculate average m of non role models to do one forward pass for all of them
-            avg_compute = {}
-            computes_1 = computes
-            if forward_once and role_model and avg_non_role_model_m and len(computes) > 1:
-                avg_compute = forward_pass_1_avg(
-                    computes=computes,
-                    role_model=role_model,
-                )
-                computes_1 = {**computes, "avg_non_role_model": avg_compute}
 
-            for model, compute in computes_1.items():
-                if forward_once and role_model and model not in (role_model, "avg_non_role_model"):
+            pred_std_ = calc_std_loss(
+                compute=compute,
+                std_loss_fn=std_loss_fn,
+                batch_size=batch_size,
+                allow_same_prediction=allow_same_prediction,
+                model=model,
+            )
+
+            if model not in avg_pred_stds:
+                avg_pred_stds[model] = 0
+            avg_pred_stds[model] += pred_std_
+
+            calc_mean_pred_loss(
+                compute=compute,
+                loss_fn=loss_fn,
+                mean_pred_loss_fn=mean_pred_loss_fn
+            )
+
+        if role_model and (fixed_role_model or forward_once):
+            role_model_compute = computes[role_model]
+        else:
+            # determine role model (adapter) by minimum loss
+            role_model, role_model_compute = min(
+                computes.items(), 
+                key=lambda item: reduction(item[-1]["loss"]).item()
+            )
+            #model_2 = [m for m in models if m != role_model][0]
+
+        role_model_loss = reduction(role_model_compute["loss"])
+        role_model_mean_pred_loss = reduction(role_model_compute["mean_pred_loss"])
+        role_model_std_loss = role_model_compute["std_loss"]
+        if timer:
+            timer.check_time()
+
+        non_role_model_embed_loss = zero_tensor(device=whole_model.device)
+        if len(computes) > 1:# and forward_once:
+            # Calculate role model adapter embedding as the correct one as it has lowest error
+            # dim 0 is batch, dim 1 is size, not sure which to use but size I guess
+            # anyway that means -3 and -2
+            # This has to be done here
+            # So backward pass can be called together with g_loss
+            role_model_compute = computes[role_model]
+            embed_y = torch.cat([
+                role_model_compute["m"], 
+                role_model_compute["m_test"]
+            ], dim=-2).detach()
+
+            # calculate embed loss to follow role model
+            for model, compute in computes.items():
+                # Role model is already fully backproped by role_model_loss
+                if model == role_model:# compute is role_model_compute:
+                    continue
+                calc_embed_loss(
+                    compute=compute,
+                    embed_y=embed_y,
+                    adapter_loss_fn=adapter_loss_fn,
+                    loss_clamp=loss_clamp,
+                    reduction=reduction,
+                    model=model,
+                    eps=eps,
+                )
+
+            # sum embed loss
+            non_role_model_embed_loss = sum([
+                compute["embed_loss"] 
+                for model, compute in computes.items() 
+                if model != role_model
+            ])
+        if timer:
+            timer.check_time()
+
+        non_role_model_g_mag_loss = zero_tensor(device=whole_model.device)
+        non_role_model_g_cos_loss = zero_tensor(device=whole_model.device)
+        # Now we calculate the gradient penalty
+        # We do this only for "train" input because test is supposedly the real dataset
+        if gradient_penalty:
+            for model, compute in computes.items():
+                # If forward_once is true, grad will only exist for the role model
+                if "grad" not in compute and not calc_grad_m and not avg_non_role_model_m:
+                    continue
+                # This doesn't stand on its own
+                if model == "avg_non_role_model":
                     continue
                 
-                forward_pass_2(
-                    single_model=whole_model[model, head],
-                    compute=compute,
-                    loss_fn=loss_fn,
+                calc_g_loss_2(
                     model=model,
-                )
-                if gradient_penalty:
-                    forward_pass_gradient(
-                        compute=compute,
-                        calc_grad_m=calc_grad_m,
-                        model=model,
-                    )
-
-
-                pred_std_ = calc_std_loss(
                     compute=compute,
-                    std_loss_fn=std_loss_fn,
-                    batch_size=batch_size,
-                    allow_same_prediction=allow_same_prediction,
-                    model=model,
+                    computes=computes_1,
+                    role_model=role_model,
+                    inverse_avg_non_role_model_m=inverse_avg_non_role_model_m,
+                    avg_non_role_model_m=avg_non_role_model_m,
+                    non_role_model_count=non_role_model_count,
+                    avg_compute=avg_compute,
+                    role_model_compute=role_model_compute,
+                    calc_grad_m=calc_grad_m,
+                    grad_loss_fn=grad_loss_fn,
+                    grad_loss_scale=grad_loss_scale,
+                    loss_clamp=loss_clamp,
+                    reduction=reduction,
+                    eps=eps,
+                    **g_loss_kwargs
                 )
 
-                if model not in avg_pred_stds:
-                    avg_pred_stds[model] = 0
-                avg_pred_stds[model] += pred_std_
-
-                calc_mean_pred_loss(
-                    compute=compute,
-                    loss_fn=loss_fn,
-                    mean_pred_loss_fn=mean_pred_loss_fn
-                )
-
-            if role_model and (fixed_role_model or forward_once):
-                role_model_compute = computes[role_model]
-            else:
-                # determine role model (adapter) by minimum loss
-                role_model, role_model_compute = min(
-                    computes.items(), 
-                    key=lambda item: reduction(item[-1]["loss"]).item()
-                )
-                #model_2 = [m for m in models if m != role_model][0]
-
-            role_model_loss = reduction(role_model_compute["loss"])
-            role_model_mean_pred_loss = reduction(role_model_compute["mean_pred_loss"])
-            role_model_std_loss = role_model_compute["std_loss"]
-            if timer:
-                timer.check_time()
-
-            non_role_model_embed_loss = zero_tensor(device=whole_model.device)
-            if len(computes) > 1:# and forward_once:
-                # Calculate role model adapter embedding as the correct one as it has lowest error
-                # dim 0 is batch, dim 1 is size, not sure which to use but size I guess
-                # anyway that means -3 and -2
-                # This has to be done here
-                # So backward pass can be called together with g_loss
-                role_model_compute = computes[role_model]
-                embed_y = torch.cat([
-                    role_model_compute["m"], 
-                    role_model_compute["m_test"]
-                ], dim=-2).detach()
-
-                # calculate embed loss to follow role model
-                for model, compute in computes.items():
-                    # Role model is already fully backproped by role_model_loss
-                    if model == role_model:# compute is role_model_compute:
-                        continue
-                    calc_embed_loss(
-                        compute=compute,
-                        embed_y=embed_y,
-                        adapter_loss_fn=adapter_loss_fn,
-                        loss_clamp=loss_clamp,
-                        reduction=reduction,
-                        model=model,
-                        eps=eps,
-                    )
-
-                # sum embed loss
-                non_role_model_embed_loss = sum([
-                    compute["embed_loss"] 
+            # If forward_once, this will be 0 and the other computes won't have g_loss
+            if not forward_once or calc_grad_m and len(computes) > 1:
+                non_role_model_g_mag_loss = sum([
+                    compute["g_mag_loss"] 
                     for model, compute in computes.items() 
-                    if model != role_model
+                    if model != role_model and "g_mag_loss" in compute
                 ])
-            if timer:
-                timer.check_time()
-
-            non_role_model_g_mag_loss = zero_tensor(device=whole_model.device)
-            non_role_model_g_cos_loss = zero_tensor(device=whole_model.device)
-            # Now we calculate the gradient penalty
-            # We do this only for "train" input because test is supposedly the real dataset
-            if gradient_penalty:
-                for model, compute in computes.items():
-                    # If forward_once is true, grad will only exist for the role model
-                    if "grad" not in compute and not calc_grad_m and not avg_non_role_model_m:
-                        continue
-                    # This doesn't stand on its own
-                    if model == "avg_non_role_model":
-                        continue
-                    
-                    calc_g_loss_2(
-                        model=model,
-                        compute=compute,
-                        computes=computes_1,
-                        role_model=role_model,
-                        inverse_avg_non_role_model_m=inverse_avg_non_role_model_m,
-                        avg_non_role_model_m=avg_non_role_model_m,
-                        non_role_model_count=non_role_model_count,
-                        avg_compute=avg_compute,
-                        role_model_compute=role_model_compute,
-                        calc_grad_m=calc_grad_m,
-                        grad_loss_fn=grad_loss_fn,
-                        grad_loss_scale=grad_loss_scale,
-                        loss_clamp=loss_clamp,
-                        reduction=reduction,
-                        eps=eps,
-                        **g_loss_kwargs
-                    )
-
-                # If forward_once, this will be 0 and the other computes won't have g_loss
-                if not forward_once or calc_grad_m and len(computes) > 1:
-                    non_role_model_g_mag_loss = sum([
-                        compute["g_mag_loss"] 
-                        for model, compute in computes.items() 
-                        if model != role_model and "g_mag_loss" in compute
-                    ])
-                    non_role_model_g_cos_loss = sum([
-                        compute["g_cos_loss"] 
-                        for model, compute in computes.items() 
-                        if model != role_model and "g_cos_loss" in compute
-                    ])
-
+                non_role_model_g_cos_loss = sum([
+                    compute["g_cos_loss"] 
+                    for model, compute in computes.items() 
+                    if model != role_model and "g_cos_loss" in compute
+                ])
         if timer:
             timer.check_time()
 
