@@ -9,6 +9,7 @@ from ...loss_balancer import FixedWeights, MyLossWeighter, LossBalancer, MyLossT
 import math
 from torch.utils.data import DataLoader, Dataset
 from .data import collate_fn
+from contextlib import nullcontext
 
 Tensor = torch.FloatTensor
 
@@ -870,6 +871,7 @@ def train_epoch(
     include_std_loss=False,
     g_loss_mul=0.1,
     non_role_model_mul=0.5,
+    save_on_cpu=False,
     **g_loss_kwargs
 ):
     assert optim or val, "Optimizer must be provided if val is false"
@@ -940,7 +942,8 @@ def train_epoch(
         if fixed_role_model:
             role_model = fixed_role_model
 
-        with torch.autograd.graph.save_on_cpu(pin_memory=True):
+        save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if save_on_cpu else nullcontext
+        with save_cm:
             # Compute prediction and loss for all adapters
             computes = {model: {} for model in models}
             for model, (train, test, y, y_real) in batch_dict.items():

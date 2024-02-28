@@ -7,6 +7,7 @@ from .model import MLPDiffusion
 import pandas as pd
 from .gaussian_multinomial_diffusion import GaussianMultinomialDiffusion
 from ...util import clear_memory
+from contextlib import nullcontext
 
 DEFAULT_DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else "cpu")
 
@@ -89,7 +90,8 @@ class Trainer:
                     n_samples = self.mlu_trainer.n_samples
                     batch_size = self.batch_size
                     #batch_size = self.mlu_trainer.sample_batch_size
-                    with torch.autograd.graph.save_on_cpu():
+                    save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext
+                    with save_cm:
                         samples = sample(
                             self.diffusion,
                             batch_size=batch_size, 

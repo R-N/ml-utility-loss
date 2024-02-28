@@ -22,11 +22,15 @@ class MLUtilityTrainer:
         Optim=torch.optim.AdamW,
         lr=1e-3,
         debug=False,
+        save_on_cpu=False,
+        batched=False,
         **optim_kwargs
     ):
         for param in model.parameters():
             param.requires_grad = False
 
+        self.save_on_cpu = save_on_cpu
+        self.batched = batched
         self.model = model
         self.t_steps = t_steps
         self.n_steps = n_steps
@@ -140,7 +144,7 @@ class MLUtilityTrainer:
 
         grads = grads / (self.n_inner_steps * self.n_inner_steps_2)
 
-        if batch_size:
+        if self.batched and batch_size:
             assert grads.shape[0] == samples_0.shape[0]
             n = grads.shape[0]
             grads = [grads[i:i+batch_size] for i in range(0, n, batch_size)]

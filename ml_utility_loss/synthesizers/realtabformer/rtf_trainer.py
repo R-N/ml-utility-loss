@@ -22,6 +22,7 @@ from transformers.pytorch_utils import ALL_LAYERNORM_LAYERS
 from transformers.trainer_pt_utils import get_parameter_names
 from transformers.trainer_utils import ShardedDDPOption
 from transformers.utils import is_sagemaker_mp_enabled
+from contextlib import nullcontext
 
 logger = logging.get_logger(__name__)
 
@@ -72,7 +73,8 @@ class MLUtilityCallback(TrainerCallback):
                 n_samples = self.mlu_trainer.n_samples
                 batch_size = self.batch_size
                 #batch_size=self.mlu_trainer.sample_batch_size
-                with torch.autograd.graph.save_on_cpu():
+                save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext
+                with save_cm:
                     samples = self.sampler.sample(
                         n_samples=n_samples,
                         gen_batch=batch_size,

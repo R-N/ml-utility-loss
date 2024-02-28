@@ -9,6 +9,7 @@ import time
 from torch.autograd import Variable
 from .modules import FCDiscriminator, FCGenerator
 from .ctabgan import Condvec, Sampler
+from contextlib import nullcontext
 
 Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
@@ -176,7 +177,8 @@ class LatentGAN:
                 if self.mlu_trainer and (epoch+1)%self.mlu_trainer.t_steps == 0:
                     for i in range(self.mlu_trainer.n_steps):
                         n_samples = self.mlu_trainer.n_samples
-                        with torch.autograd.graph.save_on_cpu():
+                        save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext
+                        with save_cm:
                             samples = self.sample(n_samples, raw=True)
                         self.mlu_trainer.step(samples, batch_size=self.batch_size)
 

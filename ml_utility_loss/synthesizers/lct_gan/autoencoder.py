@@ -8,6 +8,7 @@ from torch.nn import functional as F
 from torch import nn, optim
 from .modules import FCDecoder, FCEncoder
 from .preprocessing import DataPreprocessor
+from contextlib import nullcontext
 
 Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
@@ -268,7 +269,8 @@ class AutoEncoder(object):
                     samples = []
                     indices = np.random.choice(np.arange(len(data)), n_samples)
                     i = 0
-                    with torch.autograd.graph.save_on_cpu():
+                    save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext
+                    with save_cm:
                         while len(samples) < n_samples:
                             #sample = data_sampler.sample(
                             #    batch_size, col, opt,
