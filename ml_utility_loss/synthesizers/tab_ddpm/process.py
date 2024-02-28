@@ -90,7 +90,7 @@ class Trainer:
                     n_samples = self.mlu_trainer.n_samples
                     batch_size = self.batch_size
                     #batch_size = self.mlu_trainer.sample_batch_size
-                    save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext
+                    save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext()
                     with save_cm:
                         samples = sample(
                             self.diffusion,

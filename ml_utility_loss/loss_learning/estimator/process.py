@@ -942,7 +942,7 @@ def train_epoch(
         if fixed_role_model:
             role_model = fixed_role_model
 
-        save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if save_on_cpu else nullcontext
+        save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if save_on_cpu else nullcontext()
         with save_cm:
             # Compute prediction and loss for all adapters
             computes = {model: {} for model in models}
