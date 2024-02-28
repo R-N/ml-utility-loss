@@ -1900,6 +1900,8 @@ def pred_1(model, inputs, batch_size=4, **kwargs):
     outputs = None
     for batch, batch_dict in enumerate(inputs):
         clear_memory()
+        if isinstance(batch_dict, dict):
+            batch_dict = batch_dict[model.name]
         outputs_i = pred(model, batch_dict, **kwargs)
         if outputs is None:
             outputs = outputs_i
