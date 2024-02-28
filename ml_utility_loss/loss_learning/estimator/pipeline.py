@@ -362,6 +362,7 @@ def train(
     run_name=None,
     forward_once=None,
     synth_data=1,
+    save_on_cpu=False,
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
@@ -520,6 +521,7 @@ def train(
             grad_loss_scale=grad_loss_scale,
             g_loss_mul=g_loss_mul,
             non_role_model_mul=non_role_model_mul,
+            save_on_cpu=save_on_cpu,
             **gradient_penalty_mode,
             **gradient_penalty_kwargs,
         )
