@@ -505,6 +505,7 @@ BEST = {
     "head_final_mul": "identity", 
     "patience": 5,
 }
+BEST_2 = BEST
 
 #other
 #14
@@ -650,6 +651,7 @@ BEST = {
     "head_final_mul": "identity", 
     "patience": 5,
 }
+BEST_1 = BEST
 
 #other
 #32
@@ -792,3 +794,10 @@ BEST = {
     "head_final_mul": "identity", 
     "patience": 5,
 }
+BEST_0 = BEST
+BESTS = [
+    BEST_0,
+    BEST_1,
+    BEST_2,
+]
+

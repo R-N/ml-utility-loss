@@ -486,6 +486,7 @@ BEST = {
     "head_activation_final": "leakyhardsigmoid",
     "patience": 5,
 }
+BEST_2 = BEST
 
 #other
 #0
@@ -620,6 +621,7 @@ BEST = {
     "head_activation_final": "leakyhardsigmoid",
     "patience": 5,
 }
+BEST_1 = BEST
 
 #other
 #29
@@ -753,3 +755,9 @@ BEST = {
     "head_activation_final": "leakyhardsigmoid",
     "patience": 5,
 }
+BEST_0 = BEST
+BESTS = [
+    BEST_0,
+    BEST_1,
+    BEST_2,
+]
