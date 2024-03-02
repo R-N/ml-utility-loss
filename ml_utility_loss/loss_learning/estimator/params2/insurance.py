@@ -51,12 +51,13 @@ DEFAULTS = {
     "grad_clip": 1.0,
     "head_final_mul": "identity",
     "gradient_penalty_mode": "ALL",
+    "synth_data": 2,
 }
 
 PARAM_SPACE = {
     **DEFAULTS,
     # Dataset args
-    "synth_data": ("int", 1, 3), #2
+    #"synth_data": ("int", 1, 3), #2
     "dataset_size": ("int_exp_2", 2048, 2048),
     "batch_size": ("int_exp_2", 4, 8), #8
     # Training args
@@ -66,7 +67,7 @@ PARAM_SPACE = {
     "Optim": ("optimizer", [
         # #"adamw", 
         #"sgdmomentum", 
-        #"amsgradw",
+        "amsgradw",
         # ##"adadelta",
         #"padam", 
         #"nadam",
@@ -119,19 +120,19 @@ PARAM_SPACE = {
     #"bias_final": BOOLEAN,
     #"pma_layer_norm": BOOLEAN,
     "attn_activation": ("activation", [
-        #"tanh",  
-        #"sigmoid", 
-        #"relu",
+        "tanh",  
+        "sigmoid", 
+        "relu",
         "leakyrelu", 
-        #"selu",
-        ##"prelu",
+        "selu",
+        "prelu",
         ## "rrelu",
         ## #"relu6",
         ##"hardtanh",
         ## #"hardsigmoid",
         ## "softsign",
         ## #"identity",
-        ##"leakyhardtanh",
+        "leakyhardtanh",
         ##"leakyhardsigmoid",
     ]),
     #"attn_residual": BOOLEAN,
@@ -146,22 +147,22 @@ PARAM_SPACE = {
     #"tf_n_layers_dec": ("bool_int", 2, 3), #better false
     "tf_n_head": ("int_exp_2", 64, 128), #64
     "tf_activation": ("activation", [
-        ##"tanh", 
+        "tanh", 
         ## #"sigmoid",
         ##"relu", 
-        #"leakyrelu", 
-        #"selu",
-        #"prelu",
+        "leakyrelu", 
+        "selu",
+        "prelu",
         ### "rrelu",
         "relu6",
         ## #hardtanh",
         ##"hardsigmoid",
         ##"softsign",
-        #"leakyhardtanh",
+        "leakyhardtanh",
         "leakyhardsigmoid",
     ]),
     "tf_activation_final": ("activation", [
-        #"leakyhardtanh",
+        "leakyhardtanh",
         "leakyhardsigmoid",
         #"identity",
     ]),
@@ -170,7 +171,7 @@ PARAM_SPACE = {
     # Transformer PMA args
     "tf_pma_low": ("int_exp_2", 8, 64), #16
     "pma_ffn_mode": ("categorical", (
-        #PMAFFNMode.NONE,
+        PMAFFNMode.NONE,
         ##PMAFFNMode.SEPARATE,
         PMAFFNMode.SHARED,
     )),
@@ -180,19 +181,19 @@ PARAM_SPACE = {
     "ada_d_hid": ("int_exp_2", 256, 1024), 
     "ada_n_layers": ("int", 7, 9), #7
     "ada_activation": ("activation", [
-        #"tanh",  
+        "tanh",  
         ##"sigmoid", 
         "relu",
         ##"leakyrelu", 
-        #"selu",
-        #"prelu",
+        "selu",
+        "prelu",
         ##"rrelu",
-        #"relu6",
+        "relu6",
         ##"hardtanh",
         ##"hardsigmoid",
-        ##"softsign",
+        "softsign",
         ##"leakyhardtanh",
-        #"leakyhardsigmoid",
+        "leakyhardsigmoid",
     ]),
     "ada_activation_final": ("activation", [
         ## "tanh", 
@@ -201,9 +202,9 @@ PARAM_SPACE = {
         ##"hardtanh",
         ## #"hardsigmoid",
         "softsign", #best
-        #"identity",
-        #"leakyhardtanh",
-        ##"leakyhardsigmoid",
+        "identity",
+        "leakyhardtanh",
+        "leakyhardsigmoid",
     ]),
     # Head args
     "head_d_hid": ("int_exp_2", 128, 256), 
@@ -217,12 +218,12 @@ PARAM_SPACE = {
         ##"selu", 
         "prelu",
         "rrelu", #best
-        ## "relu6",
+        "relu6",
         ##"hardtanh",
         ## #"hardsigmoid",
-        ##"softsign",
-        #"leakyhardtanh",
-        #"leakyhardsigmoid",
+        "softsign",
+        "leakyhardtanh",
+        "leakyhardsigmoid",
     ]),
     "head_activation_final": ("activation", [
         #"sigmoid", 

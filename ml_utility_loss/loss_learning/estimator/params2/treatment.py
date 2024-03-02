@@ -50,12 +50,13 @@ DEFAULTS = {
     "inds_init_mode": IndsInitMode.FIXNORM,
     "grad_clip": 1.0,
     "gradient_penalty_mode": "ALL",
+    "synth_data": 2,
 }
 
 PARAM_SPACE = {
     **DEFAULTS,
     # Dataset args
-    "synth_data": ("int", 1, 3),#2
+    #"synth_data": ("int", 1, 3),#2
     "dataset_size": ("int_exp_2", 2048, 2048),
     "batch_size": ("int_exp_2", 2, 4),
     # Training args
