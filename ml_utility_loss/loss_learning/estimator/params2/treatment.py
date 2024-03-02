@@ -64,9 +64,9 @@ PARAM_SPACE = {
     "lr_mul": ("log_float", 0.04, 0.1), #rtf
     "lr_mul": ("log_float", 0.03, 0.08), #0.05 0.04
     "lr_mul": ("log_float", 0.035, 0.055), #0.04
-    "n_warmup_steps": ("log_float", 120, 180), #other
-    "n_warmup_steps": ("log_float", 250, 400), #rtf
-    "n_warmup_steps": ("log_float", 200, 220), #220
+    "n_warmup_steps": ("log_int", 120, 180), #other
+    "n_warmup_steps": ("log_int", 250, 400), #rtf
+    "n_warmup_steps": ("log_int", 200, 220), #220
     "Optim": ("optimizer", [
         ### #"adamw", 
         ###"sgdmomentum", 
