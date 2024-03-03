@@ -26,22 +26,23 @@ def objective(
 ):
     clear_memory()
     seed_(seed)
-    train, test = datasets
-
-    model, diffusion, trainer = train_2(
-        train,
-        task=task,
-        target=target,
-        cat_features=cat_features,
-        checkpoint_dir=checkpoint_dir,
-        log_dir=log_dir,
-        trial=trial,
-        **kwargs,
-    )
 
     try:
+        train, test = datasets
+
+        model, diffusion, trainer = train_2(
+            train,
+            task=task,
+            target=target,
+            cat_features=cat_features,
+            checkpoint_dir=checkpoint_dir,
+            log_dir=log_dir,
+            trial=trial,
+            **kwargs,
+        )
         total_value = 0
         for i in range(repeat):
+            clear_memory()
             seed_(i)
             synth = sample(
                 diffusion, 
@@ -71,6 +72,7 @@ def objective(
         raise TrialPruned()
     except CatBoostError:
         raise TrialPruned()
+    clear_memory()
     return total_value
 
 def objective_mlu(

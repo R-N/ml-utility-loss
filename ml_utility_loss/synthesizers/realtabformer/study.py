@@ -29,19 +29,20 @@ def objective(
 ):
     clear_memory()
     seed_(seed)
-    train, test = datasets
-    
-    rtf_model = train_2(
-        train,
-        checkpoint_dir=checkpoint_dir,
-        log_dir=log_dir,
-        trial=trial,
-        **kwargs
-    )
 
     try:
+        train, test = datasets
+        
+        rtf_model = train_2(
+            train,
+            checkpoint_dir=checkpoint_dir,
+            log_dir=log_dir,
+            trial=trial,
+            **kwargs
+        )
         total_value = 0
         for i in range(repeat):
+            clear_memory()
             seed_(i)
             synth = rtf_model.sample(n_samples=len(train))
             value = eval_ml_utility_2(
@@ -67,7 +68,7 @@ def objective(
         raise
     except CatBoostError:
         raise TrialPruned()
-
+    clear_memory()
     return total_value
 
 def objective_mlu(

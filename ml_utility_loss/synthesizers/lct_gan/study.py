@@ -31,43 +31,43 @@ def objective(
 ):
     clear_memory()
     seed_(seed)
-    train, test, *_ = datasets
-
-    #gan_params = filter_dict_2(kwargs, GAN_PARAMS)
-    #ae_params = filter_dict_2(kwargs, AE_PARAMS)
-
-    ae, recon = create_ae_2(
-        train,
-        categorical_columns = cat_features,
-        mixed_columns = mixed_features,
-        integer_columns = integer_features,
-        log_columns=longtail_features,
-        cat_features = cat_features,
-        mixed_features = mixed_features,
-        integer_features = integer_features,
-        longtail_features=longtail_features,
-        checkpoint_dir=checkpoint_dir,
-        log_dir=log_dir,
-        trial=trial,
-        preprocess_df=preprocess_df,
-        **kwargs
-    )
-    
-    for p in ae.parameters():
-        p.requires_grad = False
-
-    gan, synth = create_gan_2(
-        ae, train,
-        sample=None,
-        checkpoint_dir=checkpoint_dir,
-        log_dir=log_dir,
-        trial=trial,
-        **kwargs
-    )
 
     try:
+        train, test, *_ = datasets
+
+        #gan_params = filter_dict_2(kwargs, GAN_PARAMS)
+        #ae_params = filter_dict_2(kwargs, AE_PARAMS)
+        ae, recon = create_ae_2(
+            train,
+            categorical_columns = cat_features,
+            mixed_columns = mixed_features,
+            integer_columns = integer_features,
+            log_columns=longtail_features,
+            cat_features = cat_features,
+            mixed_features = mixed_features,
+            integer_features = integer_features,
+            longtail_features=longtail_features,
+            checkpoint_dir=checkpoint_dir,
+            log_dir=log_dir,
+            trial=trial,
+            preprocess_df=preprocess_df,
+            **kwargs
+        )
+        
+        for p in ae.parameters():
+            p.requires_grad = False
+
+        gan, synth = create_gan_2(
+            ae, train,
+            sample=None,
+            checkpoint_dir=checkpoint_dir,
+            log_dir=log_dir,
+            trial=trial,
+            **kwargs
+        )
         total_value = 0
         for i in range(repeat):
+            clear_memory()
             seed_(i)
             n = len(train)
             synth = gan.sample(n)[:n]
@@ -94,7 +94,7 @@ def objective(
         raise
     except CatBoostError:
         raise TrialPruned()
-
+    clear_memory()
     return total_value
 
 
