@@ -746,6 +746,7 @@ def load_dataset(
     df=None,
     drop_first_column=False,
     reverse_split=True,
+    **kwargs,
 ):
     dtypes = df.dtypes.to_dict() if df is not None else None
     dataset = DatasetDataset(
@@ -754,6 +755,7 @@ def load_dataset(
         all=all, 
         dtypes=dtypes,
         drop_first_column=drop_first_column,
+        **kwargs,
     )
     if stop:
         dataset = dataset.slice(start=start, stop=stop)
