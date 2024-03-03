@@ -769,13 +769,13 @@ BEST_DICT = {
             "tvae": BESTS[2],
             "lct_gan": BESTS[2],
             "realtabformer": BESTS[2],
-            "tab_ddpm_concat": BESTS[0],
+            "tab_ddpm_concat": BESTS[3],
         },
         False: {
             "tvae": BESTS[2],
             "lct_gan": BESTS[2],
             "realtabformer": BESTS[2],
-            "tab_ddpm_concat": BESTS[2],
+            "tab_ddpm_concat": BESTS[3],
         }
     },
     False: {
@@ -783,7 +783,7 @@ BEST_DICT = {
             "tvae": BESTS[2],
             "lct_gan": BESTS[2],
             "realtabformer": BESTS[2],
-            "tab_ddpm_concat": BESTS[1],
+            "tab_ddpm_concat": BESTS[3],
         }
     }
 }
