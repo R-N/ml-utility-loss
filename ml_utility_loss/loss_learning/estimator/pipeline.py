@@ -761,7 +761,6 @@ def load_dataset(
         dataset = dataset.slice(start=start, stop=stop)
     elif start:
         dataset = dataset.slice(start=start)
-    stop = stop or len(dataset)
     dataset = PreprocessedDataset(
         dataset, 
         preprocessor, 
@@ -771,7 +770,7 @@ def load_dataset(
         model=model,
         as_dict=True,
     )
-    dataset.check_cache(list(range(stop)))
+    dataset.check_cache(list(len(dataset)))
     if not ratio:
         #print(len(dataset))
         return dataset
