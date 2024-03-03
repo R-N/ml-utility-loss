@@ -770,7 +770,7 @@ def load_dataset(
         model=model,
         as_dict=True,
     )
-    dataset.check_cache(list(len(dataset)))
+    dataset.check_cache(list(range(len(dataset))))
     if not ratio:
         #print(len(dataset))
         return dataset
