@@ -109,7 +109,7 @@ class LatentGAN:
         non_valid = Variable(Tensor(self.batch_size, 1).fill_(0.0), requires_grad=False)
         # Experimentation purposes
 
-        for epoch in tqdm(range(epochs)):
+        for epoch in range(epochs):
 
             self.generator.train()
             self.discriminator.train()
@@ -222,7 +222,7 @@ class LatentGAN:
         steps = (n // self.batch_size) + 1
         data = []
         print("Number of steps: " + str(steps))
-        for _ in tqdm(range(steps)):
+        for _ in range(steps):
             # generating synthetic data using sampled noise and conditional vectors
             ### Generating a batch
             z = Tensor(np.random.uniform(0, 1, (self.batch_size, self.latent_dim)))

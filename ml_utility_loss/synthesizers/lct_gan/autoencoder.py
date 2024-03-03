@@ -238,7 +238,7 @@ class AutoEncoder(object):
         last_loss = 0
 
         steps = int(len(data) / batch_size)
-        for e in tqdm(range(epochs)):
+        for e in range(epochs):
             for i in range(steps):
                 # sample all conditional vectors for the training
                 _, _, col, opt = cond_generator.sample_train(batch_size)

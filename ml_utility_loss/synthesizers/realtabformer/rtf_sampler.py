@@ -654,80 +654,80 @@ class TabularSampler(REaLSampler):
 
         generated = generated.to(self.model.device)
 
-        with tqdm(total=n_samples) as pbar:
-            pbar_num_gen = 0
-            num_generated = 0
-            empty_limit = continuous_empty_limit
+        #with tqdm(total=n_samples) as pbar:
+        pbar_num_gen = 0
+        num_generated = 0
+        empty_limit = continuous_empty_limit
 
-            while num_generated < n_samples:
-                # https://huggingface.co/docs/transformers/internal/generation_utils
-                sample_outputs = self._generate(
-                    device=device,
-                    as_numpy=not raw,
-                    constrain_tokens_gen=constrain_tokens_gen,
-                    inputs=generated,
-                    do_sample=True,
-                    max_length=self.max_length,
-                    num_return_sequences=gen_batch,
-                    bos_token_id=self.vocab["token2id"][SpecialTokens.BOS],
-                    pad_token_id=self.vocab["token2id"][SpecialTokens.PAD],
-                    eos_token_id=self.vocab["token2id"][SpecialTokens.EOS],
-                    suppress_tokens=suppress_tokens,
-                    forced_decoder_ids=forced_decoder_ids,
-                    raw=raw,
-                    **generate_kwargs,
-                )
+        while num_generated < n_samples:
+            # https://huggingface.co/docs/transformers/internal/generation_utils
+            sample_outputs = self._generate(
+                device=device,
+                as_numpy=not raw,
+                constrain_tokens_gen=constrain_tokens_gen,
+                inputs=generated,
+                do_sample=True,
+                max_length=self.max_length,
+                num_return_sequences=gen_batch,
+                bos_token_id=self.vocab["token2id"][SpecialTokens.BOS],
+                pad_token_id=self.vocab["token2id"][SpecialTokens.PAD],
+                eos_token_id=self.vocab["token2id"][SpecialTokens.EOS],
+                suppress_tokens=suppress_tokens,
+                forced_decoder_ids=forced_decoder_ids,
+                raw=raw,
+                **generate_kwargs,
+            )
 
-                self.total_gen_samples += len(sample_outputs)
+            self.total_gen_samples += len(sample_outputs)
 
-                if raw:
-                    synth_sample = sample_outputs
+            if raw:
+                synth_sample = sample_outputs
+            else:
+                self.invalid_gen_samples += len(sample_outputs)
+                try:
+                    sample_outputs_1 = sample_outputs
+                    if torch.is_tensor(sample_outputs_1):
+                        sample_outputs_1 = sample_outputs_1.detach().cpu().numpy()
+                    synth_sample = self.processes_sample(
+                        sample_outputs=sample_outputs_1,
+                        vocab=self.vocab,
+                        validator=validator,
+                    )
+                    empty_limit = continuous_empty_limit
+                    self.invalid_gen_samples -= len(synth_sample)
+                    if raw:
+                        idx = synth_sample.index.values.astype(int)
+                        synth_sample = sample_outputs[idx]
+
+                except SampleEmptyError as exc:
+                    logging.warning("This batch returned an empty valid synth_sample!")
+                    empty_limit -= 1
+                    if empty_limit <= 0:
+                        raise SampleEmptyLimitError(
+                            f"The model has generated empty sample batches for {continuous_empty_limit} consecutive rounds!"
+                        ) from exc
+                    continue
+
+            if synth_df is None:
+                synth_df = synth_sample
+            else:
+                if not raw:
+                    synth_df = pd.concat([synth_df, synth_sample])
                 else:
-                    self.invalid_gen_samples += len(sample_outputs)
                     try:
-                        sample_outputs_1 = sample_outputs
-                        if torch.is_tensor(sample_outputs_1):
-                            sample_outputs_1 = sample_outputs_1.detach().cpu().numpy()
-                        synth_sample = self.processes_sample(
-                            sample_outputs=sample_outputs_1,
-                            vocab=self.vocab,
-                            validator=validator,
-                        )
-                        empty_limit = continuous_empty_limit
-                        self.invalid_gen_samples -= len(synth_sample)
-                        if raw:
-                            idx = synth_sample.index.values.astype(int)
-                            synth_sample = sample_outputs[idx]
+                        synth_df = torch.cat([synth_df, synth_sample])
+                    except RuntimeError as ex:
+                        msg = str(ex)
+                        if "Sizes of tensors must match" in msg:
+                            continue
+                        else:
+                            raise
 
-                    except SampleEmptyError as exc:
-                        logging.warning("This batch returned an empty valid synth_sample!")
-                        empty_limit -= 1
-                        if empty_limit <= 0:
-                            raise SampleEmptyLimitError(
-                                f"The model has generated empty sample batches for {continuous_empty_limit} consecutive rounds!"
-                            ) from exc
-                        continue
+            num_generated += len(synth_sample)
 
-                if synth_df is None:
-                    synth_df = synth_sample
-                else:
-                    if not raw:
-                        synth_df = pd.concat([synth_df, synth_sample])
-                    else:
-                        try:
-                            synth_df = torch.cat([synth_df, synth_sample])
-                        except RuntimeError as ex:
-                            msg = str(ex)
-                            if "Sizes of tensors must match" in msg:
-                                continue
-                            else:
-                                raise
-
-                num_generated += len(synth_sample)
-
-                # Update process bar
-                pbar.update(num_generated - pbar_num_gen)
-                pbar_num_gen = num_generated
+            # Update process bar
+            #pbar.update(num_generated - pbar_num_gen)
+            pbar_num_gen = num_generated
 
         if not raw:
             synth_df = synth_df.sample(

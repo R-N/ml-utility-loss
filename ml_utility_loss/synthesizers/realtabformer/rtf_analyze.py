@@ -710,14 +710,14 @@ class SyntheticDataBench:
             n_jobs = min(max(2, cpu_count // 4), 16)
 
         if n_jobs == 1:
-            for _ in tqdm(range(num_bootstrap), desc="Bootstrap round"):
+            for _ in range(num_bootstrap):
                 values.append(bootstrap_inner_loop())
         else:
             print("Using parallel computation!!!")
             with joblib.Parallel(n_jobs=n_jobs) as parallel:
                 values = parallel(
                     joblib.delayed(bootstrap_inner_loop)()
-                    for _ in tqdm(range(num_bootstrap), desc="Bootstrap round")
+                    for _ in range(num_bootstrap)
                 )
 
         print("Sensitivity threshold summary:")
