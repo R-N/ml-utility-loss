@@ -58,11 +58,11 @@ PARAM_SPACE = {
     # Dataset args
     #"synth_data": ("int", 1, 3), #3
     "dataset_size": ("int_exp_2", 2048, 2048),
-    "batch_size": ("int_exp_2", 4, 8), #same so 4 is fine
+    "batch_size": ("int_exp_2", 2, 4), #4
     # Training args
-    "epochs": ("log_int", 40, 80),
+    "epochs": ("log_int", 70, 80), #80
     "lr_mul": ("log_float", 0.07, 0.1),
-    "n_warmup_steps": ("log_int", 100, 160),
+    "n_warmup_steps": ("log_int", 100, 140), #100
     "Optim": ("optimizer", [
         # #"adamw", 
         #"sgdmomentum", 
@@ -72,21 +72,21 @@ PARAM_SPACE = {
         #"nadam",
         #"adabound",
         # ##"adahessian",
-        "adamp",
-        "diffgrad",
+        #"adamp",
+        #"diffgrad",
         # "qhadam",
         # #"yogi",
     ]),
     # Training args
     "loss_balancer_meta": ("dict", {
         "loss_balancer_meta": True,
-        "loss_balancer_beta": ("float", 0.65, 0.71),
-        "loss_balancer_r": ("float", 0.94, 0.955),
+        "loss_balancer_beta": ("float", 0.67, 0.71), #0.67
+        "loss_balancer_r": ("float", 0.94, 0.95), #0.943
     }),
     #"loss_fn": ("loss", "mse"),
     "grad_loss_fn": ("loss", [
         "mse", 
-        "mae", 
+        "mae", #best
     ]),
     "fixed_role_model": ("categorical", [
         #None, 
@@ -101,14 +101,8 @@ PARAM_SPACE = {
     ]),
     "mse_mag": ("dict", {
         "mse_mag": True,
-        "mse_mag_target": ("log_float", 0.06, 1.0), #other
-        "mse_mag_target": ("log_float", 0.006, 0.1), #rtf
-        "mse_mag_target": ("log_float", 0.006, 1.0), #union
-        "mse_mag_target": ("log_float", 0.2, 1.0), #other
-        "mse_mag_target": ("log_float", 0.01, 0.1), #rtf
-        "mse_mag_target": ("log_float", 0.01, 0.1), #intersection
         "mse_mag_target": ("log_float", 0.1, 0.7),
-        "mse_mag_multiply": BOOLEAN,
+        "mse_mag_multiply": True,
     }),
     # Common model args
     "d_model": ("int_exp_2", 128, 256), #256
@@ -116,21 +110,23 @@ PARAM_SPACE = {
     "grad_clip": ("log_float", 0.8, 1.0), #other
     "grad_clip": ("log_float", 0.6, 0.75), #rtf
     "grad_clip": ("log_float", 0.7, 0.85),
+    "grad_clip": ("log_float", 0.7, 0.76), #0.74
+    "grad_clip": ("log_float", 0.7, 0.73), #0.73
     #"bias": BOOLEAN,
     #"bias_final": BOOLEAN,
     #"pma_layer_norm": BOOLEAN,
     "attn_activation": ("activation", [
         ##"tanh",  
         ##"sigmoid", 
-        "relu",
-        "leakyrelu", 
+        #"relu",
+        #"leakyrelu", 
         ##"selu",
         "prelu", 
         ##"rrelu",
         ##"relu6",
         ##"hardtanh",
         ##"hardsigmoid",
-        "softsign",
+        #"softsign",
         ##"identity",
         "leakyhardtanh",
         ##"leakyhardsigmoid",
@@ -148,49 +144,49 @@ PARAM_SPACE = {
     "tf_n_head": ("int_exp_2", 32, 64), #32
     "tf_activation": ("activation", [
         "tanh", 
-        ## #"sigmoid",
-        "relu", 
-        "leakyrelu", 
-        "selu",
-        ##"prelu",
-        ## "rrelu",
-        "relu6",
-        ## #"hardtanh",
-        ##"hardsigmoid",
-        ## "softsign",
-        "leakyhardtanh", #best
-        ##"leakyhardsigmoid",
+        ### #"sigmoid",
+        ##"relu", 
+        ##"leakyrelu", 
+        ##"selu",
+        ###"prelu",
+        ### "rrelu",
+        ##"relu6",
+        ### #"hardtanh",
+        ###"hardsigmoid",
+        ### "softsign",
+        "leakyhardtanh",
+        ###"leakyhardsigmoid",
     ]),
     "tf_activation_final": ("activation", [
         "leakyhardtanh",
         #"leakyhardsigmoid",
         #"identity",
     ]),
-    "tf_num_inds": ("int_exp_2", 16, 128), #64
+    "tf_num_inds": ("int_exp_2", 32, 128), #128
     #"tf_layer_norm": BOOLEAN,
     # Transformer PMA args
-    "tf_pma_low": ("int_exp_2", 4, 16), #8 is good
+    "tf_pma_low": ("int_exp_2", 4, 16), #16
     "pma_ffn_mode": ("categorical", (
         PMAFFNMode.NONE,
-        #PMAFFNMode.SEPARATE,
-        PMAFFNMode.SHARED,#best
+        ##PMAFFNMode.SEPARATE,
+        #PMAFFNMode.SHARED,
     )),
     # Adapter args
     "ada_d_hid": ("int_exp_2", 512, 1024), 
-    "ada_n_layers": ("int", 8, 9), 
+    "ada_n_layers": ("int", 8, 9), #9
     "ada_activation": ("activation", [
-        "tanh",  
+        #"tanh",  
         ## #"sigmoid", 
         ##"relu",
         ## #"leakyrelu", 
-        "selu",
+        #"selu",
         ## #"prelu",
         ## #"rrelu",
-        "relu6",
+        #"relu6",
         ## #"hardtanh",
         ## #"hardsigmoid",
         "softsign",
-        "leakyhardtanh",
+        #"leakyhardtanh",
         ##"leakyhardsigmoid",
     ]),
     "ada_activation_final": ("activation", [
@@ -199,26 +195,26 @@ PARAM_SPACE = {
         #"identity",
     ]),
     # Head args
-    "head_d_hid": ("int_exp_2", 256, 512), 
+    "head_d_hid": ("int_exp_2", 256, 512), #256
     "head_n_layers": ("int", 8, 9), #8
-    "head_n_head": ("int_exp_2", 16, 64), #32
+    "head_n_head": ("int_exp_2", 32, 64), #32
     "head_activation": ("activation", [
-        ##"tanh",  
-        "sigmoid", 
-        ##"relu",
-        ##"leakyrelu", 
-        #"selu",
-        ##"prelu",
-        ##"rrelu",
-        "relu6",
-        ##"hardtanh",
-        ##"hardsigmoid",
+        ###"tanh",  
+        ##"sigmoid", 
+        ###"relu",
+        ###"leakyrelu", 
+        ##"selu",
+        ###"prelu",
+        ###"rrelu",
+        #"relu6",
+        ###"hardtanh",
+        ###"hardsigmoid",
         "softsign",
-        "leakyhardtanh",
-        ##"leakyhardsigmoid",
+        ##"leakyhardtanh",
+        ###"leakyhardsigmoid",
     ]),
     "head_activation_final": ("activation", [
-        "sigmoid", 
+        #"sigmoid", 
         ##"hardsigmoid",
         "leakyhardsigmoid",
     ]),

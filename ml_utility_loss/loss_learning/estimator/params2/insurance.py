@@ -61,33 +61,28 @@ PARAM_SPACE = {
     "dataset_size": ("int_exp_2", 2048, 2048),
     "batch_size": ("int_exp_2", 4, 8), #8
     # Training args
-    "epochs": ("log_int", 40, 80),
+    "epochs": ("log_int", 40, 80), #70
     "lr_mul": ("log_float", 0.075, 0.1),
-    "n_warmup_steps": ("log_int", 80, 160), #100
+    "n_warmup_steps": ("log_int", 90, 150), #100
     "Optim": ("optimizer", [
-        # #"adamw", 
-        #"sgdmomentum", 
-        "amsgradw",
-        # ##"adadelta",
-        #"padam", 
-        #"nadam",
-        #"adabound",
-        # ##"adahessian",
-        "adamp", #rtf
+        # # #"adamw", 
+        # #"sgdmomentum", 
+        # #"amsgradw",
+        # # ##"adadelta",
+        # #"padam", 
+        # #"nadam",
+        # #"adabound",
+        # # ##"adahessian",
+        # "adamp", #rtf
         "diffgrad", #other
-        # "qhadam",
-        # #"yogi",
+        # # "qhadam",
+        # # #"yogi",
     ]),
     # Training args
     "loss_balancer_meta": ("dict", {
         "loss_balancer_meta": True,
-        "loss_balancer_beta": ("float", 0.8, 0.85), #other
-        "loss_balancer_beta": ("float", 0.6, 0.65), #rtf
-        "loss_balancer_beta": ("float", 0.65, 0.8),
-        "loss_balancer_r": ("float", 0.92, 0.94),
-        "loss_balancer_r": ("float", 0.96, 0.98), #rtf
-        "loss_balancer_r": ("float", 0.92, 0.98),
-        "loss_balancer_r": ("float", 0.96, 0.98),
+        "loss_balancer_beta": ("float", 0.775, 0.8), #0.79
+        "loss_balancer_r": ("float", 0.94, 0.98), #0.96
     }),
     #"loss_fn": ("loss", "mse"),
     "grad_loss_fn": ("loss", [ 
@@ -107,33 +102,30 @@ PARAM_SPACE = {
     ]),
     "mse_mag": ("dict", {
         "mse_mag": True,
-        "mse_mag_target": ("log_float", 0.1, 0.3), #other
-        "mse_mag_target": ("log_float", 0.04, 0.09), #rtf
-        "mse_mag_target": ("log_float", 0.04, 0.14), #0.1
         "mse_mag_target": ("log_float", 0.1, 1.0), #0.1
-        "mse_mag_multiply": BOOLEAN,
+        "mse_mag_multiply": True,
     }),
     # Common model args
     "d_model": ("int_exp_2", 256, 512), #256
     #"dropout": ("bool_float", 0.15, 0.5), 
-    "grad_clip": ("log_float", 0.65, 0.8), #0.77
+    "grad_clip": ("log_float", 0.69, 0.75), #0.7
     #"bias": BOOLEAN,
     #"bias_final": BOOLEAN,
     #"pma_layer_norm": BOOLEAN,
     "attn_activation": ("activation", [
-        "tanh",  
-        "sigmoid", 
-        "relu",
+        #"tanh",  
+        #"sigmoid", 
+        #"relu",
         "leakyrelu", 
-        "selu",
-        "prelu",
+        #"selu",
+        ##"prelu",
         ## "rrelu",
         ## #"relu6",
         ##"hardtanh",
         ## #"hardsigmoid",
         ## "softsign",
         ## #"identity",
-        "leakyhardtanh",
+        ##"leakyhardtanh",
         ##"leakyhardsigmoid",
     ]),
     #"attn_residual": BOOLEAN,
@@ -155,7 +147,7 @@ PARAM_SPACE = {
         #"selu",
         #"prelu",
         ### "rrelu",
-        #"relu6",
+        "relu6",
         ## #hardtanh",
         ##"hardsigmoid",
         ##"softsign",
@@ -163,16 +155,16 @@ PARAM_SPACE = {
         "leakyhardsigmoid",
     ]),
     "tf_activation_final": ("activation", [
-        "leakyhardtanh",
+        #"leakyhardtanh",
         "leakyhardsigmoid",
         #"identity",
     ]),
-    "tf_num_inds": ("int_exp_2", 32, 128), #64
+    "tf_num_inds": ("int_exp_2", 32, 64), #64
     #"tf_layer_norm": BOOLEAN,
     # Transformer PMA args
-    "tf_pma_low": ("int_exp_2", 8, 64), #16
+    "tf_pma_low": ("int_exp_2", 16, 32), #16
     "pma_ffn_mode": ("categorical", (
-        PMAFFNMode.NONE,
+        #PMAFFNMode.NONE,
         ##PMAFFNMode.SEPARATE,
         PMAFFNMode.SHARED,
     )),
@@ -182,19 +174,19 @@ PARAM_SPACE = {
     "ada_d_hid": ("int_exp_2", 256, 1024), #256
     "ada_n_layers": ("int", 7, 9), #7
     "ada_activation": ("activation", [
-        "tanh",  
+        #"tanh",  
         ##"sigmoid", 
         "relu",
         ##"leakyrelu", 
-        "selu",
-        "prelu",
+        #"selu",
+        #"prelu",
         ##"rrelu",
-        "relu6",
+        #"relu6",
         ##"hardtanh",
         ##"hardsigmoid",
-        "softsign",
+        ##"softsign",
         ##"leakyhardtanh",
-        "leakyhardsigmoid",
+        #"leakyhardsigmoid",
     ]),
     "ada_activation_final": ("activation", [
         ## "tanh", 
