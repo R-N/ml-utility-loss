@@ -47,6 +47,7 @@ class LatentGAN:
         self.decoder=decoder
         self.scaler=scaler
         self.mlu_trainer = mlu_trainer
+        self log_every = 10
 
         self.prepare_training()
 
@@ -182,10 +183,10 @@ class LatentGAN:
                             samples = self.sample(n_samples, raw=True)
                         self.mlu_trainer.step(samples, batch_size=self.batch_size)
 
-
-            print("[Epoch %d/%d] [D loss: %f] [G loss: %f]" 
-                % (epoch + 1, epochs, loss_d.item(), loss_g.item())
-            )
+            if (epoch +1) % self.log_every == 0:
+                print("[Epoch %d/%d] [D loss: %f] [G loss: %f]" 
+                    % (epoch + 1, epochs, loss_d.item(), loss_g.item())
+                )
 
     def compute_gradient_penalty(self, D, real_samples, fake_samples):
 
