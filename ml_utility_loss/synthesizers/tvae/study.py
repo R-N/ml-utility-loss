@@ -19,7 +19,7 @@ def objective(
     log_dir=None,
     trial=None,
     diff=False,
-    seed=42,
+    seed=0,
     repeat=5,
     **kwargs
 ):

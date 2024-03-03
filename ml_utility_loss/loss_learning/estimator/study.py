@@ -15,7 +15,7 @@ def objective(
     std_loss_mul=0.1,
     g_loss_mul=0.001,
     allow_same_prediction=False,
-    seed=42,
+    seed=0,
     **kwargs
 ):
     clear_memory()

@@ -25,7 +25,7 @@ def objective(
     trial=None,
     diff=False,
     preprocess_df=None,
-    seed=42,
+    seed=0,
     repeat=5,
     **kwargs
 ):
