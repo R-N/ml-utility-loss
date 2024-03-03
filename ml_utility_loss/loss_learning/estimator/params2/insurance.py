@@ -840,3 +840,29 @@ BESTS = [
     BEST_2,
     BEST_3,
 ]
+
+BEST_DICT = {
+    True: {
+        True: {
+            "tvae": BESTS[0],
+            "lct_gan": BESTS[0],
+            "realtabformer": BESTS[2],
+            "tab_ddpm_concat": BESTS[2],
+        },
+        False: {
+            "tvae": BESTS[0],
+            "lct_gan": BESTS[0],
+            "realtabformer": BESTS[0],
+            "tab_ddpm_concat": BESTS[1],
+        }
+    },
+    False: {
+        False: {
+            "tvae": BESTS[2],
+            "lct_gan": BESTS[2],
+            "realtabformer": BESTS[0],
+            "tab_ddpm_concat": BESTS[2],
+        }
+    }
+}
+BEST_DICT[False][True] = BEST_DICT[False][False]
