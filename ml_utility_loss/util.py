@@ -342,6 +342,8 @@ def transpose_dict(y):
     return {key: {k: v[key] for k, v in y.items()} for key in keys}
 
 def seed(seed):
+    if seed is None:
+        return
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
