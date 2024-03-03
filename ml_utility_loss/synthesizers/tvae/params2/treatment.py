@@ -1,16 +1,16 @@
 PARAM_SPACE = {
     "n_samples": ("int_exp_2", 512, 4096),
     #"sample_batch_size": ("int_exp_2", 64, 512),
-    "t_steps": ("int", 7, 8),
+    "t_steps": ("int", 5, 10),
     "mlu_target": ("categorical", [
         None, 
         1.0
     ]),
-    "n_steps": ("int", 1, 2),
-    "n_inner_steps": ("int_exp_2", 4, 8),
-    "n_inner_steps_2": ("int_exp_2", 1, 2),
+    "n_steps": ("int", 1, 4),
+    "n_inner_steps": ("int_exp_2", 1, 8),
+    "n_inner_steps_2": ("int_exp_2", 1, 4),
     "loss_fn": ("loss", [
-        #"mse",
+        "mse",
         "mae",
     ]),
     "loss_mul": 1.0,
@@ -20,7 +20,7 @@ PARAM_SPACE = {
         "adamp",
         #"diffgrad",
     ]),
-    "mlu_lr": ("log_float", 1e-6, 2e-5),
+    "mlu_lr": ("log_float", 1e-6, 1e-3),
 }
 #121
 #0.6189555125725339
