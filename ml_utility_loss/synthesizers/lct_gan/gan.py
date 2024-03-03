@@ -47,7 +47,7 @@ class LatentGAN:
         self.decoder=decoder
         self.scaler=scaler
         self.mlu_trainer = mlu_trainer
-        self log_every = 10
+        self.log_every = 10
 
         self.prepare_training()
 
