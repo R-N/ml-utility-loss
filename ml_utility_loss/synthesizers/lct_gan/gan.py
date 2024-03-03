@@ -221,7 +221,7 @@ class LatentGAN:
         # generating synthetic data in batches accordingly to the total no. required
         steps = (n // self.batch_size) + 1
         data = []
-        print("Number of steps: " + str(steps))
+        #print("Number of steps: " + str(steps))
         for _ in range(steps):
             # generating synthetic data using sampled noise and conditional vectors
             ### Generating a batch
@@ -239,7 +239,7 @@ class LatentGAN:
             data = np.concatenate(data)
         else:
             data = torch.cat(data)#.type("torch.FloatTensor")
-        print("Sampled data length", len(data), data.dtype, torch.is_tensor(data), raw)
+        #print("Sampled data length", len(data), data.dtype, torch.is_tensor(data), raw)
 
         if self.scaler:
             data = self.scaler.inverse_transform(data)
@@ -254,6 +254,6 @@ class LatentGAN:
             else:
                 data = torch.cat(data)
         data = data[:n]
-        print("Decoded data length", len(data))
+        #print("Decoded data length", len(data))
 
         return data
