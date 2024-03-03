@@ -60,7 +60,7 @@ PARAM_SPACE = {
     "dataset_size": ("int_exp_2", 2048, 2048),
     "batch_size": ("int_exp_2", 2, 4), #4
     # Training args
-    "epochs": ("log_int", 70, 80), #80
+    "epochs": ("log_int", 52, 80), #80
     "lr_mul": ("log_float", 0.07, 0.1),
     "n_warmup_steps": ("log_int", 100, 140), #100
     "Optim": ("optimizer", [
@@ -150,7 +150,7 @@ PARAM_SPACE = {
         ##"selu",
         ###"prelu",
         ### "rrelu",
-        ##"relu6",
+        "relu6",
         ### #"hardtanh",
         ###"hardsigmoid",
         ### "softsign",
@@ -162,14 +162,14 @@ PARAM_SPACE = {
         #"leakyhardsigmoid",
         #"identity",
     ]),
-    "tf_num_inds": ("int_exp_2", 32, 128), #128
+    "tf_num_inds": ("int_exp_2", 16, 128), #128
     #"tf_layer_norm": BOOLEAN,
     # Transformer PMA args
     "tf_pma_low": ("int_exp_2", 4, 16), #16
     "pma_ffn_mode": ("categorical", (
         PMAFFNMode.NONE,
         ##PMAFFNMode.SEPARATE,
-        #PMAFFNMode.SHARED,
+        PMAFFNMode.SHARED,
     )),
     # Adapter args
     "ada_d_hid": ("int_exp_2", 512, 1024), 
@@ -197,7 +197,7 @@ PARAM_SPACE = {
     # Head args
     "head_d_hid": ("int_exp_2", 256, 512), #256
     "head_n_layers": ("int", 8, 9), #8
-    "head_n_head": ("int_exp_2", 32, 64), #32
+    "head_n_head": ("int_exp_2", 16, 64), #32
     "head_activation": ("activation", [
         ###"tanh",  
         ##"sigmoid", 
@@ -206,7 +206,7 @@ PARAM_SPACE = {
         ##"selu",
         ###"prelu",
         ###"rrelu",
-        #"relu6",
+        "relu6",
         ###"hardtanh",
         ###"hardsigmoid",
         "softsign",

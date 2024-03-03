@@ -63,7 +63,7 @@ PARAM_SPACE = {
     # Training args
     "epochs": ("log_int", 40, 80), #70
     "lr_mul": ("log_float", 0.075, 0.1),
-    "n_warmup_steps": ("log_int", 90, 150), #100
+    "n_warmup_steps": ("log_int", 85, 150), #100
     "Optim": ("optimizer", [
         # # #"adamw", 
         # #"sgdmomentum", 
@@ -81,7 +81,7 @@ PARAM_SPACE = {
     # Training args
     "loss_balancer_meta": ("dict", {
         "loss_balancer_meta": True,
-        "loss_balancer_beta": ("float", 0.775, 0.8), #0.79
+        "loss_balancer_beta": ("float", 0.75, 0.8), #0.79
         "loss_balancer_r": ("float", 0.94, 0.98), #0.96
     }),
     #"loss_fn": ("loss", "mse"),
@@ -114,7 +114,7 @@ PARAM_SPACE = {
     #"pma_layer_norm": BOOLEAN,
     "attn_activation": ("activation", [
         #"tanh",  
-        #"sigmoid", 
+        "sigmoid", 
         #"relu",
         "leakyrelu", 
         #"selu",
@@ -155,14 +155,14 @@ PARAM_SPACE = {
         "leakyhardsigmoid",
     ]),
     "tf_activation_final": ("activation", [
-        #"leakyhardtanh",
+        "leakyhardtanh",
         "leakyhardsigmoid",
         #"identity",
     ]),
     "tf_num_inds": ("int_exp_2", 32, 64), #64
     #"tf_layer_norm": BOOLEAN,
     # Transformer PMA args
-    "tf_pma_low": ("int_exp_2", 16, 32), #16
+    "tf_pma_low": ("int_exp_2", 16, 64), #16
     "pma_ffn_mode": ("categorical", (
         #PMAFFNMode.NONE,
         ##PMAFFNMode.SEPARATE,
@@ -181,7 +181,7 @@ PARAM_SPACE = {
         #"selu",
         #"prelu",
         ##"rrelu",
-        #"relu6",
+        "relu6",
         ##"hardtanh",
         ##"hardsigmoid",
         ##"softsign",
