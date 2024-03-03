@@ -62,7 +62,7 @@ PARAM_SPACE = {
     # Training args
     "epochs": ("log_int", 40, 80),
     "lr_mul": ("log_float", 0.07, 0.1),
-    "n_warmup_steps": ("log_int", 80, 160),
+    "n_warmup_steps": ("log_int", 100, 160),
     "Optim": ("optimizer", [
         # #"adamw", 
         #"sgdmomentum", 
@@ -107,7 +107,7 @@ PARAM_SPACE = {
         "mse_mag_target": ("log_float", 0.2, 1.0), #other
         "mse_mag_target": ("log_float", 0.01, 0.1), #rtf
         "mse_mag_target": ("log_float", 0.01, 0.1), #intersection
-        "mse_mag_target": ("log_float", 0.1, 1.0),
+        "mse_mag_target": ("log_float", 0.1, 0.7),
         "mse_mag_multiply": BOOLEAN,
     }),
     # Common model args
@@ -207,7 +207,7 @@ PARAM_SPACE = {
         "sigmoid", 
         ##"relu",
         ##"leakyrelu", 
-        "selu",
+        #"selu",
         ##"prelu",
         ##"rrelu",
         "relu6",
@@ -719,8 +719,51 @@ BEST = {
     "patience": 4,
 }
 BEST_0 = BEST
+
+#tab
+#0
+#0.04610815644264221
+BEST = {
+    'mse_mag_multiply': False,
+    'loss_balancer_beta': 0.6806661100374879,
+    'loss_balancer_r': 0.9427716710925113,
+    'tf_pma_low_exp_2': 2,
+    'grad_loss_fn': 'mse',
+    'pma_ffn_mode': 'shared',
+    'patience': 5,
+    'inds_init_mode': 'fixnorm',
+    'grad_clip': 0.7494458230986923,
+    'gradient_penalty_mode': 'ALL',
+    'dataset_size_exp_2': 11,
+    'batch_size_exp_2': 2,
+    'epochs': 52,
+    'lr_mul': 0.07424782199493057,
+    'n_warmup_steps': 104,
+    'Optim': 'amsgradw',
+    'fixed_role_model': 'tab_ddpm_concat',
+    'mse_mag_target': 0.20359405820922769,
+    'd_model_exp_2': 7,
+    'attn_activation': 'leakyhardtanh',
+    'tf_d_inner_exp_2': 9,
+    'tf_n_layers_enc': 3,
+    'tf_n_head_exp_2': 5,
+    'tf_activation': 'relu6',
+    'tf_activation_final': 'leakyhardtanh',
+    'tf_num_inds_exp_2': 4,
+    'ada_d_hid_exp_2': 10,
+    'ada_n_layers': 8,
+    'ada_activation': 'softsign',
+    'ada_activation_final': 'leakyhardsigmoid',
+    'head_d_hid_exp_2': 8,
+    'head_n_layers': 8,
+    'head_n_head_exp_2': 4,
+    'head_activation': 'relu6',
+    'head_activation_final': 'leakyhardsigmoid'
+}
+BEST_3 = BEST
 BESTS = [
     BEST_0,
     BEST_1,
     BEST_2,
+    BEST_3,
 ]

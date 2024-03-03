@@ -62,7 +62,7 @@ PARAM_SPACE = {
     "batch_size": ("int_exp_2", 4, 8), #8
     # Training args
     "epochs": ("log_int", 40, 80),
-    "lr_mul": ("log_float", 0.05, 0.1),
+    "lr_mul": ("log_float", 0.075, 0.1),
     "n_warmup_steps": ("log_int", 80, 160), #100
     "Optim": ("optimizer", [
         # #"adamw", 
@@ -83,10 +83,11 @@ PARAM_SPACE = {
         "loss_balancer_meta": True,
         "loss_balancer_beta": ("float", 0.8, 0.85), #other
         "loss_balancer_beta": ("float", 0.6, 0.65), #rtf
-        "loss_balancer_beta": ("float", 0.65, 0.85),
+        "loss_balancer_beta": ("float", 0.65, 0.8),
         "loss_balancer_r": ("float", 0.92, 0.94),
         "loss_balancer_r": ("float", 0.96, 0.98), #rtf
         "loss_balancer_r": ("float", 0.92, 0.98),
+        "loss_balancer_r": ("float", 0.96, 0.98),
     }),
     #"loss_fn": ("loss", "mse"),
     "grad_loss_fn": ("loss", [ 
@@ -109,7 +110,7 @@ PARAM_SPACE = {
         "mse_mag_target": ("log_float", 0.1, 0.3), #other
         "mse_mag_target": ("log_float", 0.04, 0.09), #rtf
         "mse_mag_target": ("log_float", 0.04, 0.14), #0.1
-        "mse_mag_target": ("log_float", 0.1, 1.0),
+        "mse_mag_target": ("log_float", 0.1, 1.0), #0.1
         "mse_mag_multiply": BOOLEAN,
     }),
     # Common model args
@@ -142,7 +143,7 @@ PARAM_SPACE = {
         #IndsInitMode.XAVIER,
     ]),
     # Transformer args
-    "tf_d_inner": ("int_exp_2", 256, 512), #512
+    "tf_d_inner": ("int_exp_2", 256, 512), #256
     "tf_n_layers_enc": ("int", 4, 5),  
     #"tf_n_layers_dec": ("bool_int", 2, 3), #better false
     "tf_n_head": ("int_exp_2", 64, 128), #64
@@ -151,14 +152,14 @@ PARAM_SPACE = {
         ## #"sigmoid",
         ##"relu", 
         "leakyrelu", 
-        "selu",
-        "prelu",
+        #"selu",
+        #"prelu",
         ### "rrelu",
-        "relu6",
+        #"relu6",
         ## #hardtanh",
         ##"hardsigmoid",
         ##"softsign",
-        "leakyhardtanh",
+        #"leakyhardtanh",
         "leakyhardsigmoid",
     ]),
     "tf_activation_final": ("activation", [
@@ -166,7 +167,7 @@ PARAM_SPACE = {
         "leakyhardsigmoid",
         #"identity",
     ]),
-    "tf_num_inds": ("int_exp_2", 32, 128), #32
+    "tf_num_inds": ("int_exp_2", 32, 128), #64
     #"tf_layer_norm": BOOLEAN,
     # Transformer PMA args
     "tf_pma_low": ("int_exp_2", 8, 64), #16
@@ -178,7 +179,7 @@ PARAM_SPACE = {
     # Adapter args
     "ada_d_hid": ("int_exp_2", 256, 512), #other
     "ada_d_hid": ("int_exp_2", 1024, 2048), #rtf
-    "ada_d_hid": ("int_exp_2", 256, 1024), 
+    "ada_d_hid": ("int_exp_2", 256, 1024), #256
     "ada_n_layers": ("int", 7, 9), #7
     "ada_activation": ("activation", [
         "tanh",  
@@ -202,9 +203,9 @@ PARAM_SPACE = {
         ##"hardtanh",
         ## #"hardsigmoid",
         "softsign", #best
-        "identity",
+        #"identity",
         "leakyhardtanh",
-        "leakyhardsigmoid",
+        #"leakyhardsigmoid",
     ]),
     # Head args
     "head_d_hid": ("int_exp_2", 128, 256), 
@@ -221,9 +222,9 @@ PARAM_SPACE = {
         "relu6",
         ##"hardtanh",
         ## #"hardsigmoid",
-        "softsign",
-        "leakyhardtanh",
-        "leakyhardsigmoid",
+        # "softsign",
+        # "leakyhardtanh",
+        # "leakyhardsigmoid",
     ]),
     "head_activation_final": ("activation", [
         #"sigmoid", 
@@ -798,9 +799,52 @@ BEST = {
     "patience": 5,
 }
 BEST_0 = BEST
+
+#tab
+#27
+#0.09731506556272507
+BEST = {
+    'mse_mag_multiply': True,
+    'loss_balancer_beta': 0.7520229775744602,
+    'loss_balancer_r': 0.9706519501751338,
+    'tf_pma_low_exp_2': 6,
+    'grad_loss_fn': 'mae',
+    'pma_ffn_mode': 'shared',
+    'patience': 6,
+    'inds_init_mode': 'fixnorm',
+    'grad_clip': 0.6896836352825375,
+    'head_final_mul': 'identity',
+    'gradient_penalty_mode': 'ALL',
+    'dataset_size_exp_2': 11,
+    'batch_size_exp_2': 2,
+    'epochs': 55,
+    'lr_mul': 0.08030439779404704,
+    'n_warmup_steps': 85,
+    'Optim': 'diffgrad',
+    'fixed_role_model': 'tab_ddpm_concat',
+    'mse_mag_target': 0.13044551835398707,
+    'd_model_exp_2': 8,
+    'attn_activation': 'sigmoid',
+    'tf_d_inner_exp_2': 8,
+    'tf_n_layers_enc': 5,
+    'tf_n_head_exp_2': 7,
+    'tf_activation': 'leakyhardsigmoid',
+    'tf_activation_final': 'leakyhardtanh',
+    'tf_num_inds_exp_2': 6,
+    'ada_d_hid_exp_2': 8,
+    'ada_n_layers': 8,
+    'ada_activation': 'relu6',
+    'ada_activation_final': 'leakyhardtanh',
+    'head_d_hid_exp_2': 8,
+    'head_n_layers': 8,
+    'head_n_head_exp_2': 5,
+    'head_activation': 'relu6',
+    'head_activation_final': 'softsign'
+}
+BEST_3 = BEST
 BESTS = [
     BEST_0,
     BEST_1,
     BEST_2,
+    BEST_3,
 ]
-
