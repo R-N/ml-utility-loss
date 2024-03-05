@@ -109,7 +109,7 @@ class REaLTabFormer:
             save_steps=100,
             eval_steps=100,
             load_best_model_at_end=True,
-            save_total_limit=early_stopping_patience + 1,
+            save_total_limit=1,
             optim="adamw_torch",
             report_to="none",
         )
