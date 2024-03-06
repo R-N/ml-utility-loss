@@ -149,12 +149,8 @@ class Sampler(object):
             idx = np.random.choice(np.arange(self.n), n)
             return self.data[idx]
         
-        # used to store relevant indices of data records based on selected category within a chosen one-hot-encoding
-        idx = []
-        
         # sampling a data record index randomly from all possible indices that meet the given criteria of the chosen category and one-hot-encoding
-        for c, o in zip(col, opt):
-            idx.append(np.random.choice(self.model[c][o]))
+        idx = [np.random.choice(self.model[c][o]) for c, o in zip(col, opt)]
         
         return self.data[idx]
 
@@ -163,13 +159,9 @@ class Sampler(object):
         # if there are no one-hot-encoded representations, we may ignore sampling using a conditional vector
         if col is None:
             idx = np.random.choice(np.arange(self.n), n)
-            return self.data[idx]
-        
-        # used to store relevant indices of data records based on selected category within a chosen one-hot-encoding
-        idx = []
+            return idx
         
         # sampling a data record index randomly from all possible indices that meet the given criteria of the chosen category and one-hot-encoding
-        for c, o in zip(col, opt):
-            idx.append(np.random.choice(self.model[c][o]))
+        idx = [np.random.choice(self.model[c][o]) for c, o in zip(col, opt)]
         
         return idx
