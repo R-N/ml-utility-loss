@@ -238,6 +238,7 @@ class AutoEncoder(object):
         last_loss = 0
 
         steps = int(len(data) / batch_size)
+        data_2 = torch.from_numpy(data.astype('float32')).to(self.device)
         for e in range(epochs):
             for i in range(steps):
                 # sample all conditional vectors for the training
@@ -246,9 +247,8 @@ class AutoEncoder(object):
                 # sampling real data according to the conditional vectors and shuffling it before feeding to discriminator to isolate conditional loss on generator
                 perm = np.arange(batch_size)
                 np.random.shuffle(perm)
-                real = data_sampler.sample(batch_size, col[perm], opt[perm])
-
-                batch = torch.from_numpy(real.astype('float32')).to(self.device)
+                idx = data_sampler.sample_idx(batch_size, col[perm], opt[perm])
+                batch = data_2[idx]
 
                 self.optimizer.zero_grad()
 
