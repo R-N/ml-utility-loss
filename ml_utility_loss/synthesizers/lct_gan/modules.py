@@ -8,7 +8,7 @@ class FCEncoder(nn.Module):
         self.fc1 = nn.Linear(input_size, 128)
         self.fc2 = nn.Linear(128, 64)
         self.fc3 = nn.Linear(64, output_size)
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def forward(self, x):
         h0 = F.relu(self.fc1(x))
@@ -33,7 +33,7 @@ class FCGenerator(nn.Module):
 
         self.output_size = output_size
         self.latent_dim = latent_size
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         def block(in_feat, out_feat, normalize=True):
             layers = [ nn.Linear(in_feat, out_feat) ]
@@ -58,7 +58,7 @@ class FCGenerator(nn.Module):
 class FCDiscriminator(nn.Module):
     def __init__(self, input_size, batch_size):
         super(FCDiscriminator, self).__init__()
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.model = nn.Sequential(
             nn.Linear(input_size, 64),

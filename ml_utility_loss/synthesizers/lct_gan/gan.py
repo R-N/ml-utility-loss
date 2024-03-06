@@ -37,7 +37,7 @@ class LatentGAN:
         self.measurements = []
         # Loss weight for gradient penalty
         self.lambda_gp = 10
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.transformer_output_info=transformer_output_info
         self.batch_size=batch_size
         self.lr=lr

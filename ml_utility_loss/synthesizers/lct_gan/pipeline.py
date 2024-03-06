@@ -50,6 +50,7 @@ def create_gan(
         if d_state_path and os.path.exists(d_state_path):
             gan.discriminator.load_state_dict(torch.load(d_state_path))
     else:
+        lat_normalized = lat_normalized.to(gan.device)
         gan.fit(
             lat_normalized, 
             preprocessed, 
