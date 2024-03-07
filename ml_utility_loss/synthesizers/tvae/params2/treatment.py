@@ -84,13 +84,55 @@ BEST = {
 }
 BEST_NO_GP = BEST
 
+#continue
+#gp_mul
+#73
+#0.6214002723306171
+BEST = {
+    'n_samples_exp_2': 12,
+    't_steps': 8,
+    'mlu_target': 1.0,
+    'n_steps': 3,
+    'n_inner_steps_exp_2': 3,
+    'n_inner_steps_2_exp_2': 0,
+    'loss_fn': 'mae',
+    'Optim': 'adamp',
+    'mlu_lr': 0.00011625118291304392
+}
+BEST_GP_MUL = BEST
+
+#no_gp
+#107
+#0.6161708539234271
+BEST = {
+    'n_samples_exp_2': 12,
+    't_steps': 10,
+    'mlu_target': 1.0,
+    'n_steps': 4,
+    'n_inner_steps_exp_2': 3,
+    'n_inner_steps_2_exp_2': 1,
+    'loss_fn': 'mse',
+    'Optim': 'amsgradw',
+    'mlu_lr': 1.1902923254730517e-06
+}
+BEST_NO_GP = BEST
+BEST_NO_GP_CORRECTED = {
+    **BEST_NO_GP,
+    'Optim': 'adamp',
+    'loss_fn': 'mae',
+    #'n_samples_exp_2': 11,
+}
+
 BEST_DICT = {
     True: {
         True: BEST_GP_MUL,
         False: None
     },
     False: {
-        False: BEST_NO_GP
+        False: [
+            BEST_NO_GP,
+            BEST_NO_GP_CORRECTED,
+        ],
     }
 }
 BEST_DICT[False][True] = BEST_DICT[False][False]

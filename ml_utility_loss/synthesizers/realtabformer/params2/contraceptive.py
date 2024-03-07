@@ -86,9 +86,44 @@ BEST = {
     'mlu_lr': 6.754073028898102e-05
 }
 BEST_NO_GP = BEST
+
+#continue
+#gp_mul
+#66
+#0.5336289997396412
+BEST = {
+    'n_samples_exp_2': 6,
+    't_steps': 5,
+    'mlu_target': 1.0,
+    'n_steps': 4,
+    'n_inner_steps_exp_2': 2,
+    'n_inner_steps_2_exp_2': 3,
+    'loss_fn': 'mse',
+    'Optim': 'adamw',
+    'mlu_lr': 9.529180896803853e-05
+}
+BEST_GP_MUL = BEST
+BEST_GP_MUL_CORRECTED = {
+    **BEST_GP_MUL,
+    "Optim": "amsgradw",
+}
+
+#no_gp
+
+BEST_NO_GP_CORRECTED = {
+    **BEST_NO_GP,
+    "n_inner_steps_exp_2": 2,
+    "t_steps": 4,
+    'mlu_lr': 7.7e-05,
+}
+BEST_NO_GP = BEST_NO_GP_CORRECTED
+
 BEST_DICT = {
     True: {
-        True: BEST_GP_MUL,
+        True: [
+            BEST_GP_MUL,
+            BEST_GP_MUL_CORRECTED
+        ],
         False: None
     },
     False: {

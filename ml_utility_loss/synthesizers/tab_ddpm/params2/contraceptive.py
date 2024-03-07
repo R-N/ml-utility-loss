@@ -100,6 +100,21 @@ BEST = {
 }
 BEST_NO_GP = BEST
 
+#continue
+#gp_mul
+BEST_GP_MUL_CORRECTED = {
+    **BEST_GP_MUL,
+    "t_steps_exp_2": 11,
+}
+BEST_GP_MUL = BEST_GP_MUL_CORRECTED
+
+#no_gp
+BEST_NO_GP_CORRECTED = {
+    **BEST_NO_GP,
+    "n_inner_steps_2_exp_2": 2,
+}
+BEST_NO_GP = BEST_NO_GP_CORRECTED
+
 BEST_DICT = {
     True: {
         True: BEST_GP_MUL,
