@@ -53,7 +53,7 @@ class SaveEpochEndCallback(TrainerCallback):
 class MLUtilityCallback(TrainerCallback):
     """This callback forces a checkpoint save at each epoch end."""
 
-    def __init__(self, sampler, mlu_trainer=None, batch_size=8, tries=10):
+    def __init__(self, sampler, mlu_trainer=None, batch_size=8, tries=3):
         super().__init__()
         self.mlu_trainer = mlu_trainer
         self.sampler = sampler
@@ -90,7 +90,8 @@ class MLUtilityCallback(TrainerCallback):
                     except AssertionError as ex:
                         if "Mismatching shapes" in str(ex) and counter > 0:
                             continue
-                        raise
+                        print("Failed MLU step")
+                        return
 
 
 
