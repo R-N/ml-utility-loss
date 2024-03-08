@@ -53,12 +53,13 @@ class SaveEpochEndCallback(TrainerCallback):
 class MLUtilityCallback(TrainerCallback):
     """This callback forces a checkpoint save at each epoch end."""
 
-    def __init__(self, sampler, mlu_trainer=None, batch_size=8):
+    def __init__(self, sampler, mlu_trainer=None, batch_size=8, tries=3):
         super().__init__()
         self.mlu_trainer = mlu_trainer
         self.sampler = sampler
         self.epoch = -1
         self.batch_size = batch_size
+        self.tries = tries
 
     def on_epoch_end(
         self,
@@ -74,13 +75,22 @@ class MLUtilityCallback(TrainerCallback):
                 batch_size = self.batch_size
                 #batch_size=self.mlu_trainer.sample_batch_size
                 save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext()
-                with save_cm:
-                    samples = self.sampler.sample(
-                        n_samples=n_samples,
-                        gen_batch=batch_size,
-                        raw=True,
-                    )
-                self.mlu_trainer.step(samples, batch_size=self.batch_size)
+                counter = self.tries
+                while True:
+                    try:
+                        counter -= 1
+                        with save_cm:
+                            samples = self.sampler.sample(
+                                n_samples=n_samples,
+                                gen_batch=batch_size,
+                                raw=True,
+                            )
+                        self.mlu_trainer.step(samples, batch_size=self.batch_size)
+                        break
+                    except AssertionError as ex:
+                        if "Mismatching shapes" in str(ex) and counter > 0:
+                            continue
+                        raise
 
 
 
