@@ -130,14 +130,14 @@ BEST_NO_GP_CORRECTED = {
 
 BEST = {
     'n_samples_exp_2': 7,
- 't_steps_exp_2': 8,
- 'mlu_target': None,
- 'n_steps': 3,
- 'n_inner_steps_exp_2': 1,
- 'n_inner_steps_2_exp_2': 2,
- 'loss_fn': 'mae',
- 'Optim': 'adamw',
- 'mlu_lr': 9.629775506786068e-05
+    't_steps_exp_2': 8,
+    'mlu_target': None,
+    'n_steps': 3,
+    'n_inner_steps_exp_2': 1,
+    'n_inner_steps_2_exp_2': 2,
+    'loss_fn': 'mae',
+    'Optim': 'adamw',
+    'mlu_lr': 9.629775506786068e-05
 }
 BEST_GP_MUL = BEST
 
