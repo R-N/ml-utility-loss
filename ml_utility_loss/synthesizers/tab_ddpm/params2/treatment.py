@@ -123,6 +123,24 @@ BEST_NO_GP_CORRECTED = {
     'n_samples_exp_2': 7,
 }
 
+#continue
+#gp_mul
+#10
+#0.6024819413229636
+
+BEST = {
+    'n_samples_exp_2': 7,
+ 't_steps_exp_2': 8,
+ 'mlu_target': None,
+ 'n_steps': 3,
+ 'n_inner_steps_exp_2': 1,
+ 'n_inner_steps_2_exp_2': 2,
+ 'loss_fn': 'mae',
+ 'Optim': 'adamw',
+ 'mlu_lr': 9.629775506786068e-05
+}
+BEST_GP_MUL = BEST
+
 BEST_DICT = {
     True: {
         True: BEST_GP_MUL,
