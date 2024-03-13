@@ -26,7 +26,7 @@ def objective(
     diff=False,
     preprocess_df=None,
     seed=0,
-    repeat=5,
+    repeat=10,
     mlu_trainer_ae=None,
     mlu_trainer_gan=None,
     **kwargs

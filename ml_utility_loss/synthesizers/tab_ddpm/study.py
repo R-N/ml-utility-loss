@@ -21,7 +21,7 @@ def objective(
     trial=None,
     diff=False,
     seed=0,
-    repeat=5,
+    repeat=10,
     **kwargs
 ):
     clear_memory()
