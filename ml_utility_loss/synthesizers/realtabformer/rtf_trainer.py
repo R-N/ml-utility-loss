@@ -72,8 +72,10 @@ class MLUtilityCallback(TrainerCallback):
         self.epoch += 1
         last_log = state.log_history[-1:]
         #last_log = parse_log_history(last_log)
-        last_log = last_log[-1]
-        train_loss = last_log.get("eval_loss", last_log.get("loss", None))
+        train_loss = None
+        if len(last_log) > 0:
+            last_log = last_log[-1]
+            train_loss = last_log.get("eval_loss", last_log.get("loss", None))
         if self.mlu_trainer:
             if self.mlu_trainer.should_step(self.epoch):
                 total_mlu_loss = 0
