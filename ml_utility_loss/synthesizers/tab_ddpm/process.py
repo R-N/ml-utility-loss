@@ -137,7 +137,7 @@ class Trainer:
 
             step += 1
         if self.mlu_trainer:
-            self.mlu_trainer.export_log()
+            self.mlu_trainer.export_logs()
 
 def train(
     dataset,

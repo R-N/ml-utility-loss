@@ -130,7 +130,7 @@ def train(
                     synthesizer_type="tvae",
                 )
     if mlu_trainer:
-        mlu_trainer.export_log()
+        mlu_trainer.export_logs()
 
     return loss_1.item(), loss_2.item()
 

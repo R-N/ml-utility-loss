@@ -217,7 +217,7 @@ class LatentGAN:
                     % (epoch + 1, epochs, loss_d.item(), loss_g.item())
                 )
         if self.mlu_trainer:
-            self.mlu_trainer.export_log()
+            self.mlu_trainer.export_logs()
 
     def compute_gradient_penalty(self, D, real_samples, fake_samples):
 

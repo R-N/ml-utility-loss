@@ -329,7 +329,7 @@ class REaLTabFormer:
             self._invalid_model_type(self.model_type)
             
         if self.mlu_trainer:
-            self.mlu_trainer.export_log()
+            self.mlu_trainer.export_logs()
 
         try:
             self.experiment_id = f"id{int((time.time() * 10 ** 10)):024}"
