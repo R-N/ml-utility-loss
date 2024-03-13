@@ -81,7 +81,7 @@ class MLUtilityTrainer:
             self.model.adapter.use_embedding = False
 
         self.debug = debug
-        self.step = -1
+        self.i_step = -1
         self.logs = []
         self.log_path = log_path
         print(f"mlu logging {self.log_path}")
@@ -106,7 +106,7 @@ class MLUtilityTrainer:
         return x >= self.t_start and x%self.t_steps == 0 and ((not self.t_end) or x <= self.t_end)
 
     def step(self, samples, batch_size=None):
-        self.step += 1
+        self.i_step += 1
         assert self.optim
         assert samples.grad_fn
         if samples.dim() < self.dim:
@@ -209,9 +209,9 @@ class MLUtilityTrainer:
         if mlu_loss is not None:
             log = {
                 **log,
-                "mlu_step": self.step,
-                "global_step": self.step // self.n_steps,
-                "sample_step": self.step % self.n_steps,
+                "mlu_step": self.i_step,
+                "global_step": self.i_step // self.n_steps,
+                "sample_step": self.i_step % self.n_steps,
                 "pre_loss": pre_loss,
                 "mlu_loss": mlu_loss,
                 "post_loss": post_loss,
