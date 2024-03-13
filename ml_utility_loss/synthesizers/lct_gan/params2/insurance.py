@@ -26,13 +26,13 @@ PARAM_SPACE = {
     "div_batch": BOOLEAN,
 }
 PARAM_SPACE = {
-    **{f"{k}_ae": v for k, v in PARAM_SPACE.items()},
-    **{f"{k}_gan": v for k, v in PARAM_SPACE.items()},
+    **{f"ae_{k}": v for k, v in PARAM_SPACE.items()},
+    **{f"gan_{k}": v for k, v in PARAM_SPACE.items()},
 }
-update_params(PARAM_SPACE, "t_start_ae", BEST["ae_epochs"] - 100)
-update_params(PARAM_SPACE, "t_start_gan", BEST["gan_epochs"] - 100)
-update_params(PARAM_SPACE, "t_range_ae", BEST["ae_epochs"])
-update_params(PARAM_SPACE, "t_range_gan", BEST["gan_epochs"])
+update_params(PARAM_SPACE, "ae_t_start", BEST["ae_epochs"] - 100)
+update_params(PARAM_SPACE, "gan_t_start", BEST["gan_epochs"] - 100)
+update_params(PARAM_SPACE, "ae_t_range", BEST["ae_epochs"])
+update_params(PARAM_SPACE, "gan_t_range", BEST["gan_epochs"])
 #0.05163029588081458
 BEST = {
     'n_samples_exp_2': 10,
