@@ -219,7 +219,7 @@ class MLUtilityTrainer:
             **log,
             **kwargs,
         }
-        self.logs.append()
+        self.logs.append(log)
 
     def export_logs(self, path=None):
         path = path or self.log_path
