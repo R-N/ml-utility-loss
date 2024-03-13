@@ -116,6 +116,8 @@ class MLUtilityCallback(TrainerCallback):
                     train_loss=train_loss,
                     synthesizer_type="realtabformer",
                 )
+            
+            self.mlu_trainer.export_logs()
 
 
 
