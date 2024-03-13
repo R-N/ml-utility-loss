@@ -128,6 +128,8 @@ def train(
                 train_loss=epoch_loss,
                 synthesizer_type="tvae",
             )
+    if mlu_trainer:
+        mlu_trainer.export_log()
 
     return loss_1.item(), loss_2.item()
 

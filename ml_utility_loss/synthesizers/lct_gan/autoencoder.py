@@ -345,6 +345,8 @@ class AutoEncoder(object):
                     synthesizer_type="lct_ae",
                 )
 
+        if self.mlu_trainer:
+            self.mlu_trainer.export_log()
         #print(last_loss)
         self.loss = last_loss
 

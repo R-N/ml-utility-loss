@@ -76,7 +76,7 @@ class MLUtilityTrainer:
         self.debug = debug
         self.step = -1
         self.logs = []
-        
+        self.log_path = log_path
 
     def set_embedding(self, embedding):
         self.model.adapter.embedding = embedding
@@ -211,7 +211,10 @@ class MLUtilityTrainer:
         }
         self.logs.append()
 
-    def export_logs(self, path):
+    def export_logs(self, path=None):
+        path = path or self.log_path
+        assert path, "must provide log path"
         df = pd.DataFrame.from_records(self.logs)
-        df.to_csv(path, index=False)
+        if path:
+            df.to_csv(path, index=False)
         return df

@@ -134,8 +134,9 @@ class Trainer:
                     synthesizer_type="tab_ddpm",
                 )
 
-
             step += 1
+        if self.mlu_trainer:
+            self.mlu_trainer.export_log()
 
 def train(
     dataset,
