@@ -1,6 +1,6 @@
 import math
 import os
-from .util import mkdir, split_df, split_df_2, split_df_ratio, split_df_kfold
+from .util import mkdir, split_df, split_df_2, split_df_ratio, split_df_kfold, roundup
 import json
 from .params import PARAM_MAP, BOOLEAN
 import optuna
@@ -20,14 +20,18 @@ def sample_parameter(trial, name, type, args, kwargs):
             print("Offending parameter:", name)
         raise
 
-def sample_int_exp_2(trial, k, low, high):
+def sample_int_exp_2(trial, k, low, high, *args, **kwargs):
     low = max(low, 1)
     low = math.log(low, 2)
     high = math.log(high, 2)
     assert low % 1 == 0
     assert high % 1 == 0
-    param = int(math.pow(2, trial.suggest_int(f"{k}_exp_2", low, high)))
+    param = int(math.pow(2, trial.suggest_int(f"{k}_exp_2", low, high, *args, **kwargs)))
     return param
+
+def sample_int(trial, name, low, high, *args, step=1, log=False, **kwargs):
+    high = roundup(high, multiple=step, offset=low)
+    return trial.suggest_int(name, low, high, *args, step=step, log=log, **kwargs)
 
 def sample_parameter_2(trial, k, type_0, args, kwargs=None, param_map={}):
     kwargs = kwargs or {}
@@ -79,7 +83,9 @@ def sample_parameter_2(trial, k, type_0, args, kwargs=None, param_map={}):
     if type_0 in param_map:
         type_1 = "categorical"
 
-    if type_1:
+    if type_1 == "int":
+        sample_int(trial, k, *args, **kwargs)
+    elif type_1:
         param = sample_parameter(trial, k, type_1, args, kwargs)
 
     param_raw = param

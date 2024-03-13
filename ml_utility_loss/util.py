@@ -13,6 +13,7 @@ import shutil
 import re
 import gc
 import random
+import math
 
 def load_json(path, **kwargs):
     return json.loads(Path(path).read_text(), **kwargs)
@@ -347,3 +348,6 @@ def seed(seed):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+
+def roundup(x, multiple=1, offset=0):
+    return offset + (int(math.ceil((x-offset) / multiple)) * multiple)
