@@ -124,12 +124,14 @@ class Trainer:
                     mlu_loss=total_mlu_loss,
                     post_loss=post_loss,
                     #batch_size=len(x),
+                    synthesizer_type="tab_ddpm",
                 )
             else:
                 self.mlu_trainer.log(
                     synthesizer_step=step,
                     train_loss=batch_loss_multi.item() + batch_loss_gauss.item(),
                     #batch_size=len(x),
+                    synthesizer_type="tab_ddpm",
                 )
 
 

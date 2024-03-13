@@ -120,11 +120,13 @@ def train(
                 pre_loss=pre_loss,
                 mlu_loss=mlu_loss,
                 post_loss=post_loss,
+                synthesizer_type="tvae",
             )
         else:
             mlu_trainer.log(
                 synthesizer_step=i,
                 train_loss=epoch_loss,
+                synthesizer_type="tvae",
             )
 
     return loss_1.item(), loss_2.item()

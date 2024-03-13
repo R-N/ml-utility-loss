@@ -105,11 +105,13 @@ class MLUtilityCallback(TrainerCallback):
                 synthesizer_step=self.epoch,
                 train_loss=train_loss,
                 mlu_loss=mlu_loss,
+                synthesizer_type="realtabformer",
             )
         else:
             self.mlu_trainer.log(
                 synthesizer_step=self.epoch,
                 train_loss=train_loss,
+                synthesizer_type="realtabformer",
             )
 
 

@@ -189,8 +189,9 @@ class MLUtilityTrainer:
 
         return total_loss
     
-    def log(self, synthesizer_step, train_loss=None, pre_loss=None, mlu_loss=None, post_loss=None, **kwargs):
+    def log(self, synthesizer_step, train_loss=None, pre_loss=None, mlu_loss=None, post_loss=None, synthesizer_type=None, **kwargs):
         log = {
+            "synthesizer_type": synthesizer_type,
             "synthesizer_step": synthesizer_step,
             "train_loss": train_loss,
         }
