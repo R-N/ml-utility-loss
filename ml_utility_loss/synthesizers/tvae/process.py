@@ -61,7 +61,7 @@ def train(
             optimizerAE.step()
             model.decoder.sigma.data.clamp_(0.01, 1.0)
                     
-        if mlu_trainer and (i+1)%mlu_trainer.t_steps == 0:
+        if mlu_trainer and mlu_trainer.should_step(i+1):
             for _ in range(mlu_trainer.n_steps):
                 n_samples = mlu_trainer.n_samples
                 #batch_size = mlu_trainer.sample_batch_size

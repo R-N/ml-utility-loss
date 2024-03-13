@@ -84,7 +84,7 @@ class Trainer:
 
             update_ema(self.ema_model.parameters(), self.diffusion._denoise_fn.parameters())
 
-            if self.mlu_trainer and (step+1) % self.mlu_trainer.t_steps == 0:
+            if self.mlu_trainer and self.mlu_trainer.should_step(step+1):
                 for i in range(self.mlu_trainer.n_steps):
                     clear_memory()
                     n_samples = self.mlu_trainer.n_samples

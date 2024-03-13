@@ -92,6 +92,11 @@ def objective(
             clear_memory()
             raise TrialPruned(str(ex))
         raise
+    except AssertionError as ex:
+        msg = str(ex)
+        if "must be lower than" in msg:
+            print(f"AssertionError: {msg}")
+            raise TrialPruned(msg)
     except CatBoostError:
         raise TrialPruned()
     clear_memory()

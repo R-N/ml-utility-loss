@@ -13,6 +13,8 @@ class MLUtilityTrainer:
         n_samples=1024,
         target=None,
         t_steps=5,
+        t_start=0,
+        t_end=None,
         n_steps=1,
         n_inner_steps=1,
         n_inner_steps_2=1,
@@ -33,6 +35,9 @@ class MLUtilityTrainer:
         self.batched = batched
         self.model = model
         self.t_steps = t_steps
+        assert (not t_end) or ((t_end - t_start)//(t_steps+1)) >= 1, "t_start low must be lower than high t_end and the interval between must be at least t_steps +1"
+        self.t_start = t_start
+        self.t_end = t_end
         self.n_steps = n_steps
         self.n_inner_steps = n_inner_steps
         self.n_inner_steps_2 = n_inner_steps_2
@@ -78,6 +83,9 @@ class MLUtilityTrainer:
         self.parameters = parameters
         optim_kwargs = {**self.optim_kwargs, **kwargs}
         self.optim = Optim(parameters, **optim_kwargs)
+
+    def should_step(self, x):
+        return x >= self.t_start and x%self.t_steps == 0 and ((not self.t_end) or x <= self.t_end)
 
     def step(self, samples, batch_size=None):
         assert self.optim
