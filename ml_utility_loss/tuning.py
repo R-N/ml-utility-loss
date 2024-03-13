@@ -29,7 +29,7 @@ def sample_int_exp_2(trial, k, low, high, *args, **kwargs):
     param = int(math.pow(2, trial.suggest_int(f"{k}_exp_2", low, high, *args, **kwargs)))
     return param
 
-def sample_int(trial, name, low, high, *, step=1, **kwargs):
+def sample_int(trial, name, low, high, step=1, **kwargs):
     high = roundup(high, multiple=step, offset=low)
     return trial.suggest_int(name, low, high, step=step, **kwargs)
 
