@@ -188,28 +188,29 @@ class LatentGAN:
             total_loss_g /= g_step_count
             total_loss  = total_loss_g + total_loss_d
                     
-            if self.mlu_trainer and self.mlu_trainer.should_step(epoch):
-                total_mlu_loss = 0
-                for i in range(self.mlu_trainer.n_steps):
-                    n_samples = self.mlu_trainer.n_samples
-                    save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext()
-                    with save_cm:
-                        samples = self.sample(n_samples, raw=True)
-                    mlu_loss = self.mlu_trainer.step(samples, batch_size=self.batch_size)
-                    total_mlu_loss += mlu_loss
-                total_mlu_loss /= self.mlu_trainer.n_steps
-                self.mlu_trainer.log(
-                    synthesizer_step=epoch,
-                    train_loss=total_loss,
-                    mlu_loss=mlu_loss,
-                    synthesizer_type="lct_gan",
-                )
-            else:
-                self.mlu_trainer.log(
-                    synthesizer_step=epoch,
-                    train_loss=total_loss,
-                    synthesizer_type="lct_gan",
-                )
+            if self.mlu_trainer:
+                if self.mlu_trainer.should_step(epoch):
+                    total_mlu_loss = 0
+                    for i in range(self.mlu_trainer.n_steps):
+                        n_samples = self.mlu_trainer.n_samples
+                        save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext()
+                        with save_cm:
+                            samples = self.sample(n_samples, raw=True)
+                        mlu_loss = self.mlu_trainer.step(samples, batch_size=self.batch_size)
+                        total_mlu_loss += mlu_loss
+                    total_mlu_loss /= self.mlu_trainer.n_steps
+                    self.mlu_trainer.log(
+                        synthesizer_step=epoch,
+                        train_loss=total_loss,
+                        mlu_loss=mlu_loss,
+                        synthesizer_type="lct_gan",
+                    )
+                else:
+                    self.mlu_trainer.log(
+                        synthesizer_step=epoch,
+                        train_loss=total_loss,
+                        synthesizer_type="lct_gan",
+                    )
 
             if (epoch +1) % self.log_every == 0:
                 print("[Epoch %d/%d] [D loss: %f] [G loss: %f]" 

@@ -90,44 +90,45 @@ def train(
 
         epoch_loss /= counter
                     
-        if mlu_trainer and mlu_trainer.should_step(i):
-            pre_loss = eval_step(
-                model, 
-                transformer, 
-                loader, 
-                loss_factor=loss_factor,
-            )
+        if mlu_trainer:
+            if mlu_trainer.should_step(i):
+                pre_loss = eval_step(
+                    model, 
+                    transformer, 
+                    loader, 
+                    loss_factor=loss_factor,
+                )
 
-            total_mlu_loss = 0
-            for _ in range(mlu_trainer.n_steps):
-                n_samples = mlu_trainer.n_samples
-                #batch_size = mlu_trainer.sample_batch_size
-                samples = sample(model=model, transformer=transformer, samples=n_samples, batch_size=batch_size, raw=True)
-                mlu_loss = mlu_trainer.step(samples, batch_size=batch_size)
+                total_mlu_loss = 0
+                for _ in range(mlu_trainer.n_steps):
+                    n_samples = mlu_trainer.n_samples
+                    #batch_size = mlu_trainer.sample_batch_size
+                    samples = sample(model=model, transformer=transformer, samples=n_samples, batch_size=batch_size, raw=True)
+                    mlu_loss = mlu_trainer.step(samples, batch_size=batch_size)
 
-                total_mlu_loss += mlu_loss
-            total_mlu_loss /= mlu_trainer.n_steps
+                    total_mlu_loss += mlu_loss
+                total_mlu_loss /= mlu_trainer.n_steps
 
-            post_loss = eval_step(
-                model, 
-                transformer, 
-                loader, 
-                loss_factor=loss_factor,
-            )
-            mlu_trainer.log(
-                synthesizer_step=i,
-                train_loss=epoch_loss,
-                pre_loss=pre_loss,
-                mlu_loss=mlu_loss,
-                post_loss=post_loss,
-                synthesizer_type="tvae",
-            )
-        else:
-            mlu_trainer.log(
-                synthesizer_step=i,
-                train_loss=epoch_loss,
-                synthesizer_type="tvae",
-            )
+                post_loss = eval_step(
+                    model, 
+                    transformer, 
+                    loader, 
+                    loss_factor=loss_factor,
+                )
+                mlu_trainer.log(
+                    synthesizer_step=i,
+                    train_loss=epoch_loss,
+                    pre_loss=pre_loss,
+                    mlu_loss=mlu_loss,
+                    post_loss=post_loss,
+                    synthesizer_type="tvae",
+                )
+            else:
+                mlu_trainer.log(
+                    synthesizer_step=i,
+                    train_loss=epoch_loss,
+                    synthesizer_type="tvae",
+                )
     if mlu_trainer:
         mlu_trainer.export_log()
 

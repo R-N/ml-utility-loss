@@ -95,44 +95,45 @@ class Trainer:
 
             update_ema(self.ema_model.parameters(), self.diffusion._denoise_fn.parameters())
 
-            if self.mlu_trainer and self.mlu_trainer.should_step(step):
-                pre_loss = self._eval_step(x, out_dict).item()# * len(x)
-                total_mlu_loss = 0
-                for i in range(self.mlu_trainer.n_steps):
+            if self.mlu_trainer:
+                if  self.mlu_trainer.should_step(step):
+                    pre_loss = self._eval_step(x, out_dict).item()# * len(x)
+                    total_mlu_loss = 0
+                    for i in range(self.mlu_trainer.n_steps):
+                        clear_memory()
+                        n_samples = self.mlu_trainer.n_samples
+                        batch_size = self.batch_size
+                        #batch_size = self.mlu_trainer.sample_batch_size
+                        save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext()
+                        with save_cm:
+                            samples = sample(
+                                self.diffusion,
+                                batch_size=batch_size, 
+                                num_samples=n_samples, 
+                                raw=True
+                            )
+                        mlu_loss = self.mlu_trainer.step(samples, batch_size=self.batch_size)
+                        del samples
+                        total_mlu_loss += mlu_loss
+                    total_mlu_loss /= self.mlu_trainer.n_steps
                     clear_memory()
-                    n_samples = self.mlu_trainer.n_samples
-                    batch_size = self.batch_size
-                    #batch_size = self.mlu_trainer.sample_batch_size
-                    save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext()
-                    with save_cm:
-                        samples = sample(
-                            self.diffusion,
-                            batch_size=batch_size, 
-                            num_samples=n_samples, 
-                            raw=True
-                        )
-                    mlu_loss = self.mlu_trainer.step(samples, batch_size=self.batch_size)
-                    del samples
-                    total_mlu_loss += mlu_loss
-                total_mlu_loss /= self.mlu_trainer.n_steps
-                clear_memory()
-                post_loss = self._eval_step(x, out_dict).item()# * len(x)
-                self.mlu_trainer.log(
-                    synthesizer_step=step,
-                    train_loss=batch_loss_multi.item() + batch_loss_gauss.item(),
-                    pre_loss=pre_loss,
-                    mlu_loss=total_mlu_loss,
-                    post_loss=post_loss,
-                    #batch_size=len(x),
-                    synthesizer_type="tab_ddpm",
-                )
-            else:
-                self.mlu_trainer.log(
-                    synthesizer_step=step,
-                    train_loss=batch_loss_multi.item() + batch_loss_gauss.item(),
-                    #batch_size=len(x),
-                    synthesizer_type="tab_ddpm",
-                )
+                    post_loss = self._eval_step(x, out_dict).item()# * len(x)
+                    self.mlu_trainer.log(
+                        synthesizer_step=step,
+                        train_loss=batch_loss_multi.item() + batch_loss_gauss.item(),
+                        pre_loss=pre_loss,
+                        mlu_loss=total_mlu_loss,
+                        post_loss=post_loss,
+                        #batch_size=len(x),
+                        synthesizer_type="tab_ddpm",
+                    )
+                else:
+                    self.mlu_trainer.log(
+                        synthesizer_step=step,
+                        train_loss=batch_loss_multi.item() + batch_loss_gauss.item(),
+                        #batch_size=len(x),
+                        synthesizer_type="tab_ddpm",
+                    )
 
             step += 1
         if self.mlu_trainer:

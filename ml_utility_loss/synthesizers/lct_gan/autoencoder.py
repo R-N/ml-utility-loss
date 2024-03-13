@@ -293,57 +293,58 @@ class AutoEncoder(object):
                 epoch_loss = (loss.item() / len(batch))
             last_loss = epoch_loss
 
-            if self.mlu_trainer and self.mlu_trainer.should_step(e):
-                total_mlu_loss = 0
-                pre_loss = self.eval_step(
-                    steps,
-                    batch_size,
-                    cond_generator,
-                    data_sampler,
-                    data_2,
-                )
-                for i in range(self.mlu_trainer.n_steps):
-                    n_samples = self.mlu_trainer.n_samples
-                    #_, _, col, opt = cond_generator.sample_train(n_samples)
-                    samples = []
-                    indices = np.random.choice(np.arange(len(data)), n_samples)
-                    i = 0
-                    save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext()
-                    with save_cm:
-                        while len(samples) < n_samples:
-                            #sample = data_sampler.sample(
-                            #    batch_size, col, opt,
-                            #)
-                            sample = data[indices[i*batch_size:(i+1)*batch_size]]
-                            sample = self.encode(sample)
-                            sample = self.decode(sample)
-                            samples.append(sample)
-                    samples = samples[:n_samples]
-                    samples = torch.cat(samples, dim=0)
-                    mlu_loss = self.mlu_trainer.step(samples, batch_size=batch_size)
-                    total_mlu_loss += mlu_loss
-                total_mlu_loss /= self.mlu_trainer.n_steps
-                post_loss = self.eval_step(
-                    steps,
-                    batch_size,
-                    cond_generator,
-                    data_sampler,
-                    data_2,
-                )
-                self.mlu_trainer.log(
-                    synthesizer_step=e,
-                    train_loss=epoch_loss,
-                    pre_loss=pre_loss,
-                    mlu_loss=mlu_loss,
-                    post_loss=post_loss,
-                    synthesizer_type="lct_ae",
-                )
-            else:
-                self.mlu_trainer.log(
-                    synthesizer_step=e,
-                    train_loss=epoch_loss,
-                    synthesizer_type="lct_ae",
-                )
+            if self.mlu_trainer:
+                if self.mlu_trainer.should_step(e):
+                    total_mlu_loss = 0
+                    pre_loss = self.eval_step(
+                        steps,
+                        batch_size,
+                        cond_generator,
+                        data_sampler,
+                        data_2,
+                    )
+                    for i in range(self.mlu_trainer.n_steps):
+                        n_samples = self.mlu_trainer.n_samples
+                        #_, _, col, opt = cond_generator.sample_train(n_samples)
+                        samples = []
+                        indices = np.random.choice(np.arange(len(data)), n_samples)
+                        i = 0
+                        save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext()
+                        with save_cm:
+                            while len(samples) < n_samples:
+                                #sample = data_sampler.sample(
+                                #    batch_size, col, opt,
+                                #)
+                                sample = data[indices[i*batch_size:(i+1)*batch_size]]
+                                sample = self.encode(sample)
+                                sample = self.decode(sample)
+                                samples.append(sample)
+                        samples = samples[:n_samples]
+                        samples = torch.cat(samples, dim=0)
+                        mlu_loss = self.mlu_trainer.step(samples, batch_size=batch_size)
+                        total_mlu_loss += mlu_loss
+                    total_mlu_loss /= self.mlu_trainer.n_steps
+                    post_loss = self.eval_step(
+                        steps,
+                        batch_size,
+                        cond_generator,
+                        data_sampler,
+                        data_2,
+                    )
+                    self.mlu_trainer.log(
+                        synthesizer_step=e,
+                        train_loss=epoch_loss,
+                        pre_loss=pre_loss,
+                        mlu_loss=mlu_loss,
+                        post_loss=post_loss,
+                        synthesizer_type="lct_ae",
+                    )
+                else:
+                    self.mlu_trainer.log(
+                        synthesizer_step=e,
+                        train_loss=epoch_loss,
+                        synthesizer_type="lct_ae",
+                    )
 
         if self.mlu_trainer:
             self.mlu_trainer.export_log()

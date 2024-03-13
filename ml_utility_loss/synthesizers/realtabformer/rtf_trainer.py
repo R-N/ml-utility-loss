@@ -74,45 +74,46 @@ class MLUtilityCallback(TrainerCallback):
         #last_log = parse_log_history(last_log)
         last_log = last_log[-1]
         train_loss = last_log.get("eval_loss", last_log.get("loss", None))
-        if self.mlu_trainer and self.mlu_trainer.should_step(self.epoch):
-            total_mlu_loss = 0
-            for i in range(self.mlu_trainer.n_steps):
-                n_samples = self.mlu_trainer.n_samples
-                batch_size = self.batch_size
-                #batch_size=self.mlu_trainer.sample_batch_size
-                save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext()
-                counter = self.tries
-                while True:
-                    try:
-                        counter -= 1
-                        with save_cm:
-                            samples = self.sampler.sample(
-                                n_samples=n_samples,
-                                gen_batch=batch_size,
-                                raw=True,
-                            )
-                        mlu_loss = self.mlu_trainer.step(samples, batch_size=self.batch_size)
-                        total_mlu_loss += mlu_loss
-                        break
-                    except AssertionError as ex:
-                        if "Mismatching shapes" in str(ex) and counter > 0:
-                            continue
-                        print("Failed MLU step")
-                        return
-            total_mlu_loss /= self.mlu_trainer.n_steps
-            
-            self.mlu_trainer.log(
-                synthesizer_step=self.epoch,
-                train_loss=train_loss,
-                mlu_loss=mlu_loss,
-                synthesizer_type="realtabformer",
-            )
-        else:
-            self.mlu_trainer.log(
-                synthesizer_step=self.epoch,
-                train_loss=train_loss,
-                synthesizer_type="realtabformer",
-            )
+        if self.mlu_trainer:
+            if self.mlu_trainer.should_step(self.epoch):
+                total_mlu_loss = 0
+                for i in range(self.mlu_trainer.n_steps):
+                    n_samples = self.mlu_trainer.n_samples
+                    batch_size = self.batch_size
+                    #batch_size=self.mlu_trainer.sample_batch_size
+                    save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext()
+                    counter = self.tries
+                    while True:
+                        try:
+                            counter -= 1
+                            with save_cm:
+                                samples = self.sampler.sample(
+                                    n_samples=n_samples,
+                                    gen_batch=batch_size,
+                                    raw=True,
+                                )
+                            mlu_loss = self.mlu_trainer.step(samples, batch_size=self.batch_size)
+                            total_mlu_loss += mlu_loss
+                            break
+                        except AssertionError as ex:
+                            if "Mismatching shapes" in str(ex) and counter > 0:
+                                continue
+                            print("Failed MLU step")
+                            return
+                total_mlu_loss /= self.mlu_trainer.n_steps
+                
+                self.mlu_trainer.log(
+                    synthesizer_step=self.epoch,
+                    train_loss=train_loss,
+                    mlu_loss=mlu_loss,
+                    synthesizer_type="realtabformer",
+                )
+            else:
+                self.mlu_trainer.log(
+                    synthesizer_step=self.epoch,
+                    train_loss=train_loss,
+                    synthesizer_type="realtabformer",
+                )
 
 
 
