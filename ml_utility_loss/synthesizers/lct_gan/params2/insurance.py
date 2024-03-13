@@ -1,5 +1,6 @@
 from ..params.insurance import BEST
 from .default import update_params
+from ....params import BOOLEAN, OPTIMS, ACTIVATIONS, LOSSES
 PARAM_SPACE = {
     "n_samples": ("int_exp_2", 512, 2048),
     #"sample_batch_size": ("int_exp_2", 16, 512),
@@ -21,7 +22,8 @@ PARAM_SPACE = {
         "adamp",
         "diffgrad",
     ]),
-    "mlu_lr": ("log_float", 1e-6, 2e-5),
+    "mlu_lr": ("log_float", 1e-6, 1e-2),
+    "div_batch": BOOLEAN,
 }
 PARAM_SPACE = {
     **{f"{k}_ae": v for k, v in PARAM_SPACE.items()},

@@ -29,6 +29,7 @@ class MLUtilityTrainer:
         batched=False,
         log_path=None,
         t_range=None,
+        div_batch=False,
         **optim_kwargs
     ):
         for param in model.parameters():
@@ -54,6 +55,7 @@ class MLUtilityTrainer:
         self.target = target
         self.loss_mul = loss_mul
         self.sample_batch_size=sample_batch_size
+        self.div_batch = div_batch
         
         self.dataloader = DataLoader(
             dataset, 
@@ -120,6 +122,7 @@ class MLUtilityTrainer:
 
         grads = 0
         total_loss = 0
+        n_samples = self.n_samples
 
         for i in range(self.n_inner_steps):
             
@@ -168,6 +171,8 @@ class MLUtilityTrainer:
             #loss.backward()
 
         grads = grads / (self.n_inner_steps * self.n_inner_steps_2)
+        if self.div_batch:
+            grads = grads / n_samples
         total_loss = total_loss / (self.n_inner_steps * self.n_inner_steps_2)
 
         if self.batched and batch_size:

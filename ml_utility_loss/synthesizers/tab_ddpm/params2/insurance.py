@@ -1,3 +1,6 @@
+
+from ....params import BOOLEAN, OPTIMS, ACTIVATIONS, LOSSES
+
 PARAM_SPACE = {
     "n_samples": ("int_exp_2", 16, 64),
     #"sample_batch_size": ("int_exp_2", 256, 1024),
@@ -19,7 +22,8 @@ PARAM_SPACE = {
         "adamp",
         "diffgrad",
     ]),
-    "mlu_lr": ("log_float", 1e-6, 1e-5),
+    "mlu_lr": ("log_float", 1e-6, 1e-2),
+    "div_batch": BOOLEAN,
 }
 #45
 #0.15038551889061513
