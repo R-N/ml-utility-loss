@@ -121,6 +121,7 @@ def objective_mlu(
     loss_mul_ae=1.0,
     Optim_ae=torch.optim.AdamW,
     mlu_lr_ae=1e-3,
+    div_batch_ae=False,
     n_samples_gan=512,
     mlu_target_gan=None,
     t_steps_gan=5,
@@ -131,6 +132,7 @@ def objective_mlu(
     loss_mul_gan=1.0,
     Optim_gan=torch.optim.AdamW,
     mlu_lr_gan=1e-3,
+    div_batch_gan=False,
     **kwargs
 ):
     mlu_trainer_ae = MLUtilityTrainer(
@@ -146,6 +148,7 @@ def objective_mlu(
         loss_mul=loss_mul_ae,
         Optim=Optim_ae,
         lr=mlu_lr_ae,
+        div_batch=div_batch_ae,
     )
     mlu_trainer_gan = MLUtilityTrainer(
         model=mlu_model["lct_gan"],
@@ -160,6 +163,7 @@ def objective_mlu(
         loss_mul=loss_mul_gan,
         Optim=Optim_gan,
         lr=mlu_lr_gan,
+        div_batch=div_batch_gan,
     )
     return objective(
         *args,
