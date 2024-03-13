@@ -43,7 +43,7 @@ def sample_parameter_2(trial, k, type_0, args, kwargs=None, param_map={}):
     if type_0.startswith("bool_"):
         sample = trial.suggest_categorical(f"{k}_bool", [True, False])
         if not sample:
-            return 0, 0
+            return None, None
         type_1 = type_0[5:]
         return sample_parameter_2(trial, k, type_1, args, kwargs, param_map=param_map)
     if type_0.startswith("log_"):
