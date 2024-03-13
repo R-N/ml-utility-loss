@@ -58,22 +58,23 @@ def objective(
             )
             total_value += value
         total_value /= repeat
+    except AssertionError as ex:
+        msg = str(ex)
+        if "must be lower than" in msg:
+            print(f"AssertionError: {msg}")
+            raise TrialPruned(msg)
+        raise
     except OutOfMemoryError as ex:
         clear_memory()
         raise TrialPruned(str(ex))
+    except CatBoostError:
+        raise TrialPruned()
     except RuntimeError as ex:
         msg = str(ex)
         if "outofmemory" in msg.lower().replace(" ", ""):
             clear_memory()
             raise TrialPruned(str(ex))
         raise
-    except AssertionError as ex:
-        msg = str(ex)
-        if "must be lower than" in msg:
-            print(f"AssertionError: {msg}")
-            raise TrialPruned(msg)
-    except CatBoostError:
-        raise TrialPruned()
     clear_memory()
     return total_value
 
