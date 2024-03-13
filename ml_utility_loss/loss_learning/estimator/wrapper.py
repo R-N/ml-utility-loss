@@ -5,7 +5,7 @@ from ...data import FastDataLoader as DataLoader
 from .data import collate_fn
 from itertools import cycle
 import pandas as pd
-
+import pathlib
 class MLUtilityTrainer:
     def __init__(
         self,
@@ -84,6 +84,7 @@ class MLUtilityTrainer:
         self.i_step = -1
         self.logs = []
         self.log_path = log_path
+        pathlib.Path(log_path).parent.mkdir(parents=True, exist_ok=True)
         print(f"mlu logging {self.log_path}")
 
     def set_embedding(self, embedding):
