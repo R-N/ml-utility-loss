@@ -217,6 +217,35 @@ class AutoEncoder(object):
     def decode(self, z):
         z = z.type(self.tensor_type)
         return self.model.decode(z)
+    
+    def eval_step(
+        self,
+        steps,
+        batch_size,
+        cond_generator,
+        data_sampler,
+        data_2,
+    ):
+        epoch_loss = 0
+        with torch.no_grad():
+            for i in range(steps):
+                # sample all conditional vectors for the training
+                _, _, col, opt = cond_generator.sample_train(batch_size)
+
+                # sampling real data according to the conditional vectors and shuffling it before feeding to discriminator to isolate conditional loss on generator
+                perm = np.arange(batch_size)
+                np.random.shuffle(perm)
+                idx = data_sampler.sample_idx(batch_size, col[perm], opt[perm])
+                batch = data_2[idx]
+
+                self.optimizer.zero_grad()
+
+                recon_batch = self.model(batch).to(self.device)
+
+                loss = self.loss_function(recon_batch, batch, input_size=self.input_size)
+
+                epoch_loss = (loss.item() / len(batch))
+        return epoch_loss
 
     def train(self, data, output_dim: int, output_info, epochs, batch_size, lr=1e-3):
 
@@ -240,6 +269,7 @@ class AutoEncoder(object):
         steps = int(len(data) / batch_size)
         data_2 = torch.from_numpy(data.astype('float32')).to(self.device)
         for e in range(epochs):
+            epoch_loss = 0
             for i in range(steps):
                 # sample all conditional vectors for the training
                 _, _, col, opt = cond_generator.sample_train(batch_size)
@@ -260,9 +290,18 @@ class AutoEncoder(object):
                 train_loss += loss.item()
                 self.optimizer.step()
 
-                last_loss = (loss.item() / len(batch))
+                epoch_loss = (loss.item() / len(batch))
+            last_loss = epoch_loss
 
-            if self.mlu_trainer and self.mlu_trainer.should_step(e+1):
+            if self.mlu_trainer and self.mlu_trainer.should_step(e):
+                total_mlu_loss = 0
+                pre_loss = self.eval_step(
+                    steps,
+                    batch_size,
+                    cond_generator,
+                    data_sampler,
+                    data_2,
+                )
                 for i in range(self.mlu_trainer.n_steps):
                     n_samples = self.mlu_trainer.n_samples
                     #_, _, col, opt = cond_generator.sample_train(n_samples)
@@ -281,7 +320,28 @@ class AutoEncoder(object):
                             samples.append(sample)
                     samples = samples[:n_samples]
                     samples = torch.cat(samples, dim=0)
-                    self.mlu_trainer.step(samples, batch_size=batch_size)
+                    mlu_loss = self.mlu_trainer.step(samples, batch_size=batch_size)
+                    total_mlu_loss += mlu_loss
+                total_mlu_loss /= self.mlu_trainer.n_steps
+                post_loss = self.eval_step(
+                    steps,
+                    batch_size,
+                    cond_generator,
+                    data_sampler,
+                    data_2,
+                )
+                self.mlu_trainer.log(
+                    synthesizer_step=e,
+                    train_loss=epoch_loss,
+                    pre_loss=pre_loss,
+                    mlu_loss=mlu_loss,
+                    post_loss=post_loss,
+                )
+            else:
+                self.mlu_trainer.log(
+                    synthesizer_step=e,
+                    train_loss=epoch_loss,
+                )
 
         #print(last_loss)
         self.loss = last_loss

@@ -23,6 +23,7 @@ from transformers.trainer_pt_utils import get_parameter_names
 from transformers.trainer_utils import ShardedDDPOption
 from transformers.utils import is_sagemaker_mp_enabled
 from contextlib import nullcontext
+from transformers.modelcard import parse_log_history
 
 logger = logging.get_logger(__name__)
 
@@ -69,7 +70,12 @@ class MLUtilityCallback(TrainerCallback):
         **kwargs,
     ):
         self.epoch += 1
-        if self.mlu_trainer and self.mlu_trainer.should_step(self.epoch+1):
+        last_log = state.log_history[-1:]
+        #last_log = parse_log_history(last_log)
+        last_log = last_log[-1]
+        train_loss = last_log.get("eval_loss", last_log.get("loss", None))
+        if self.mlu_trainer and self.mlu_trainer.should_step(self.epoch):
+            total_mlu_loss = 0
             for i in range(self.mlu_trainer.n_steps):
                 n_samples = self.mlu_trainer.n_samples
                 batch_size = self.batch_size
@@ -85,13 +91,26 @@ class MLUtilityCallback(TrainerCallback):
                                 gen_batch=batch_size,
                                 raw=True,
                             )
-                        self.mlu_trainer.step(samples, batch_size=self.batch_size)
+                        mlu_loss = self.mlu_trainer.step(samples, batch_size=self.batch_size)
+                        total_mlu_loss += mlu_loss
                         break
                     except AssertionError as ex:
                         if "Mismatching shapes" in str(ex) and counter > 0:
                             continue
                         print("Failed MLU step")
                         return
+            total_mlu_loss /= self.mlu_trainer.n_steps
+            
+            self.mlu_trainer.log(
+                synthesizer_step=self.epoch,
+                train_loss=train_loss,
+                mlu_loss=mlu_loss,
+            )
+        else:
+            self.mlu_trainer.log(
+                synthesizer_step=self.epoch,
+                train_loss=train_loss,
+            )
 
 
 

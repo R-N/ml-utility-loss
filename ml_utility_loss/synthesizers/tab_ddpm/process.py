@@ -42,6 +42,16 @@ class Trainer:
         for param_group in self.optimizer.param_groups:
             param_group["lr"] = lr
 
+    def _eval_step(self, x, out_dict):
+        with torch.no_grad():
+            x = x.to(self.device)
+            for k in out_dict:
+                out_dict[k] = out_dict[k].long().to(self.device)
+            self.optimizer.zero_grad()
+            loss_multi, loss_gauss = self.diffusion.mixed_loss(x, out_dict)
+            loss = loss_multi + loss_gauss
+            return loss
+
     def _run_step(self, x, out_dict):
         x = x.to(self.device)
         for k in out_dict:
@@ -75,16 +85,19 @@ class Trainer:
             if (step + 1) % self.log_every == 0:
                 mloss = np.around(curr_loss_multi / curr_count, 4)
                 gloss = np.around(curr_loss_gauss / curr_count, 4)
+                sum_loss = mloss+gloss
                 if (step + 1) % self.print_every == 0:
-                    print(f'Step {(step + 1)}/{self.steps} MLoss: {mloss} GLoss: {gloss} Sum: {mloss + gloss}')
-                self.loss_history.loc[len(self.loss_history)] =[step + 1, mloss, gloss, mloss + gloss]
+                    print(f'Step {(step + 1)}/{self.steps} MLoss: {mloss} GLoss: {gloss} Sum: {sum_loss}')
+                self.loss_history.loc[len(self.loss_history)] =[step + 1, mloss, gloss, sum_loss]
                 curr_count = 0
                 curr_loss_gauss = 0.0
                 curr_loss_multi = 0.0
 
             update_ema(self.ema_model.parameters(), self.diffusion._denoise_fn.parameters())
 
-            if self.mlu_trainer and self.mlu_trainer.should_step(step+1):
+            if self.mlu_trainer and self.mlu_trainer.should_step(step):
+                pre_loss = self._eval_step(x, out_dict).item()# * len(x)
+                total_mlu_loss = 0
                 for i in range(self.mlu_trainer.n_steps):
                     clear_memory()
                     n_samples = self.mlu_trainer.n_samples
@@ -98,9 +111,26 @@ class Trainer:
                             num_samples=n_samples, 
                             raw=True
                         )
-                    self.mlu_trainer.step(samples, batch_size=self.batch_size)
+                    mlu_loss = self.mlu_trainer.step(samples, batch_size=self.batch_size)
                     del samples
+                    total_mlu_loss += mlu_loss
+                total_mlu_loss /= self.mlu_trainer.n_steps
                 clear_memory()
+                post_loss = self._eval_step(x, out_dict).item()# * len(x)
+                self.mlu_trainer.log(
+                    synthesizer_step=step,
+                    train_loss=batch_loss_multi.item() + batch_loss_gauss.item(),
+                    pre_loss=pre_loss,
+                    mlu_loss=total_mlu_loss,
+                    post_loss=post_loss,
+                    #batch_size=len(x),
+                )
+            else:
+                self.mlu_trainer.log(
+                    synthesizer_step=step,
+                    train_loss=batch_loss_multi.item() + batch_loss_gauss.item(),
+                    #batch_size=len(x),
+                )
 
 
             step += 1

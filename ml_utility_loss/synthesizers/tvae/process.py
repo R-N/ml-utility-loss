@@ -29,6 +29,29 @@ def loss_function(recon_x, x, sigmas, mu, logvar, output_info, factor):
     KLD = -0.5 * torch.sum(1 + logvar - mu**2 - logvar.exp())
     return sum(loss) * factor / x.size()[0], KLD / x.size()[0]
 
+def eval_step(
+    model, 
+    transformer, 
+    loader, 
+    loss_factor=2,
+):
+    epoch_loss = 0
+    counter = 0
+    with torch.no_grad():
+        for id_, data in enumerate(loader):
+            real = data[0].to(model.device)
+            rec, sigmas, mu, logvar = model(real)
+            loss_1, loss_2 = loss_function(
+                rec, real, sigmas, mu, logvar,
+                transformer.output_info_list, loss_factor
+            )
+            loss = loss_1 + loss_2
+            model.decoder.sigma.data.clamp_(0.01, 1.0)
+            epoch_loss += loss.item() * len(data)
+            counter += len(data)
+
+    epoch_loss /= counter
+    return epoch_loss
 
 def train(
     model, 
@@ -48,6 +71,8 @@ def train(
         weight_decay=l2scale)
 
     for i in range(epochs):
+        epoch_loss = 0
+        counter = 0
         for id_, data in enumerate(loader):
             optimizerAE.zero_grad()
             real = data[0].to(model.device)
@@ -60,13 +85,47 @@ def train(
             loss.backward()
             optimizerAE.step()
             model.decoder.sigma.data.clamp_(0.01, 1.0)
+            epoch_loss += loss.item() * len(data)
+            counter += len(data)
+
+        epoch_loss /= counter
                     
-        if mlu_trainer and mlu_trainer.should_step(i+1):
+        if mlu_trainer and mlu_trainer.should_step(i):
+            pre_loss = eval_step(
+                model, 
+                transformer, 
+                loader, 
+                loss_factor=loss_factor,
+            )
+
+            total_mlu_loss = 0
             for _ in range(mlu_trainer.n_steps):
                 n_samples = mlu_trainer.n_samples
                 #batch_size = mlu_trainer.sample_batch_size
                 samples = sample(model=model, transformer=transformer, samples=n_samples, batch_size=batch_size, raw=True)
-                mlu_trainer.step(samples, batch_size=batch_size)
+                mlu_loss = mlu_trainer.step(samples, batch_size=batch_size)
+
+                total_mlu_loss += mlu_loss
+            total_mlu_loss /= mlu_trainer.n_steps
+
+            post_loss = eval_step(
+                model, 
+                transformer, 
+                loader, 
+                loss_factor=loss_factor,
+            )
+            mlu_trainer.log(
+                synthesizer_step=i,
+                train_loss=epoch_loss,
+                pre_loss=pre_loss,
+                mlu_loss=mlu_loss,
+                post_loss=post_loss,
+            )
+        else:
+            mlu_trainer.log(
+                synthesizer_step=i,
+                train_loss=epoch_loss,
+            )
 
     return loss_1.item(), loss_2.item()
 

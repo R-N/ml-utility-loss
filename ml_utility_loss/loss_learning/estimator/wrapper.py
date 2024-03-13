@@ -4,6 +4,7 @@ from ...util import zero_tensor, clear_memory
 from ...data import FastDataLoader as DataLoader
 from .data import collate_fn
 from itertools import cycle
+import pandas as pd
 
 class MLUtilityTrainer:
     def __init__(
@@ -26,6 +27,7 @@ class MLUtilityTrainer:
         debug=False,
         save_on_cpu=False,
         batched=False,
+        log_path=None,
         **optim_kwargs
     ):
         for param in model.parameters():
@@ -72,6 +74,9 @@ class MLUtilityTrainer:
             self.model.adapter.use_embedding = False
 
         self.debug = debug
+        self.step = -1
+        self.logs = []
+        
 
     def set_embedding(self, embedding):
         self.model.adapter.embedding = embedding
@@ -81,13 +86,19 @@ class MLUtilityTrainer:
         parameters = list(parameters)
         parameters = [p for p in parameters if p.requires_grad]
         self.parameters = parameters
-        optim_kwargs = {**self.optim_kwargs, **kwargs}
+        optim_kwargs = {
+            #"weight_decay": weight_decay, 
+            **self.optim_kwargs, 
+            **kwargs
+        }
         self.optim = Optim(parameters, **optim_kwargs)
 
     def should_step(self, x):
+        x = x+1
         return x >= self.t_start and x%self.t_steps == 0 and ((not self.t_end) or x <= self.t_end)
 
     def step(self, samples, batch_size=None):
+        self.step += 1
         assert self.optim
         assert samples.grad_fn
         if samples.dim() < self.dim:
@@ -105,6 +116,7 @@ class MLUtilityTrainer:
         samples_0 = samples
 
         grads = 0
+        total_loss = 0
 
         for i in range(self.n_inner_steps):
             
@@ -148,9 +160,12 @@ class MLUtilityTrainer:
                     outputs=loss,
                     #retain_graph=True
                 )[0]
+
+                total_loss += torch.mean(loss).detach().cpu().item()
             #loss.backward()
 
         grads = grads / (self.n_inner_steps * self.n_inner_steps_2)
+        total_loss = total_loss / (self.n_inner_steps * self.n_inner_steps_2)
 
         if self.batched and batch_size:
             assert grads.shape[0] == samples_0.shape[0]
@@ -167,10 +182,35 @@ class MLUtilityTrainer:
 
         self.optim.step()
 
-        loss = loss.detach().cpu().item()
         if self.debug:
-            print("MLU loss", loss)
+            print("MLU loss", total_loss)
 
         clear_memory()
 
-        return loss
+        return total_loss
+    
+    def log(self, synthesizer_step, train_loss=None, pre_loss=None, mlu_loss=None, post_loss=None, **kwargs):
+        log = {
+            "synthesizer_step": synthesizer_step,
+            "train_loss": train_loss,
+        }
+        if mlu_loss is not None:
+            log = {
+                **log,
+                "mlu_step": self.step,
+                "global_step": self.step // self.n_steps,
+                "sample_step": self.step % self.n_steps,
+                "pre_loss": pre_loss,
+                "mlu_loss": mlu_loss,
+                "post_loss": post_loss,
+            }
+        log = {
+            **log,
+            **kwargs,
+        }
+        self.logs.append()
+
+    def export_logs(self, path):
+        df = pd.DataFrame.from_records(self.logs)
+        df.to_csv(path, index=False)
+        return df
