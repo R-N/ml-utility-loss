@@ -84,6 +84,7 @@ class MLUtilityTrainer:
         self.step = -1
         self.logs = []
         self.log_path = log_path
+        print(f"mlu logging {self.log_path}")
 
     def set_embedding(self, embedding):
         self.model.adapter.embedding = embedding
