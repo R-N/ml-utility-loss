@@ -1,3 +1,6 @@
+from ..params.treatment import BEST
+from .default import update_params
+
 PARAM_SPACE = {
     "n_samples": ("int_exp_2", 16, 128),
     #"sample_batch_size": ("int_exp_2", 16, 512),
@@ -21,6 +24,14 @@ PARAM_SPACE = {
     ]),
     "mlu_lr": ("log_float", 1e-6, 1e-4),
 }
+PARAM_SPACE = {
+    **{f"{k}_ae": v for k, v in PARAM_SPACE.items()},
+    **{f"{k}_gan": v for k, v in PARAM_SPACE.items()},
+}
+update_params(PARAM_SPACE, "t_start_ae", BEST["ae_epochs"] - 100)
+update_params(PARAM_SPACE, "t_start_gan", BEST["gan_epochs"] - 100)
+update_params(PARAM_SPACE, "t_end_ae", BEST["ae_epochs"])
+update_params(PARAM_SPACE, "t_end_gan", BEST["gan_epochs"])
 #27
 #0.5259515570934257
 BEST = {

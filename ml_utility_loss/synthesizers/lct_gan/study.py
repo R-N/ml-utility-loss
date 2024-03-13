@@ -27,6 +27,8 @@ def objective(
     preprocess_df=None,
     seed=0,
     repeat=5,
+    mlu_trainer_ae=None,
+    mlu_trainer_gan=None,
     **kwargs
 ):
     clear_memory()
@@ -51,6 +53,7 @@ def objective(
             log_dir=log_dir,
             trial=trial,
             preprocess_df=preprocess_df,
+            mlu_trainer=mlu_trainer_ae,
             **kwargs
         )
         
@@ -63,6 +66,7 @@ def objective(
             checkpoint_dir=checkpoint_dir,
             log_dir=log_dir,
             trial=trial,
+            mlu_trainer=mlu_trainer_gan,
             **kwargs
         )
         total_value = 0
@@ -107,34 +111,59 @@ def objective_mlu(
     *args,
     mlu_model=None,
     mlu_dataset=None,
-    n_samples=512,
-    mlu_target=None,
-    t_steps=5,
-    n_steps=1,
-    n_inner_steps=1,
-    n_inner_steps_2=1,
-    loss_fn=F.mse_loss,
-    loss_mul=1.0,
-    Optim=torch.optim.AdamW,
-    mlu_lr=1e-3,
+    n_samples_ae=512,
+    mlu_target_ae=None,
+    t_steps_ae=5,
+    n_steps_ae=1,
+    n_inner_steps_ae=1,
+    n_inner_steps_2_ae=1,
+    loss_fn_ae=F.mse_loss,
+    loss_mul_ae=1.0,
+    Optim_ae=torch.optim.AdamW,
+    mlu_lr_ae=1e-3,
+    n_samples_gan=512,
+    mlu_target_gan=None,
+    t_steps_gan=5,
+    n_steps_gan=1,
+    n_inner_steps_gan=1,
+    n_inner_steps_2_gan=1,
+    loss_fn_gan=F.mse_loss,
+    loss_mul_gan=1.0,
+    Optim_gan=torch.optim.AdamW,
+    mlu_lr_gan=1e-3,
     **kwargs
 ):
-    mlu_trainer = MLUtilityTrainer(
+    mlu_trainer_ae = MLUtilityTrainer(
         model=mlu_model["lct_gan"],
         dataset=mlu_dataset,
-        n_samples=n_samples,
-        target=mlu_target,
-        t_steps=t_steps,
-        n_steps=n_steps,
-        n_inner_steps=n_inner_steps,
-        n_inner_steps_2=n_inner_steps_2,
-        loss_fn=loss_fn,
-        loss_mul=loss_mul,
-        Optim=Optim,
-        lr=mlu_lr,
+        n_samples=n_samples_ae,
+        target=mlu_target_ae,
+        t_steps=t_steps_ae,
+        n_steps=n_steps_ae,
+        n_inner_steps=n_inner_steps_ae,
+        n_inner_steps_2=n_inner_steps_2_ae,
+        loss_fn=loss_fn_ae,
+        loss_mul=loss_mul_ae,
+        Optim=Optim_ae,
+        lr=mlu_lr_ae,
+    )
+    mlu_trainer_gan = MLUtilityTrainer(
+        model=mlu_model["lct_gan"],
+        dataset=mlu_dataset,
+        n_samples=n_samples_gan,
+        target=mlu_target_gan,
+        t_steps=t_steps_gan,
+        n_steps=n_steps_gan,
+        n_inner_steps=n_inner_steps_gan,
+        n_inner_steps_2=n_inner_steps_2_gan,
+        loss_fn=loss_fn_gan,
+        loss_mul=loss_mul_gan,
+        Optim=Optim_gan,
+        lr=mlu_lr_gan,
     )
     return objective(
         *args,
-        mlu_trainer=mlu_trainer,
+        mlu_trainer_ae=mlu_trainer_ae,
+        mlu_trainer_gan=mlu_trainer_gan,
         **kwargs,
     )

@@ -19,3 +19,6 @@ PARAM_SPACE = {
     ]),
     "mlu_lr": ("log_float", 1e-6, 1e-3),
 }
+
+def update_params(PARAM_SPACE, x, index=2):
+    PARAM_SPACE[x] = [*PARAM_SPACE[x][:index], 0, *PARAM_SPACE[x][index+1:]]
