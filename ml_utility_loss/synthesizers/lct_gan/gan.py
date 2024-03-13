@@ -202,11 +202,13 @@ class LatentGAN:
                     synthesizer_step=epoch,
                     train_loss=total_loss,
                     mlu_loss=mlu_loss,
+                    synthesizer_type="gan",
                 )
             else:
                 self.mlu_trainer.log(
                     synthesizer_step=epoch,
                     train_loss=total_loss,
+                    synthesizer_type="gan",
                 )
 
             if (epoch +1) % self.log_every == 0:

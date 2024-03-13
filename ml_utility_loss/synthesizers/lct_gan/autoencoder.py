@@ -336,11 +336,13 @@ class AutoEncoder(object):
                     pre_loss=pre_loss,
                     mlu_loss=mlu_loss,
                     post_loss=post_loss,
+                    synthesizer_type="ae",
                 )
             else:
                 self.mlu_trainer.log(
                     synthesizer_step=e,
                     train_loss=epoch_loss,
+                    synthesizer_type="ae",
                 )
 
         #print(last_loss)
