@@ -32,8 +32,8 @@ PARAM_SPACE = {
 }
 update_params(PARAM_SPACE, "t_start_ae", BEST["ae_epochs"] - 100)
 update_params(PARAM_SPACE, "t_start_gan", BEST["gan_epochs"] - 100)
-update_params(PARAM_SPACE, "t_end_ae", BEST["ae_epochs"])
-update_params(PARAM_SPACE, "t_end_gan", BEST["gan_epochs"])
+update_params(PARAM_SPACE, "t_range_ae", BEST["ae_epochs"])
+update_params(PARAM_SPACE, "t_range_gan", BEST["gan_epochs"])
 #85
 #0.47745077926555196
 BEST = {
