@@ -28,6 +28,7 @@ class MLUtilityTrainer:
         save_on_cpu=False,
         batched=False,
         log_path=None,
+        t_range=None,
         **optim_kwargs
     ):
         for param in model.parameters():
@@ -37,6 +38,8 @@ class MLUtilityTrainer:
         self.batched = batched
         self.model = model
         self.t_steps = t_steps
+        if (not t_end) and (t_range or t_range == 0):
+            t_end = t_start + t_range
         assert (not t_end) or ((t_end - t_start)//(t_steps+1)) >= 1, "t_start low must be lower than high t_end and the interval between must be at least t_steps +1"
         self.t_start = t_start
         self.t_end = t_end
