@@ -31,7 +31,6 @@ def sample_int_exp_2(trial, k, low, high, *args, **kwargs):
 
 def sample_int(trial, name, low, high, step=1, log=False, **kwargs):
     high = roundup(high, multiple=step, offset=low)
-    print(low, high, step)
     return trial.suggest_int(name, low, high, step=step, log=log, **kwargs)
 
 def sample_parameter_2(trial, k, type_0, args, kwargs=None, param_map={}):
@@ -85,7 +84,7 @@ def sample_parameter_2(trial, k, type_0, args, kwargs=None, param_map={}):
         type_1 = "categorical"
 
     if type_1 == "int":
-        sample_int(trial, k, *args, **kwargs)
+        param = sample_int(trial, k, *args, **kwargs)
     elif type_1:
         param = sample_parameter(trial, k, type_1, args, kwargs)
 
