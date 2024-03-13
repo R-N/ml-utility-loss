@@ -2,7 +2,7 @@
 from ....params import BOOLEAN, OPTIMS, ACTIVATIONS, LOSSES
 
 PARAM_SPACE = {
-    "n_samples": ("int_exp_2", 64, 256),
+    "n_samples": ("int_exp_2", 32, 256),
     #"sample_batch_size": ("int_exp_2", 2, 64),
     "t_steps": ("int", 4, 10),
     "t_start": ("int", 0, 553, 50),
