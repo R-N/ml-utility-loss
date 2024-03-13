@@ -10,6 +10,7 @@ import torch
 import torch.nn.functional as F
 from ...util import clear_memory, seed as seed_
 from torch.cuda import OutOfMemoryError
+import os
 
 def objective(
     datasets,
@@ -109,6 +110,7 @@ def objective(
 
 def objective_mlu(
     *args,
+    log_dir=None,
     mlu_model=None,
     mlu_dataset=None,
     n_samples_ae=512,
@@ -155,6 +157,7 @@ def objective_mlu(
         Optim=Optim_ae,
         lr=mlu_lr_ae,
         div_batch=div_batch_ae,
+        log_path=os.path.join(log_dir, "mlu_log_ae.csv"),
     )
     mlu_trainer_gan = MLUtilityTrainer(
         model=mlu_model["lct_gan"],
@@ -172,9 +175,11 @@ def objective_mlu(
         Optim=Optim_gan,
         lr=mlu_lr_gan,
         div_batch=div_batch_gan,
+        log_path=os.path.join(log_dir, "mlu_log_gan.csv"),
     )
     return objective(
         *args,
+        log_dir=log_dir,
         mlu_trainer_ae=mlu_trainer_ae,
         mlu_trainer_gan=mlu_trainer_gan,
         **kwargs,
