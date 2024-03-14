@@ -73,7 +73,9 @@ def objective(
         msg = str(ex)
         if "outofmemory" in msg.lower().replace(" ", ""):
             clear_memory()
-            raise TrialPruned(str(ex))
+            raise TrialPruned(msg)
+        if "Consecutive MLU fail exceeded max" in msg:
+            raise TrialPruned(msg)
         raise
     clear_memory()
     return total_value

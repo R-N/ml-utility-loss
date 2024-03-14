@@ -54,13 +54,15 @@ class SaveEpochEndCallback(TrainerCallback):
 class MLUtilityCallback(TrainerCallback):
     """This callback forces a checkpoint save at each epoch end."""
 
-    def __init__(self, sampler, mlu_trainer=None, batch_size=8, tries=3):
+    def __init__(self, sampler, mlu_trainer=None, batch_size=8, mlu_tries=3, mlu_max_consecutive_fails=3):
         super().__init__()
         self.mlu_trainer = mlu_trainer
         self.sampler = sampler
         self.epoch = -1
         self.batch_size = batch_size
-        self.tries = tries
+        self.mlu_tries = mlu_tries
+        self.mlu_max_consecutive_fails = mlu_max_consecutive_fails
+        self.mlu_fail_counter = 0
 
     def on_epoch_end(
         self,
@@ -79,12 +81,13 @@ class MLUtilityCallback(TrainerCallback):
         if self.mlu_trainer:
             if self.mlu_trainer.should_step(self.epoch):
                 total_mlu_loss = 0
+                mlu_success = 0
                 for i in range(self.mlu_trainer.n_steps):
                     n_samples = self.mlu_trainer.n_samples
                     batch_size = self.batch_size
                     #batch_size=self.mlu_trainer.sample_batch_size
                     save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext()
-                    counter = self.tries
+                    counter = self.mlu_tries
                     while True:
                         try:
                             with save_cm:
@@ -95,6 +98,7 @@ class MLUtilityCallback(TrainerCallback):
                                 )
                             mlu_loss = self.mlu_trainer.step(samples, batch_size=self.batch_size)
                             total_mlu_loss += mlu_loss
+                            mlu_success += 1
                             break
                         except AssertionError as ex:
                             if "Mismatching shapes" in str(ex) and counter > 0:
@@ -110,6 +114,12 @@ class MLUtilityCallback(TrainerCallback):
                     mlu_loss=mlu_loss,
                     synthesizer_type="realtabformer",
                 )
+                if mlu_success:
+                    self.mlu_fail_counter = 0
+                else:
+                    self.mlu_fail_counter += 1
+                    if self.mlu_fail_counter > self.mlu_max_consecutive_fails:
+                        raise RuntimeError(f"Consecutive MLU fail exceeded max {self.mlu_fail_counter}/{self.mlu_max_consecutive_fails}")
             else:
                 self.mlu_trainer.log(
                     synthesizer_step=self.epoch,

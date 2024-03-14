@@ -16,7 +16,7 @@ def update_ema(target_params, source_params, rate=0.999):
         targ.detach().mul_(rate).add_(src.detach(), alpha=1 - rate)
 
 class Trainer:
-    def __init__(self, diffusion, train_iter, lr, weight_decay, steps, device=DEFAULT_DEVICE, mlu_trainer=None, batch_size=1024, mlu_tries=3):
+    def __init__(self, diffusion, train_iter, lr, weight_decay, steps, device=DEFAULT_DEVICE, mlu_trainer=None, batch_size=1024, mlu_tries=3, mlu_max_consecutive_fails=3):
         self.diffusion = diffusion
         self.ema_model = deepcopy(self.diffusion._denoise_fn)
         for param in self.ema_model.parameters():
@@ -33,6 +33,8 @@ class Trainer:
         self.ema_every = 1000
         self.mlu_trainer=mlu_trainer
         self.mlu_tries = mlu_tries
+        self.mlu_max_consecutive_fails = mlu_max_consecutive_fails
+        self.mlu_fail_counter = 0
         if mlu_trainer:
             mlu_trainer.create_optim(diffusion.parameters())
         self.batch_size = batch_size
@@ -100,6 +102,7 @@ class Trainer:
                 if  self.mlu_trainer.should_step(step):
                     pre_loss = self._eval_step(x, out_dict).item()# * len(x)
                     total_mlu_loss = 0
+                    mlu_success = 0
                     for i in range(self.mlu_trainer.n_steps):
                         clear_memory()
                         n_samples = self.mlu_trainer.n_samples
@@ -119,6 +122,7 @@ class Trainer:
                                 mlu_loss = self.mlu_trainer.step(samples, batch_size=self.batch_size)
                                 del samples
                                 total_mlu_loss += mlu_loss
+                                mlu_success += 1
                                 break
                             except AssertionError as ex:
                                 if "Grad is not populated" in str(ex) and counter > 0:
@@ -138,6 +142,12 @@ class Trainer:
                         #batch_size=len(x),
                         synthesizer_type="tab_ddpm",
                     )
+                    if mlu_success:
+                        self.mlu_fail_counter = 0
+                    else:
+                        self.mlu_fail_counter += 1
+                        if self.mlu_fail_counter > self.mlu_max_consecutive_fails:
+                            raise RuntimeError(f"Consecutive MLU fail exceeded max {self.mlu_fail_counter}/{self.mlu_max_consecutive_fails}")
                 else:
                     self.mlu_trainer.log(
                         synthesizer_step=step,
