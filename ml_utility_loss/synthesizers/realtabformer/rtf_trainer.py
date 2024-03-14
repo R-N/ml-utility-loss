@@ -87,7 +87,6 @@ class MLUtilityCallback(TrainerCallback):
                     counter = self.tries
                     while True:
                         try:
-                            counter -= 1
                             with save_cm:
                                 samples = self.sampler.sample(
                                     n_samples=n_samples,
@@ -99,6 +98,7 @@ class MLUtilityCallback(TrainerCallback):
                             break
                         except AssertionError as ex:
                             if "Mismatching shapes" in str(ex) and counter > 0:
+                                counter -= 1
                                 continue
                             print("Failed MLU step")
                             return

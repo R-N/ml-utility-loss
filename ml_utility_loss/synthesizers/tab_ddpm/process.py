@@ -16,7 +16,7 @@ def update_ema(target_params, source_params, rate=0.999):
         targ.detach().mul_(rate).add_(src.detach(), alpha=1 - rate)
 
 class Trainer:
-    def __init__(self, diffusion, train_iter, lr, weight_decay, steps, device=DEFAULT_DEVICE, mlu_trainer=None, batch_size=1024):
+    def __init__(self, diffusion, train_iter, lr, weight_decay, steps, device=DEFAULT_DEVICE, mlu_trainer=None, batch_size=1024, mlu_tries=3):
         self.diffusion = diffusion
         self.ema_model = deepcopy(self.diffusion._denoise_fn)
         for param in self.ema_model.parameters():
@@ -32,6 +32,7 @@ class Trainer:
         self.print_every = 1000
         self.ema_every = 1000
         self.mlu_trainer=mlu_trainer
+        self.mlu_tries = mlu_tries
         if mlu_trainer:
             mlu_trainer.create_optim(diffusion.parameters())
         self.batch_size = batch_size
@@ -105,16 +106,26 @@ class Trainer:
                         batch_size = self.batch_size
                         #batch_size = self.mlu_trainer.sample_batch_size
                         save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext()
-                        with save_cm:
-                            samples = sample(
-                                self.diffusion,
-                                batch_size=batch_size, 
-                                num_samples=n_samples, 
-                                raw=True
-                            )
-                        mlu_loss = self.mlu_trainer.step(samples, batch_size=self.batch_size)
-                        del samples
-                        total_mlu_loss += mlu_loss
+                        counter = self.mlu_tries
+                        while True:
+                            try:
+                                with save_cm:
+                                    samples = sample(
+                                        self.diffusion,
+                                        batch_size=batch_size, 
+                                        num_samples=n_samples, 
+                                        raw=True
+                                    )
+                                mlu_loss = self.mlu_trainer.step(samples, batch_size=self.batch_size)
+                                del samples
+                                total_mlu_loss += mlu_loss
+                                break
+                            except AssertionError as ex:
+                                if "Grad is not populated" in str(ex) and counter > 0:
+                                    counter -= 1
+                                    continue
+                                print("Failed MLU step")
+                                break
                     total_mlu_loss /= self.mlu_trainer.n_steps
                     clear_memory()
                     post_loss = self._eval_step(x, out_dict).item()# * len(x)
