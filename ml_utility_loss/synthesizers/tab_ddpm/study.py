@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from ...util import clear_memory, seed as seed_
 from torch.cuda import OutOfMemoryError
 import os
+from .util import FoundNANsError
 
 def objective(
     datasets,
@@ -68,6 +69,8 @@ def objective(
             print(f"AssertionError: {msg}")
             raise TrialPruned(msg)
         raise
+    except FoundNANsError as ex:
+        raise TrialPruned(str(ex))
     except OutOfMemoryError as ex:
         clear_memory()
         raise TrialPruned(str(ex))
