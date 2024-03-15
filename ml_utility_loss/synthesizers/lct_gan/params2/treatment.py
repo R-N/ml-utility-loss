@@ -5,7 +5,7 @@ from ....params import BOOLEAN, OPTIMS, ACTIVATIONS, LOSSES
 PARAM_SPACE = {
     "n_samples": ("int_exp_2", 16, 4096),
     #"sample_batch_size": ("int_exp_2", 16, 512),
-    "t_steps": ("int", 16, 64),
+    "t_steps": ("int", 4, 64, 4),
     "t_start": ("int", 0, 875, 50),
     "t_range": ("bool_int", 0, 975, 50),
     "mlu_target": ("categorical", [None, 1.0]),
