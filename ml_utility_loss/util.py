@@ -56,32 +56,39 @@ def split_df_2(df, points, test=-1, val=None, return_3=False, **kwargs):
     return train_df, test_df
 
 def split_df_ratio(df, ratio=0.2, val=False, i=0, return_3=False, reverse_index=False, **kwargs):
-    count = int(1.0/ratio)
-    splits = [k*ratio for k in range(1, count)]
-    splits = split_df(df, splits, reverse_index=reverse_index, **kwargs)
-    if not reverse_index:
-        test_index = (count - 1 + i)%count
-        val_index = ((test_index-1)%count) if val else None
+    if ratio == 0:
+        train_df = df
+        test_df = pd.DataFrame(columns=list(df.columns))
+        val_df = test_df
+        if val:
+            val_df = pd.DataFrame(columns=list(df.columns))
     else:
-        print("Split with reverse index!")
-        test_index = i%count
-        val_index = ((i+1)%count) if val else None
-    n = min([len(s) for s in splits])
+        count = int(1.0/ratio)
+        splits = [k*ratio for k in range(1, count)]
+        splits = split_df(df, splits, reverse_index=reverse_index, **kwargs)
+        if not reverse_index:
+            test_index = (count - 1 + i)%count
+            val_index = ((test_index-1)%count) if val else None
+        else:
+            print("Split with reverse index!")
+            test_index = i%count
+            val_index = ((i+1)%count) if val else None
+        n = min([len(s) for s in splits])
 
-    leftovers = []
+        leftovers = []
 
-    test_df = splits[test_index]
-    leftovers.append(test_df[n:])
+        test_df = splits[test_index]
+        leftovers.append(test_df[n:])
 
-    val_df = test_df
-    if val:
-        val_df = splits[val_index]
-        leftovers.append(val_df[n:])
+        val_df = test_df
+        if val:
+            val_df = splits[val_index]
+            leftovers.append(val_df[n:])
 
-    train_dfs = [s for s in splits if s is not test_df and s is not val_df]
-    test_df = test_df[:n]
-    val_df = val_df[:n]
-    train_df = pd.concat(train_dfs + leftovers)
+        train_dfs = [s for s in splits if s is not test_df and s is not val_df]
+        test_df = test_df[:n]
+        val_df = val_df[:n]
+        train_df = pd.concat(train_dfs + leftovers)
 
     if val or return_3:
         return train_df, val_df, test_df
