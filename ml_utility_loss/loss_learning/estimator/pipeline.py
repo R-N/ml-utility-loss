@@ -30,7 +30,7 @@ from ...tuning import pop_repack, pop_update
 
 def list_scale(scale=1.0, n=1, i=0):
     if scale == True:
-        scale = [1.0 * ((j+1)/n) for j in reversed(range(i, n))]
+        scale = [1.0 * ((j+1)/n) for j in range(i, n)]
     elif isinstance(scale, (int, float, complex)):
         scale = [scale for j in range(i, n)]
     elif not scale:
