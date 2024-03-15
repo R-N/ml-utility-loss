@@ -482,18 +482,19 @@ def train(
 
     if not optim:
         weight_params, bias_params = filter_bias(whole_model)
+        optim_params = [
+            {
+                "params": weight_params,
+                "lr": lr,
+            },
+            {
+                "params": bias_params,
+                "lr": bias_lr_mul * lr,
+                "weight_decay": bias_weight_decay,
+            }
+        ]
         optim = Optim(
-            [
-                {
-                    "params": weight_params,
-                    "lr": lr,
-                },
-                {
-                    "params": bias_params,
-                    "lr": bias_lr_mul * lr,
-                    "weight_decay": bias_weight_decay,
-                }
-            ],
+            optim_params,
             lr=lr
         )
     if lr_mul and not isinstance(optim, ScheduledOptim):
