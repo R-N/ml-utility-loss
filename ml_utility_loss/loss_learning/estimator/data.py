@@ -167,6 +167,7 @@ class BaseDataset(Dataset):
     def split_ratio(self, **kwargs):
         index = pd.Series(self.index)
         datasets = split_df_ratio(index, **kwargs)
+        #print("split_ratio", len(datasets))
         datasets = [SubDataset(self, i) for i in datasets]
         return datasets
 

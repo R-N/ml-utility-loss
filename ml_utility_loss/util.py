@@ -58,16 +58,18 @@ def split_df_2(df, points, test=-1, val=None, return_3=False, **kwargs):
 def split_df_ratio(df, ratio=0.2, val=False, i=0, return_3=False, reverse_index=False, **kwargs):
     if ratio == 0 or ratio == 1:
         if isinstance(df, pd.DataFrame):
-            create_empty = lambda: pd.DataFrame(columns=list(df.columns))
+            create_empty = lambda: pd.DataFrame(columns=list(df.columns)).astype(df.dtypes)
         elif isinstance(df, pd.Series):
-            create_empty = lambda: pd.Series()
+            create_empty = lambda: pd.Series(dtype=df.dtype)
         if ratio == 0:
+            print("split df ratio is 0")
             train_df = df.iloc[:]
             test_df = create_empty()
             val_df = test_df
             if val:
                 val_df = create_empty()
         elif ratio == 1:
+            print("split df ratio is 1")
             train_df = create_empty()
             test_df = df.iloc[:]
             val_df = test_df

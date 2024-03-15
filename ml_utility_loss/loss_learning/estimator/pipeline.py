@@ -796,18 +796,16 @@ def load_dataset(
         as_dict=True,
     )
     dataset.check_cache(list(range(len(dataset))))
-    if not ratio:
-        #print(len(dataset))
+    if ratio is None:
         return dataset
-    if ratio:
-        datasets = dataset.split_ratio(
-            ratio=ratio, 
-            val=val, 
-            seed=seed, 
-            random=random, 
-            reverse_index=reverse_split
-        )
-        #print([len(d) for d in datasets])
+    datasets = dataset.split_ratio(
+        ratio=ratio, 
+        val=val, 
+        seed=seed, 
+        random=random, 
+        reverse_index=reverse_split
+    )
+    #print([len(d) for d in datasets])
     return datasets
 
 def load_dataset_2(
