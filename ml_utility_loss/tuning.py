@@ -33,6 +33,9 @@ def sample_int(trial, name, low, high, step=1, log=False, **kwargs):
     high = roundup(high, multiple=step, offset=low)
     return trial.suggest_int(name, low, high, step=step, log=log, **kwargs)
 
+def sample_float(trial, name, low, high, step=1, log=False, **kwargs):
+    return trial.suggest_float(name, low, high, step=step, log=log, **kwargs)
+
 def sample_parameter_2(trial, k, type_0, args, kwargs=None, param_map={}):
     kwargs = kwargs or {}
     param, param_raw = None, None
@@ -85,6 +88,8 @@ def sample_parameter_2(trial, k, type_0, args, kwargs=None, param_map={}):
 
     if type_1 == "int":
         param = sample_int(trial, k, *args, **kwargs)
+    elif type_1 == "float":
+        param = sample_float(trial, k, *args, **kwargs)
     elif type_1:
         param = sample_parameter(trial, k, type_1, args, kwargs)
 
