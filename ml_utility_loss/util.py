@@ -57,8 +57,14 @@ def split_df_2(df, points, test=-1, val=None, return_3=False, **kwargs):
 
 def split_df_ratio(df, ratio=0.2, val=False, i=0, return_3=False, reverse_index=False, **kwargs):
     if ratio == 0:
-        train_df = df
+        train_df = df.iloc[:]
         test_df = pd.DataFrame(columns=list(df.columns))
+        val_df = test_df
+        if val:
+            val_df = pd.DataFrame(columns=list(df.columns))
+    elif ratio == 1:
+        train_df = pd.DataFrame(columns=list(df.columns))
+        test_df = df.iloc[:]
         val_df = test_df
         if val:
             val_df = pd.DataFrame(columns=list(df.columns))

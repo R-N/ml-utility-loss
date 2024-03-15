@@ -833,9 +833,9 @@ def load_dataset_3(
     dataset_name,
     preprocessor,
     model=None,
-    stops=[300, 300],
-    ratios=[0.0, 1/3],
-    steps=[1, 1],
+    stops=[300, 100, 300],
+    ratios=[0, 1, 1/3],
+    steps=[1, 1, 1],
     cache_dir="..",
     **kwargs,
 ):
@@ -852,18 +852,18 @@ def load_dataset_3(
             model=model,
             **kwargs,
         ),
-        # dict(
-        #     dataset_dir=os.path.join(dataset_dir, "datasets_7", dataset_name),
-        #     preprocessor=preprocessor,
-        #     cache_dir=os.path.join(cache_dir, dataset_name, "_cache4"),
-        #     stop=stops[1],
-        #     ratio=ratios[1],
-        #     step=steps[1],
-        #     val=False,
-        #     drop_first_column=False,
-        #     model=model,
-        #     **kwargs,
-        # ),
+        dict(
+            dataset_dir=os.path.join(dataset_dir, "datasets_8", dataset_name),
+            preprocessor=preprocessor,
+            cache_dir=os.path.join(cache_dir, dataset_name, "_cache4"),
+            stop=stops[1],
+            ratio=ratios[1],
+            step=steps[1],
+            val=False,
+            drop_first_column=False,
+            model=model,
+            **kwargs,
+        ),
         dict(
             dataset_dir=os.path.join(dataset_dir, "datasets_5", dataset_name),
             preprocessor=preprocessor,
@@ -891,13 +891,13 @@ def load_dataset_3_factory(
     def f(model, synth_data=2):
         #print("load_dataset_3_factory", synth_data)
         if synth_data == 1:
-            stops=[400, 400] #400, 300
-            ratios=[0.0, 1/4] #0, 100
-            steps=[1, 1]
+            stops=[400, 100, 400] #400, 0, 300
+            ratios=[0, 1, 1/4] #0, 100, 100
+            steps=[1, 1, 1]
         elif synth_data == 2:
-            stops=[300, 300] #300, 200
-            ratios=[0.0, 1/3] #0, 100
-            steps=[1, 1]
+            stops=[300, 100, 300] #300, 0, 200
+            ratios=[0, 1, 1/3] #0, 100, 100
+            steps=[1, 1, 1]
         return load_dataset_3(
             dataset_dir=dataset_dir,
             dataset_name=dataset_name,
