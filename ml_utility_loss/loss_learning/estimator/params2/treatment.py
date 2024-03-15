@@ -99,11 +99,11 @@ PARAM_SPACE = {
         #"NONE",
         "ALL",
     ]),
-    # "mse_mag": ("dict", {
-    #     "mse_mag": True,
-    #     "mse_mag_target": ("float", 0.1, 1.0, 0.1),
-    #     #"mse_mag_multiply": True,
-    # }),
+    "mse_mag": ("dict", {
+        "mse_mag": True,
+        "mse_mag_target": ("float", 0.1, 1.0, 0.1),
+        #"mse_mag_multiply": True,
+    }),
     # Common model args
     "d_model": ("int_exp_2", 256, 512), #512
     "dropout": ("float", 0.0, 0.2, 0.05), 
