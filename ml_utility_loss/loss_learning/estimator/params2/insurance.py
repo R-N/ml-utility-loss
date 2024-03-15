@@ -107,6 +107,7 @@ PARAM_SPACE = {
         "mse_mag_target": ("float", 0.1, 1.0, 0.1),
         #"mse_mag_multiply": True,
     }),
+    "g_loss_mul": ("float", 0.1, 1.0, 0.1),
     # Common model args
     "d_model": ("int_exp_2", 256, 512), #256
     "dropout": ("float", 0.0, 0.2, 0.05), 
