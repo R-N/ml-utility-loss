@@ -819,8 +819,8 @@ def load_dataset_3(
     dataset_name,
     preprocessor,
     model=None,
-    stops=[400, 400],
-    ratios=[0.0, 1/4],
+    stops=[300, 300],
+    ratios=[0.0, 1/3],
     steps=[1, 1],
     cache_dir="..",
     **kwargs,
@@ -874,7 +874,7 @@ def load_dataset_3_factory(
     **kwargs,
 ):
     
-    def f(model, synth_data=1):
+    def f(model, synth_data=2):
         #print("load_dataset_3_factory", synth_data)
         if synth_data == 1:
             stops=[400, 400] #400, 300
