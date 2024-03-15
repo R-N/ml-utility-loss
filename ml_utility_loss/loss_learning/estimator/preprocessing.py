@@ -103,6 +103,7 @@ class DataAugmenter:
             col: df[col].dropna().unique()
             for col in df.columns
         }
+        self.cols = df.columns
         self.dtypes = df.dtypes
         self.mean = df.mean(numeric_only=True, skipna=True)
         self.mode = df.mode(numeric_only=False, dropna=True)
@@ -200,6 +201,7 @@ class DataAugmenter:
         df["aug"] = df["aug"] / len(cols)
 
         df.drop(aug_cols, axis=1, inplace=True)
+        df = df[self.cols].astype(self.dtypes)
     
         return df
 
