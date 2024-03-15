@@ -51,6 +51,8 @@ NON_MODEL_PARAMS = (
     "synth_data",
     "dataset_size",
     "batch_size",
+    "bias_lr_mul",
+    "bias_weight_decay",
 )
 
 def remove_non_model_params(params, entries_to_remove=NON_MODEL_PARAMS):

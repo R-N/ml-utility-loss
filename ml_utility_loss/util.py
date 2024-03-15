@@ -358,3 +358,17 @@ def seed(seed):
 
 def roundup(x, multiple=1, offset=0):
     return offset + (int(math.ceil((x-offset) / multiple)) * multiple)
+
+def filter_bias(
+    model, 
+):
+    weight = []
+    bias = []
+    for name, param in model.named_parameters():
+        if not param.requires_grad:
+            continue
+        if "bias" in name:#or len(param.shape) == 1:
+            bias.append(param)
+        else:
+            weight.append(param)
+    return weight, bias

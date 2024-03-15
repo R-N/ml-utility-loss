@@ -62,6 +62,8 @@ PARAM_SPACE = {
     # Training args
     "epochs": ("int", 50, 80, 10),
     "lr_mul": ("float", 0.04, 0.1, 0.01),
+    "bias_lr_mul": ("float", 0.1, 1.0, 0.1),
+    "bias_weight_decay": ("float", 0.0, 0.2, 0.05),
     "n_warmup_steps": ("int", 80, 220, 20),
     "Optim": ("optimizer", [
         ### #"adamw", 

@@ -2,7 +2,7 @@ import pandas as pd
 import json
 from .preprocessing import DataAugmenter
 import os
-from ...util import mkdir, filter_dict, split_df_kfold, Timer, clear_memory
+from ...util import mkdir, filter_dict, split_df_kfold, Timer, clear_memory, filter_bias
 from optuna.exceptions import TrialPruned
 from ..ml_utility.pipeline import eval_ml_utility
 from ...params import GradientPenaltyMode
@@ -376,6 +376,8 @@ def train(
     forward_once=None,
     synth_data=1,
     save_on_cpu=False,
+    bias_lr_mul=1.0,
+    bias_weight_decay=0.0,
     **model_args
 ):
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
@@ -479,8 +481,19 @@ def train(
             wandb = None
 
     if not optim:
+        weight_params, bias_params = filter_bias(whole_model)
         optim = Optim(
-            whole_model.parameters(),
+            [
+                {
+                    "params": weight_params,
+                    "lr": lr,
+                },
+                {
+                    "params": bias_params,
+                    "lr": bias_lr_mul * lr,
+                    "weight_decay": bias_weight_decay,
+                }
+            ],
             lr=lr
         )
     if lr_mul and not isinstance(optim, ScheduledOptim):
