@@ -60,9 +60,9 @@ PARAM_SPACE = {
     "dataset_size": ("int_exp_2", 2048, 2048),
     "batch_size": ("int_exp_2", 2, 4), #4
     # Training args
-    "epochs": ("log_int", 52, 80), #80
-    "lr_mul": ("log_float", 0.07, 0.1),
-    "n_warmup_steps": ("log_int", 100, 140), #100
+    "epochs": ("int", 50, 80, 10),
+    "lr_mul": ("float", 0.04, 0.1, 0.01),
+    "n_warmup_steps": ("int", 80, 220, 20),
     "Optim": ("optimizer", [
         # #"adamw", 
         #"sgdmomentum", 
@@ -80,8 +80,8 @@ PARAM_SPACE = {
     # Training args
     "loss_balancer_meta": ("dict", {
         "loss_balancer_meta": True,
-        "loss_balancer_beta": ("float", 0.67, 0.71), #0.67
-        "loss_balancer_r": ("float", 0.94, 0.95), #0.943
+        "loss_balancer_beta": ("float", 0.65, 0.8, 0.05),
+        "loss_balancer_r": ("float", 0.93, 0.98, 0.01),
     }),
     #"loss_fn": ("loss", "mse"),
     "grad_loss_fn": ("loss", [
@@ -92,26 +92,22 @@ PARAM_SPACE = {
         #None, 
         "tvae", 
         "lct_gan",
-        "tab_ddpm_concat", 
+        #"tab_ddpm_concat", 
         #"realtabformer",
     ]),
     "gradient_penalty_mode": ("gradient_penalty_mode", [
         #"NONE",
         "ALL",
     ]),
-    "mse_mag": ("dict", {
-        "mse_mag": True,
-        "mse_mag_target": ("log_float", 0.1, 0.7),
-        "mse_mag_multiply": True,
-    }),
+    # "mse_mag": ("dict", {
+    #     "mse_mag": True,
+    #     "mse_mag_target": ("float", 0.1, 1.0, 0.1),
+    #     #"mse_mag_multiply": True,
+    # }),
     # Common model args
     "d_model": ("int_exp_2", 128, 256), #256
-    #"dropout": ("bool_float", 0.15, 0.5), 
-    "grad_clip": ("log_float", 0.8, 1.0), #other
-    "grad_clip": ("log_float", 0.6, 0.75), #rtf
-    "grad_clip": ("log_float", 0.7, 0.85),
-    "grad_clip": ("log_float", 0.7, 0.76), #0.74
-    "grad_clip": ("log_float", 0.7, 0.73), #0.73
+    "dropout": ("float", 0.0, 0.2, 0.05), 
+    "grad_clip": ("float", 0.7, 0.85, 0.05),
     #"bias": BOOLEAN,
     #"bias_final": BOOLEAN,
     #"pma_layer_norm": BOOLEAN,
@@ -218,7 +214,7 @@ PARAM_SPACE = {
         ##"hardsigmoid",
         "leakyhardsigmoid",
     ]),
-    "patience": ("log_int", 4, 6), #4
+    "patience": ("int", 4, 6), #5
 }
 
 PARAM_SPACE_2 = {

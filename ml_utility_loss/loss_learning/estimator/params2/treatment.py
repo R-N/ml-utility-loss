@@ -60,14 +60,9 @@ PARAM_SPACE = {
     "dataset_size": ("int_exp_2", 2048, 2048),
     "batch_size": ("int_exp_2", 2, 4),
     # Training args
-    "epochs": ("log_int", 50, 80), #60
-    "lr_mul": ("log_float", 0.02, 0.04), #other
-    "lr_mul": ("log_float", 0.04, 0.1), #rtf
-    "lr_mul": ("log_float", 0.03, 0.08), #0.05 0.04
-    "lr_mul": ("log_float", 0.035, 0.055), #0.04
-    "n_warmup_steps": ("log_int", 120, 180), #other
-    "n_warmup_steps": ("log_int", 250, 400), #rtf
-    "n_warmup_steps": ("log_int", 200, 220), #220
+    "epochs": ("int", 50, 80, 10),
+    "lr_mul": ("float", 0.04, 0.1, 0.01),
+    "n_warmup_steps": ("int", 80, 220, 20),
     "Optim": ("optimizer", [
         ### #"adamw", 
         ###"sgdmomentum", 
@@ -84,8 +79,8 @@ PARAM_SPACE = {
     ]),
     # Training args
     "loss_balancer_meta": ("dict", {
-        "loss_balancer_beta": ("float", 0.726, 0.734), #0.73
-        "loss_balancer_r": ("float", 0.935, 0.96), #0.94
+        "loss_balancer_beta": ("float", 0.65, 0.8, 0.05),
+        "loss_balancer_r": ("float", 0.93, 0.98, 0.01),
     }),
     "grad_loss_fn": ("loss", [
         "mse", 
@@ -95,25 +90,22 @@ PARAM_SPACE = {
         #None, 
         "tvae", 
         "lct_gan", 
-        "tab_ddpm_concat", 
+        #"tab_ddpm_concat", 
         #"realtabformer",
     ]),
     "gradient_penalty_mode": ("gradient_penalty_mode", [
         #"NONE",
         "ALL",
     ]),
-    "mse_mag": ("dict", {
-        "mse_mag": True,
-        "mse_mag_target": ("log_float", 0.2, 0.7), #0.2
-        "mse_mag_multiply": True,
-    }),
+    # "mse_mag": ("dict", {
+    #     "mse_mag": True,
+    #     "mse_mag_target": ("float", 0.1, 1.0, 0.1),
+    #     #"mse_mag_multiply": True,
+    # }),
     # Common model args
     "d_model": ("int_exp_2", 256, 512), #512
-    #"dropout": ("bool_float", 0.15, 0.5), 
-    "grad_clip": ("log_float", 0.5, 0.65), #other
-    "grad_clip": ("log_float", 0.95, 1.0), #rtf
-    "grad_clip": ("log_float", 0.5, 1.0), #1.0
-    "grad_clip": ("log_float", 0.75, 0.84), #0.8
+    "dropout": ("float", 0.0, 0.2, 0.05), 
+    "grad_clip": ("float", 0.7, 0.85, 0.05),
     #"bias": BOOLEAN,
     #"bias_final": BOOLEAN,
     #"pma_layer_norm": BOOLEAN,
@@ -228,7 +220,7 @@ PARAM_SPACE = {
         #"hardsigmoid",
         "leakyhardsigmoid",
     ]),
-    "patience": ("log_int", 3, 6), #5
+    "patience": ("int", 4, 6), #5
 }
 
 PARAM_SPACE_2 = {
