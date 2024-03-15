@@ -10,17 +10,17 @@ from sklearn.metrics import pairwise_distances #metric='minkowski'
 import torch
 
 DEFAULT_CAT_RATES = {
-    "swap_values": 0.5/3.0,
-    "set_rand_known": 0.5/3.0,
-    "set_to_mean": 0.5/3.0,
+    "swap_values": 1.0/3.0,
+    "set_rand_known": 1.0/3.0,
+    "set_to_mean": 1.0/3.0,
 }
 
 DEFAULT_NUM_RATES = {
-    "swap_values": 0.1,
-    "add_noise": 0.1,
-    "set_to_noise": 0.1,
-    "set_rand_known": 0.1,
-    "set_to_mean": 0.1,
+    "swap_values": 0.2,
+    "add_noise": 0.2,
+    "set_to_noise": 0.2,
+    "set_rand_known": 0.2,
+    "set_to_mean": 0.2,
 }
 
 def sample(df, col, rate, double=False, regen=None, block=None):
