@@ -87,7 +87,7 @@ class DataAugmenter:
         cat_rates=DEFAULT_CAT_RATES,
         num_rates=DEFAULT_NUM_RATES,
         seed=42,
-        scale=1.0
+        scale=None
     ):
         assert sum(cat_rates.values()) <= 1 and sum(num_rates.values()) <= 1, "Rates cannot exceed 1"
         self.cat_features = cat_features
@@ -178,6 +178,7 @@ class DataAugmenter:
 
     def augment(self, df, cat_rates=None, num_rates=None, scale=None):
         scale = self.scale if scale is None else scale
+        scale = 1.0 if scale is None else scale
 
         cat_rates = combine_rates(self.cat_rates, cat_rates, scale)
         num_rates = combine_rates(self.num_rates, num_rates, scale)
