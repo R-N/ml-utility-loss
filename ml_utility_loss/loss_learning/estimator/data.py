@@ -152,7 +152,8 @@ class BaseDataset(Dataset):
 
     def slice(self, start=0, stop=None, step=1):
         index = pd.Series(self.index)
-        stop = stop or (len(index)-1)
+        if not isinstance(stop, int):
+            stop = len(index)
         sample = index[start:stop:step]
         dataset = SubDataset(self, sample)
         return dataset
