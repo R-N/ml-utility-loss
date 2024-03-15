@@ -53,6 +53,7 @@ NON_MODEL_PARAMS = (
     "batch_size",
     "bias_lr_mul",
     "bias_weight_decay",
+    "grad_loss_mul",
 )
 
 def remove_non_model_params(params, entries_to_remove=NON_MODEL_PARAMS):

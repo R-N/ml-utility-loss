@@ -829,7 +829,7 @@ def calc_g_loss_2(
         **kwargs
     )
     # weight the gradient penalty
-    #g_loss = grad_loss_mul * g_loss
+    #g_loss = g_loss_mul * g_loss
     # add to compute
     # Okay so apparently for non role model, the g_loss is always 0
     # This needs to be fixed
