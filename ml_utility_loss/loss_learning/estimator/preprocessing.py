@@ -72,7 +72,7 @@ class DataBootstrapper:
     
     def bootstrap(self, df, scale=1):
         if scale < 1:
-            scale = int(round(1/scale))
+            scale = int(round(len(df)*scale))
         repeat = self.repeat
         if scale != 1:
             if not isintance(repeat, int):
