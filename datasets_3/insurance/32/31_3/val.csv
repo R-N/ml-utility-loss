@@ -1,7 +1,0 @@
-age,sex,bmi,children,smoker,region,charges
-62,female,38.095,2,no,northeast,15230.32405
-57,male,27.94,1,no,southeast,11554.2236
-48,male,30.78,3,no,northeast,10141.1362
-24,male,35.86,0,no,southeast,1986.9334
-51,male,31.635,0,no,northwest,9174.13565
-58,male,49.06,0,no,southeast,11381.3254

@@ -833,17 +833,17 @@ def load_dataset_3(
     dataset_name,
     preprocessor,
     model=None,
-    stops=[300, 100, 300],
-    ratios=[0, 1, 1/3],
-    steps=[1, 1, 1],
+    stops=[400, 100, 100, 100, 300],
+    ratios=[0, 1, 0, 1, 1/3],
+    steps=[1, 1, 1, 1, 1],
     cache_dir="..",
     **kwargs,
 ):
     datasetsn = load_dataset_2([
         dict(
-            dataset_dir=os.path.join(dataset_dir, "datasets_6", dataset_name),
+            dataset_dir=os.path.join(dataset_dir, "aug_train", dataset_name),
             preprocessor=preprocessor,
-            cache_dir=os.path.join(cache_dir, dataset_name, "_cache"),
+            cache_dir=os.path.join(cache_dir, dataset_name, "_cache_aug_train"),
             stop=stops[0],
             step=steps[0],
             ratio=ratios[0],
@@ -853,9 +853,9 @@ def load_dataset_3(
             **kwargs,
         ),
         dict(
-            dataset_dir=os.path.join(dataset_dir, "datasets_8", dataset_name),
+            dataset_dir=os.path.join(dataset_dir, "aug_val", dataset_name),
             preprocessor=preprocessor,
-            cache_dir=os.path.join(cache_dir, dataset_name, "_cache4"),
+            cache_dir=os.path.join(cache_dir, dataset_name, "_cache_aug_val"),
             stop=stops[1],
             ratio=ratios[1],
             step=steps[1],
@@ -865,12 +865,36 @@ def load_dataset_3(
             **kwargs,
         ),
         dict(
-            dataset_dir=os.path.join(dataset_dir, "datasets_5", dataset_name),
+            dataset_dir=os.path.join(dataset_dir, "bs_train", dataset_name),
             preprocessor=preprocessor,
-            cache_dir=os.path.join(cache_dir, dataset_name, "_cache5"),
+            cache_dir=os.path.join(cache_dir, dataset_name, "_cache_bs_train"),
             stop=stops[2],
             ratio=ratios[2],
             step=steps[2],
+            val=False,
+            drop_first_column=False,
+            model=model,
+            **kwargs,
+        ),
+        dict(
+            dataset_dir=os.path.join(dataset_dir, "bs_val", dataset_name),
+            preprocessor=preprocessor,
+            cache_dir=os.path.join(cache_dir, dataset_name, "_cache_bs_val"),
+            stop=stops[3],
+            ratio=ratios[3],
+            step=steps[3],
+            val=False,
+            drop_first_column=False,
+            model=model,
+            **kwargs,
+        ),
+        dict(
+            dataset_dir=os.path.join(dataset_dir, "synthetics", dataset_name),
+            preprocessor=preprocessor,
+            cache_dir=os.path.join(cache_dir, dataset_name, "_cache_synth"),
+            stop=stops[4],
+            ratio=ratios[4],
+            step=steps[4],
             val=False,
             drop_first_column=True,
             model=model,
@@ -889,15 +913,6 @@ def load_dataset_3_factory(
 ):
     
     def f(model, synth_data=2):
-        #print("load_dataset_3_factory", synth_data)
-        if synth_data == 1:
-            stops=[400, 100, 400] #400, 0, 300
-            ratios=[0, 1, 1/4] #0, 100, 100
-            steps=[1, 1, 1]
-        elif synth_data == 2:
-            stops=[300, 100, 300] #300, 0, 200
-            ratios=[0, 1, 1/3] #0, 100, 100
-            steps=[1, 1, 1]
         return load_dataset_3(
             dataset_dir=dataset_dir,
             dataset_name=dataset_name,

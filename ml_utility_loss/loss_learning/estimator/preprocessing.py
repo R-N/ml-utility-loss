@@ -80,7 +80,7 @@ class DataBootstrapper:
             return df.sample(n=len(df), replace=True)
 
     def augment(self, df, cat_rates=None, num_rates=None, scale=None):
-        return self.bootstrap(df)
+        return self.bootstrap(df, scale=scale)
 
 class DataAugmenter:
     def __init__(
