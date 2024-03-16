@@ -73,12 +73,13 @@ class DataBootstrapper:
     def bootstrap(self, df, scale=1):
         if scale < 1:
             scale = int(round(1/scale))
+        repeat = self.repeat
         if scale != 1:
-            if not isintance(self.repeat, int):
-                self.repeat = 1
-            self.repeat = self.repeat * int(scale)
-        if isinstance(self.repeat, int):
-            return pd.concat(self.repeat * [df], axis=0).sample(n=len(df))
+            if not isintance(repeat, int):
+                repeat = 1
+            repeat = repeat * int(scale)
+        if isinstance(repeat, int):
+            return pd.concat(repeat * [df], axis=0).sample(n=len(df))
         return df.sample(n=len(df), replace=True)
 
     def augment(self, df, cat_rates=None, num_rates=None, scale=None):
