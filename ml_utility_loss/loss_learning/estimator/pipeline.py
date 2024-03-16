@@ -918,9 +918,9 @@ def load_dataset_3_factory(
             dataset_name=dataset_name,
             preprocessor=preprocessor,
             model=model,
-            stops=stops,
-            ratios=ratios,
-            steps=steps,
+            # stops=stops,
+            # ratios=ratios,
+            # steps=steps,
             **kwargs,
         )
     return f
