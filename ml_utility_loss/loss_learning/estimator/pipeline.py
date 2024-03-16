@@ -29,8 +29,10 @@ from ...metrics import mean_penalty, mean_penalty_rational, mean_penalty_rationa
 from ...tuning import pop_repack, pop_update
 
 def list_scale(scale=1.0, n=1, i=0):
-    if scale == True:
+    if scale == "div":
         scale = [1.0 * ((j+1)/n) for j in range(i, n)]
+    elif scale == "mul":
+        scale = [j for j in range(i, n)]
     elif isinstance(scale, (int, float, complex)):
         scale = [scale for j in range(i, n)]
     elif not scale:
@@ -39,7 +41,7 @@ def list_scale(scale=1.0, n=1, i=0):
         raise ValueError(f"Invalid scale {scale}")
     return scale
 
-def augment(df, info, save_dir, n=1, test=0.2, augmenter=None, scale=True):
+def augment(df, info, save_dir, n=1, test=0.2, augmenter=None, scale="div"):
     mkdir(save_dir)
     if not augmenter:
         augmenter = DataAugmenter(

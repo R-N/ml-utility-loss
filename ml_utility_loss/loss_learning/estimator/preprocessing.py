@@ -70,7 +70,13 @@ class DataBootstrapper:
     def __init__(self, repeat=True):
         self.repeat = repeat
     
-    def bootstrap(self, df):
+    def bootstrap(self, df, scale=1):
+        if scale < 1:
+            scale = int(round(1/scale))
+        if scale != 1:
+            if not isintance(self.repeat, int):
+                self.repeat = 1
+            self.repeat = self.repeat * int(scale)
         if isinstance(self.repeat, int):
             return pd.concat(self.repeat * [df], axis=0).sample(n=len(df))
         return df.sample(n=len(df), replace=True)
