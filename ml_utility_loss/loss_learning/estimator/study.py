@@ -13,7 +13,7 @@ def objective(
     trial=None,
     #mean_loss_mul=0.1,
     #std_loss_mul=0.1,
-    g_loss_mul=0.1,
+    #g_loss_mul=0.1,
     allow_same_prediction=False,
     seed=0,
     **kwargs
@@ -27,7 +27,7 @@ def objective(
             log_dir=log_dir,
             trial=trial,
             allow_same_prediction=allow_same_prediction,
-            g_loss_mul=g_loss_mul,
+            #g_loss_mul=g_loss_mul,
             **kwargs
         )
         eval_loss = train_results["eval_loss"]
@@ -69,7 +69,7 @@ def objective_2(
     trial=None,
     #mean_loss_mul=0.1,
     #std_loss_mul=0.1,
-    g_loss_mul=0.1,
+    #g_loss_mul=0.1,
     allow_same_prediction=False,
     seed=42,
     **kwargs
@@ -92,7 +92,7 @@ def objective_2(
             log_dir=log_dir,
             trial=trial,
             allow_same_prediction=allow_same_prediction,
-            g_loss_mul=g_loss_mul,
+            #g_loss_mul=g_loss_mul,
             **kwargs
         )
         eval_loss = train_results["eval_loss"]
