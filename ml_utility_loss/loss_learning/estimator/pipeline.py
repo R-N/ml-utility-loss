@@ -382,6 +382,8 @@ def train(
     bias_weight_decay=0.0,
     **model_args
 ):
+    print("Forcing g_loss_mul to be 0.1 for consistency due to bug")
+    g_loss_mul = 0.1
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
 
     if callable(datasets):
