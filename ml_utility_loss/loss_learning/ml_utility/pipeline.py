@@ -29,9 +29,10 @@ def eval_ml_utility(
 
         except CatBoostError as ex:
             msg = str(ex)
-            if "All train targets are equal" in msg or "Target contains only one unique value" in msg:
-                model = NaiveModel().fit(train)
-            raise
+            if ("All train targets are equal" in msg) or ("Target contains only one unique value" in msg):
+                self.model = NaiveModel().fit(train)
+            else:
+                raise
         except PermissionError:
             pass
 
