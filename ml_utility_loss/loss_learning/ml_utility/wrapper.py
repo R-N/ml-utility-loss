@@ -4,15 +4,17 @@ from ...util import mkdir
 from .params.default import PARAM_SPACE_2
 import os
 import numpy as np
-
+import pandas as pd
 
 class NaiveModel:
     def __init__(self, value=None):
         self.value = value
 
     def fit(self, train):
-        self.value = train.get_label()[0]
-        print("NaiveModel", self.value)
+        labels = train.get_label()
+        mode = pd.Series(labels).mode(numeric_only=False, dropna=True)
+        self.value = mode
+        print("NaiveModel", self.value, len(labels))
         return self
 
     def predict(self, val):
@@ -62,6 +64,7 @@ class CatBoostModel:
         if isinstance(loss_function, str):
             loss_function = CATBOOST_METRICS[loss_function]
         self.params = {
+            "allow_const_label": True,
             "iterations":epochs,
             "learning_rate":lr,
             "loss_function":loss_function,
@@ -94,7 +97,7 @@ class CatBoostModel:
             )
         except CatBoostError as ex:
             msg = str(ex)
-            if ("All train targets are equal" in msg) or ("Target contains only one unique value" in msg):
+            if ("All train targets are equal" in msg) or ("Target contains only one unique value" in msg) or ("All features are either constant or ignored" in msg):
                 self.model = NaiveModel().fit(train)
             else:
                 raise
