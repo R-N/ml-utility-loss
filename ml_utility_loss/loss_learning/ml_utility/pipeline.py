@@ -1,4 +1,4 @@
-from .wrapper import CatBoostModel, NaiveModel
+from .wrapper import CatBoostModel, NaiveModel, extract_class_names
 from .preprocessing import create_pool
 from catboost import Pool, CatBoostError
 
@@ -8,15 +8,21 @@ def eval_ml_utility(
     checkpoint_dir=None,
     target=None,
     cat_features=[],
+    class_names=None,
     **model_params
 ):
     while True:
         try:
             train, test = datasets
 
+            if task=="regression" and not class_names:
+                class_names = extract_class_names(target, train, test)
+
             model = CatBoostModel(
                 task=task,
                 checkpoint_dir=checkpoint_dir,
+                class_names=class_names,
+                target=target,
                 **model_params
             )
 
@@ -30,7 +36,7 @@ def eval_ml_utility(
         except CatBoostError as ex:
             msg = str(ex)
             if ("All train targets are equal" in msg) or ("Target contains only one unique value" in msg):
-                self.model = NaiveModel().fit(train)
+                model = NaiveModel().fit(train)
             else:
                 raise
         except PermissionError:

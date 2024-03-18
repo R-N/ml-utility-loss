@@ -21,6 +21,12 @@ class NaiveModel:
     def get_best_iteration(self):
         return 0
 
+def extract_class_names(target, *dfs):
+    ret = set()
+    for df in dfs:
+        if df is not None and len(df) > 0:
+            ret = ret.union(set(df[target]))
+    return list(ret)
 class CatBoostModel:
     def __init__(
         self, 
@@ -33,10 +39,14 @@ class CatBoostModel:
         od_type="Iter",
         logging_level="Silent",
         checkpoint_dir=None,
+        class_names=None,
+        target=None,
         **kwargs
     ):
         self.task = task
+        self.target = target
         self.Model = CatBoostRegressor if task == "regression" else CatBoostClassifier
+        
         if task == "regression":
             self.metric = "R2"
         elif task == "binclass":
@@ -63,12 +73,19 @@ class CatBoostModel:
             "logging_level":logging_level,
             **kwargs
         }
+        if class_names:
+            self.params["class_names"] = class_names
         self.model = self.Model(
             **self.params
         )
 
     def fit(self, train, val=None):
         try:
+            if self.task != "regression" and "class_names" not in self.params and self.target:
+                self.params["class_names"] = extract_class_names(self.target, train, val)
+                self.model = self.Model(
+                    **self.params
+                )
             self.model.fit(
                 train,
                 eval_set=val,
