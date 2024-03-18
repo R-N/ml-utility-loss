@@ -15,7 +15,7 @@ def eval_ml_utility(
         try:
             train, test = datasets
 
-            if task=="regression" and not class_names:
+            if task!="regression" and not class_names:
                 class_names = extract_class_names(target, train, test)
 
             model = CatBoostModel(
