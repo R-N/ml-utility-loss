@@ -12,8 +12,19 @@ class NaiveModel:
 
     def fit(self, train):
         #labels = train.get_label()
-        self.value = train.y_mode
-        print("NaiveModel", self.value, train.y_support)
+
+        if hasattr(train, "y_mode"):
+            y_mode = train.y_mode
+            y_support = train.y_support
+        else:
+            y = train.get_label()
+            y = pd.Series(y)
+            y_mode = y.mode(dropna=True)
+            y_support = len(y[y==y_mode])
+
+        self.value = y_mode
+
+        print("NaiveModel", self.value, y_support)
         return self
 
     def predict(self, val):

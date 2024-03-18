@@ -10,8 +10,11 @@ def create_pool(df, target, cat_features):
         label=y,
         cat_features=cat_features
     )
-    pool.y_mode = y.mode(dropna=True)
-    pool.y_support = len(y[y==pool.y_mode])
+    y_mode = y.mode(dropna=True).item()
+    y_support = len(y[y==y_mode])
+    
+    pool.y_mode = y_mode
+    pool.y_support = y_support
     return pool
 
 def create_pool_2(df, info):
