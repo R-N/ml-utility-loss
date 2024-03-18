@@ -12,7 +12,7 @@ class NaiveModel:
 
     def fit(self, train):
         labels = train.get_label()
-        mode = pd.Series(labels).mode(numeric_only=False, dropna=True)
+        mode = pd.Series(labels).mode(dropna=True)
         self.value = mode
         print("NaiveModel", self.value, len(labels))
         return self
