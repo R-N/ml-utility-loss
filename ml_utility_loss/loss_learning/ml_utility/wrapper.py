@@ -81,7 +81,7 @@ class CatBoostModel:
 
     def fit(self, train, val=None):
         try:
-            if self.task != "regression" and "class_names" not in self.params and self.target:
+            if self.task ==  "multiclass" and "class_names" not in self.params and self.target:
                 self.params["class_names"] = extract_class_names(self.target, train, val)
                 self.model = self.Model(
                     **self.params
