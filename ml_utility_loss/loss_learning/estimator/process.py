@@ -291,7 +291,7 @@ def calc_g_cos_loss(
 
 def get_g(
     error,
-    target=2.0,
+    target=1.0,
 ):
     g = target * torch.abs(error) 
     return g
@@ -304,6 +304,7 @@ def calc_g_mse_mag_loss(
     reduction=torch.mean,
     target=1.0,
     multiply=True,
+    forgive_over=True,
 ):
 
     assert dbody_dx_norm.dim() == 1 and error.dim() == 1 and len(dbody_dx_norm) == len(error)
@@ -321,6 +322,8 @@ def calc_g_mse_mag_loss(
         g = torch.full(dbody_dx_norm.shape, target, device=dbody_dx_norm.device, dtype=dbody_dx_norm.dtype)
         grad_loss_fn = ScaledLoss(grad_loss_fn, SCALING[grad_loss_scale](error).item()) if grad_loss_scale else grad_loss_fn
     # gradient penalty
+    if forgive_over:
+        dbody_dx_norm = torch.clamp(dbody_dx_norm, min=g)
     g_loss = grad_loss_fn(dbody_dx_norm, g, reduction="none")
     #g_loss = g_loss + eps
     if reduction and reduction != "none":
