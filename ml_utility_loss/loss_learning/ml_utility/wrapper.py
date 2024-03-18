@@ -76,10 +76,10 @@ class CatBoostModel:
                 plot=False
             )
         except CatBoostError as ex:
-            if "All train targets are equal" in str(ex):
+            msg = str(ex)
+            if "All train targets are equal" in msg or "Target contains only one unique value" in msg:
                 self.model = NaiveModel().fit(train)
-            else:
-                raise
+            raise
         self.epoch = self.model.get_best_iteration() + self.od_wait
         if val:
             return self.eval(val)
