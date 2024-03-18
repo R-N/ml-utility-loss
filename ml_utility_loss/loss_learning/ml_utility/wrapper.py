@@ -13,7 +13,7 @@ class NaiveModel:
     def fit(self, train):
         #labels = train.get_label()
         self.value = train.y_mode
-        print("NaiveModel", self.value)
+        print("NaiveModel", self.value, train.y_support)
         return self
 
     def predict(self, val):
