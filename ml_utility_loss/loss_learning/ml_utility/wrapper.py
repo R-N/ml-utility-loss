@@ -11,10 +11,9 @@ class NaiveModel:
         self.value = value
 
     def fit(self, train):
-        labels = train.get_label()
-        mode = pd.Series(labels).mode(dropna=True)
-        self.value = mode
-        print("NaiveModel", self.value, len(labels))
+        #labels = train.get_label()
+        self.value = train.y_mode
+        print("NaiveModel", self.value)
         return self
 
     def predict(self, val):
