@@ -10,7 +10,7 @@ def create_pool(df, target, cat_features):
         label=y,
         cat_features=cat_features
     )
-    y_mode = y.mode(dropna=True).item()
+    y_mode = y.mode(dropna=True)[0]
     y_support = len(y[y==y_mode])
     
     pool.y_mode = y_mode

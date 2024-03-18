@@ -19,7 +19,7 @@ class NaiveModel:
         else:
             y = train.get_label()
             y = pd.Series(y)
-            y_mode = y.mode(dropna=True).item()
+            y_mode = y.mode(dropna=True)[0]
             y_support = len(y[y==y_mode])
 
         self.value = y_mode
