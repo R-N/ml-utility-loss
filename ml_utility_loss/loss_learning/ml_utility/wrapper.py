@@ -64,7 +64,7 @@ class CatBoostModel:
         if isinstance(loss_function, str):
             loss_function = CATBOOST_METRICS[loss_function]
         self.params = {
-            "allow_const_label": True,
+            #"allow_const_label": True,
             "iterations":epochs,
             "learning_rate":lr,
             "loss_function":loss_function,
