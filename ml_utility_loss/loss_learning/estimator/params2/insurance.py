@@ -109,6 +109,7 @@ PARAM_SPACE = {
     "mse_mag": ("dict", {
         "mse_mag": True,
         "mse_mag_target": ("categorical", [0.1, 0.2, 0.5, 1.0]),
+        "mse_mag_forgive_over": BOOLEAN,
         #"mse_mag_multiply": True,
     }),
     "g_loss_mul": ("categorical", [0.05, 0.1, 0.2, 0.5, 1.0, 2.0]),
