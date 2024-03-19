@@ -534,7 +534,7 @@ def calc_g_loss(
     g_loss = mean(losses) if losses else zero_tensor(device=error.device)
     return g_loss
     
-def forward_pass_1(single_model, model, train, test, y, y_real, compute):
+def forward_pass_1(single_model, model, train, test, y, y_real, compute, gradient_penalty=True):
     # train needs to require grad for gradient penalty computation
     # should I zero and make it not require grad later?
     train = train.clone()
@@ -546,12 +546,14 @@ def forward_pass_1(single_model, model, train, test, y, y_real, compute):
     y_real = y_real.to(single_model.device)
 
     # train.grad = None
-    train.requires_grad_()
+    if gradient_penalty:
+        train.requires_grad_()
     # calculate intermediate tensor for later use
     train, m = single_model.adapter(train)
     compute["train"] = train
     # store grad in m
-    m.requires_grad_()
+    if gradient_penalty:
+        m.requires_grad_()
     compute["m"] = m
 
     test, m_test = single_model.adapter(test)
@@ -573,7 +575,8 @@ def forward_pass_1(single_model, model, train, test, y, y_real, compute):
 
 def forward_pass_1_avg(
     computes,
-    role_model
+    role_model,
+    gradient_penalty=True,
 ):
     compute = {}
     compute_0 = next(iter(computes.values()))
@@ -584,7 +587,8 @@ def forward_pass_1_avg(
     m_s = [c["m"] for c in non_role_model_computes]
     m_test_s = [c["m_test"] for c in non_role_model_computes]
     m = torch.mean(torch.stack(m_s), dim=0)
-    m.requires_grad_()
+    if gradient_penalty:
+        m.requires_grad_()
     m_test = torch.mean(torch.stack(m_test_s), dim=0)
     compute["m"] = m
     compute["m_test"] = m_test
@@ -973,6 +977,7 @@ def train_epoch(
                     avg_compute = forward_pass_1_avg(
                         computes=computes,
                         role_model=role_model,
+                        gradient_penalty=gradient_penalty_2,
                     )
                     computes_1 = {**computes, "avg_non_role_model": avg_compute}
 
@@ -1358,6 +1363,7 @@ def train_epoch_student(
                     y=y,
                     y_real=y_real,
                     compute=compute,
+                    gradient_penalty=gradient_penalty_2,
                 )
 
             computes_1 = computes
