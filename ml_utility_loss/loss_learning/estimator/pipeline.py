@@ -39,6 +39,7 @@ def list_scale(scale="div", n=1, i=0, scale_mul=1.0):
         scale = [None for j in range(i, n)]
     else:
         raise ValueError(f"Invalid scale {scale}")
+    print("scales", scales)
     return scale
 
 def augment(df, info, save_dir, n=1, test=0.2, augmenter=None, scale=1.0):
