@@ -7,7 +7,7 @@ PARAM_SPACE = {
     #"sample_batch_size": ("int_exp_2", 16, 512),
     "t_steps": ("int", 4, 64, 4),
     "t_start": ("int", 0, 875, 50),
-    #"t_range": ("bool_int", 0, 975, 50),
+    "t_end": ("bool_int", 875, 975, 20),
     "mlu_target": ("categorical", [None, 1.0]),
     "n_steps": ("int", 1, 2),
     "n_inner_steps": ("int_exp_2", 1, 4),
@@ -34,6 +34,10 @@ update_params(PARAM_SPACE, "ae_t_start", BEST["ae_epochs"] - 100)
 update_params(PARAM_SPACE, "gan_t_start", BEST["gan_epochs"] - 100)
 update_params(PARAM_SPACE, "ae_t_range", BEST["ae_epochs"])
 update_params(PARAM_SPACE, "gan_t_range", BEST["gan_epochs"])
+update_params(PARAM_SPACE, "ae_t_end", BEST["ae_epochs"])
+update_params(PARAM_SPACE, "gan_t_end", BEST["gan_epochs"])
+update_params(PARAM_SPACE, "ae_t_end", BEST["ae_epochs"] - 100, index=1)
+update_params(PARAM_SPACE, "gan_t_end", BEST["gan_epochs"] - 100, index=1)
 #27
 #0.5259515570934257
 BEST = {
