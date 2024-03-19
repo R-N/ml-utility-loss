@@ -878,8 +878,7 @@ def train_epoch(
     **g_loss_kwargs
 ):
     grad_cm = torch.no_grad() if val else nullcontext()
-    if val:
-        gradient_penalty = False
+    gradient_penalty_2 = gradient_penalty and not val
 
     with grad_cm:
         assert optim or val, "Optimizer must be provided if val is false"
@@ -987,7 +986,7 @@ def train_epoch(
                         loss_fn=loss_fn,
                         model=model,
                     )
-                    if gradient_penalty:
+                    if gradient_penalty_2:
                         forward_pass_gradient(
                             compute=compute,
                             calc_grad_m=calc_grad_m,
@@ -1070,7 +1069,7 @@ def train_epoch(
                 non_role_model_g_cos_loss = zero_tensor(device=whole_model.device)
                 # Now we calculate the gradient penalty
                 # We do this only for "train" input because test is supposedly the real dataset
-                if gradient_penalty:
+                if gradient_penalty_2:
                     for model, compute in computes.items():
                         # If forward_once is true, grad will only exist for the role model
                         if "grad" not in compute and not calc_grad_m and not avg_non_role_model_m:
@@ -1131,8 +1130,8 @@ def train_epoch(
                 # whole_model.non_adapter_zero_grad()
 
             # Now we backward the role model
-            role_model_g_mag_loss = reduction(role_model_compute["g_mag_loss"]) if gradient_penalty else zero_tensor(device=whole_model.device)
-            role_model_g_cos_loss = reduction(role_model_compute["g_cos_loss"]) if gradient_penalty else zero_tensor(device=whole_model.device)
+            role_model_g_mag_loss = reduction(role_model_compute["g_mag_loss"]) if gradient_penalty_2 else zero_tensor(device=whole_model.device)
+            role_model_g_cos_loss = reduction(role_model_compute["g_cos_loss"]) if gradient_penalty_2 else zero_tensor(device=whole_model.device)
             assert isinstance(role_model_g_mag_loss, int) or torch.isfinite(role_model_g_mag_loss).all(), f"role_model_g_mag_loss has nan or inf"
             assert isinstance(role_model_g_cos_loss, int) or torch.isfinite(role_model_g_cos_loss).all(), f"role_model_g_cos_loss has nan or inf"
             assert isinstance(role_model_loss, int) or torch.isfinite(role_model_loss).all(), f"role_model_loss has nan or inf"
@@ -1289,8 +1288,7 @@ def train_epoch_student(
     **g_loss_kwargs
 ):
     grad_cm = torch.no_grad() if val else nullcontext()
-    if val:
-        gradient_penalty = False
+    gradient_penalty_2 = gradient_penalty and not val
 
     with grad_cm:
         role_model = "teacher"
@@ -1372,7 +1370,7 @@ def train_epoch_student(
                 loss_fn=loss_fn,
                 model="student",
             )
-            if gradient_penalty:
+            if gradient_penalty_2:
                 forward_pass_gradient(
                     compute=compute,
                     calc_grad_m=calc_grad_m,
@@ -1433,7 +1431,7 @@ def train_epoch_student(
             non_role_model_g_cos_loss = zero_tensor(device=student.device)
             # Now we calculate the gradient penalty
             # We do this only for "train" input because test is supposedly the real dataset
-            if gradient_penalty:
+            if gradient_penalty_2:
                 # If forward_once is true, grad will only exist for the role model
                 if "grad" not in compute and not calc_grad_m and not avg_non_role_model_m:
                     continue
