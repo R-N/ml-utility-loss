@@ -13,7 +13,7 @@ BEST = {
     "initializer_range": 0.020939009147278642, 
     "scale_attn_weights": True, 
     "scale_attn_by_inverse_layer_idx": True, 
-    "epochs": 599, 
+    "epochs": 100, 
     "batch_size": 8, #3, 
     "mask_rate": 0.054291089356873705, 
     "numeric_nparts": 2, 

@@ -14,7 +14,7 @@ BEST = {
     "initializer_range": 0.014157782931728218, 
     "scale_attn_weights": False, 
     "scale_attn_by_inverse_layer_idx": True, 
-    "epochs": 194, 
+    "epochs": 100, 
     "batch_size": 4, #2, 
     "mask_rate": 0.15236501309370373, 
     "numeric_nparts": 2, 
@@ -29,6 +29,7 @@ BEST = {
 # I mean it was just one trial lol
 BEST = {
     #"num_bootstrap": 100
+    "epochs": 100, 
 }
 
 #BEST["epochs"] = min(BEST["epochs"], 100)
