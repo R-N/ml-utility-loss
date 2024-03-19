@@ -88,8 +88,8 @@ PARAM_SPACE = {
     # Training args
     "loss_balancer_meta": ("dict", {
         "loss_balancer_meta": True,
-        "loss_balancer_beta": ("float", 0.65, 0.8, 0.05),
-        "loss_balancer_r": ("float", 0.93, 0.98, 0.01),
+        "loss_balancer_beta": ("float", 0.7, 0.8, 0.05),
+        "loss_balancer_r": ("float", 0.95, 0.98, 0.01),
     }),
     #"loss_fn": ("loss", "mse"),
     "grad_loss_fn": ("loss", [
@@ -109,13 +109,13 @@ PARAM_SPACE = {
     ]),
     "mse_mag": ("dict", {
         "mse_mag": True,
-        "mse_mag_target": ("float", 0.4, 0.6, 0.1),
+        "mse_mag_target": ("categorical", [0.1, 0.2, 0.5, 1.0]),
         #"mse_mag_multiply": True,
     }),
     "g_loss_mul": ("float", 0.1, 2.0, 0.1),
     # Common model args
     "d_model": ("int_exp_2", 128, 256), #256
-    #"dropout": ("float", 0.0, 0.05, 0.01), 
+    "dropout": ("categorical", [0.0, 0.01, 0.02]),
     "grad_clip": ("float", 0.7, 0.85, 0.05),
     #"bias": BOOLEAN,
     #"bias_final": BOOLEAN,
