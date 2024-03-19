@@ -71,12 +71,13 @@ class DataBootstrapper:
         self.seed = seed
     
     def bootstrap(self, df, scale=0):
+        n=len(df)
         scale = 1.0 - scale
         if scale == 0:
             df = df.sample(n=1)
         else:
             df = df.sample(frac=scale)
-        return df.sample(n=len(df), replace=True)
+        return df.sample(n, replace=True)
 
     def augment(self, df, cat_rates=None, num_rates=None, scale=None):
         return self.bootstrap(df, scale=scale)
