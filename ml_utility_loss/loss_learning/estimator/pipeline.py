@@ -28,27 +28,27 @@ from ...loss_balancer import FixedWeights, LossBalancer, MyLossWeighter
 from ...metrics import mean_penalty, mean_penalty_rational, mean_penalty_rational_half, ScaledLoss, mean_penalty_log
 from ...tuning import pop_repack, pop_update
 
-def list_scale(scale=1.0, n=1, i=0):
+def list_scale(scale="div", n=1, i=0, scale_mul=1.0):
     if scale == "div":
-        scale = [1.0 * ((j+1)/n) for j in range(i, n)]
+        scale = [scale_mul * ((j+1)/n) for j in range(i, n)]
     elif scale == "mul":
-        scale = [j for j in range(i, n)]
+        scale = [scale_mul * j for j in range(i, n)]
     elif isinstance(scale, (int, float, complex)):
-        scale = [scale for j in range(i, n)]
+        scale = [scale_mul * scale for j in range(i, n)]
     elif not scale:
         scale = [None for j in range(i, n)]
     else:
         raise ValueError(f"Invalid scale {scale}")
     return scale
 
-def augment(df, info, save_dir, n=1, test=0.2, augmenter=None, scale="div"):
+def augment(df, info, save_dir, n=1, test=0.2, augmenter=None, scale=1.0):
     mkdir(save_dir)
     if not augmenter:
         augmenter = DataAugmenter(
             cat_features=info["cat_features"]
         )
         augmenter.fit(df)
-    scales = list_scale(scale=scale, n=n)
+    scales = list_scale(scale_mul=scale, n=n)
     for i, scale in zip(range(n), scales):
         df_train = df
         if test:
@@ -66,7 +66,7 @@ DATASET_TYPES_NO_VAL = ["synth", "train", "test"]
 DATASET_TYPES_VAL = ["synth", "train", "val", "test"]
 DATASET_INFO_COLS = [*DATASET_TYPES_VAL, "synth_value", "real_value"]
 
-def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv", i=0, size=None, augmenter=None, seed=42, scale=None):
+def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv", i=0, size=None, augmenter=None, seed=42, scale=1.0):
     if not size:
         #size = len(df)
         save_dir = os.path.join(save_dir, "all")
@@ -94,7 +94,7 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
         last_index = info_out.last_valid_index()
         i = int(last_index.split("_")[0])
         print(f"Set i to {i}")
-    scales = list_scale(scale=scale, n=n, i=i)
+    scales = list_scale(scale_mul=scale, n=n, i=i)
     for i, scale in zip(range(i, n), scales):
         """
         while True:

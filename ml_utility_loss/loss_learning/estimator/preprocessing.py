@@ -67,17 +67,12 @@ def combine_rates(self_rates, arg_rates=None, scale=1.0):
     return rates
 
 class DataBootstrapper:
-    def __init__(self):
-        pass
+    def __init__(self, seed=42):
+        self.seed = seed
     
-    def bootstrap(self, df, scale=1):
-        if scale > 1:
-            scale = int(scale)
-            return pd.concat(scale * [df], axis=0).sample(n=len(df))
-        elif scale < 1:
-            return df.sample(frac=scale).sample(n=len(df), replace=True)
-        else:
-            return df.sample(n=len(df), replace=True)
+    def bootstrap(self, df, scale=0):
+        scale = 1.0 - scale
+        return df.sample(frac=scale).sample(n=len(df), replace=True)
 
     def augment(self, df, cat_rates=None, num_rates=None, scale=None):
         return self.bootstrap(df, scale=scale)
