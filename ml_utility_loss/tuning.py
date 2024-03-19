@@ -1,6 +1,6 @@
 import math
 import os
-from .util import mkdir, split_df, split_df_2, split_df_ratio, split_df_kfold, roundup
+from .util import mkdir, split_df, split_df_2, split_df_ratio, split_df_kfold, roundmul
 import json
 from .params import PARAM_MAP, BOOLEAN
 import optuna
@@ -29,8 +29,8 @@ def sample_int_exp_2(trial, k, low, high, *args, **kwargs):
     param = int(math.pow(2, trial.suggest_int(f"{k}_exp_2", low, high, *args, **kwargs)))
     return param
 
-def sample_int(trial, name, low, high, step=1, log=False, **kwargs):
-    high = roundup(high, multiple=step, offset=low)
+def sample_int(trial, name, low, high, step=1, log=False, roundup=False, **kwargs):
+    high = roundmul(high, multiple=step, offset=low, up=roundup)
     if log:
         step = None
     return trial.suggest_int(name, low, high, step=step, log=log, **kwargs)

@@ -369,8 +369,9 @@ def seed(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-def roundup(x, multiple=1, offset=0):
-    return offset + (int(math.ceil((x-offset) / multiple)) * multiple)
+def roundmul(x, multiple=1, offset=0, up=False):
+    f = math.ceil if up else math.floor
+    return offset + (int(f((x-offset) / multiple)) * multiple)
 
 def filter_bias(
     model, 
