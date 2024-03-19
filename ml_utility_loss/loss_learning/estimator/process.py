@@ -877,383 +877,386 @@ def train_epoch(
     save_on_cpu=False,
     **g_loss_kwargs
 ):
-    assert optim or val, "Optimizer must be provided if val is false"
-    #torch.autograd.set_detect_anomaly(True)
-    size = len(train_loader.dataset)
+    grad_cm = torch.no_grad() if val else nullcontext()
 
-    std_loss_fn = std_loss_fn or loss_fn
-    mean_pred_loss_fn = mean_pred_loss_fn or loss_fn
+    with grad_cm:
+        assert optim or val, "Optimizer must be provided if val is false"
+        #torch.autograd.set_detect_anomaly(True)
+        size = len(train_loader.dataset)
 
-    models = models or whole_model.models
+        std_loss_fn = std_loss_fn or loss_fn
+        mean_pred_loss_fn = mean_pred_loss_fn or loss_fn
 
-    # Set the model to eval mode for validation or train mode for training
-    whole_model.eval() if val else whole_model.train()
-    avg_loss = 0
-    avg_role_model_loss = 0
-    avg_role_model_std_loss = 0
-    avg_role_model_mean_pred_loss = 0
-    avg_role_model_g_mag_loss = 0
-    avg_role_model_g_cos_loss = 0
-    avg_non_role_model_g_mag_loss = 0
-    avg_non_role_model_g_cos_loss = 0
-    avg_non_role_model_embed_loss = 0
-    n_size = 0
-    n_batch = 0
+        models = models or whole_model.models
 
-    non_role_model_count = len(models) - 1
-    non_role_model_avg_mul = 1 if non_role_model_count == 0 else (1.0/non_role_model_count if non_role_model_avg else 1.0)
+        # Set the model to eval mode for validation or train mode for training
+        whole_model.eval() if val else whole_model.train()
+        avg_loss = 0
+        avg_role_model_loss = 0
+        avg_role_model_std_loss = 0
+        avg_role_model_mean_pred_loss = 0
+        avg_role_model_g_mag_loss = 0
+        avg_role_model_g_cos_loss = 0
+        avg_non_role_model_g_mag_loss = 0
+        avg_non_role_model_g_cos_loss = 0
+        avg_non_role_model_embed_loss = 0
+        n_size = 0
+        n_batch = 0
 
-    loss_balancer.to(whole_model.device)
+        non_role_model_count = len(models) - 1
+        non_role_model_avg_mul = 1 if non_role_model_count == 0 else (1.0/non_role_model_count if non_role_model_avg else 1.0)
 
-    role_model = None
-    avg_pred_stds = {}
+        loss_balancer.to(whole_model.device)
 
-    clear_memory()
-
-    time_0 = time.time()
-
-    if timer:
-        timer.check_time()
-
-    for batch, batch_dict in enumerate(train_loader):
-        clear_memory()
-
-        batch_dict = filter_dict(batch_dict, models)
+        role_model = None
+        avg_pred_stds = {}
 
         clear_memory()
+
+        time_0 = time.time()
 
         if timer:
             timer.check_time()
-        if not val:
-            optim.zero_grad()
 
-        batch_size = 1
+        for batch, batch_dict in enumerate(train_loader):
+            clear_memory()
 
-        # have fixed role model as hyperparameter
-        # role model is selected for the adapter
-        # adapter was made to adapt the input size to d_model
-        # the only difference is the input dimension, 
-        # which is the result of a different data preparation
-        # of the same dataset
-        # essentially, adapter is there so that
-        # M = Adapter(Prep(D)) equal for the same dataset D
-        # It is only there to fix different data preparation problem
-        # the data preparation is fixed for each model
-        # there has to be one best preparation method out of all of them
-        # so it is a hyperparameter tuning problem
-        # there's not much advantage to make the selection adaptive
-        if fixed_role_model:
-            role_model = fixed_role_model
+            batch_dict = filter_dict(batch_dict, models)
 
-        save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if save_on_cpu else nullcontext()
-        with save_cm:
-            # Compute prediction and loss for all adapters
-            computes = {model: {} for model in models}
-            for model, (train, test, y, y_real) in batch_dict.items():
-                batch_size = y.shape[0] if y.dim() > 0 else 1
-                compute = computes[model]
-                forward_pass_1(
-                    single_model=whole_model[model, head],
-                    train=train,
-                    test=test,
-                    y=y,
-                    y_real=y_real,
-                    compute=compute,
-                    model=model,
-                )
+            clear_memory()
 
-            # We calculate average m of non role models to do one forward pass for all of them
-            avg_compute = {}
-            computes_1 = computes
-            if forward_once and role_model and avg_non_role_model_m and len(computes) > 1:
-                avg_compute = forward_pass_1_avg(
-                    computes=computes,
-                    role_model=role_model,
-                )
-                computes_1 = {**computes, "avg_non_role_model": avg_compute}
+            if timer:
+                timer.check_time()
+            if not val:
+                optim.zero_grad()
 
-            for model, compute in computes_1.items():
-                if forward_once and role_model and model not in (role_model, "avg_non_role_model"):
-                    continue
-                
-                forward_pass_2(
-                    single_model=whole_model[model, head],
-                    compute=compute,
-                    loss_fn=loss_fn,
-                    model=model,
-                )
-                if gradient_penalty:
-                    forward_pass_gradient(
+            batch_size = 1
+
+            # have fixed role model as hyperparameter
+            # role model is selected for the adapter
+            # adapter was made to adapt the input size to d_model
+            # the only difference is the input dimension, 
+            # which is the result of a different data preparation
+            # of the same dataset
+            # essentially, adapter is there so that
+            # M = Adapter(Prep(D)) equal for the same dataset D
+            # It is only there to fix different data preparation problem
+            # the data preparation is fixed for each model
+            # there has to be one best preparation method out of all of them
+            # so it is a hyperparameter tuning problem
+            # there's not much advantage to make the selection adaptive
+            if fixed_role_model:
+                role_model = fixed_role_model
+
+            save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if save_on_cpu else nullcontext()
+            with save_cm:
+                # Compute prediction and loss for all adapters
+                computes = {model: {} for model in models}
+                for model, (train, test, y, y_real) in batch_dict.items():
+                    batch_size = y.shape[0] if y.dim() > 0 else 1
+                    compute = computes[model]
+                    forward_pass_1(
+                        single_model=whole_model[model, head],
+                        train=train,
+                        test=test,
+                        y=y,
+                        y_real=y_real,
                         compute=compute,
-                        calc_grad_m=calc_grad_m,
                         model=model,
                     )
 
-
-                pred_std_ = calc_std_loss(
-                    compute=compute,
-                    std_loss_fn=std_loss_fn,
-                    batch_size=batch_size,
-                    allow_same_prediction=allow_same_prediction,
-                    model=model,
-                )
-
-                if model not in avg_pred_stds:
-                    avg_pred_stds[model] = 0
-                avg_pred_stds[model] += pred_std_
-
-                calc_mean_pred_loss(
-                    compute=compute,
-                    loss_fn=loss_fn,
-                    mean_pred_loss_fn=mean_pred_loss_fn
-                )
-
-            if role_model and (fixed_role_model or forward_once):
-                role_model_compute = computes[role_model]
-            else:
-                # determine role model (adapter) by minimum loss
-                role_model, role_model_compute = min(
-                    computes.items(), 
-                    key=lambda item: reduction(item[-1]["loss"]).item()
-                )
-                #model_2 = [m for m in models if m != role_model][0]
-
-            role_model_loss = reduction(role_model_compute["loss"])
-            role_model_mean_pred_loss = reduction(role_model_compute["mean_pred_loss"])
-            role_model_std_loss = role_model_compute["std_loss"]
-            if timer:
-                timer.check_time()
-
-            non_role_model_embed_loss = zero_tensor(device=whole_model.device)
-            if len(computes) > 1:# and forward_once:
-                # Calculate role model adapter embedding as the correct one as it has lowest error
-                # dim 0 is batch, dim 1 is size, not sure which to use but size I guess
-                # anyway that means -3 and -2
-                # This has to be done here
-                # So backward pass can be called together with g_loss
-                role_model_compute = computes[role_model]
-                embed_y = torch.cat([
-                    role_model_compute["m"], 
-                    role_model_compute["m_test"]
-                ], dim=-2).detach()
-
-                # calculate embed loss to follow role model
-                for model, compute in computes.items():
-                    # Role model is already fully backproped by role_model_loss
-                    if model == role_model:# compute is role_model_compute:
-                        continue
-                    calc_embed_loss(
-                        compute=compute,
-                        embed_y=embed_y,
-                        adapter_loss_fn=adapter_loss_fn,
-                        loss_clamp=loss_clamp,
-                        reduction=reduction,
-                        model=model,
-                        eps=eps,
+                # We calculate average m of non role models to do one forward pass for all of them
+                avg_compute = {}
+                computes_1 = computes
+                if forward_once and role_model and avg_non_role_model_m and len(computes) > 1:
+                    avg_compute = forward_pass_1_avg(
+                        computes=computes,
+                        role_model=role_model,
                     )
+                    computes_1 = {**computes, "avg_non_role_model": avg_compute}
 
-                # sum embed loss
-                non_role_model_embed_loss = sum([
-                    compute["embed_loss"] 
-                    for model, compute in computes.items() 
-                    if model != role_model
-                ])
-            if timer:
-                timer.check_time()
-
-            non_role_model_g_mag_loss = zero_tensor(device=whole_model.device)
-            non_role_model_g_cos_loss = zero_tensor(device=whole_model.device)
-            # Now we calculate the gradient penalty
-            # We do this only for "train" input because test is supposedly the real dataset
-            if gradient_penalty:
-                for model, compute in computes.items():
-                    # If forward_once is true, grad will only exist for the role model
-                    if "grad" not in compute and not calc_grad_m and not avg_non_role_model_m:
-                        continue
-                    # This doesn't stand on its own
-                    if model == "avg_non_role_model":
+                for model, compute in computes_1.items():
+                    if forward_once and role_model and model not in (role_model, "avg_non_role_model"):
                         continue
                     
-                    calc_g_loss_2(
-                        model=model,
+                    forward_pass_2(
+                        single_model=whole_model[model, head],
                         compute=compute,
-                        computes=computes_1,
-                        role_model=role_model,
-                        inverse_avg_non_role_model_m=inverse_avg_non_role_model_m,
-                        avg_non_role_model_m=avg_non_role_model_m,
-                        non_role_model_count=non_role_model_count,
-                        avg_compute=avg_compute,
-                        role_model_compute=role_model_compute,
-                        calc_grad_m=calc_grad_m,
-                        grad_loss_fn=grad_loss_fn,
-                        grad_loss_scale=grad_loss_scale,
-                        loss_clamp=loss_clamp,
-                        reduction=reduction,
-                        eps=eps,
-                        **g_loss_kwargs
+                        loss_fn=loss_fn,
+                        model=model,
+                    )
+                    if gradient_penalty:
+                        forward_pass_gradient(
+                            compute=compute,
+                            calc_grad_m=calc_grad_m,
+                            model=model,
+                        )
+
+
+                    pred_std_ = calc_std_loss(
+                        compute=compute,
+                        std_loss_fn=std_loss_fn,
+                        batch_size=batch_size,
+                        allow_same_prediction=allow_same_prediction,
+                        model=model,
                     )
 
-                # If forward_once, this will be 0 and the other computes won't have g_loss
-                if not forward_once or calc_grad_m and len(computes) > 1:
-                    non_role_model_g_mag_loss = sum([
-                        compute["g_mag_loss"] 
+                    if model not in avg_pred_stds:
+                        avg_pred_stds[model] = 0
+                    avg_pred_stds[model] += pred_std_
+
+                    calc_mean_pred_loss(
+                        compute=compute,
+                        loss_fn=loss_fn,
+                        mean_pred_loss_fn=mean_pred_loss_fn
+                    )
+
+                if role_model and (fixed_role_model or forward_once):
+                    role_model_compute = computes[role_model]
+                else:
+                    # determine role model (adapter) by minimum loss
+                    role_model, role_model_compute = min(
+                        computes.items(), 
+                        key=lambda item: reduction(item[-1]["loss"]).item()
+                    )
+                    #model_2 = [m for m in models if m != role_model][0]
+
+                role_model_loss = reduction(role_model_compute["loss"])
+                role_model_mean_pred_loss = reduction(role_model_compute["mean_pred_loss"])
+                role_model_std_loss = role_model_compute["std_loss"]
+                if timer:
+                    timer.check_time()
+
+                non_role_model_embed_loss = zero_tensor(device=whole_model.device)
+                if len(computes) > 1:# and forward_once:
+                    # Calculate role model adapter embedding as the correct one as it has lowest error
+                    # dim 0 is batch, dim 1 is size, not sure which to use but size I guess
+                    # anyway that means -3 and -2
+                    # This has to be done here
+                    # So backward pass can be called together with g_loss
+                    role_model_compute = computes[role_model]
+                    embed_y = torch.cat([
+                        role_model_compute["m"], 
+                        role_model_compute["m_test"]
+                    ], dim=-2).detach()
+
+                    # calculate embed loss to follow role model
+                    for model, compute in computes.items():
+                        # Role model is already fully backproped by role_model_loss
+                        if model == role_model:# compute is role_model_compute:
+                            continue
+                        calc_embed_loss(
+                            compute=compute,
+                            embed_y=embed_y,
+                            adapter_loss_fn=adapter_loss_fn,
+                            loss_clamp=loss_clamp,
+                            reduction=reduction,
+                            model=model,
+                            eps=eps,
+                        )
+
+                    # sum embed loss
+                    non_role_model_embed_loss = sum([
+                        compute["embed_loss"] 
                         for model, compute in computes.items() 
-                        if model != role_model and "g_mag_loss" in compute
+                        if model != role_model
                     ])
-                    non_role_model_g_cos_loss = sum([
-                        compute["g_cos_loss"] 
-                        for model, compute in computes.items() 
-                        if model != role_model and "g_cos_loss" in compute
-                    ])
+                if timer:
+                    timer.check_time()
 
-        if timer:
-            timer.check_time()
+                non_role_model_g_mag_loss = zero_tensor(device=whole_model.device)
+                non_role_model_g_cos_loss = zero_tensor(device=whole_model.device)
+                # Now we calculate the gradient penalty
+                # We do this only for "train" input because test is supposedly the real dataset
+                if gradient_penalty:
+                    for model, compute in computes.items():
+                        # If forward_once is true, grad will only exist for the role model
+                        if "grad" not in compute and not calc_grad_m and not avg_non_role_model_m:
+                            continue
+                        # This doesn't stand on its own
+                        if model == "avg_non_role_model":
+                            continue
+                        
+                        calc_g_loss_2(
+                            model=model,
+                            compute=compute,
+                            computes=computes_1,
+                            role_model=role_model,
+                            inverse_avg_non_role_model_m=inverse_avg_non_role_model_m,
+                            avg_non_role_model_m=avg_non_role_model_m,
+                            non_role_model_count=non_role_model_count,
+                            avg_compute=avg_compute,
+                            role_model_compute=role_model_compute,
+                            calc_grad_m=calc_grad_m,
+                            grad_loss_fn=grad_loss_fn,
+                            grad_loss_scale=grad_loss_scale,
+                            loss_clamp=loss_clamp,
+                            reduction=reduction,
+                            eps=eps,
+                            **g_loss_kwargs
+                        )
 
-        # Due to the convenient calculation of second order derivative,
-        # Every g_loss backward call will populate the whole model grad
-        # But we only want g_loss from role model to populate the rest (non-adapter) of the model
-        # So first we'll call backward on non-rolemodel
-        # and zero the grads of the rest of the model
-        assert isinstance(non_role_model_embed_loss, int) or torch.isfinite(non_role_model_embed_loss).all(), f"non_role_model_embed_loss has nan or inf"
-        assert isinstance(non_role_model_g_mag_loss, int) or torch.isfinite(non_role_model_g_mag_loss).all(), f"non_role_model_g_mag_loss has nan or inf"
-        assert isinstance(non_role_model_g_cos_loss, int) or torch.isfinite(non_role_model_g_cos_loss).all(), f"non_role_model_g_cos_loss has nan or inf"
-        #non_role_model_loss = non_role_model_embed_loss + non_role_model_g_loss
-        #non_role_model_loss = non_role_model_avg_mul * non_role_model_loss
-        #if not val and hasattr(non_role_model_loss, "backward"):
-        #    non_role_model_loss.backward()
-            # Zero the rest of the model
-            # because we only want the role model to update it
-            # whole_model.non_adapter_zero_grad()
+                    # If forward_once, this will be 0 and the other computes won't have g_loss
+                    if not forward_once or calc_grad_m and len(computes) > 1:
+                        non_role_model_g_mag_loss = sum([
+                            compute["g_mag_loss"] 
+                            for model, compute in computes.items() 
+                            if model != role_model and "g_mag_loss" in compute
+                        ])
+                        non_role_model_g_cos_loss = sum([
+                            compute["g_cos_loss"] 
+                            for model, compute in computes.items() 
+                            if model != role_model and "g_cos_loss" in compute
+                        ])
 
-        # Now we backward the role model
-        role_model_g_mag_loss = reduction(role_model_compute["g_mag_loss"]) if gradient_penalty else zero_tensor(device=whole_model.device)
-        role_model_g_cos_loss = reduction(role_model_compute["g_cos_loss"]) if gradient_penalty else zero_tensor(device=whole_model.device)
-        assert isinstance(role_model_g_mag_loss, int) or torch.isfinite(role_model_g_mag_loss).all(), f"role_model_g_mag_loss has nan or inf"
-        assert isinstance(role_model_g_cos_loss, int) or torch.isfinite(role_model_g_cos_loss).all(), f"role_model_g_cos_loss has nan or inf"
-        assert isinstance(role_model_loss, int) or torch.isfinite(role_model_loss).all(), f"role_model_loss has nan or inf"
-        #role_model_total_loss = role_model_loss + role_model_std_loss + role_model_g_loss
-        #if not val:
-        #    role_model_total_loss.backward()
+            if timer:
+                timer.check_time()
 
-        # Finally, backprop
-        #batch_loss = role_model_total_loss + non_role_model_loss
-        batch_loss = (role_model_loss,)
-        loss_weights = (1.0,)
-        if gradient_penalty:
-            batch_loss = (
-                *batch_loss, 
-                role_model_g_mag_loss, 
-                role_model_g_cos_loss,
-            )
-            loss_weights = (
-                *loss_weights, 
-                g_loss_mul * 0.5, 
-                g_loss_mul * 0.5,
-            )
-        if non_role_model_count:
-            batch_loss = (
-                *batch_loss, 
-                non_role_model_avg_mul * non_role_model_embed_loss,
-            )
-            loss_weights = (
-                *loss_weights,
-                non_role_model_mul,
-            )
+            # Due to the convenient calculation of second order derivative,
+            # Every g_loss backward call will populate the whole model grad
+            # But we only want g_loss from role model to populate the rest (non-adapter) of the model
+            # So first we'll call backward on non-rolemodel
+            # and zero the grads of the rest of the model
+            assert isinstance(non_role_model_embed_loss, int) or torch.isfinite(non_role_model_embed_loss).all(), f"non_role_model_embed_loss has nan or inf"
+            assert isinstance(non_role_model_g_mag_loss, int) or torch.isfinite(non_role_model_g_mag_loss).all(), f"non_role_model_g_mag_loss has nan or inf"
+            assert isinstance(non_role_model_g_cos_loss, int) or torch.isfinite(non_role_model_g_cos_loss).all(), f"non_role_model_g_cos_loss has nan or inf"
+            #non_role_model_loss = non_role_model_embed_loss + non_role_model_g_loss
+            #non_role_model_loss = non_role_model_avg_mul * non_role_model_loss
+            #if not val and hasattr(non_role_model_loss, "backward"):
+            #    non_role_model_loss.backward()
+                # Zero the rest of the model
+                # because we only want the role model to update it
+                # whole_model.non_adapter_zero_grad()
+
+            # Now we backward the role model
+            role_model_g_mag_loss = reduction(role_model_compute["g_mag_loss"]) if gradient_penalty else zero_tensor(device=whole_model.device)
+            role_model_g_cos_loss = reduction(role_model_compute["g_cos_loss"]) if gradient_penalty else zero_tensor(device=whole_model.device)
+            assert isinstance(role_model_g_mag_loss, int) or torch.isfinite(role_model_g_mag_loss).all(), f"role_model_g_mag_loss has nan or inf"
+            assert isinstance(role_model_g_cos_loss, int) or torch.isfinite(role_model_g_cos_loss).all(), f"role_model_g_cos_loss has nan or inf"
+            assert isinstance(role_model_loss, int) or torch.isfinite(role_model_loss).all(), f"role_model_loss has nan or inf"
+            #role_model_total_loss = role_model_loss + role_model_std_loss + role_model_g_loss
+            #if not val:
+            #    role_model_total_loss.backward()
+
+            # Finally, backprop
+            #batch_loss = role_model_total_loss + non_role_model_loss
+            batch_loss = (role_model_loss,)
+            loss_weights = (1.0,)
             if gradient_penalty:
                 batch_loss = (
                     *batch_loss, 
-                    non_role_model_avg_mul * non_role_model_g_mag_loss,
-                    non_role_model_avg_mul * non_role_model_g_cos_loss,
+                    role_model_g_mag_loss, 
+                    role_model_g_cos_loss,
                 )
                 loss_weights = (
                     *loss_weights, 
-                    non_role_model_mul * g_loss_mul * 0.5,
-                    non_role_model_mul * g_loss_mul * 0.5,
+                    g_loss_mul * 0.5, 
+                    g_loss_mul * 0.5,
                 )
-        if include_std_loss:
-            batch_loss = (*batch_loss, role_model_std_loss)
-            loss_weights = (*loss_weights, 0.5)
-        if include_mean_pred_loss:
-            batch_loss = (*batch_loss, role_model_mean_pred_loss)
-            loss_weights = (*loss_weights, 0.5)
-        if batch == 0 and not val:
-            loss_balancer.pre_weigh(*batch_loss, val=val)
-        batch_loss = sum(loss_balancer(*batch_loss, val=val, weights=loss_weights))
-        if not val:
-            if reduction == torch.sum:
-                (batch_loss/batch_size).backward()
-            else:
-                batch_loss.backward()
+            if non_role_model_count:
+                batch_loss = (
+                    *batch_loss, 
+                    non_role_model_avg_mul * non_role_model_embed_loss,
+                )
+                loss_weights = (
+                    *loss_weights,
+                    non_role_model_mul,
+                )
+                if gradient_penalty:
+                    batch_loss = (
+                        *batch_loss, 
+                        non_role_model_avg_mul * non_role_model_g_mag_loss,
+                        non_role_model_avg_mul * non_role_model_g_cos_loss,
+                    )
+                    loss_weights = (
+                        *loss_weights, 
+                        non_role_model_mul * g_loss_mul * 0.5,
+                        non_role_model_mul * g_loss_mul * 0.5,
+                    )
+            if include_std_loss:
+                batch_loss = (*batch_loss, role_model_std_loss)
+                loss_weights = (*loss_weights, 0.5)
+            if include_mean_pred_loss:
+                batch_loss = (*batch_loss, role_model_mean_pred_loss)
+                loss_weights = (*loss_weights, 0.5)
+            if batch == 0 and not val:
+                loss_balancer.pre_weigh(*batch_loss, val=val)
+            batch_loss = sum(loss_balancer(*batch_loss, val=val, weights=loss_weights))
+            if not val:
+                if reduction == torch.sum:
+                    (batch_loss/batch_size).backward()
+                else:
+                    batch_loss.backward()
 
+            if timer:
+                timer.check_time()
+
+            if not val:
+                if grad_clip:
+                    clip_grad_norm_(whole_model.parameters(), grad_clip)
+                optim.step()
+                optim.zero_grad()
+
+
+            n_mul = (batch_size if reduction == torch.mean else 1)
+            avg_role_model_loss += try_tensor_item(role_model_loss) * n_mul
+            avg_role_model_std_loss += try_tensor_item(role_model_std_loss) * n_mul
+            avg_role_model_mean_pred_loss += try_tensor_item(role_model_mean_pred_loss) * n_mul
+            avg_role_model_g_mag_loss += try_tensor_item(role_model_g_mag_loss) * n_mul
+            avg_role_model_g_cos_loss += try_tensor_item(role_model_g_cos_loss) * n_mul
+            avg_non_role_model_g_mag_loss += try_tensor_item(non_role_model_g_mag_loss) * n_mul
+            avg_non_role_model_g_cos_loss += try_tensor_item(non_role_model_g_cos_loss) * n_mul
+            avg_non_role_model_embed_loss += try_tensor_item(non_role_model_embed_loss) * n_mul
+            avg_loss += try_tensor_item(batch_loss) * n_mul
+        
+            n_size += batch_size
+            n_batch += 1
+            clear_memory()
+            if timer:
+                timer.check_time()
         if timer:
             timer.check_time()
 
-        if not val:
-            if grad_clip:
-                clip_grad_norm_(whole_model.parameters(), grad_clip)
-            optim.step()
-            optim.zero_grad()
+        time_1 = time.time()
 
+        duration = time_1 - time_0
+        duration_batch = duration / n_batch
+        duration_size = duration / n_size
 
-        n_mul = (batch_size if reduction == torch.mean else 1)
-        avg_role_model_loss += try_tensor_item(role_model_loss) * n_mul
-        avg_role_model_std_loss += try_tensor_item(role_model_std_loss) * n_mul
-        avg_role_model_mean_pred_loss += try_tensor_item(role_model_mean_pred_loss) * n_mul
-        avg_role_model_g_mag_loss += try_tensor_item(role_model_g_mag_loss) * n_mul
-        avg_role_model_g_cos_loss += try_tensor_item(role_model_g_cos_loss) * n_mul
-        avg_non_role_model_g_mag_loss += try_tensor_item(non_role_model_g_mag_loss) * n_mul
-        avg_non_role_model_g_cos_loss += try_tensor_item(non_role_model_g_cos_loss) * n_mul
-        avg_non_role_model_embed_loss += try_tensor_item(non_role_model_embed_loss) * n_mul
-        avg_loss += try_tensor_item(batch_loss) * n_mul
-    
-        n_size += batch_size
-        n_batch += 1
+        #n = n_batch if reduction == torch.mean else n_size
+        n = n_size
+
+        avg_role_model_loss /= n
+        avg_role_model_std_loss /= n_batch
+        avg_role_model_mean_pred_loss /= n
+        avg_role_model_g_mag_loss /= n
+        avg_role_model_g_cos_loss /= n
+        avg_non_role_model_g_mag_loss /= n
+        avg_non_role_model_g_cos_loss /= n
+        avg_non_role_model_embed_loss /= n
+        avg_loss /= n
+        avg_pred_stds = {k: (v / n_batch) for k, v in avg_pred_stds.items()}
+        avg_pred_stds = {k: try_tensor_item(v) for k, v in avg_pred_stds.items()}
+        avg_pred_std = mean(avg_pred_stds.values())
         clear_memory()
-        if timer:
-            timer.check_time()
-    if timer:
-        timer.check_time()
-
-    time_1 = time.time()
-
-    duration = time_1 - time_0
-    duration_batch = duration / n_batch
-    duration_size = duration / n_size
-
-    #n = n_batch if reduction == torch.mean else n_size
-    n = n_size
-
-    avg_role_model_loss /= n
-    avg_role_model_std_loss /= n_batch
-    avg_role_model_mean_pred_loss /= n
-    avg_role_model_g_mag_loss /= n
-    avg_role_model_g_cos_loss /= n
-    avg_non_role_model_g_mag_loss /= n
-    avg_non_role_model_g_cos_loss /= n
-    avg_non_role_model_embed_loss /= n
-    avg_loss /= n
-    avg_pred_stds = {k: (v / n_batch) for k, v in avg_pred_stds.items()}
-    avg_pred_stds = {k: try_tensor_item(v) for k, v in avg_pred_stds.items()}
-    avg_pred_std = mean(avg_pred_stds.values())
-    clear_memory()
-    return {
-        "avg_role_model_loss": avg_role_model_loss, 
-        "avg_role_model_std_loss": avg_role_model_std_loss,
-        "avg_role_model_mean_pred_loss": avg_role_model_mean_pred_loss,
-        "avg_role_model_g_mag_loss": avg_role_model_g_mag_loss,
-        "avg_role_model_g_cos_loss": avg_role_model_g_cos_loss,
-        "avg_non_role_model_g_mag_loss": avg_non_role_model_g_mag_loss,
-        "avg_non_role_model_g_cos_loss": avg_non_role_model_g_cos_loss,
-        "avg_non_role_model_embed_loss": avg_non_role_model_embed_loss,
-        "avg_loss": avg_loss,
-        "n_size": n_size,
-        "n_batch": n_batch,
-        "duration": duration,
-        "duration_batch": duration_batch,
-        "duration_size": duration_size,
-        #"avg_pred_stds": avg_pred_stds,
-        "avg_pred_std": avg_pred_std,
-    }
+        return {
+            "avg_role_model_loss": avg_role_model_loss, 
+            "avg_role_model_std_loss": avg_role_model_std_loss,
+            "avg_role_model_mean_pred_loss": avg_role_model_mean_pred_loss,
+            "avg_role_model_g_mag_loss": avg_role_model_g_mag_loss,
+            "avg_role_model_g_cos_loss": avg_role_model_g_cos_loss,
+            "avg_non_role_model_g_mag_loss": avg_non_role_model_g_mag_loss,
+            "avg_non_role_model_g_cos_loss": avg_non_role_model_g_cos_loss,
+            "avg_non_role_model_embed_loss": avg_non_role_model_embed_loss,
+            "avg_loss": avg_loss,
+            "n_size": n_size,
+            "n_batch": n_batch,
+            "duration": duration,
+            "duration_batch": duration_batch,
+            "duration_size": duration_size,
+            #"avg_pred_stds": avg_pred_stds,
+            "avg_pred_std": avg_pred_std,
+        }
 
 
 def train_epoch_student(
@@ -1283,279 +1286,282 @@ def train_epoch_student(
     g_loss_mul=0.1,
     **g_loss_kwargs
 ):
-    role_model = "teacher"
-    assert optim or val, "Optimizer must be provided if val is false"
-    #torch.autograd.set_detect_anomaly(True)
-    size = len(train_loader.dataset)
+    grad_cm = torch.no_grad() if val else nullcontext()
 
-    std_loss_fn = std_loss_fn or loss_fn
-    mean_pred_loss_fn = mean_pred_loss_fn or loss_fn
-    
-    for p in teacher.parameters():
-        p.requires_grad_ = False
-    student = teacher.create_student(adapter)
+    with grad_cm:
+        role_model = "teacher"
+        assert optim or val, "Optimizer must be provided if val is false"
+        #torch.autograd.set_detect_anomaly(True)
+        size = len(train_loader.dataset)
 
-    student.eval() if val else student.train()
+        std_loss_fn = std_loss_fn or loss_fn
+        mean_pred_loss_fn = mean_pred_loss_fn or loss_fn
+        
+        for p in teacher.parameters():
+            p.requires_grad_ = False
+        student = teacher.create_student(adapter)
 
-    avg_loss = 0
-    avg_non_role_model_g_mag_loss = 0
-    avg_non_role_model_g_cos_loss = 0
-    avg_non_role_model_embed_loss = 0
-    n_size = 0
-    n_batch = 0
+        student.eval() if val else student.train()
 
-    loss_balancer.to(student.device)
+        avg_loss = 0
+        avg_non_role_model_g_mag_loss = 0
+        avg_non_role_model_g_cos_loss = 0
+        avg_non_role_model_embed_loss = 0
+        n_size = 0
+        n_batch = 0
 
-    avg_pred_stds = {}
+        loss_balancer.to(student.device)
 
-    clear_memory()
-
-    time_0 = time.time()
-
-    if timer:
-        timer.check_time()
-
-    for batch, batch_dict in enumerate(train_loader):
-        clear_memory()
-
-        batch_dict = filter_dict(batch_dict, models)
+        avg_pred_stds = {}
 
         clear_memory()
+
+        time_0 = time.time()
 
         if timer:
             timer.check_time()
-        if not val:
-            optim.zero_grad()
 
-        batch_size = 1
+        for batch, batch_dict in enumerate(train_loader):
+            clear_memory()
 
-        # Compute prediction and loss for all adapters
-        models = {
-            "teacher": teacher,
-            "student": student
-        }
-        computes = {
-            "teacher": {},
-            "student": {}
-        }
-        for model, single_model in models.items():
-            train, test, y, y_real = batch_dict[single_model.name]
-            batch_size = y.shape[0] if y.dim() > 0 else 1
-            compute = computes[model]
-            forward_pass_1(
-                single_model=single_model,
-                model=model,
-                train=train,
-                test=test,
-                y=y,
-                y_real=y_real,
+            batch_dict = filter_dict(batch_dict, models)
+
+            clear_memory()
+
+            if timer:
+                timer.check_time()
+            if not val:
+                optim.zero_grad()
+
+            batch_size = 1
+
+            # Compute prediction and loss for all adapters
+            models = {
+                "teacher": teacher,
+                "student": student
+            }
+            computes = {
+                "teacher": {},
+                "student": {}
+            }
+            for model, single_model in models.items():
+                train, test, y, y_real = batch_dict[single_model.name]
+                batch_size = y.shape[0] if y.dim() > 0 else 1
+                compute = computes[model]
+                forward_pass_1(
+                    single_model=single_model,
+                    model=model,
+                    train=train,
+                    test=test,
+                    y=y,
+                    y_real=y_real,
+                    compute=compute,
+                )
+
+            computes_1 = computes
+
+            model = "student"
+            compute = computes["student"]
+            forward_pass_2(
+                single_model=student,
                 compute=compute,
+                loss_fn=loss_fn,
+                model="student",
             )
+            if gradient_penalty:
+                forward_pass_gradient(
+                    compute=compute,
+                    calc_grad_m=calc_grad_m,
+                    model="student",
+                )
 
-        computes_1 = computes
-
-        model = "student"
-        compute = computes["student"]
-        forward_pass_2(
-            single_model=student,
-            compute=compute,
-            loss_fn=loss_fn,
-            model="student",
-        )
-        if gradient_penalty:
-            forward_pass_gradient(
+            pred_std_ = calc_std_loss(
                 compute=compute,
-                calc_grad_m=calc_grad_m,
+                std_loss_fn=std_loss_fn,
+                batch_size=batch_size,
+                allow_same_prediction=allow_same_prediction,
                 model="student",
             )
 
-        pred_std_ = calc_std_loss(
-            compute=compute,
-            std_loss_fn=std_loss_fn,
-            batch_size=batch_size,
-            allow_same_prediction=allow_same_prediction,
-            model="student",
-        )
+            if model not in avg_pred_stds:
+                avg_pred_stds[model] = 0
+            avg_pred_stds[model] += pred_std_
 
-        if model not in avg_pred_stds:
-            avg_pred_stds[model] = 0
-        avg_pred_stds[model] += pred_std_
-
-        calc_mean_pred_loss(
-            compute=compute,
-            loss_fn=loss_fn,
-            mean_pred_loss_fn=mean_pred_loss_fn
-        )
-
-        role_model_compute = computes["teacher"]
-
-        role_model_loss = reduction(role_model_compute["loss"])
-        role_model_mean_pred_loss = reduction(role_model_compute["mean_pred_loss"])
-        role_model_std_loss = role_model_compute["std_loss"]
-        if timer:
-            timer.check_time()
-
-        non_role_model_embed_loss = zero_tensor(device=student.device)
-        
-        role_model_compute = computes[role_model]
-        embed_y = torch.cat([
-            role_model_compute["m"], 
-            role_model_compute["m_test"]
-        ], dim=-2).detach()
-
-        calc_embed_loss(
-            compute=compute,
-            embed_y=embed_y,
-            adapter_loss_fn=adapter_loss_fn,
-            loss_clamp=loss_clamp,
-            reduction=reduction,
-            model="student",
-            eps=eps,
-        )
-
-        # sum embed loss
-        non_role_model_embed_loss = compute["embed_loss"] 
-
-        if timer:
-            timer.check_time()
-
-        non_role_model_g_mag_loss = zero_tensor(device=student.device)
-        non_role_model_g_cos_loss = zero_tensor(device=student.device)
-        # Now we calculate the gradient penalty
-        # We do this only for "train" input because test is supposedly the real dataset
-        if gradient_penalty:
-            # If forward_once is true, grad will only exist for the role model
-            if "grad" not in compute and not calc_grad_m and not avg_non_role_model_m:
-                continue
-            
-            calc_g_loss_2(
-                model=model,
+            calc_mean_pred_loss(
                 compute=compute,
-                computes=computes_1,
-                role_model=role_model,
-                inverse_avg_non_role_model_m=False,
-                avg_non_role_model_m=False,
-                non_role_model_count=1,
-                avg_compute=False,
-                role_model_compute=role_model_compute,
-                calc_grad_m=calc_grad_m,
-                grad_loss_fn=grad_loss_fn,
-                grad_loss_scale=grad_loss_scale,
+                loss_fn=loss_fn,
+                mean_pred_loss_fn=mean_pred_loss_fn
+            )
+
+            role_model_compute = computes["teacher"]
+
+            role_model_loss = reduction(role_model_compute["loss"])
+            role_model_mean_pred_loss = reduction(role_model_compute["mean_pred_loss"])
+            role_model_std_loss = role_model_compute["std_loss"]
+            if timer:
+                timer.check_time()
+
+            non_role_model_embed_loss = zero_tensor(device=student.device)
+            
+            role_model_compute = computes[role_model]
+            embed_y = torch.cat([
+                role_model_compute["m"], 
+                role_model_compute["m_test"]
+            ], dim=-2).detach()
+
+            calc_embed_loss(
+                compute=compute,
+                embed_y=embed_y,
+                adapter_loss_fn=adapter_loss_fn,
                 loss_clamp=loss_clamp,
                 reduction=reduction,
+                model="student",
                 eps=eps,
-                **g_loss_kwargs
             )
 
-            non_role_model_g_mag_loss = compute["g_mag_loss"]
-            non_role_model_g_cos_loss = compute["g_cos_loss"] 
-        if timer:
-            timer.check_time()
+            # sum embed loss
+            non_role_model_embed_loss = compute["embed_loss"] 
 
-        # Due to the convenient calculation of second order derivative,
-        # Every g_loss backward call will populate the whole model grad
-        # But we only want g_loss from role model to populate the rest (non-adapter) of the model
-        # So first we'll call backward on non-rolemodel
-        # and zero the grads of the rest of the model
-        assert isinstance(non_role_model_embed_loss, int) or torch.isfinite(non_role_model_embed_loss).all(), f"non_role_model_embed_loss has nan or inf"
-        assert isinstance(non_role_model_g_mag_loss, int) or torch.isfinite(non_role_model_g_mag_loss).all(), f"non_role_model_g_mag_loss has nan or inf"
-        assert isinstance(non_role_model_g_cos_loss, int) or torch.isfinite(non_role_model_g_cos_loss).all(), f"non_role_model_g_cos_loss has nan or inf"
-        #non_role_model_loss = non_role_model_embed_loss + non_role_model_g_loss
-        #non_role_model_loss = non_role_model_avg_mul * non_role_model_loss
-        #if not val and hasattr(non_role_model_loss, "backward"):
-        #    non_role_model_loss.backward()
-            # Zero the rest of the model
-            # because we only want the role model to update it
-            # whole_model.non_adapter_zero_grad()
+            if timer:
+                timer.check_time()
 
-        # Finally, backprop
-        #batch_loss = role_model_total_loss + non_role_model_loss
-        batch_loss = (
-            non_role_model_embed_loss,
-        )
-        loss_weights = (
-            1.0
-        )
-        if gradient_penalty:
+            non_role_model_g_mag_loss = zero_tensor(device=student.device)
+            non_role_model_g_cos_loss = zero_tensor(device=student.device)
+            # Now we calculate the gradient penalty
+            # We do this only for "train" input because test is supposedly the real dataset
+            if gradient_penalty:
+                # If forward_once is true, grad will only exist for the role model
+                if "grad" not in compute and not calc_grad_m and not avg_non_role_model_m:
+                    continue
+                
+                calc_g_loss_2(
+                    model=model,
+                    compute=compute,
+                    computes=computes_1,
+                    role_model=role_model,
+                    inverse_avg_non_role_model_m=False,
+                    avg_non_role_model_m=False,
+                    non_role_model_count=1,
+                    avg_compute=False,
+                    role_model_compute=role_model_compute,
+                    calc_grad_m=calc_grad_m,
+                    grad_loss_fn=grad_loss_fn,
+                    grad_loss_scale=grad_loss_scale,
+                    loss_clamp=loss_clamp,
+                    reduction=reduction,
+                    eps=eps,
+                    **g_loss_kwargs
+                )
+
+                non_role_model_g_mag_loss = compute["g_mag_loss"]
+                non_role_model_g_cos_loss = compute["g_cos_loss"] 
+            if timer:
+                timer.check_time()
+
+            # Due to the convenient calculation of second order derivative,
+            # Every g_loss backward call will populate the whole model grad
+            # But we only want g_loss from role model to populate the rest (non-adapter) of the model
+            # So first we'll call backward on non-rolemodel
+            # and zero the grads of the rest of the model
+            assert isinstance(non_role_model_embed_loss, int) or torch.isfinite(non_role_model_embed_loss).all(), f"non_role_model_embed_loss has nan or inf"
+            assert isinstance(non_role_model_g_mag_loss, int) or torch.isfinite(non_role_model_g_mag_loss).all(), f"non_role_model_g_mag_loss has nan or inf"
+            assert isinstance(non_role_model_g_cos_loss, int) or torch.isfinite(non_role_model_g_cos_loss).all(), f"non_role_model_g_cos_loss has nan or inf"
+            #non_role_model_loss = non_role_model_embed_loss + non_role_model_g_loss
+            #non_role_model_loss = non_role_model_avg_mul * non_role_model_loss
+            #if not val and hasattr(non_role_model_loss, "backward"):
+            #    non_role_model_loss.backward()
+                # Zero the rest of the model
+                # because we only want the role model to update it
+                # whole_model.non_adapter_zero_grad()
+
+            # Finally, backprop
+            #batch_loss = role_model_total_loss + non_role_model_loss
             batch_loss = (
-                *batch_loss, 
-                non_role_model_g_mag_loss,
-                non_role_model_g_cos_loss,
+                non_role_model_embed_loss,
             )
             loss_weights = (
-                *loss_weights, 
-                g_loss_mul * 0.5,
-                g_loss_mul * 0.5,
+                1.0
             )
-        if include_std_loss:
-            batch_loss = (*batch_loss, role_model_std_loss)
-            loss_weights = (*loss_weights, 0.5)
-        if include_mean_pred_loss:
-            batch_loss = (*batch_loss, role_model_mean_pred_loss)
-            loss_weights = (*loss_weights, 0.5)
-        if batch == 0 and not val:
-            loss_balancer.pre_weigh(*batch_loss, val=val)
-        batch_loss = sum(loss_balancer(*batch_loss, val=val, weights=loss_weights))
-        if not val:
-            if reduction == torch.sum:
-                (batch_loss/batch_size).backward()
-            else:
-                batch_loss.backward()
+            if gradient_penalty:
+                batch_loss = (
+                    *batch_loss, 
+                    non_role_model_g_mag_loss,
+                    non_role_model_g_cos_loss,
+                )
+                loss_weights = (
+                    *loss_weights, 
+                    g_loss_mul * 0.5,
+                    g_loss_mul * 0.5,
+                )
+            if include_std_loss:
+                batch_loss = (*batch_loss, role_model_std_loss)
+                loss_weights = (*loss_weights, 0.5)
+            if include_mean_pred_loss:
+                batch_loss = (*batch_loss, role_model_mean_pred_loss)
+                loss_weights = (*loss_weights, 0.5)
+            if batch == 0 and not val:
+                loss_balancer.pre_weigh(*batch_loss, val=val)
+            batch_loss = sum(loss_balancer(*batch_loss, val=val, weights=loss_weights))
+            if not val:
+                if reduction == torch.sum:
+                    (batch_loss/batch_size).backward()
+                else:
+                    batch_loss.backward()
 
+            if timer:
+                timer.check_time()
+
+            if not val:
+                if grad_clip:
+                    clip_grad_norm_(adapter.parameters(), grad_clip)
+                optim.step()
+                optim.zero_grad()
+
+
+            n_mul = (batch_size if reduction == torch.mean else 1)
+            avg_non_role_model_g_mag_loss += try_tensor_item(non_role_model_g_mag_loss) * n_mul
+            avg_non_role_model_g_cos_loss += try_tensor_item(non_role_model_g_cos_loss) * n_mul
+            avg_non_role_model_embed_loss += try_tensor_item(non_role_model_embed_loss) * n_mul
+            avg_loss += try_tensor_item(batch_loss) * n_mul
+        
+            n_size += batch_size
+            n_batch += 1
+            clear_memory()
+            if timer:
+                timer.check_time()
         if timer:
             timer.check_time()
 
-        if not val:
-            if grad_clip:
-                clip_grad_norm_(adapter.parameters(), grad_clip)
-            optim.step()
-            optim.zero_grad()
+        time_1 = time.time()
 
+        duration = time_1 - time_0
+        duration_batch = duration / n_batch
+        duration_size = duration / n_size
 
-        n_mul = (batch_size if reduction == torch.mean else 1)
-        avg_non_role_model_g_mag_loss += try_tensor_item(non_role_model_g_mag_loss) * n_mul
-        avg_non_role_model_g_cos_loss += try_tensor_item(non_role_model_g_cos_loss) * n_mul
-        avg_non_role_model_embed_loss += try_tensor_item(non_role_model_embed_loss) * n_mul
-        avg_loss += try_tensor_item(batch_loss) * n_mul
-    
-        n_size += batch_size
-        n_batch += 1
+        #n = n_batch if reduction == torch.mean else n_size
+        n = n_size
+
+        avg_non_role_model_g_mag_loss /= n
+        avg_non_role_model_g_cos_loss /= n
+        avg_non_role_model_embed_loss /= n
+        avg_loss /= n
+        avg_pred_stds = {k: (v / n_batch) for k, v in avg_pred_stds.items()}
+        avg_pred_stds = {k: try_tensor_item(v) for k, v in avg_pred_stds.items()}
+        avg_pred_std = mean(avg_pred_stds.values())
         clear_memory()
-        if timer:
-            timer.check_time()
-    if timer:
-        timer.check_time()
-
-    time_1 = time.time()
-
-    duration = time_1 - time_0
-    duration_batch = duration / n_batch
-    duration_size = duration / n_size
-
-    #n = n_batch if reduction == torch.mean else n_size
-    n = n_size
-
-    avg_non_role_model_g_mag_loss /= n
-    avg_non_role_model_g_cos_loss /= n
-    avg_non_role_model_embed_loss /= n
-    avg_loss /= n
-    avg_pred_stds = {k: (v / n_batch) for k, v in avg_pred_stds.items()}
-    avg_pred_stds = {k: try_tensor_item(v) for k, v in avg_pred_stds.items()}
-    avg_pred_std = mean(avg_pred_stds.values())
-    clear_memory()
-    return {
-        "avg_non_role_model_g_mag_loss": avg_non_role_model_g_mag_loss,
-        "avg_non_role_model_g_cos_loss": avg_non_role_model_g_cos_loss,
-        "avg_non_role_model_embed_loss": avg_non_role_model_embed_loss,
-        "avg_loss": avg_loss,
-        "n_size": n_size,
-        "n_batch": n_batch,
-        "duration": duration,
-        "duration_batch": duration_batch,
-        "duration_size": duration_size,
-        #"avg_pred_stds": avg_pred_stds,
-        "avg_pred_std": avg_pred_std,
-    }
+        return {
+            "avg_non_role_model_g_mag_loss": avg_non_role_model_g_mag_loss,
+            "avg_non_role_model_g_cos_loss": avg_non_role_model_g_cos_loss,
+            "avg_non_role_model_embed_loss": avg_non_role_model_embed_loss,
+            "avg_loss": avg_loss,
+            "n_size": n_size,
+            "n_batch": n_batch,
+            "duration": duration,
+            "duration_batch": duration_batch,
+            "duration_size": duration_size,
+            #"avg_pred_stds": avg_pred_stds,
+            "avg_pred_std": avg_pred_std,
+        }
 
 def eval(
     whole_model, 
@@ -1571,248 +1577,251 @@ def eval(
     fixed_role_model=None,
     eps=1e-8,
 ):
-    size = len(eval_loader.dataset)
+    grad_cm = torch.no_grad() if val else nullcontext()
 
-    std_loss_fn = std_loss_fn or loss_fn
-    mean_pred_loss_fn = mean_pred_loss_fn or loss_fn
+    with grad_cm:
+        size = len(eval_loader.dataset)
 
-    models = models or whole_model.models
+        std_loss_fn = std_loss_fn or loss_fn
+        mean_pred_loss_fn = mean_pred_loss_fn or loss_fn
 
-    # Set the model to eval mode for validation or train mode for training
-    whole_model.eval()
-    n_size = 0
-    n_batch = 0
-    
-    avg_losses = {model: 0 for model in models}
-    avg_g_mag_losses = {model: 0 for model in models}
-    avg_g_cos_losses = {model: 0 for model in models}
-    pred_duration = {model: 0 for model in models}
-    grad_duration = {model: 0 for model in models}
+        models = models or whole_model.models
 
-    preds = {model: [] for model in models}
-    ys = {model: [] for model in models}
-    gs = {model: [] for model in models}
-    grads = {model: [] for model in models}
+        # Set the model to eval mode for validation or train mode for training
+        whole_model.eval()
+        n_size = 0
+        n_batch = 0
+        
+        avg_losses = {model: 0 for model in models}
+        avg_g_mag_losses = {model: 0 for model in models}
+        avg_g_cos_losses = {model: 0 for model in models}
+        pred_duration = {model: 0 for model in models}
+        grad_duration = {model: 0 for model in models}
 
-    clear_memory()
-
-    for batch, batch_dict in enumerate(eval_loader):
-        clear_memory()
-
-        batch_dict = filter_dict(batch_dict, models)
+        preds = {model: [] for model in models}
+        ys = {model: [] for model in models}
+        gs = {model: [] for model in models}
+        grads = {model: [] for model in models}
 
         clear_memory()
 
-        batch_size = 1
-        # Compute prediction and loss for all adapters
-        for model, (train, test, y, y_real) in batch_dict.items():
-            batch_size = y.shape[0] if y.dim() > 0 else 1
+        for batch, batch_dict in enumerate(eval_loader):
+            clear_memory()
 
-            ys[model].extend(y.detach().cpu())
+            batch_dict = filter_dict(batch_dict, models)
 
-            time_0 = time.time()
+            clear_memory()
 
-            train = train.to(whole_model.device)
-            test = test.to(whole_model.device)
-            y = y.to(whole_model.device)
-            y_real = y_real.to(whole_model.device)
+            batch_size = 1
+            # Compute prediction and loss for all adapters
+            for model, (train, test, y, y_real) in batch_dict.items():
+                batch_size = y.shape[0] if y.dim() > 0 else 1
 
+                ys[model].extend(y.detach().cpu())
 
-            train.requires_grad_()
-            train, pred = whole_model(
-                train, test, model
-            )
+                time_0 = time.time()
 
-            time_1 = time.time()
-            # We reduce directly because no further need for shape
-            loss = loss_fn(pred, y, reduction="none")
-            error = pred - y
-            dbody_dx = calc_gradient(train, loss)
-            """
-            loss_real = loss_fn(pred, y_real, reduction="none")
-            error = pred - y_real
-            dbody_dx = calc_gradient(train, loss_real)
-            """
-
-            time_2 = time.time()
-
-            g = get_g(error=error)
-            g_mag_loss, g_cos_loss = calc_g_loss(
-                dbody_dx=dbody_dx,
-                error=error,
-                grad_loss_fn=grad_loss_fn,
-                grad_loss_scale=grad_loss_scale,
-                loss_clamp=None,
-                reduction=reduction,
-                eps=eps,
-                mag_loss=True,
-                mse_mag=False,
-                mag_corr=True,
-                seq_mag=False,
-                cos_loss=True,
-                mag_corr_kwargs=dict(
-                    target=1.0,
-                    only_sign=False,
-                ),
-                cos_loss_kwargs=dict(
-                    only_sign=True,
-                ),
-            )
-            # The gradient is of shape (batch, size, dim)
-            # Sum gradient over the size dimension, resulting in (batch, dim)
-            dbody_dx = torch.sum(dbody_dx, dim=-2)
-            # Calculate the magnitude of the gradient
-            # No keep_dim, so this results in (batch)
-            dbody_dx_norm = dbody_dx.norm(2, dim=-1)
-            
-            preds[model].extend(pred.detach().cpu())
-            grads[model].extend(dbody_dx_norm.detach().cpu())
-            gs[model].extend(g.detach().cpu())
-
-            n_mul = (batch_size if reduction == torch.mean else 1)
-            loss = reduction(loss).item()
-            avg_losses[model] += loss * n_mul
-            g_mag_loss = reduction(g_mag_loss).item()
-            g_cos_loss = reduction(g_cos_loss).item()
-            avg_g_mag_losses[model] += g_mag_loss * n_mul
-            avg_g_cos_losses[model] += g_cos_loss * n_mul
-
-            pred_duration[model] += time_1 - time_0
-            grad_duration[model] += time_2 - time_1
-
-        n_size += batch_size
-        n_batch += 1
-        clear_memory()
+                train = train.to(whole_model.device)
+                test = test.to(whole_model.device)
+                y = y.to(whole_model.device)
+                y_real = y_real.to(whole_model.device)
 
 
-    #n = n_batch if reduction == torch.mean else n_size
-    n = n_size
+                train.requires_grad_()
+                train, pred = whole_model(
+                    train, test, model
+                )
 
-    preds = {k: torch.stack(v) for k, v in preds.items()}
-    ys = {k: torch.stack(v) for k, v in ys.items()}
-    gs = {k: torch.stack(v) for k, v in gs.items()}
-    grads = {k: torch.stack(v) for k, v in grads.items()}
+                time_1 = time.time()
+                # We reduce directly because no further need for shape
+                loss = loss_fn(pred, y, reduction="none")
+                error = pred - y
+                dbody_dx = calc_gradient(train, loss)
+                """
+                loss_real = loss_fn(pred, y_real, reduction="none")
+                error = pred - y_real
+                dbody_dx = calc_gradient(train, loss_real)
+                """
 
-    pred_stds = {k: torch.std(v).detach() for k, v in preds.items()}
-    y_stds = {k: torch.std(v).detach() for k, v in ys.items()}
-    std_losses = {model: std_loss_fn(pred_stds[model], y_stds[model]).item() for model in models}
-    pred_stds = {k: v.item() for k, v in pred_stds.items()}
+                time_2 = time.time()
 
-    y_mean_loss = {k: loss_fn(
-        torch.full(v.shape, torch.mean(v).item(), device=v.device, dtype=v.dtype), 
-        v,
-        reduction="none"
-    ) for k, v in ys.items()}
-    losses = {k: loss_fn(
-        preds[k], 
-        v,
-        reduction="none"
-    ) for k, v in ys.items()}
-    mean_pred_losses = {model: torch.clamp(losses[model] - y_mean_loss[model], min=0) for model in models}
-    mean_pred_losses = {k: mean_pred_loss_fn(
-        v,
-        torch.zeros(v.shape).to(v.device)
-    ).item() for k, v in mean_pred_losses.items()}
-    
-    for k, pred_std in pred_stds.items():
-        assert allow_same_prediction or batch_size == 1 or pred_std, f"model predicts the same for every input, {k}, {pred_std}, {preds[k][0].item()}"
+                g = get_g(error=error)
+                g_mag_loss, g_cos_loss = calc_g_loss(
+                    dbody_dx=dbody_dx,
+                    error=error,
+                    grad_loss_fn=grad_loss_fn,
+                    grad_loss_scale=grad_loss_scale,
+                    loss_clamp=None,
+                    reduction=reduction,
+                    eps=eps,
+                    mag_loss=True,
+                    mse_mag=False,
+                    mag_corr=True,
+                    seq_mag=False,
+                    cos_loss=True,
+                    mag_corr_kwargs=dict(
+                        target=1.0,
+                        only_sign=False,
+                    ),
+                    cos_loss_kwargs=dict(
+                        only_sign=True,
+                    ),
+                )
+                # The gradient is of shape (batch, size, dim)
+                # Sum gradient over the size dimension, resulting in (batch, dim)
+                dbody_dx = torch.sum(dbody_dx, dim=-2)
+                # Calculate the magnitude of the gradient
+                # No keep_dim, so this results in (batch)
+                dbody_dx_norm = dbody_dx.norm(2, dim=-1)
+                
+                preds[model].extend(pred.detach().cpu())
+                grads[model].extend(dbody_dx_norm.detach().cpu())
+                gs[model].extend(g.detach().cpu())
 
-    avg_losses = {
-        model: (loss/n) 
-        for model, loss in avg_losses.items()
-    }
-    avg_g_mag_losses = {
-        model: (g_mag_loss/n) 
-        for model, g_mag_loss in avg_g_mag_losses.items()
-    }
-    avg_g_cos_losses = {
-        model: (g_cos_loss/n) 
-        for model, g_cos_loss in avg_g_cos_losses.items()
-    }
+                n_mul = (batch_size if reduction == torch.mean else 1)
+                loss = reduction(loss).item()
+                avg_losses[model] += loss * n_mul
+                g_mag_loss = reduction(g_mag_loss).item()
+                g_cos_loss = reduction(g_cos_loss).item()
+                avg_g_mag_losses[model] += g_mag_loss * n_mul
+                avg_g_cos_losses[model] += g_cos_loss * n_mul
 
-    # determine role model (adapter) by minimum loss
-    role_model, min_loss = min(
-        avg_losses.items(), 
-        key=lambda item: item[-1] # it's already reduced and item
-    )
+                pred_duration[model] += time_1 - time_0
+                grad_duration[model] += time_2 - time_1
 
-    pred_metrics = {model: calc_metrics(preds[model], ys[model], prefix="pred") for model in models}
-    grad_metrics = {model: calc_metrics(grads[model], gs[model], prefix="grad") for model in models}
+            n_size += batch_size
+            n_batch += 1
+            clear_memory()
 
-    total_duration = {model: (pred_duration[model] + grad_duration[model]) for model in models}
 
-    def calculate_avg(
-        avg_losses,
-        avg_g_mag_losses,
-        avg_g_cos_losses,
-        pred_duration,
-        grad_duration,
-        total_duration,
-        pred_stds,
-        std_losses,
-        mean_pred_losses,
-    ):
-        return dict(
-            avg_loss = mean(avg_losses.values()),
-            avg_g_mag_loss = mean(avg_g_mag_losses.values()),
-            avg_g_cos_loss = mean(avg_g_cos_losses.values()),
-            avg_pred_duration = mean(pred_duration.values()),
-            avg_grad_duration = mean(grad_duration.values()),
-            avg_total_duration = mean(total_duration.values()),
-            avg_pred_std = mean(pred_stds.values()),
-            avg_std_loss = mean(std_losses.values()),
-            avg_mean_pred_loss = mean(mean_pred_losses.values()),
-        )
-    
-    metrics = (
-        avg_losses,
-        avg_g_mag_losses,
-        avg_g_cos_losses,
-        pred_duration,
-        grad_duration,
-        total_duration,
-        pred_stds,
-        std_losses,
-        mean_pred_losses,
-    )
+        #n = n_batch if reduction == torch.mean else n_size
+        n = n_size
 
-    model_metrics = {
-        model: {
-            "avg_loss": avg_losses[model],
-            "avg_g_mag_loss": avg_g_mag_losses[model],
-            "avg_g_cos_loss": avg_g_cos_losses[model],
-            "pred_duration": pred_duration[model],
-            "grad_duration": grad_duration[model],
-            "total_duration": total_duration[model],
-            "pred_std": pred_stds[model],
-            "std_loss": std_losses[model],
-            "mean_pred_loss": mean_pred_losses[model],
-            **pred_metrics[model],
-            **grad_metrics[model],
+        preds = {k: torch.stack(v) for k, v in preds.items()}
+        ys = {k: torch.stack(v) for k, v in ys.items()}
+        gs = {k: torch.stack(v) for k, v in gs.items()}
+        grads = {k: torch.stack(v) for k, v in grads.items()}
+
+        pred_stds = {k: torch.std(v).detach() for k, v in preds.items()}
+        y_stds = {k: torch.std(v).detach() for k, v in ys.items()}
+        std_losses = {model: std_loss_fn(pred_stds[model], y_stds[model]).item() for model in models}
+        pred_stds = {k: v.item() for k, v in pred_stds.items()}
+
+        y_mean_loss = {k: loss_fn(
+            torch.full(v.shape, torch.mean(v).item(), device=v.device, dtype=v.dtype), 
+            v,
+            reduction="none"
+        ) for k, v in ys.items()}
+        losses = {k: loss_fn(
+            preds[k], 
+            v,
+            reduction="none"
+        ) for k, v in ys.items()}
+        mean_pred_losses = {model: torch.clamp(losses[model] - y_mean_loss[model], min=0) for model in models}
+        mean_pred_losses = {k: mean_pred_loss_fn(
+            v,
+            torch.zeros(v.shape).to(v.device)
+        ).item() for k, v in mean_pred_losses.items()}
+        
+        for k, pred_std in pred_stds.items():
+            assert allow_same_prediction or batch_size == 1 or pred_std, f"model predicts the same for every input, {k}, {pred_std}, {preds[k][0].item()}"
+
+        avg_losses = {
+            model: (loss/n) 
+            for model, loss in avg_losses.items()
         }
-        for model in models
-    }
+        avg_g_mag_losses = {
+            model: (g_mag_loss/n) 
+            for model, g_mag_loss in avg_g_mag_losses.items()
+        }
+        avg_g_cos_losses = {
+            model: (g_cos_loss/n) 
+            for model, g_cos_loss in avg_g_cos_losses.items()
+        }
 
-    min_metrics = model_metrics[role_model]
-    role_model_metrics = model_metrics[fixed_role_model or role_model]
-    avg_metrics = calculate_avg(*metrics)
-    non_role_model_metrics = avg_metrics
-    fixed_role_model = fixed_role_model or role_model
-    non_role_model = [m for m in models if m != fixed_role_model]
-    non_role_model_metrics = [filter_dict(m, non_role_model) for m in metrics]
-    non_role_model_metrics = calculate_avg(*non_role_model_metrics)
+        # determine role model (adapter) by minimum loss
+        role_model, min_loss = min(
+            avg_losses.items(), 
+            key=lambda item: item[-1] # it's already reduced and item
+        )
 
-    clear_memory()
-    return {
-        "role_model": role_model, 
-        "n_size": n_size,
-        "n_batch": n_batch,
-        "role_model_metrics": role_model_metrics,
-        "non_role_model_metrics": non_role_model_metrics,
-        "avg_metrics": avg_metrics,
-        "min_metrics": min_metrics,
-        "model_metrics": model_metrics,
-    }
+        pred_metrics = {model: calc_metrics(preds[model], ys[model], prefix="pred") for model in models}
+        grad_metrics = {model: calc_metrics(grads[model], gs[model], prefix="grad") for model in models}
+
+        total_duration = {model: (pred_duration[model] + grad_duration[model]) for model in models}
+
+        def calculate_avg(
+            avg_losses,
+            avg_g_mag_losses,
+            avg_g_cos_losses,
+            pred_duration,
+            grad_duration,
+            total_duration,
+            pred_stds,
+            std_losses,
+            mean_pred_losses,
+        ):
+            return dict(
+                avg_loss = mean(avg_losses.values()),
+                avg_g_mag_loss = mean(avg_g_mag_losses.values()),
+                avg_g_cos_loss = mean(avg_g_cos_losses.values()),
+                avg_pred_duration = mean(pred_duration.values()),
+                avg_grad_duration = mean(grad_duration.values()),
+                avg_total_duration = mean(total_duration.values()),
+                avg_pred_std = mean(pred_stds.values()),
+                avg_std_loss = mean(std_losses.values()),
+                avg_mean_pred_loss = mean(mean_pred_losses.values()),
+            )
+        
+        metrics = (
+            avg_losses,
+            avg_g_mag_losses,
+            avg_g_cos_losses,
+            pred_duration,
+            grad_duration,
+            total_duration,
+            pred_stds,
+            std_losses,
+            mean_pred_losses,
+        )
+
+        model_metrics = {
+            model: {
+                "avg_loss": avg_losses[model],
+                "avg_g_mag_loss": avg_g_mag_losses[model],
+                "avg_g_cos_loss": avg_g_cos_losses[model],
+                "pred_duration": pred_duration[model],
+                "grad_duration": grad_duration[model],
+                "total_duration": total_duration[model],
+                "pred_std": pred_stds[model],
+                "std_loss": std_losses[model],
+                "mean_pred_loss": mean_pred_losses[model],
+                **pred_metrics[model],
+                **grad_metrics[model],
+            }
+            for model in models
+        }
+
+        min_metrics = model_metrics[role_model]
+        role_model_metrics = model_metrics[fixed_role_model or role_model]
+        avg_metrics = calculate_avg(*metrics)
+        non_role_model_metrics = avg_metrics
+        fixed_role_model = fixed_role_model or role_model
+        non_role_model = [m for m in models if m != fixed_role_model]
+        non_role_model_metrics = [filter_dict(m, non_role_model) for m in metrics]
+        non_role_model_metrics = calculate_avg(*non_role_model_metrics)
+
+        clear_memory()
+        return {
+            "role_model": role_model, 
+            "n_size": n_size,
+            "n_batch": n_batch,
+            "role_model_metrics": role_model_metrics,
+            "non_role_model_metrics": non_role_model_metrics,
+            "avg_metrics": avg_metrics,
+            "min_metrics": min_metrics,
+            "model_metrics": model_metrics,
+        }
 
 def calc_metrics(pred, y, prefix=""):
     return {
@@ -1829,72 +1838,75 @@ def pred(
     grad_loss_scale=None,
     eps=1e-8,
 ):
+    grad_cm = torch.no_grad()# if val else nullcontext()
 
-    # Set the model to eval mode for validation or train mode for training
-    model.eval()
+    with grad_cm:
 
-    clear_memory()
-    # Compute prediction and loss for all adapters
-    train, test, y, y_real = batch
+        # Set the model to eval mode for validation or train mode for training
+        model.eval()
 
-    train = train.to(model.device)
-    test = test.to(model.device)
-    y = y.to(model.device)
-    y_real = y_real.to(model.device)
+        clear_memory()
+        # Compute prediction and loss for all adapters
+        train, test, y, y_real = batch
 
-    train.requires_grad_()
-    train, pred = model(
-        train, test
-    )
-    # We reduce directly because no further need for shape
-    loss = loss_fn(pred, y, reduction="none")
-    error = pred - y
-    dbody_dx = calc_gradient(train, loss)
-    """
-    loss_real = loss_fn(pred, y_real, reduction="none")
-    error = pred - y_real
-    dbody_dx = calc_gradient(train, loss_real)
-    """
-    g_mag_loss, g_cos_loss = calc_g_loss(
-        dbody_dx=dbody_dx,
-        error=error,
-        grad_loss_fn=grad_loss_fn,
-        grad_loss_scale=grad_loss_scale,
-        loss_clamp=None,
-        #reduction=None,
-        eps=eps,
-    )
-    # The gradient is of shape (batch, size, dim)
-    # Sum gradient over the size dimension, resulting in (batch, dim)
-    dbody_dx = torch.sum(dbody_dx, dim=-2)
-    # Calculate the magnitude of the gradient
-    # No keep_dim, so this results in (batch)
-    dbody_dx_norm = dbody_dx.norm(2, dim=-1)
-    # expected gradient is 2*sqrt(loss)
-    g = get_g(error=error)
-    
+        train = train.to(model.device)
+        test = test.to(model.device)
+        y = y.to(model.device)
+        y_real = y_real.to(model.device)
 
-    pred = pred.detach().cpu().numpy()
-    loss = loss.detach().cpu().numpy()
-    dbody_dx_norm = dbody_dx_norm.detach().cpu().numpy()
-    g_mag_loss = g_mag_loss.detach().cpu().numpy()
-    g_cos_loss = g_cos_loss.detach().cpu().numpy()
-    y = y.detach().cpu().numpy()
-    g = g.detach().cpu().numpy()
-    y_real = y_real.detach().cpu().numpy()
+        train.requires_grad_()
+        train, pred = model(
+            train, test
+        )
+        # We reduce directly because no further need for shape
+        loss = loss_fn(pred, y, reduction="none")
+        error = pred - y
+        dbody_dx = calc_gradient(train, loss)
+        """
+        loss_real = loss_fn(pred, y_real, reduction="none")
+        error = pred - y_real
+        dbody_dx = calc_gradient(train, loss_real)
+        """
+        g_mag_loss, g_cos_loss = calc_g_loss(
+            dbody_dx=dbody_dx,
+            error=error,
+            grad_loss_fn=grad_loss_fn,
+            grad_loss_scale=grad_loss_scale,
+            loss_clamp=None,
+            #reduction=None,
+            eps=eps,
+        )
+        # The gradient is of shape (batch, size, dim)
+        # Sum gradient over the size dimension, resulting in (batch, dim)
+        dbody_dx = torch.sum(dbody_dx, dim=-2)
+        # Calculate the magnitude of the gradient
+        # No keep_dim, so this results in (batch)
+        dbody_dx_norm = dbody_dx.norm(2, dim=-1)
+        # expected gradient is 2*sqrt(loss)
+        g = get_g(error=error)
+        
 
-    clear_memory()
-    return {
-        "pred": pred, 
-        #"loss": loss,
-        "grad": dbody_dx_norm,
-        #"g_mag_loss": g_mag_loss,
-        #"g_cos_loss": g_cos_loss,
-        "y": y,
-        "g": g,
-        "error": (pred-y),
-        "y_real": y_real,
-    }
+        pred = pred.detach().cpu().numpy()
+        loss = loss.detach().cpu().numpy()
+        dbody_dx_norm = dbody_dx_norm.detach().cpu().numpy()
+        g_mag_loss = g_mag_loss.detach().cpu().numpy()
+        g_cos_loss = g_cos_loss.detach().cpu().numpy()
+        y = y.detach().cpu().numpy()
+        g = g.detach().cpu().numpy()
+        y_real = y_real.detach().cpu().numpy()
+
+        clear_memory()
+        return {
+            "pred": pred, 
+            #"loss": loss,
+            "grad": dbody_dx_norm,
+            #"g_mag_loss": g_mag_loss,
+            #"g_cos_loss": g_cos_loss,
+            "y": y,
+            "g": g,
+            "error": (pred-y),
+            "y_real": y_real,
+        }
 
 def pred_1(model, inputs, batch_size=4, **kwargs):
     if not batch_size and not isinstance(inputs, (Dataset, DataLoader)):
