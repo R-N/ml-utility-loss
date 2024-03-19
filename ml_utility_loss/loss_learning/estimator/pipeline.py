@@ -391,6 +391,8 @@ def train(
 
     if callable(datasets):
         datasets = datasets(model=fixed_role_model, synth_data=synth_data)
+
+    print(len(datasets), "datasets", [len(d) for d in datasets])
     
     timer = timer or (Timer(max_seconds=max_seconds) if max_seconds else None)
     if len(datasets) == 3:
@@ -823,21 +825,26 @@ def load_dataset_2(
         datasets = load_dataset(**kwargs)
         print(kwargs["dataset_dir"], [len(d) for d in datasets])
         datasets_list.append(datasets)
-        
-    datasetsn = [
-        ConcatDataset([
-            datasets[i]
-            for datasets in datasets_list
-        ]) for i in range(len(datasets_list[0]))
-    ]
-    print([len(d) for d in datasetsn])
-    return datasetsn
+    
+    if isinstance(datasets_list[0], (list, tuple)):
+        datasetsn = [
+            ConcatDataset([
+                datasets[i]
+                for datasets in datasets_list
+            ]) for i in range(len(datasets_list[0]))
+        ]
+        print([len(d) for d in datasetsn])
+        return datasetsn
+    else:
+        datasets = ConcatDataset(datasets_list)
+        return datasets
 
 def load_dataset_3(
     dataset_dir,
     dataset_name,
     preprocessor,
     model=None,
+    starts=[0, 0, 0, 0, 0],
     stops=[400, 200, 100, 50, 600], 
     ratios=[0, 1, 0, 1, 1/3],
     steps=[1, 1, 1, 1, 1],
@@ -849,6 +856,7 @@ def load_dataset_3(
             dataset_dir=os.path.join(dataset_dir, "aug_train", dataset_name),
             preprocessor=preprocessor,
             cache_dir=os.path.join(cache_dir, dataset_name, "_cache_aug_train"),
+            starts=starts[0],
             stop=stops[0],
             step=steps[0],
             ratio=ratios[0],
@@ -861,6 +869,7 @@ def load_dataset_3(
             dataset_dir=os.path.join(dataset_dir, "aug_val", dataset_name),
             preprocessor=preprocessor,
             cache_dir=os.path.join(cache_dir, dataset_name, "_cache_aug_val"),
+            starts=starts[1],
             stop=stops[1],
             ratio=ratios[1],
             step=steps[1],
@@ -873,6 +882,7 @@ def load_dataset_3(
             dataset_dir=os.path.join(dataset_dir, "bs_train", dataset_name),
             preprocessor=preprocessor,
             cache_dir=os.path.join(cache_dir, dataset_name, "_cache_bs_train"),
+            starts=starts[2],
             stop=stops[2],
             ratio=ratios[2],
             step=steps[2],
@@ -885,6 +895,7 @@ def load_dataset_3(
             dataset_dir=os.path.join(dataset_dir, "bs_val", dataset_name),
             preprocessor=preprocessor,
             cache_dir=os.path.join(cache_dir, dataset_name, "_cache_bs_val"),
+            starts=starts[3],
             stop=stops[3],
             ratio=ratios[3],
             step=steps[3],
@@ -897,6 +908,7 @@ def load_dataset_3(
             dataset_dir=os.path.join(dataset_dir, "synthetics", dataset_name),
             preprocessor=preprocessor,
             cache_dir=os.path.join(cache_dir, dataset_name, "_cache_synth"),
+            starts=starts[4],
             stop=stops[4],
             ratio=ratios[4],
             step=steps[4],
@@ -906,7 +918,70 @@ def load_dataset_3(
             **kwargs,
         ),
     ])
-    print([len(d) for d in datasetsn])
+    if None in ratios:
+        print(len(datasetsn))
+    else:
+        print([len(d) for d in datasetsn])
+    return datasetsn
+
+
+def load_dataset_4(
+    dataset_dir,
+    dataset_name,
+    preprocessor,
+    model=None,
+    starts=[0, 0, 600],
+    stops=[200, 50, 800], 
+    ratios=[None, None, None],
+    steps=[1, 1, 1],
+    cache_dir="..",
+    **kwargs,
+):
+    datasetsn = load_dataset_2([
+        dict(
+            dataset_dir=os.path.join(dataset_dir, "aug_test", dataset_name),
+            preprocessor=preprocessor,
+            cache_dir=os.path.join(cache_dir, dataset_name, "_cache_aug_test"),
+            starts=starts[0],
+            stop=stops[0],
+            step=steps[0],
+            ratio=ratios[0],
+            val=False,
+            drop_first_column=False,
+            model=model,
+            **kwargs,
+        ),
+        dict(
+            dataset_dir=os.path.join(dataset_dir, "bs_test", dataset_name),
+            preprocessor=preprocessor,
+            cache_dir=os.path.join(cache_dir, dataset_name, "_cache_bs_test"),
+            starts=starts[1],
+            stop=stops[1],
+            ratio=ratios[1],
+            step=steps[1],
+            val=False,
+            drop_first_column=False,
+            model=model,
+            **kwargs,
+        ),
+        dict(
+            dataset_dir=os.path.join(dataset_dir, "synthetics", dataset_name),
+            preprocessor=preprocessor,
+            cache_dir=os.path.join(cache_dir, dataset_name, "_cache_synth_test"),
+            starts=starts[2],
+            stop=stops[2],
+            ratio=ratios[2],
+            step=steps[2],
+            val=False,
+            drop_first_column=True,
+            model=model,
+            **kwargs,
+        ),
+    ])
+    if None in ratios:
+        print(len(datasetsn))
+    else:
+        print([len(d) for d in datasetsn])
     return datasetsn
 
 
