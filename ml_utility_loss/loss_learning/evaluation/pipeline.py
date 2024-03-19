@@ -52,6 +52,8 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             df_val.drop(df_val.columns[0], axis=1, inplace=True)
             df_test.drop(df_test.columns[0], axis=1, inplace=True)
 
+        df_synth = df_synth.astype(df_train.dtypes)
+
         #assert len(df_synth) == len(df_train)
             
         synth_value = eval_ml_utility(
