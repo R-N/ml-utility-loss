@@ -878,6 +878,8 @@ def train_epoch(
     **g_loss_kwargs
 ):
     grad_cm = torch.no_grad() if val else nullcontext()
+    if val:
+        gradient_penalty = False
 
     with grad_cm:
         assert optim or val, "Optimizer must be provided if val is false"
@@ -1287,6 +1289,8 @@ def train_epoch_student(
     **g_loss_kwargs
 ):
     grad_cm = torch.no_grad() if val else nullcontext()
+    if val:
+        gradient_penalty = False
 
     with grad_cm:
         role_model = "teacher"
@@ -1577,7 +1581,7 @@ def eval(
     fixed_role_model=None,
     eps=1e-8,
 ):
-    grad_cm = torch.no_grad() if val else nullcontext()
+    grad_cm = nullcontext()
 
     with grad_cm:
         size = len(eval_loader.dataset)
@@ -1838,7 +1842,7 @@ def pred(
     grad_loss_scale=None,
     eps=1e-8,
 ):
-    grad_cm = torch.no_grad()# if val else nullcontext()
+    grad_cm = nullcontext()
 
     with grad_cm:
 
