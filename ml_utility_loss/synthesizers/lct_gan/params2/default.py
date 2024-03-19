@@ -21,4 +21,6 @@ PARAM_SPACE = {
 }
 
 def update_params(PARAM_SPACE, x, index=2):
+    if x not in PARAM_SPACE:
+        return
     PARAM_SPACE[x] = [*PARAM_SPACE[x][:index], 0, *PARAM_SPACE[x][index+1:]]

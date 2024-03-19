@@ -6,7 +6,7 @@ PARAM_SPACE = {
     #"sample_batch_size": ("int_exp_2", 16, 512),
     "t_steps": ("int", 8, 14),
     "t_start": ("int", 0, 888, 50),
-    "t_range": ("bool_int", 0, 988, 50),
+    #"t_range": ("bool_int", 0, 988, 50),
     "mlu_target": ("categorical", [None, 1.0]),
     "n_steps": ("int", 1, 4),
     "n_inner_steps": ("int_exp_2", 1, 8),
@@ -141,13 +141,76 @@ BEST = {
 }
 BEST_NO_GP = BEST
 
+#reset
+#57
+#-0.0939260937193108
+BEST_GP_MUL = {
+    'ae_n_samples_exp_2': 9,
+    'ae_t_steps': 9,
+    'ae_t_start': 0,
+    'ae_t_range_bool': True,
+    'ae_t_range': 650,
+    'ae_mlu_target': None,
+    'ae_n_steps': 1,
+    'ae_n_inner_steps_exp_2': 1,
+    'ae_n_inner_steps_2_exp_2': 2,
+    'ae_loss_fn': 'mse',
+    'ae_Optim': 'diffgrad',
+    'ae_mlu_lr': 0.0010006850796192282,
+    'ae_div_batch': True,
+    'gan_n_samples_exp_2': 10,
+    'gan_t_steps': 8,
+    'gan_t_start': 150,
+    'gan_t_range_bool': True,
+    'gan_t_range': 300,
+    'gan_mlu_target': 1.0,
+    'gan_n_steps': 1,
+    'gan_n_inner_steps_exp_2': 0,
+    'gan_n_inner_steps_2_exp_2': 0,
+    'gan_loss_fn': 'mae',
+    'gan_Optim': 'adamp',
+    'gan_mlu_lr': 1.0547200535427459e-05,
+    'gan_div_batch': True,
+}
+
+#68
+#0.01781429301440899
+BEST_NO_GP = {
+    'ae_n_samples_exp_2': 11,
+    'ae_t_steps': 10,
+    'ae_t_start': 450,
+    'ae_t_range_bool': True,
+    'ae_t_range': 300,
+    'ae_mlu_target': 1.0,
+    'ae_n_steps': 1,
+    'ae_n_inner_steps_exp_2': 0,
+    'ae_n_inner_steps_2_exp_2': 2,
+    'ae_loss_fn': 'mse',
+    'ae_Optim': 'adamp',
+    'ae_mlu_lr': 0.00037874251501338795,
+    'ae_div_batch': False,
+    'gan_n_samples_exp_2': 10,
+    'gan_t_steps': 8,
+    'gan_t_start': 200,
+    'gan_t_range_bool': True,
+    'gan_t_range': 150,
+    'gan_mlu_target': 1.0,
+    'gan_n_steps': 2,
+    'gan_n_inner_steps_exp_2': 3,
+    'gan_n_inner_steps_2_exp_2': 1,
+    'gan_loss_fn': 'mse',
+    'gan_Optim': 'diffgrad',
+    'gan_mlu_lr': 0.005859301498753242,
+    'gan_div_batch': True,
+}
+
 BEST_DICT = {
     True: {
         True: BEST_GP_MUL,
         False: None
     },
     False: {
-        False: BEST_NO_GP
+        False: BEST_NO_GP,
     }
 }
 BEST_DICT[False][True] = BEST_DICT[False][False]

@@ -6,7 +6,7 @@ PARAM_SPACE = {
     #"sample_batch_size": ("int_exp_2", 256, 1024),
     "t_steps": ("int_exp_2", 512, 2048),
     "t_start": ("int", 0, 36415, 5000),
-    "t_range": ("bool_int", 10000, 46415, 5000),
+    #"t_range": ("bool_int", 10000, 46415, 5000),
     "mlu_target": ("categorical", [None, 1.0]),
     "n_steps": ("int", 1, 2),
     "n_inner_steps": ("int_exp_2", 1, 4),
@@ -121,13 +121,50 @@ BEST_NO_GP_CORRECTED = {
 }
 BEST_NO_GP = BEST_NO_GP_CORRECTED
 
+#reset
+#63
+#0.5219460024370532
+BEST_GP_MUL = {
+    'n_samples_exp_2': 4,
+    't_steps_exp_2': 9,
+    't_start': 15000,
+    't_range_bool': True,
+    't_range': 20000,
+    'mlu_target': 1.0,
+    'n_steps': 1,
+    'n_inner_steps_exp_2': 0,
+    'n_inner_steps_2_exp_2': 2,
+    'loss_fn': 'mse',
+    'Optim': 'adamp',
+    'mlu_lr': 1.8957648967573922e-05,
+    'div_batch': True,
+}
+
+#25
+#0.5178110236830372
+BEST_NO_GP = {
+    'n_samples_exp_2': 7,
+    't_steps_exp_2': 11,
+    't_start': 30000,
+    't_range_bool': True,
+    't_range': 20000,
+    'mlu_target': None,
+    'n_steps': 1,
+    'n_inner_steps_exp_2': 2,
+    'n_inner_steps_2_exp_2': 0,
+    'loss_fn': 'mse',
+    'Optim': 'adamw',
+    'mlu_lr': 1.4723656682558882e-05,
+    'div_batch': False,
+}
+
 BEST_DICT = {
     True: {
         True: BEST_GP_MUL,
         False: None
     },
     False: {
-        False: BEST_NO_GP
+        False: BEST_NO_GP,
     }
 }
 BEST_DICT[False][True] = BEST_DICT[False][False]
