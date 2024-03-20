@@ -29,6 +29,7 @@ DEFAULTS = {
         "mse_mag_kwargs": {
             "target": 1.0,
             "multiply": True,
+            "forgive_over": True,
         },
         "mag_corr_kwargs": {
             "only_sign": False,
@@ -109,14 +110,14 @@ PARAM_SPACE = {
     ]),
     "mse_mag": ("dict", {
         "mse_mag": True,
-        "mse_mag_target": ("categorical", [0.1, 0.2, 0.5, 1.0]),
-        "mse_mag_forgive_over": BOOLEAN,
+        "mse_mag_target": ("categorical", [0.1, 0.2, 0.5]),
+        #"mse_mag_forgive_over": BOOLEAN,
         #"mse_mag_multiply": True,
     }),
-    "g_loss_mul": ("categorical", [0.05, 0.1, 0.2, 0.5, 1.0, 2.0]),
+    "g_loss_mul": ("categorical", [0.1, 0.2, 0.5]),
     # Common model args
     "d_model": ("int_exp_2", 128, 256), #256
-    "dropout": ("categorical", [0.0, 0.01, 0.02]),
+    #"dropout": ("categorical", [0.0, 0.01, 0.02]),
     "grad_clip": ("float", 0.7, 0.85, 0.05),
     #"bias": BOOLEAN,
     #"bias_final": BOOLEAN,
