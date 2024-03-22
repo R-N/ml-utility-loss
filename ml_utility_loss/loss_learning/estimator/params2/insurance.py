@@ -1464,10 +1464,12 @@ def force_fix(params):
 
 BEST_DICT = {
     gp: {
-        gp_multiply: {
-            model: force_fix(params)
-            for model, params in d2.items()
-        }
+        gp_multiply: (
+            {
+                model: force_fix(params)
+                for model, params in d2.items()
+            } if d2 is not None else None
+        )
         for gp_multiply, d2 in d1.items()
     }
     for gp, d1 in BEST_DICT.items()
