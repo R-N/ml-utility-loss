@@ -1455,3 +1455,20 @@ BEST_DICT = {
     }
 }
 BEST_DICT[False][True] = BEST_DICT[False][False]
+
+def force_fix(params):
+    params["pma_ffn_mode"] = "none"
+    params["grad_loss_fn"] = "mae"
+    params["bias_weight_decay"] = max(0.05, params["bias_weight_decay"])
+    return params
+
+BEST_DICT = {
+    gp: {
+        gp_multiply: {
+            model: force_fix(params)
+            for model, params in d2.items()
+        }
+        for gp_multiply, d2 in d1.items()
+    }
+    for gp, d1 in BEST_DICT.items()
+}
