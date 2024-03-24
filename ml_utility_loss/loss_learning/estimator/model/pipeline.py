@@ -54,6 +54,10 @@ NON_MODEL_PARAMS = (
     "bias_lr_mul",
     "bias_weight_decay",
     "grad_loss_mul",
+    "mag_loss",
+    "mse_mag",
+    "mse_mag_multiply",
+    "mse_mag_target",
 )
 
 def remove_non_model_params(params, entries_to_remove=NON_MODEL_PARAMS):
