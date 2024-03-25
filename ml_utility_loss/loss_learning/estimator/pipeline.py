@@ -823,7 +823,10 @@ def load_dataset_2(
     datasets_list = []
     for kwargs in dataset_kwargs_dicts:
         datasets = load_dataset(**kwargs)
-        print(kwargs["dataset_dir"], [len(d) for d in datasets])
+        if "ratio" in kwargs and kwargs["ratio"] is not None:
+            print(kwargs["dataset_dir"], [len(d) for d in datasets])
+        else:
+            print(kwargs["dataset_dir"], len(datasets))
         datasets_list.append(datasets)
     
     if isinstance(datasets_list[0], (list, tuple)):
