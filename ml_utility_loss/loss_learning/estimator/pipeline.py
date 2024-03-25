@@ -931,7 +931,7 @@ def load_dataset_4(
     preprocessor,
     model=None,
     starts=[0, 0, 600],
-    stops=[200, 50, 200], 
+    stops=[200, 50, 800], 
     ratios=[None, None, None],
     steps=[1, 1, 1],
     cache_dir="..",
@@ -979,6 +979,7 @@ def load_dataset_4(
         ),
     ])
     if None in ratios:
+        assert len(datasetsn) == 450
         print(len(datasetsn))
     else:
         print([len(d) for d in datasetsn])
