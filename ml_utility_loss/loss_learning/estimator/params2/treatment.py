@@ -1286,7 +1286,7 @@ BEST_NO_GP_TAB = {
 
 #51
 #0.07893619686365128
-BET_NO_GP_RTF = {
+BEST_NO_GP_RTF = {
     'gradient_penalty_mode': 'NONE',
     'loss_balancer_beta': 0.7999999999999999,
     'loss_balancer_r': 0.98,
@@ -1321,8 +1321,8 @@ BET_NO_GP_RTF = {
     'head_activation': 'leakyhardsigmoid',
     'head_activation_final': 'leakyhardsigmoid',
 }
-BET_NO_GP_RTF = {
-    **BET_NO_GP_RTF,
+BEST_NO_GP_RTF = {
+    **BEST_NO_GP_RTF,
     
 }
 
