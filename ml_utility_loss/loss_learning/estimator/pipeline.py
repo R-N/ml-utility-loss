@@ -931,7 +931,7 @@ def load_dataset_4(
     preprocessor,
     model=None,
     starts=[0, 0, 600],
-    stops=[200, 50, 800], 
+    stops=[200, 50, 200], 
     ratios=[None, None, None],
     steps=[1, 1, 1],
     cache_dir="..",
