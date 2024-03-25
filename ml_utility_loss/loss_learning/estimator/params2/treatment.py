@@ -46,7 +46,7 @@ DEFAULTS = {
     "single_model": True,
     "bias": True,
     "bias_final": True,
-    "pma_ffn_mode": PMAFFNMode.SHARED,
+    "pma_ffn_mode": PMAFFNMode.NONE,
     "patience": 5,
     "inds_init_mode": IndsInitMode.FIXNORM,
     "grad_clip": 1.0,
