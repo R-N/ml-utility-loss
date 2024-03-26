@@ -1484,7 +1484,8 @@ BEST_DICT[False][True] = BEST_DICT[False][False]
 def force_fix(params):
     params["pma_ffn_mode"] = "none"
     params["grad_loss_fn"] = "mae"
-    params["bias_weight_decay"] = max(0.05, params["bias_weight_decay"])
+    if "bias_weight_decay" in params:
+        params["bias_weight_decay"] = max(0.05, params["bias_weight_decay"])
     return params
 
 BEST_DICT = {
