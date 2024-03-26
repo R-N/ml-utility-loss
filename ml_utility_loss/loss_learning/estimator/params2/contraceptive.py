@@ -1336,7 +1336,7 @@ BEST_DICT = {
         True: {
             "lct_gan": BEST_GP_MUL_OTHER,
             "realtabformer": BEST_GP_MUL_RTF,
-            "tab_ddpm_concat": BEST_GP_MUL_TAB,
+            "tab_ddpm_concat": BESTS[3],
             "tvae": BEST_GP_MUL_OTHER,
         },
         False: None
@@ -1345,11 +1345,13 @@ BEST_DICT = {
         False: {
             "lct_gan": BEST_NO_GP_OTHER,
             "realtabformer": BEST_NO_GP_RTF,
-            "tab_ddpm_concat": BEST_NO_GP_TAB,
+            "tab_ddpm_concat": BESTS[3],
             "tvae": BEST_NO_GP_OTHER,
         }
     }
 }
+
+
 BEST_DICT[False][True] = BEST_DICT[False][False]
 
 def force_fix(params):

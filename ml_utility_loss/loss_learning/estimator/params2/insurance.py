@@ -1454,6 +1454,31 @@ BEST_DICT = {
         }
     }
 }
+
+BEST_DICT = {
+    True: {
+        True: {
+            "tvae": BESTS[0],
+            "lct_gan": BESTS[0],
+            "realtabformer": BESTS[2],
+            "tab_ddpm_concat": BESTS[3],
+        },
+        False: {
+            "tvae": BESTS[0],
+            "lct_gan": BESTS[0],
+            "realtabformer": BESTS[0],
+            "tab_ddpm_concat": BESTS[3],
+        }
+    },
+    False: {
+        False: {
+            "tvae": BESTS[2],
+            "lct_gan": BESTS[2],
+            "realtabformer": BESTS[0],
+            "tab_ddpm_concat": BESTS[3],
+        }
+    }
+}
 BEST_DICT[False][True] = BEST_DICT[False][False]
 
 def force_fix(params):
