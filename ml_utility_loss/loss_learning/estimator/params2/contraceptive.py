@@ -1359,6 +1359,8 @@ def force_fix(params):
     params["grad_loss_fn"] = "mae"
     if "bias_weight_decay" in params:
         params["bias_weight_decay"] = max(0.05, params["bias_weight_decay"])
+    else:
+        params["bias_weight_decay"] = 0.05
     return params
 
 BEST_DICT = {
