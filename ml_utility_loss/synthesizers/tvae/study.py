@@ -96,6 +96,7 @@ def objective_mlu(
     Optim=torch.optim.AdamW,
     mlu_lr=1e-3,
     div_batch=False,
+    forgive_over=False,
     **kwargs
 ):
     mlu_trainer = MLUtilityTrainer(
@@ -117,6 +118,7 @@ def objective_mlu(
         lr=mlu_lr,
         div_batch=div_batch,
         log_path=os.path.join(log_dir, "mlu_log.csv"),
+        forgive_over=forgive_over,
         debug=True,
     )
     return objective(

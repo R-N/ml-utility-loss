@@ -25,6 +25,7 @@ PARAM_SPACE = {
     ]),
     "mlu_lr": ("log_float", 1e-6, 1e-2),
     "div_batch": BOOLEAN,
+    "forgive_over": BOOLEAN,
 }
 PARAM_SPACE = {
     **{f"ae_{k}": v for k, v in PARAM_SPACE.items()},

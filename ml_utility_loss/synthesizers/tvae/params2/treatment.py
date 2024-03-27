@@ -27,6 +27,7 @@ PARAM_SPACE = {
     ]),
     "mlu_lr": ("log_float", 1e-6, 1e-2),
     "div_batch": BOOLEAN,
+    "forgive_over": BOOLEAN,
 }
 #121
 #0.6189555125725339

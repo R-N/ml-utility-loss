@@ -30,6 +30,7 @@ class MLUtilityTrainer:
         batched=False,
         log_path=None,
         div_batch=False,
+        forgive_over=False,
         **optim_kwargs
     ):
         for param in model.parameters():
@@ -58,6 +59,7 @@ class MLUtilityTrainer:
         self.loss_mul = loss_mul
         self.sample_batch_size=sample_batch_size
         self.div_batch = div_batch
+        self.forgive_over = forgive_over
         
         self.dataloader = DataLoader(
             dataset, 
@@ -160,9 +162,12 @@ class MLUtilityTrainer:
 
                 samples, est = self.model(samples, test)
                 target = self.target or y.flatten().item()
+                target = torch.full(est.shape, target, device=est.device)
+                if self.forgive_over:
+                    est = torch.clamp(est, max=target)
                 loss = self.loss_mul * self.loss_fn(
                     est, 
-                    torch.full(est.shape, target, device=est.device)
+                    target,
                 )
 
                 grads = grads + torch.autograd.grad(

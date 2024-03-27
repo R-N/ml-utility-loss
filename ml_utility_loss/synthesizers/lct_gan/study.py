@@ -128,6 +128,7 @@ def objective_mlu(
     ae_Optim=torch.optim.AdamW,
     ae_mlu_lr=1e-3,
     ae_div_batch=False,
+    ae_forgive_over=False,
     gan_n_samples=512,
     gan_mlu_target=None,
     gan_t_steps=5,
@@ -142,6 +143,7 @@ def objective_mlu(
     gan_Optim=torch.optim.AdamW,
     gan_mlu_lr=1e-3,
     gan_div_batch=False,
+    gan_forgive_over=False,
     **kwargs
 ):
     ae_mlu_trainer = MLUtilityTrainer(
@@ -161,6 +163,7 @@ def objective_mlu(
         Optim=ae_Optim,
         lr=ae_mlu_lr,
         div_batch=ae_div_batch,
+        forgive_over=ae_forgive_over,
         log_path=os.path.join(log_dir, "mlu_log_ae.csv"),
     )
     gan_mlu_trainer = MLUtilityTrainer(
@@ -180,6 +183,7 @@ def objective_mlu(
         Optim=gan_Optim,
         lr=gan_mlu_lr,
         div_batch=gan_div_batch,
+        forgive_over=gan_forgive_over,
         log_path=os.path.join(log_dir, "mlu_log_gan.csv"),
     )
     return objective(
