@@ -68,7 +68,7 @@ PARAM_SPACE = {
     "epochs": ("int", 60, 80, 10),
     "lr_mul": ("float", 0.04, 0.1, 0.01),
     #"bias_lr_mul": ("float", 0.1, 1.0, 0.1),
-    "bias_weight_decay": ("float", 0.0, 0.1, 0.05),
+    "bias_weight_decay": ("float", 0.5, 0.1, 0.05),
     "n_warmup_steps": ("int", 80, 220, 20),
     "Optim": ("optimizer", [
         ### #"adamw", 
@@ -112,7 +112,7 @@ PARAM_SPACE = {
     }),
     "g_loss_mul": ("categorical", [0.1, 0.2, 0.5]),
     # Common model args
-    "d_model": ("int_exp_2", 256, 512), #512
+    "d_model": ("int_exp_2", 512, 512), #512
     #"dropout": ("categorical", [0.0, 0.01, 0.02]),
     "grad_clip": ("float", 0.7, 0.85, 0.05),
     #"bias": BOOLEAN,
@@ -141,7 +141,7 @@ PARAM_SPACE = {
         #IndsInitMode.XAVIER,
     ]),
     # Transformer args
-    "tf_d_inner": ("int_exp_2", 256, 512), #512
+    "tf_d_inner": ("int_exp_2", 512, 512), #512
     "tf_n_layers_enc": ("int", 4, 4), #4
     #"tf_n_layers_dec": ("bool_int", 3, 4), #better false
     "tf_n_head": ("int_exp_2", 32, 64), #64
@@ -174,7 +174,7 @@ PARAM_SPACE = {
     "pma_ffn_mode": ("categorical", (
         PMAFFNMode.NONE,
         #PMAFFNMode.SEPARATE,
-        PMAFFNMode.SHARED,
+        #PMAFFNMode.SHARED,
     )),
     # Adapter args
     "ada_d_hid": ("int_exp_2", 1024, 2048), #1024
@@ -187,11 +187,11 @@ PARAM_SPACE = {
         "selu", #best
         #"prelu",
         #"rrelu",
-        "relu6", 
+        #"relu6", 
         #"hardtanh",
         #"hardsigmoid",
         #"softsign",
-        "leakyhardtanh",
+        #"leakyhardtanh",
         #"leakyhardsigmoid",
     ]),
     "ada_activation_final": ("activation", [
@@ -206,7 +206,7 @@ PARAM_SPACE = {
         "leakyhardsigmoid", #best
     ]),
     # Head args
-    "head_d_hid": ("int_exp_2", 128, 256), #128
+    "head_d_hid": ("int_exp_2", 256, 256), #128
     "head_n_layers": ("int", 7, 8), #8
     "head_n_head": ("int_exp_2", 32, 64), #64
     "head_activation": ("activation", [

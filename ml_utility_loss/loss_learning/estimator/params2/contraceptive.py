@@ -54,7 +54,7 @@ DEFAULTS = {
     "synth_data": 2,
     "bias_lr_mul": 1.0,
     "bias_weight_decay": 0.05,
-    "head_activation": "softsign",
+    "head_activation": "relu6",
     "loss_balancer_beta": 0.7,
     "loss_balancer_r": 0.96,
     "tf_activation": "relu6"
@@ -65,12 +65,12 @@ PARAM_SPACE = {
     # Dataset args
     #"synth_data": ("int", 1, 3), #3
     "dataset_size": ("int_exp_2", 2048, 2048),
-    "batch_size": ("int_exp_2", 2, 4), #4
+    "batch_size": ("int_exp_2", 4, 4), #4
     # Training args
     "epochs": ("int", 60, 80, 10),
     "lr_mul": ("float", 0.04, 0.1, 0.01),
     #"bias_lr_mul": ("float", 0.1, 1.0, 0.1),
-    "bias_weight_decay": ("float", 0.0, 0.1, 0.05),
+    "bias_weight_decay": ("float", 0.5, 0.1, 0.05),
     "n_warmup_steps": ("int", 80, 220, 20),
     "Optim": ("optimizer", [
         # #"adamw", 
@@ -94,7 +94,7 @@ PARAM_SPACE = {
     }),
     #"loss_fn": ("loss", "mse"),
     "grad_loss_fn": ("loss", [
-        "mse", 
+        #"mse", 
         "mae", #best
     ]),
     "fixed_role_model": ("categorical", [
@@ -169,18 +169,18 @@ PARAM_SPACE = {
         #"leakyhardsigmoid",
         #"identity",
     ]),
-    "tf_num_inds": ("int_exp_2", 16, 128), #128
+    "tf_num_inds": ("int_exp_2", 32, 128), #128
     #"tf_layer_norm": BOOLEAN,
     # Transformer PMA args
-    "tf_pma_low": ("int_exp_2", 4, 16), #16
+    "tf_pma_low": ("int_exp_2", 4, 8), #16
     "pma_ffn_mode": ("categorical", (
         PMAFFNMode.NONE,
         ##PMAFFNMode.SEPARATE,
-        PMAFFNMode.SHARED,
+        #PMAFFNMode.SHARED,
     )),
     # Adapter args
     "ada_d_hid": ("int_exp_2", 512, 1024), 
-    "ada_n_layers": ("int", 8, 9), #9
+    "ada_n_layers": ("int", 8, 8), #9
     "ada_activation": ("activation", [
         #"tanh",  
         ## #"sigmoid", 

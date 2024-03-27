@@ -69,7 +69,7 @@ PARAM_SPACE = {
     "epochs": ("int", 60, 80, 10),
     "lr_mul": ("float", 0.04, 0.1, 0.01),
     #"bias_lr_mul": ("float", 0.1, 1.0, 0.1),
-    "bias_weight_decay": ("float", 0.0, 0.1, 0.05),
+    "bias_weight_decay": ("float", 0.5, 0.1, 0.05),
     "n_warmup_steps": ("int", 80, 220, 20),
     "Optim": ("optimizer", [
         # # #"adamw", 
@@ -88,12 +88,12 @@ PARAM_SPACE = {
     # Training args
     "loss_balancer_meta": ("dict", {
         "loss_balancer_meta": True,
-        "loss_balancer_beta": ("float", 0.7, 0.8, 0.05),
+        "loss_balancer_beta": 0.75,
         "loss_balancer_r": ("float", 0.95, 0.98, 0.01),
     }),
     #"loss_fn": ("loss", "mse"),
     "grad_loss_fn": ("loss", [ 
-        "mse", 
+        #"mse", 
         "mae", #best
     ]),
     "fixed_role_model": ("categorical", [
@@ -175,12 +175,10 @@ PARAM_SPACE = {
     "pma_ffn_mode": ("categorical", (
         PMAFFNMode.NONE,
         ##PMAFFNMode.SEPARATE,
-        PMAFFNMode.SHARED,
+        #PMAFFNMode.SHARED,
     )),
     # Adapter args
-    "ada_d_hid": ("int_exp_2", 256, 512), #other
-    "ada_d_hid": ("int_exp_2", 1024, 2048), #rtf
-    "ada_d_hid": ("int_exp_2", 256, 1024), #256
+    "ada_d_hid": ("categorical", [256, 1024]), #256
     "ada_n_layers": ("int", 7, 9), #7
     "ada_activation": ("activation", [
         #"tanh",  
@@ -199,11 +197,11 @@ PARAM_SPACE = {
     ]),
     "ada_activation_final": ("activation", [
         ## "tanh", 
-        "sigmoid", 
+        #"sigmoid", 
         ##"relu6",
         ##"hardtanh",
         ## #"hardsigmoid",
-        "softsign", #best
+        #"softsign", #best
         #"identity",
         "leakyhardtanh",
         #"leakyhardsigmoid",
@@ -238,7 +236,7 @@ PARAM_SPACE = {
     ]),
     "head_final_mul": ("categorical", [
         "identity", #best
-        "minus",
+        #"minus",
         #"oneminus",
         #"oneplus",
     ]),
