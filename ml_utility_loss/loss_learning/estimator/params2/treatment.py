@@ -1326,6 +1326,49 @@ BEST_NO_GP_RTF = {
     
 }
 
+BEST_GP_MUL_TAB_OLD = BEST_GP_MUL_TAB
+#continue
+#72
+#0.07061661779880524
+# BEST_GP_MUL_TAB = {
+#     'gradient_penalty_mode': 'ALL',
+#     'loss_balancer_beta': 0.7999999999999999,
+#     'loss_balancer_r': 0.95,
+#     'tf_pma_low_exp_2': 2,
+#     'grad_loss_fn': 'mae',
+#     'pma_ffn_mode': 'none',
+#     'patience': 6,
+#     'inds_init_mode': 'torch',
+#     'grad_clip': 0.75,
+#     'bias_weight_decay': 0.1,
+#     'dataset_size_exp_2': 11,
+#     'batch_size_exp_2': 2,
+#     'epochs': 80,
+#     'lr_mul': 0.07,
+#     'n_warmup_steps': 80,
+#     'Optim': 'diffgrad',
+#     'fixed_role_model': 'tab_ddpm_concat',
+#     'mse_mag_target': 0.2,
+#     'g_loss_mul': 0.1,
+#     'd_model_exp_2': 9,
+#     'attn_activation': 'leakyhardtanh',
+#     'tf_d_inner_exp_2': 9,
+#     'tf_n_layers_enc': 4,
+#     'tf_n_head_exp_2': 6,
+#     'tf_activation': 'leakyhardtanh',
+#     'tf_activation_final': 'leakyhardtanh',
+#     'tf_num_inds_exp_2': 5,
+#     'ada_d_hid_exp_2': 10,
+#     'ada_n_layers': 6,
+#     'ada_activation': 'selu',
+#     'ada_activation_final': 'leakyhardsigmoid',
+#     'head_d_hid_exp_2': 7,
+#     'head_n_layers': 8,
+#     'head_n_head_exp_2': 6,
+#     'head_activation': 'leakyhardsigmoid',
+#     'head_activation_final': 'leakyhardsigmoid',
+# }
+
 BEST_DICT = {
     True: {
         True: {
