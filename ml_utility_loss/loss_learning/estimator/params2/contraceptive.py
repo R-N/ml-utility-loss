@@ -70,7 +70,7 @@ PARAM_SPACE = {
     "epochs": ("int", 60, 80, 10),
     "lr_mul": ("float", 0.04, 0.1, 0.01),
     #"bias_lr_mul": ("float", 0.1, 1.0, 0.1),
-    "bias_weight_decay": ("float", 0.5, 0.1, 0.05),
+    "bias_weight_decay": ("float", 0.05, 0.1, 0.05),
     "n_warmup_steps": ("int", 80, 220, 20),
     "Optim": ("optimizer", [
         # #"adamw", 
