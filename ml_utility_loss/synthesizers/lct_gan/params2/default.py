@@ -20,7 +20,7 @@ PARAM_SPACE = {
     "mlu_lr": ("log_float", 1e-6, 1e-2),
 }
 
-def update_params(PARAM_SPACE, x, index=2):
+def update_params(PARAM_SPACE, x, value=0, index=2):
     if x not in PARAM_SPACE:
         return
-    PARAM_SPACE[x] = [*PARAM_SPACE[x][:index], 0, *PARAM_SPACE[x][index+1:]]
+    PARAM_SPACE[x] = [*PARAM_SPACE[x][:index], value, *PARAM_SPACE[x][index+1:]]
