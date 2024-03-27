@@ -16,6 +16,7 @@ class MLUtilityTrainer:
         t_steps=5,
         t_start=0,
         t_end=None,
+        t_range=None,
         n_steps=1,
         n_inner_steps=1,
         n_inner_steps_2=1,
@@ -28,7 +29,6 @@ class MLUtilityTrainer:
         save_on_cpu=False,
         batched=False,
         log_path=None,
-        t_range=None,
         div_batch=False,
         **optim_kwargs
     ):
@@ -39,7 +39,7 @@ class MLUtilityTrainer:
         self.batched = batched
         self.model = model
         self.t_steps = t_steps
-        if (not t_end) and (t_range or t_range == 0):
+        if (not t_end) and isinstance(t_range, (int, float)):
             t_end = t_start + t_range
         #assert (not t_end) or ((t_end - t_start)//(t_steps+1)) >= 1, "t_start low must be lower than high t_end and the interval between must be at least t_steps +1"
         print(f"mlu step every {t_steps} starting {t_start} until {t_end}")
