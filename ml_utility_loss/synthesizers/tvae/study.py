@@ -39,6 +39,7 @@ def objective(
             **kwargs
         )
         total_value = 0
+        print("Train done. Evaluating..")
         for i in range(repeat):
             clear_memory()
             seed_(i)
