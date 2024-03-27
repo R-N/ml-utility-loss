@@ -117,6 +117,7 @@ def objective_mlu(
         lr=mlu_lr,
         div_batch=div_batch,
         log_path=os.path.join(log_dir, "mlu_log.csv"),
+        debug=True,
     )
     return objective(
         *args,
