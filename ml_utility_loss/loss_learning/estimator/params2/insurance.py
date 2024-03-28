@@ -1689,9 +1689,10 @@ BEST_DICT = {
 TRIAL_QUEUE = [force_fix(p) for p in TRIAL_QUEUE]
 
 def check_param(k, v, PARAM_SPACE=PARAM_SPACE, strict=True):
-    if strict and k not in PARAM_SPACE:
-        return False
-    if isinstance(PARAM_SPACE[k], (list, tuple)):
+    if k not in PARAM_SPACE:
+        if strict:
+            return False
+    elif isinstance(PARAM_SPACE[k], (list, tuple)):
         if isinstance(PARAM_SPACE[k][1], (list, tuple)):
             if v not in PARAM_SPACE[k][1]:
                 if k not in DEFAULTS and len(PARAM_SPACE[k][1]) > 1:
