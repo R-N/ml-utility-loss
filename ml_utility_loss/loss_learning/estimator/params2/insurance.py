@@ -1691,9 +1691,9 @@ TRIAL_QUEUE = [force_fix(p) for p in TRIAL_QUEUE]
 def check_param(k, v, PARAM_SPACE=PARAM_SPACE):
     if k not in PARAM_SPACE:
         return False
-    if isinstance(PARAM_SPACE[1], (list, tuple)):
-        if v not in PARAM_SPACE[1]:
-            if k not in DEFAULTS and len(PARAM_SPACE[1]) > 1:
+    if isinstance(PARAM_SPACE[k][1], (list, tuple)):
+        if v not in PARAM_SPACE[k][1]:
+            if k not in DEFAULTS and len(PARAM_SPACE[k][1]) > 1:
                 return False
     return True
 
@@ -1704,12 +1704,12 @@ def check_params(p, PARAM_SPACE=PARAM_SPACE):
     return True
 
 def fallback_default(k, v, PARAM_SPACE=PARAM_SPACE, DEFAULTS=DEFAULTS):
-    if isinstance(PARAM_SPACE[1], (list, tuple)):
-        if v not in PARAM_SPACE[1]:
+    if isinstance(PARAM_SPACE[k][1], (list, tuple)):
+        if v not in PARAM_SPACE[k][1]:
             if k in DEFAULTS:
                 return DEFAULTS[k]
-            if len(PARAM_SPACE[1]) == 1:
-                return PARAM_SPACE[1][0]
+            if len(PARAM_SPACE[k][1]) == 1:
+                return PARAM_SPACE[k][1][0]
     return v
 
 def sanitize_queue(TRIAL_QUEUE):
