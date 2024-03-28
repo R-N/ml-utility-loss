@@ -1565,11 +1565,12 @@ def fallback_default(k, v, PARAM_SPACE=PARAM_SPACE, DEFAULTS=DEFAULTS):
     return v
 
 def sanitize_queue(TRIAL_QUEUE):
-    return [{
+    TRIAL_QUEUE = [{
         k: fallback_default(
             k, v,
-        ) for k, v in p.items() if check_param(k, v)
+        ) for k, v in p.items()# if check_param(k, v)
     } for p in TRIAL_QUEUE if check_params(p)]
+    return TRIAL_QUEUE
 
 TRIAL_QUEUE = sanitize_queue(TRIAL_QUEUE)
 
