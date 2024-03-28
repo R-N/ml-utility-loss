@@ -2,7 +2,7 @@ from ....params import BOOLEAN, ISABMode, LoRAMode, OPTIMS, ACTIVATIONS, LOSSES,
 from torch import nn, optim
 from torch.nn import functional as F
 
-DEFAULTS = {
+FORCE = {
     "Body": "twin_encoder",
     "loss_balancer_meta": True,
     "loss_balancer_log": False,
@@ -19,7 +19,23 @@ DEFAULTS = {
     "tf_pma_start": -1,
     "ada_n_seeds": 0,
     "head_n_seeds": 0,
-    "tf_pma_low": 1,
+    "dropout": 0,
+    "combine_mode": CombineMode.DIFF_LEFT,
+    "tf_isab_mode": ISABMode.SEPARATE,
+    "grad_loss_fn": "mae",
+    "bias": True,
+    "bias_final": True,
+    "pma_ffn_mode": PMAFFNMode.NONE,
+    "gradient_penalty_mode": "ALL",
+    "head_final_mul": "identity",
+}
+MINIMUMS = {
+    "bias_weight_decay": 0.05,
+}
+DEFAULTS = {
+    **MINIMUMS,
+    **FORCE,
+    "single_model": True,
     "gradient_penalty_kwargs": {
         "mag_loss": True,
         "mse_mag": True,
@@ -39,22 +55,12 @@ DEFAULTS = {
             "cos_matrix": False,
         },
     },
-    "dropout": 0,
-    "combine_mode": CombineMode.DIFF_LEFT,
-    "tf_isab_mode": ISABMode.SEPARATE,
-    "grad_loss_fn": "mae",
-    "single_model": True,
-    "bias": True,
-    "bias_final": True,
-    "pma_ffn_mode": PMAFFNMode.NONE,
+    "tf_pma_low": 1,
     "patience": 5,
-    "inds_init_mode": IndsInitMode.FIXNORM,
     "grad_clip": 1.0,
-    "head_final_mul": "identity",
-    "gradient_penalty_mode": "ALL",
-    "synth_data": 2,
     "bias_lr_mul": 1.0,
-    "bias_weight_decay": 0.05,
+    "synth_data": 2,
+    "inds_init_mode": IndsInitMode.FIXNORM,
     "loss_balancer_beta": 0.75,
     "loss_balancer_r": 0.95,
 }
@@ -251,6 +257,11 @@ PARAM_SPACE_2 = {
     "scheduler_patience": ("log_int", 10, 30),
 }
 
+TRIAL_QUEUE = []
+
+def add_queue(params):
+    TRIAL_QUEUE.append(params)
+
 #GOOD = [22, 24, 25, 26, 27, 28, 35, 36, 37, 46, 51, 53]
 #GOOD = [24, 25, 26, 35, 53]
 #GOOD = [1, 2, 3, 6, 11]
@@ -299,6 +310,7 @@ BEST = {
     'batch_size_high_exp_2': 2,
     'scheduler_patience': 30
 }
+add_queue(BEST)
 
 
 BEST = {
@@ -320,6 +332,7 @@ BEST = {
     'max_seconds': 3600,
     'patience': 50,
 }
+add_queue(BEST)
 #[9.828363181441091e-05, 0.011743317474611104]
 BEST_SINGLE = {
     **DEFAULTS,
@@ -364,6 +377,7 @@ BEST_SINGLE = {
     'batch_size_high_exp_2': 2,
     'scheduler_patience': 25
 }
+add_queue(BEST_SINGLE)
 
 #other
 #53
@@ -407,6 +421,7 @@ BEST = {
     'head_final_mul': 'identity',
     'patience': 7
 }
+add_queue(BEST)
 
 #rtf
 #41
@@ -450,6 +465,7 @@ BEST = {
     'head_final_mul': 'minus',
     'patience': 5
 }
+add_queue(BEST)
 
 #manual
 BEST = {
@@ -508,6 +524,7 @@ BEST = {
     "head_final_mul": "identity", 
     "patience": 5,
 }
+add_queue(BEST)
 BEST_2 = BEST
 
 #other
@@ -552,6 +569,7 @@ BEST = {
     'head_activation': 'prelu',
     'head_activation_final': 'softsign'
 }
+add_queue(BEST)
 
 #rtf
 #22
@@ -595,6 +613,7 @@ BEST = {
     'head_activation': 'rrelu',
     'head_activation_final': 'softsign'
 }
+add_queue(BEST)
 
 #manual
 
@@ -654,6 +673,7 @@ BEST = {
     "head_final_mul": "identity", 
     "patience": 5,
 }
+add_queue(BEST)
 BEST_1 = BEST
 
 #other
@@ -697,6 +717,7 @@ BEST = {
     'head_activation': 'prelu',
     'head_activation_final': 'softsign'
 }
+add_queue(BEST)
 
 #rtf
 #10
@@ -739,6 +760,7 @@ BEST = {
     'head_activation': 'prelu',
     'head_activation_final': 'softsign'
 }
+add_queue(BEST)
 
 #manual
 BEST = {
@@ -797,6 +819,7 @@ BEST = {
     "head_final_mul": "identity", 
     "patience": 5,
 }
+add_queue(BEST)
 BEST_0 = BEST
 
 #tab
@@ -840,6 +863,7 @@ BEST = {
     'head_activation': 'relu6',
     'head_activation_final': 'softsign'
 }
+add_queue(BEST)
 BEST_3 = BEST
 BESTS = [
     BEST_0,
@@ -918,6 +942,7 @@ BEST_GP_MUL_OTHER = {
     'head_activation': 'rrelu',
     'head_activation_final': 'softsign',
 }
+add_queue(BEST_GP_MUL_OTHER)
 
 #36
 #0.0832180306315422
@@ -964,6 +989,7 @@ BEST_GP_MUL_TAB = {
     'head_activation': 'relu6',
     'head_activation_final': 'softsign',
 }
+add_queue(BEST_GP_MUL_TAB)
 
 #39
 #0.01407578494399786
@@ -1010,6 +1036,7 @@ BEST_GP_MUL_RTF = {
     'head_activation': 'prelu',
     'head_activation_final': 'softsign',
 }
+add_queue(BEST_GP_MUL_RTF)
 
 #47
 #0.016872704029083252
@@ -1055,6 +1082,7 @@ BEST_NO_GP_OTHER = {
     'head_activation': 'prelu',
     'head_activation_final': 'softsign',
 }
+add_queue(BEST_NO_GP_OTHER)
 
 #38
 #0.08090880513191223
@@ -1100,6 +1128,7 @@ BEST_NO_GP_TAB = {
     'head_activation': 'rrelu',
     'head_activation_final': 'softsign',
 }
+add_queue(BEST_NO_GP_TAB)
 
 #40
 #0.013357952237129211
@@ -1145,6 +1174,7 @@ BEST_NO_GP_RTF = {
     'head_activation': 'relu6',
     'head_activation_final': 'softsign',
 }
+add_queue(BEST_NO_GP_RTF)
 
 #restart
 #25
@@ -1188,6 +1218,7 @@ BEST_GP_MUL_OTHER = {
     'head_activation': 'relu6',
     'head_activation_final': 'softsign',
 }
+add_queue(BEST_GP_MUL_OTHER)
 BEST_GP_MUL_OTHER = {
     **BEST_GP_MUL_OTHER,
     'ada_d_hid_exp_2': 9,
@@ -1196,6 +1227,7 @@ BEST_GP_MUL_OTHER = {
     #'head_final_mul': 'minus',
     'tf_activation_final': 'leakyhardsigmoid',
 }
+add_queue(BEST_GP_MUL_OTHER)
 
 #16
 #0.1103251501917839
@@ -1238,6 +1270,7 @@ BEST_GP_MUL_TAB = {
     'head_activation': 'relu6',
     'head_activation_final': 'softsign',
 }
+add_queue(BEST_GP_MUL_TAB)
 BEST_GP_MUL_TAB = {
     **BEST_GP_MUL_TAB,
     'ada_d_hid_exp_2': 9,
@@ -1246,6 +1279,7 @@ BEST_GP_MUL_TAB = {
     'head_n_head_exp_2': 6,
     'mse_mag_target': 0.2,
 }
+add_queue(BEST_GP_MUL_TAB)
 
 #57
 #0.03192077577114105
@@ -1288,12 +1322,14 @@ BEST_GP_MUL_RTF = {
     'head_activation': 'prelu',
     'head_activation_final': 'softsign',
 }
+add_queue(BEST_GP_MUL_RTF)
 BEST_GP_MUL_RTF = {
     **BEST_GP_MUL_RTF,
     'grad_loss_fn': 'mae',
     #'tf_n_head_exp_2': 7,
     #'tf_num_inds_exp_2': 6,
 }
+add_queue(BEST_GP_MUL_RTF)
 
 #70
 #0.023920178413391113
@@ -1333,6 +1369,7 @@ BEST_NO_GP_OTHER = {
     'head_activation': 'prelu',
     'head_activation_final': 'softsign',
 }
+add_queue(BEST_NO_GP_OTHER)
 BEST_NO_GP_OTHER = {
     **BEST_NO_GP_OTHER,
     #'bias_weight_decay': 0.05,
@@ -1340,6 +1377,7 @@ BEST_NO_GP_OTHER = {
     'tf_d_inner_exp_2': 9,
     #'tf_pma_low_exp_2': 5,
 }
+add_queue(BEST_NO_GP_OTHER)
 
 #58
 #0.10816454887390137
@@ -1379,6 +1417,7 @@ BEST_NO_GP_TAB = {
     'head_activation': 'rrelu',
     'head_activation_final': 'softsign',
 }
+add_queue(BEST_NO_GP_TAB)
 BEST_NO_GP_TAB = {
     **BEST_NO_GP_TAB,
 
@@ -1422,6 +1461,7 @@ BEST_NO_GP_RTF = {
     'head_activation': 'relu6',
     'head_activation_final': 'softsign',
 }
+add_queue(BEST_NO_GP_RTF)
 BEST_NO_GP_RTF = {
     **BEST_NO_GP_RTF,
     'attn_activation': 'leakyrelu',
@@ -1432,6 +1472,7 @@ BEST_NO_GP_RTF = {
     'tf_activation': 'leakyhardsigmoid',
     'tf_activation_final': 'leakyhardsigmoid',
 }
+add_queue(BEST_NO_GP_RTF)
 
 #continue
 #109
@@ -1475,6 +1516,7 @@ BEST_GP_MUL_RTF = {
     'head_activation': 'prelu',
     'head_activation_final': 'softsign',
 }
+add_queue(BEST_GP_MUL_RTF)
 
 #101
 #0.023478757590055466
@@ -1514,7 +1556,7 @@ BEST_NO_GP_OTHER = {
     'head_activation': 'relu6',
     'head_activation_final': 'softsign',
 }
-
+add_queue(BEST_NO_GP_OTHER)
 #86
 #0.028017982840538025
 BEST_NO_GP_RTF = {
@@ -1553,6 +1595,7 @@ BEST_NO_GP_RTF = {
     'head_activation': 'rrelu',
     'head_activation_final': 'softsign',
 }
+add_queue(BEST_NO_GP_RTF)
 
 BEST_DICT = {
     True: {
@@ -1616,13 +1659,18 @@ BEST_DICT = {
 
 BEST_DICT[False][True] = BEST_DICT[False][False]
 
+
 def force_fix(params):
-    params["pma_ffn_mode"] = "none"
-    params["grad_loss_fn"] = "mae"
-    if "bias_weight_decay" in params:
-        params["bias_weight_decay"] = max(0.05, params["bias_weight_decay"])
-    else:
-        params["bias_weight_decay"] = 0.05
+    params = {
+        **DEFAULTS,
+        **params,
+        **FORCE,
+    }
+    for k, v in MINIMUMS.items():
+        if k in params:
+            params[k] = max(v, params[k])
+        else:
+            params[k] = v
     return params
 
 BEST_DICT = {
@@ -1637,3 +1685,6 @@ BEST_DICT = {
     }
     for gp, d1 in BEST_DICT.items()
 }
+
+TRIAL_QUEUE = [force_fix(p) for p in TRIAL_QUEUE]
+TRIAL_QUEUE_EXT = list(TRIAL_QUEUE)

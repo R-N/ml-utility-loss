@@ -2,7 +2,7 @@ from ....params import BOOLEAN, ISABMode, LoRAMode, OPTIMS, ACTIVATIONS, LOSSES,
 from torch import nn, optim
 from torch.nn import functional as F
 
-DEFAULTS = {
+FORCE = {
     "Body": "twin_encoder",
     "loss_balancer_meta": True,
     "loss_balancer_log": False,
@@ -19,7 +19,22 @@ DEFAULTS = {
     "tf_pma_start": -1,
     "ada_n_seeds": 0,
     "head_n_seeds": 0,
-    "tf_pma_low": 1,
+    "dropout": 0,
+    "combine_mode": CombineMode.DIFF_LEFT,
+    "tf_isab_mode": ISABMode.SEPARATE,
+    "grad_loss_fn": "mae",
+    "bias": True,
+    "bias_final": True,
+    "pma_ffn_mode": PMAFFNMode.NONE,
+    "gradient_penalty_mode": "ALL",
+}
+MINIMUMS = {
+    "bias_weight_decay": 0.05,
+}
+DEFAULTS = {
+    **MINIMUMS,
+    **FORCE,
+    "single_model": True,
     "gradient_penalty_kwargs": {
         "mag_loss": True,
         "mse_mag": True,
@@ -39,25 +54,16 @@ DEFAULTS = {
             "cos_matrix": False,
         },
     },
-    "dropout": 0,
-    "combine_mode": CombineMode.DIFF_LEFT,
-    "tf_isab_mode": ISABMode.SEPARATE,
-    "grad_loss_fn": "mae",
-    "single_model": True,
-    "bias": True,
-    "bias_final": True,
-    "pma_ffn_mode": PMAFFNMode.NONE,
+    "tf_pma_low": 1,
     "patience": 5,
-    "inds_init_mode": IndsInitMode.FIXNORM,
     "grad_clip": 1.0,
-    "gradient_penalty_mode": "ALL",
-    "synth_data": 2,
     "bias_lr_mul": 1.0,
-    "bias_weight_decay": 0.05,
+    "synth_data": 2,
+    "inds_init_mode": IndsInitMode.FIXNORM,
     "head_activation": "relu6",
+    "tf_activation": "relu6",
     "loss_balancer_beta": 0.7,
     "loss_balancer_r": 0.96,
-    "tf_activation": "relu6"
 }
 
 PARAM_SPACE = {
@@ -247,6 +253,12 @@ PARAM_SPACE_2 = {
 #GOOD = [1, 2]
 GOOD = [0, 1]
 #[0.0022183829569257796, 0.0036116915095287063]
+
+TRIAL_QUEUE = []
+
+def add_queue(params):
+    TRIAL_QUEUE.append(params)
+
 BEST = {
     **DEFAULTS,
     'loss_balancer_meta_boolc': True,
@@ -291,6 +303,8 @@ BEST = {
     'scheduler_patience': 25
 }
 
+add_queue(BEST)
+
 BEST = {
     **BEST,
     'dataset_size_low_exp_2': 11,
@@ -310,6 +324,8 @@ BEST = {
     'max_seconds': 3600,
     'patience': 50,
 }
+
+add_queue(BEST)
 BEST_SINGLE = BEST
 
 #Non RTF
@@ -355,6 +371,8 @@ BEST = {
     'patience': 6
 }
 
+add_queue(BEST)
+
 #rtf
 #15
 #0.048348262906074524
@@ -397,6 +415,8 @@ BEST = {
     'head_activation_final': 'sigmoid',
     'patience': 4
 }
+
+add_queue(BEST)
 
 #manual
 BEST = {
@@ -449,6 +469,8 @@ BEST = {
     "head_activation_final": "leakyhardsigmoid",
     "patience": 4,
 }
+
+add_queue(BEST)
 BEST_2 = BEST
 
 #other
@@ -493,6 +515,8 @@ BEST = {
     'head_activation_final': 'leakyhardsigmoid'
 }
 
+
+add_queue(BEST)
 #rtf
 #18
 #0.04570891708135605
@@ -535,6 +559,8 @@ BEST = {
     'head_activation_final': 'leakyhardsigmoid'
 }
 
+
+add_queue(BEST)
 #manual
 BEST = {
     **DEFAULTS,
@@ -586,6 +612,8 @@ BEST = {
     "head_activation_final": "leakyhardsigmoid",
     "patience": 4,
 }
+
+add_queue(BEST)
 BEST_1 = BEST
 
 #other
@@ -629,6 +657,8 @@ BEST = {
     'head_activation_final': 'leakyhardsigmoid'
 }
 
+
+add_queue(BEST)
 #rtf
 #14
 #0.04671001806855202
@@ -670,6 +700,8 @@ BEST = {
     'head_activation_final': 'leakyhardsigmoid'
 }
 
+
+add_queue(BEST)
 #manual
 BEST = {
     **DEFAULTS,
@@ -721,6 +753,8 @@ BEST = {
     "head_activation_final": "leakyhardsigmoid",
     "patience": 4,
 }
+
+add_queue(BEST)
 BEST_0 = BEST
 
 #tab
@@ -763,6 +797,8 @@ BEST = {
     'head_activation': 'relu6',
     'head_activation_final': 'leakyhardsigmoid'
 }
+
+add_queue(BEST)
 BEST_3 = BEST
 BESTS = [
     BEST_0,
@@ -839,6 +875,8 @@ BEST_GP_MUL_OTHER = {
     'head_activation_final': 'leakyhardsigmoid'
 }
 
+add_queue(BEST_GP_MUL_OTHER)
+
 #18
 #0.04309763386845589
 BEST_GP_MUL_TAB = {
@@ -882,6 +920,7 @@ BEST_GP_MUL_TAB = {
     'head_activation': 'relu6',
     'head_activation_final': 'leakyhardsigmoid',
 }
+add_queue(BEST_GP_MUL_TAB)
 
 #29
 #0.04440164193511009
@@ -926,7 +965,7 @@ BEST_GP_MUL_RTF = {
     'head_activation': 'relu6',
     'head_activation_final': 'leakyhardsigmoid',
 }
-
+add_queue(BEST_GP_MUL_RTF)
 #43
 #0.04233637452125549
 BEST_NO_GP_OTHER = {
@@ -969,7 +1008,7 @@ BEST_NO_GP_OTHER = {
     'head_activation': 'relu6',
     'head_activation_final': 'leakyhardsigmoid',
 }
-
+add_queue(BEST_NO_GP_OTHER)
 #32
 #0.043219294399023056
 BEST_NO_GP_TAB = {
@@ -1012,7 +1051,7 @@ BEST_NO_GP_TAB = {
     'head_activation': 'relu6',
     'head_activation_final': 'leakyhardsigmoid',
 }
-
+add_queue(BEST_NO_GP_TAB)
 #21
 #0.04368555545806885
 BEST_NO_GP_RTF = {
@@ -1055,7 +1094,7 @@ BEST_NO_GP_RTF = {
     'head_activation': 'relu6',
     'head_activation_final': 'leakyhardsigmoid',
 }
-
+add_queue(BEST_NO_GP_RTF)
 #restart
 #54
 #0.04658558592200279
@@ -1097,6 +1136,7 @@ BEST_GP_MUL_OTHER = {
     'head_n_head_exp_2': 4,
     'head_activation_final': 'leakyhardsigmoid',
 }
+add_queue(BEST_GP_MUL_OTHER)
 BEST_GP_MUL_OTHER = {
     **BEST_GP_MUL_OTHER,
     'bias_weight_decay': 0.05,
@@ -1104,6 +1144,7 @@ BEST_GP_MUL_OTHER = {
     'tf_n_head_exp_2': 6,
     'tf_pma_low_exp_2': 3,
 }
+add_queue(BEST_GP_MUL_OTHER)
 
 #19
 #0.04428619146347046
@@ -1145,6 +1186,7 @@ BEST_GP_MUL_TAB = {
     'head_n_head_exp_2': 4,
     'head_activation_final': 'leakyhardsigmoid',
 }
+add_queue(BEST_GP_MUL_TAB)
 BEST_GP_MUL_TAB = {
     **BEST_GP_MUL_TAB,
     'bias_weight_decay': 0.05,
@@ -1153,6 +1195,7 @@ BEST_GP_MUL_TAB = {
     #'mse_mag_target': 0.5,
     #'tf_pma_low_exp_2': 3,
 }
+add_queue(BEST_GP_MUL_TAB)
 
 #61
 #0.046966683119535446
@@ -1194,10 +1237,12 @@ BEST_GP_MUL_RTF = {
     'head_n_head_exp_2': 6,
     'head_activation_final': 'leakyhardsigmoid',
 }
+add_queue(BEST_GP_MUL_RTF)
 BEST_GP_MUL_RTF = {
     **BEST_GP_MUL_RTF,
     'head_d_hid_exp_2': 9,
 }
+add_queue(BEST_GP_MUL_RTF)
 
 #63
 #0.04369925335049629
@@ -1236,12 +1281,14 @@ BEST_NO_GP_OTHER = {
     'head_n_head_exp_2': 6,
     'head_activation_final': 'leakyhardsigmoid',
 }
+add_queue(BEST_NO_GP_OTHER)
 BEST_NO_GP_OTHER = {
     **BEST_NO_GP_OTHER,
     'epochs': 70,
     #'g_loss_mul': 0.5,
     'tf_pma_low_exp_2': 3,
 }
+add_queue(BEST_NO_GP_OTHER)
 
 #24
 #0.04522630572319031
@@ -1280,12 +1327,14 @@ BEST_NO_GP_TAB = {
     'head_n_head_exp_2': 6,
     'head_activation_final': 'leakyhardsigmoid',
 }
+add_queue(BEST_NO_GP_TAB)
 BEST_NO_GP_TAB = {
     **BEST_NO_GP_TAB,
     'pma_ffn_mode': 'none',
     'tf_n_head_exp_2': 6,
     'tf_num_inds_exp_2': 5,
 }
+add_queue(BEST_NO_GP_TAB)
 
 #65
 #0.047298017889261246
@@ -1324,12 +1373,14 @@ BEST_NO_GP_RTF = {
     'head_n_head_exp_2': 6,
     'head_activation_final': 'leakyhardsigmoid',
 }
+add_queue(BEST_NO_GP_RTF)
 BEST_NO_GP_RTF = {
     **BEST_NO_GP_RTF,
     'pma_ffn_mode': 'none',
     'tf_num_inds_exp_2': 5,
     #'tf_pma_low_exp_2': 3,
 }
+add_queue(BEST_NO_GP_RTF)
 
 #continue
 #90
@@ -1372,6 +1423,7 @@ BEST_GP_MUL_TAB = {
     'head_n_head_exp_2': 6,
     'head_activation_final': 'leakyhardsigmoid',
 }
+add_queue(BEST_GP_MUL_TAB)
 
 #111
 #0.043276093900203705
@@ -1410,6 +1462,7 @@ BEST_NO_GP_TAB = {
     'head_n_head_exp_2': 4,
     'head_activation_final': 'leakyhardsigmoid',
 }
+add_queue(BEST_NO_GP_TAB)
 
 BEST_DICT = {
     True: {
@@ -1455,12 +1508,16 @@ BEST_DICT = {
 BEST_DICT[False][True] = BEST_DICT[False][False]
 
 def force_fix(params):
-    params["pma_ffn_mode"] = "none"
-    params["grad_loss_fn"] = "mae"
-    if "bias_weight_decay" in params:
-        params["bias_weight_decay"] = max(0.05, params["bias_weight_decay"])
-    else:
-        params["bias_weight_decay"] = 0.05
+    params = {
+        **DEFAULTS,
+        **params,
+        **FORCE,
+    }
+    for k, v in MINIMUMS.items():
+        if k in params:
+            params[k] = max(v, params[k])
+        else:
+            params[k] = v
     return params
 
 BEST_DICT = {
@@ -1475,3 +1532,5 @@ BEST_DICT = {
     }
     for gp, d1 in BEST_DICT.items()
 }
+TRIAL_QUEUE = [force_fix(p) for p in TRIAL_QUEUE]
+TRIAL_QUEUE_EXT = list(TRIAL_QUEUE)

@@ -40,27 +40,27 @@ def sample_float(trial, name, low, high, step=None, log=False, **kwargs):
         step = None
     return trial.suggest_float(name, low, high, step=step, log=log, **kwargs)
 
-def sample_parameter_2(trial, k, type_0, args, kwargs=None, param_map={}):
+def sample_parameter_2(trial, k, type_0, args, kwargs=None, param_map={}, map=True):
     kwargs = kwargs or {}
     param, param_raw = None, None
     type_1 = type_0
     if type_0 == "dict":
-        return sample_parameters(trial, args[0], param_map=param_map)
+        return sample_parameters(trial, args[0], param_map=param_map, map=map)
     if type_0 == "conditional":
         sample = trial.suggest_categorical(f"{k}_boolc", [True, False])
         if sample:
-            return sample_parameters(trial, args[0], param_map=param_map)
+            return sample_parameters(trial, args[0], param_map=param_map, map=map)
         return None, None
     if type_0.startswith("bool_"):
         sample = trial.suggest_categorical(f"{k}_bool", [True, False])
         if not sample:
             return None, None
         type_1 = type_0[5:]
-        return sample_parameter_2(trial, k, type_1, args, kwargs, param_map=param_map)
+        return sample_parameter_2(trial, k, type_1, args, kwargs, param_map=param_map, map=map)
     if type_0.startswith("log_"):
         type_1 = type_0[4:]
         kwargs["log"] = True
-        return sample_parameter_2(trial, k, type_1, args, kwargs, param_map=param_map)
+        return sample_parameter_2(trial, k, type_1, args, kwargs, param_map=param_map, map=map)
     if type_0 == "qloguniform":
         low, high, q = args
         type_1 = "float"
@@ -69,6 +69,7 @@ def sample_parameter_2(trial, k, type_0, args, kwargs=None, param_map={}):
         ) / q) * q
         return param, param
     if type_0 == "list_int_exp_2":
+        #raise ValueError(f"{k} list_int_exp_2 Deprecated")
         #type_1 = type_0[5:]
         min, max, low, high = args
         length = trial.suggest_int(f"{k}_len", min, max)
@@ -85,7 +86,7 @@ def sample_parameter_2(trial, k, type_0, args, kwargs=None, param_map={}):
         return param, param
     if type_0 in {"bool", "boolean"}:
         type_1, *args = BOOLEAN
-        return sample_parameter_2(trial, k, type_1, args, kwargs, param_map=param_map)
+        return sample_parameter_2(trial, k, type_1, args, kwargs, param_map=param_map, map=map)
 
     if type_0 in param_map:
         type_1 = "categorical"
@@ -98,29 +99,51 @@ def sample_parameter_2(trial, k, type_0, args, kwargs=None, param_map={}):
         param = sample_parameter(trial, k, type_1, args, kwargs)
 
     param_raw = param
+    if not map:
+        return param_raw
     if type_0 in param_map:
         param = map_parameter(param, param_map[type_0])
 
     return param, param_raw
 
-def sample_parameters(trial, param_space, param_map={}):
+def sample_parameters(trial, param_space, param_map={}, force_fix=None, map=True):
     param_map = {**PARAM_MAP, **param_map}
     params = {}
     params_raw = {}
     for k, v in param_space.items():
-        if not isinstance(v, list) and not isinstance(v, tuple):
+        if not isinstance(v, (list, tuple)):
             params[k] = params_raw[k] = v
             continue
         type_0, *args = v
         try:
-            param, param_raw = sample_parameter_2(trial, k, type_0, args, param_map=param_map)
+            param, param_raw = sample_parameter_2(trial, k, type_0, args, param_map=param_map, map=map)
         except ValueError as ex:
             msg = str(ex)
             if "CategoricalDistribution does not support dynamic value space" in msg:
                 print("Offending parameter:", k, type_0, args)
             raise
+        if k in params:
+            continue
         params[k] = param
         params_raw[k] = param_raw
+        
+    if force_fix:
+        params_raw = force_fix(params_raw)
+        try:
+            params = {
+                **params,
+                **map_parameters(params_raw, param_space=param_space, param_map=param_map, strict=True),
+            }
+        except AssertionError as ex:
+            pass
+        trial_params = force_fix(trial.params)
+        try:
+            params = {
+                **params,
+                **map_parameters(trial_params, param_space=param_space, param_map=param_map, strict=True),
+            }
+        except AssertionError as ex:
+            pass
         
     #params["id"] = trial.number
     return params, params_raw
@@ -176,7 +199,7 @@ def unpack_params(kwargs):
     kwargs["gradient_penalty_kwargs"] = gradient_penalty_kwargs
     return kwargs
 
-def map_parameters(params_raw, param_space={}, param_map={}, unpack=True):
+def map_parameters(params_raw, param_space={}, param_map={}, unpack=True, strict=False):
     param_map = {**PARAM_MAP, **param_map}
     ret = {}
     for k, v in params_raw.items():
@@ -225,6 +248,8 @@ def map_parameters(params_raw, param_space={}, param_map={}, unpack=True):
                         break
                     except KeyError:
                         pass
+        if strict and k not in param_space:
+            continue
         ret[k] = v
     for k, v in param_space.items():
         if k not in ret and not isinstance(v, (tuple, list)):
