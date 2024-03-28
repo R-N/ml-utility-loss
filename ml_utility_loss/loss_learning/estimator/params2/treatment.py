@@ -1457,35 +1457,40 @@ BEST_DICT = {
 }
 TRIAL_QUEUE = [force_fix(p) for p in TRIAL_QUEUE]
 
-def check_param(k, v, PARAM_SPACE=PARAM_SPACE):
-    if k not in PARAM_SPACE:
+def check_param(k, v, PARAM_SPACE=PARAM_SPACE, strict=True):
+    if strict and k not in PARAM_SPACE:
         return False
-    if isinstance(PARAM_SPACE[k], (list, tuple)) and isinstance(PARAM_SPACE[k][1], (list, tuple)):
-        if v not in PARAM_SPACE[k][1]:
-            if k not in DEFAULTS and len(PARAM_SPACE[k][1]) > 1:
-                return False
+    if isinstance(PARAM_SPACE[k], (list, tuple)):
+        if isinstance(PARAM_SPACE[k][1], (list, tuple)):
+            if v not in PARAM_SPACE[k][1]:
+                if k not in DEFAULTS and len(PARAM_SPACE[k][1]) > 1:
+                    return False
+    #elif v != PARAM_SPACE[k]:
     return True
 
 def check_params(p, PARAM_SPACE=PARAM_SPACE):
     for k, v in p.items():
-        if not check_param(k, v, PARAM_SPACE=PARAM_SPACE):
+        if not check_param(k, v, PARAM_SPACE=PARAM_SPACE, strict=False):
             return False
     return True
 
 def fallback_default(k, v, PARAM_SPACE=PARAM_SPACE, DEFAULTS=DEFAULTS):
-    if isinstance(PARAM_SPACE[k], (list, tuple)) and isinstance(PARAM_SPACE[k][1], (list, tuple)):
-        if v not in PARAM_SPACE[k][1]:
-            if k in DEFAULTS:
-                return DEFAULTS[k]
-            if len(PARAM_SPACE[k][1]) == 1:
-                return PARAM_SPACE[k][1][0]
+    if isinstance(PARAM_SPACE[k], (list, tuple)):
+        if isinstance(PARAM_SPACE[k][1], (list, tuple)):
+            if v not in PARAM_SPACE[k][1]:
+                if k in DEFAULTS:
+                    return DEFAULTS[k]
+                if len(PARAM_SPACE[k][1]) == 1:
+                    return PARAM_SPACE[k][1][0]
+    elif v != PARAM_SPACE[k]:
+        return PARAM_SPACE[k]
     return v
 
 def sanitize_queue(TRIAL_QUEUE):
     return [{
         k: fallback_default(
             k, v,
-        ) for k, v in p.items()
+        ) for k, v in p.items() if check_param(k, v)
     } for p in TRIAL_QUEUE if check_params(p)]
 
 TRIAL_QUEUE = sanitize_queue(TRIAL_QUEUE)
