@@ -94,6 +94,11 @@ def objective(
             print(f"AssertionError: {msg}")
             raise TrialPruned(msg)
         raise
+    except ValueError as ex:
+        msg = str(ex)
+        if "Mix of label input types" in msg:
+            raise TrialPruned(msg)
+        raise
     except OutOfMemoryError as ex:
         clear_memory()
         raise TrialPruned(str(ex))
