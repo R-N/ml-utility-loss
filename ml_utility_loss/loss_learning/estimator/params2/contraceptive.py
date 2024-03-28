@@ -1553,15 +1553,16 @@ def check_params(p, PARAM_SPACE=PARAM_SPACE):
     return True
 
 def fallback_default(k, v, PARAM_SPACE=PARAM_SPACE, DEFAULTS=DEFAULTS):
-    if isinstance(PARAM_SPACE[k], (list, tuple)):
-        if isinstance(PARAM_SPACE[k][1], (list, tuple)):
-            if v not in PARAM_SPACE[k][1]:
-                if k in DEFAULTS:
-                    return DEFAULTS[k]
-                if len(PARAM_SPACE[k][1]) == 1:
-                    return PARAM_SPACE[k][1][0]
-    elif v != PARAM_SPACE[k]:
-        return PARAM_SPACE[k]
+    if k in PARAM_SPACE:
+        if isinstance(PARAM_SPACE[k], (list, tuple)):
+            if isinstance(PARAM_SPACE[k][1], (list, tuple)):
+                if v not in PARAM_SPACE[k][1]:
+                    if k in DEFAULTS:
+                        return DEFAULTS[k]
+                    if len(PARAM_SPACE[k][1]) == 1:
+                        return PARAM_SPACE[k][1][0]
+        elif v != PARAM_SPACE[k]:
+            return PARAM_SPACE[k]
     return v
 
 def sanitize_queue(TRIAL_QUEUE):
