@@ -1,6 +1,7 @@
 from ....params import BOOLEAN, ISABMode, LoRAMode, OPTIMS, ACTIVATIONS, LOSSES, SOFTMAXES, GRADIENT_PENALTY_MODES, PMAFFNMode, CombineMode, IndsInitMode
 from torch import nn, optim
 from torch.nn import functional as F
+import random
 
 FORCE = {
     "Body": "twin_encoder",
@@ -260,7 +261,7 @@ PARAM_SPACE_2 = {
 TRIAL_QUEUE = []
 
 def add_queue(params):
-    TRIAL_QUEUE.append(params)
+    TRIAL_QUEUE.append(dict(params))
 
 #GOOD = [22, 24, 25, 26, 27, 28, 35, 36, 37, 46, 51, 53]
 #GOOD = [24, 25, 26, 35, 53]
@@ -1668,7 +1669,7 @@ def check_param(k, v, PARAM_SPACE=PARAM_SPACE, strict=True):
         cats = PARAM_SPACE[k][1]
         if isinstance(cats, (list, tuple)):
             if v not in cats:
-                if not isinstance(v, (float, int)) and k not in DEFAULTS and len(cats) > 1:
+                if k != "fixed_role_model" and not isinstance(v, (float, int)) and k not in DEFAULTS and len(cats) > 1:
                     return False
     #elif v != PARAM_SPACE[k]:
     return True
@@ -1686,6 +1687,8 @@ def fallback_default(k, v, PARAM_SPACE=PARAM_SPACE, DEFAULTS=DEFAULTS):
             cats = dist[1]
             if isinstance(cats, (list, tuple)):
                 if v not in cats:
+                    if k == "fixed_role_model":
+                        return random.choice(cats)
                     if isinstance(v, (float, int)):
                         return min(cats, key=lambda x:abs(x-v))
                     if k in DEFAULTS:
