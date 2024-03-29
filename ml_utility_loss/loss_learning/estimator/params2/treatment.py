@@ -1432,6 +1432,7 @@ BEST_DICT = {
 BEST_DICT[False][True] = BEST_DICT[False][False]
 
 
+
 def check_param(k, v, PARAM_SPACE=PARAM_SPACE, strict=True):
     if k not in PARAM_SPACE:
         if strict:
@@ -1469,3 +1470,45 @@ def fallback_default(k, v, PARAM_SPACE=PARAM_SPACE, DEFAULTS=DEFAULTS):
         elif v != dist:
             return dist
     return v
+
+def sanitize_params(p):
+    return {
+        k: fallback_default(
+            k, v,
+        ) for k, v in p.items()# if check_param(k, v)
+    }
+
+def sanitize_queue(TRIAL_QUEUE):
+    TRIAL_QUEUE = [sanitize_params(p) for p in TRIAL_QUEUE if check_params(p)]
+    return TRIAL_QUEUE
+
+def force_fix(params):
+    params = {
+        **DEFAULTS,
+        **params,
+        **FORCE,
+    }
+    for k, v in MINIMUMS.items():
+        if k in params:
+            params[k] = max(v, params[k])
+        else:
+            params[k] = v
+    params = sanitize_params(params)
+    return params
+
+
+BEST_DICT = {
+    gp: {
+        gp_multiply: (
+            {
+                model: force_fix(params)
+                for model, params in d2.items()
+            } if d2 is not None else None
+        )
+        for gp_multiply, d2 in d1.items()
+    }
+    for gp, d1 in BEST_DICT.items()
+}
+TRIAL_QUEUE = [force_fix(p) for p in TRIAL_QUEUE]
+TRIAL_QUEUE = sanitize_queue(TRIAL_QUEUE)
+TRIAL_QUEUE_EXT = list(TRIAL_QUEUE)
