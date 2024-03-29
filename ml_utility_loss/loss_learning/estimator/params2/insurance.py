@@ -1660,6 +1660,53 @@ BEST_DICT = {
 BEST_DICT[False][True] = BEST_DICT[False][False]
 
 
+def check_param(k, v, PARAM_SPACE=PARAM_SPACE, strict=True):
+    if k not in PARAM_SPACE:
+        if strict:
+            return False
+    elif isinstance(PARAM_SPACE[k], (list, tuple)):
+        cats = PARAM_SPACE[k][1]
+        if isinstance(cats, (list, tuple)):
+            if v not in cats:
+                if not isinstance(v, (float, int)) and k not in DEFAULTS and len(cats) > 1:
+                    return False
+    #elif v != PARAM_SPACE[k]:
+    return True
+
+def check_params(p, PARAM_SPACE=PARAM_SPACE):
+    for k, v in p.items():
+        if not check_param(k, v, PARAM_SPACE=PARAM_SPACE, strict=False):
+            return False
+    return True
+
+def fallback_default(k, v, PARAM_SPACE=PARAM_SPACE, DEFAULTS=DEFAULTS):
+    if k in PARAM_SPACE:
+        dist = PARAM_SPACE[k]
+        if isinstance(dist, (list, tuple)):
+            cats = dist[1]
+            if isinstance(cats, (list, tuple)):
+                if v not in cats:
+                    if isinstance(v, (float, int)):
+                        return min(cats, key=lambda x:abs(x-v))
+                    if k in DEFAULTS:
+                        return DEFAULTS[k]
+                    if len(cats) == 1:
+                        return cats[0]
+        elif v != dist:
+            return dist
+    return v
+
+def sanitize_params(p):
+    return {
+        k: fallback_default(
+            k, v,
+        ) for k, v in p.items()# if check_param(k, v)
+    }
+
+def sanitize_queue(TRIAL_QUEUE):
+    TRIAL_QUEUE = [sanitize_params(p) for p in TRIAL_QUEUE if check_params(p)]
+    return TRIAL_QUEUE
+
 def force_fix(params):
     params = {
         **DEFAULTS,
@@ -1671,7 +1718,9 @@ def force_fix(params):
             params[k] = max(v, params[k])
         else:
             params[k] = v
+    params = sanitize_params(params)
     return params
+
 
 BEST_DICT = {
     gp: {
@@ -1685,48 +1734,6 @@ BEST_DICT = {
     }
     for gp, d1 in BEST_DICT.items()
 }
-
 TRIAL_QUEUE = [force_fix(p) for p in TRIAL_QUEUE]
-
-def check_param(k, v, PARAM_SPACE=PARAM_SPACE, strict=True):
-    if k not in PARAM_SPACE:
-        if strict:
-            return False
-    elif isinstance(PARAM_SPACE[k], (list, tuple)):
-        if isinstance(PARAM_SPACE[k][1], (list, tuple)):
-            if v not in PARAM_SPACE[k][1]:
-                if k not in DEFAULTS and len(PARAM_SPACE[k][1]) > 1:
-                    return False
-    #elif v != PARAM_SPACE[k]:
-    return True
-
-def check_params(p, PARAM_SPACE=PARAM_SPACE):
-    for k, v in p.items():
-        if not check_param(k, v, PARAM_SPACE=PARAM_SPACE, strict=False):
-            return False
-    return True
-
-def fallback_default(k, v, PARAM_SPACE=PARAM_SPACE, DEFAULTS=DEFAULTS):
-    if k in PARAM_SPACE:
-        if isinstance(PARAM_SPACE[k], (list, tuple)):
-            if isinstance(PARAM_SPACE[k][1], (list, tuple)):
-                if v not in PARAM_SPACE[k][1]:
-                    if k in DEFAULTS:
-                        return DEFAULTS[k]
-                    if len(PARAM_SPACE[k][1]) == 1:
-                        return PARAM_SPACE[k][1][0]
-        elif v != PARAM_SPACE[k]:
-            return PARAM_SPACE[k]
-    return v
-
-
-def sanitize_queue(TRIAL_QUEUE):
-    TRIAL_QUEUE = [{
-        k: fallback_default(
-            k, v,
-        ) for k, v in p.items()# if check_param(k, v)
-    } for p in TRIAL_QUEUE if check_params(p)]
-    return TRIAL_QUEUE
-
 TRIAL_QUEUE = sanitize_queue(TRIAL_QUEUE)
 TRIAL_QUEUE_EXT = list(TRIAL_QUEUE)
