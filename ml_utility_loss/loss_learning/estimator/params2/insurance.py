@@ -1703,7 +1703,7 @@ def sanitize_params(p):
     return {
         k: fallback_default(
             k, v,
-        ) for k, v in p.items()# if check_param(k, v)
+        ) for k, v in p.items() if k != "fixed_role_model"# if check_param(k, v)
     }
 
 def sanitize_queue(TRIAL_QUEUE):
