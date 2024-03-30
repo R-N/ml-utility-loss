@@ -334,12 +334,12 @@ def fallback_default(k, v, PARAM_SPACE={}, DEFAULTS={}, RANDOMS=["fixed_role_mod
                 if v not in cats:
                     if isinstance(v, (float, int)):
                         return min(cats, key=lambda x:abs(x-v))
-                    if drop_unknown_cat:
-                        return DROP_PARAM
                     if k in DEFAULTS:
                         return DEFAULTS[k]
                     if len(cats) == 1:
                         return cats[0]
+                    if drop_unknown_cat:
+                        return DROP_PARAM
                     if k in RANDOMS:
                         return random.choice(cats)
         elif v != dist:
