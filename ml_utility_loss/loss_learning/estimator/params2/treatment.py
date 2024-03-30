@@ -233,7 +233,7 @@ PARAM_SPACE = {
         "leakyhardsigmoid",
     ]),
     "head_activation_final": ("activation", [
-        #"sigmoid", 
+        "sigmoid", 
         #"hardsigmoid",
         "leakyhardsigmoid",
     ]),
