@@ -352,7 +352,7 @@ def sanitize_params(p, REMOVES=["fixed_role_model"], **kwargs):
             k, v, REMOVES=REMOVES, **kwargs,
         ) for k, v in p.items() if k not in REMOVES# if check_param(k, v)
     }
-    p = {k: v for k, v in p.items() if k != DROP_PARAM}
+    p = {k: v for k, v in p.items() if v != DROP_PARAM}
     return p
 
 def sanitize_queue(TRIAL_QUEUE, **kwargs):
