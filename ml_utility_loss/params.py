@@ -10,6 +10,7 @@ from .Padam import Padam
 from functools import partial
 from .metrics import mile, mire, mean_penalty, mean_penalty_tan, mean_penalty_tan_half, mean_penalty_tan_double, mean_penalty_rational, mean_penalty_rational_half, mean_penalty_rational_double, mean_penalty_log, mean_penalty_log_half, mean_penalty_log_double
 import torch_optimizer
+import random
 
 class GradMagLoss:
     MSE_CORR = {
@@ -302,3 +303,72 @@ PARAM_MAP = {
     "softmax": SOFTMAXES,
     "gradient_penalty_mode": GRADIENT_PENALTY_MODES,
 }
+
+DROP_PARAM = "__DROP_PARAM__"
+
+def check_param(k, v, PARAM_SPACE={}, DEFAULTS={}, IGNORES=["fixed_role_model"], strict=True, drop_unknown_cat=True, **kwargs):
+    if k not in PARAM_SPACE:
+        if strict:
+            return False
+    elif isinstance(PARAM_SPACE[k], (list, tuple)):
+        cats = PARAM_SPACE[k][1]
+        if isinstance(cats, (list, tuple)):
+            if v not in cats:
+                if (not drop_unknown_cat) and k not in IGNORES and not isinstance(v, (float, int)) and k not in DEFAULTS and len(cats) > 1:
+                    return False
+    #elif v != PARAM_SPACE[k]:
+    return True
+
+def check_params(p, PARAM_SPACE={}, **kwargs):
+    for k, v in p.items():
+        if not check_param(k, v, PARAM_SPACE=PARAM_SPACE, strict=False, **kwargs):
+            return False
+    return True
+
+def fallback_default(k, v, PARAM_SPACE={}, DEFAULTS={}, RANDOMS=["fixed_role_model"], drop_unknown_cat=True,  **kwargs):
+    if k in PARAM_SPACE:
+        dist = PARAM_SPACE[k]
+        if isinstance(dist, (list, tuple)):
+            cats = dist[1]
+            if isinstance(cats, (list, tuple)):
+                if v not in cats:
+                    if isinstance(v, (float, int)):
+                        return min(cats, key=lambda x:abs(x-v))
+                    if drop_unknown_cat:
+                        return DROP_PARAM
+                    if k in DEFAULTS:
+                        return DEFAULTS[k]
+                    if len(cats) == 1:
+                        return cats[0]
+                    if k in RANDOMS:
+                        return random.choice(cats)
+        elif v != dist:
+            return dist
+    return v
+
+def sanitize_params(p, REMOVES=["fixed_role_model"], **kwargs):
+    p = {
+        k: fallback_default(
+            k, v, REMOVES=REMOVES, **kwargs,
+        ) for k, v in p.items() if k not in REMOVES# if check_param(k, v)
+    }
+    p = {k: v for k, v in p.items() if k != DROP_PARAM}
+    return p
+
+def sanitize_queue(TRIAL_QUEUE, **kwargs):
+    TRIAL_QUEUE = [sanitize_params(p, **kwargs) for p in TRIAL_QUEUE if check_params(p, **kwargs)]
+    return TRIAL_QUEUE
+
+def force_fix(params, DEFAULTS={}, FORCE={}, MINIMUMS={}, **kwargs):
+    params = {
+        **DEFAULTS,
+        **params,
+        **FORCE,
+    }
+    for k, v in MINIMUMS.items():
+        if k in params:
+            params[k] = max(v, params[k])
+        else:
+            params[k] = v
+    params = sanitize_params(params, DEFAULTS=DEFAULTS, FORCE=FORCE, MINIMUMS=MINIMUMS, **kwargs)
+    return params

@@ -1,7 +1,28 @@
 
 from ....params import BOOLEAN, OPTIMS, ACTIVATIONS, LOSSES
+from ....params import force_fix, sanitize_params, sanitize_queue
 
+TRIAL_QUEUE = []
+
+def add_queue(params):
+    TRIAL_QUEUE.append(dict(params))
+DEFAULTS = {
+    "t_start": 0,
+    "t_end": None,
+    "t_range": None,
+    "mlu_target": None,
+    "n_steps": 1,
+    "n_inner_steps": 1,
+    "n_inner_steps_2": 1,
+    "loss_mul": 1,
+    "div_batch": False,
+    "forgive_over": False,
+    "loss_fn": "mae",
+}
+FORCE = {}
+MINIMUMS = {}
 PARAM_SPACE = {
+    **DEFAULTS,
     "n_samples": ("int_exp_2", 512, 4096),
     #"sample_batch_size": ("int_exp_2", 64, 512),
     "t_steps": ("int", 5, 10),
@@ -41,10 +62,12 @@ BEST = {
     'Optim': 'adamp',
     'mlu_lr': 0.00302524962263332
 }
+add_queue(BEST)
 BEST = {
     **BEST,
     'loss_fn': 'mse',
 }
+add_queue(BEST)
 #38
 #0.6110124333925399
 BEST = {
@@ -58,6 +81,7 @@ BEST = {
     'Optim': 'amsgradw',
     'mlu_lr': 3.2249775587801277e-06
 }
+add_queue(BEST)
 
 #gp_mul
 #131
@@ -73,6 +97,7 @@ BEST = {
     'Optim': 'adamp',
     'mlu_lr': 8.018506311141643e-06
 }
+add_queue(BEST)
 BEST_GP_MUL = BEST
 
 #no_gp
@@ -89,6 +114,7 @@ BEST = {
     'Optim': 'amsgradw',
     'mlu_lr': 2.9959803318996114e-05
 }
+add_queue(BEST)
 BEST_NO_GP = BEST
 
 #continue
@@ -106,6 +132,7 @@ BEST = {
     'Optim': 'adamp',
     'mlu_lr': 0.00011625118291304392
 }
+add_queue(BEST)
 BEST_GP_MUL = BEST
 
 #no_gp
@@ -122,6 +149,7 @@ BEST = {
     'Optim': 'amsgradw',
     'mlu_lr': 1.1902923254730517e-06
 }
+add_queue(BEST)
 BEST_NO_GP = BEST
 BEST_NO_GP_CORRECTED = {
     **BEST_NO_GP,
@@ -129,6 +157,7 @@ BEST_NO_GP_CORRECTED = {
     'loss_fn': 'mae',
     #'n_samples_exp_2': 11,
 }
+add_queue(BEST_NO_GP_CORRECTED)
 
 #reset
 #186
@@ -147,6 +176,7 @@ BEST_GP_MUL = {
     'mlu_lr': 4.6782990477571855e-05,
     'div_batch': False,
 }
+add_queue(BEST_GP_MUL)
 
 #174
 #0.6066197491870728
@@ -165,6 +195,7 @@ BEST_NO_GP = {
     'mlu_lr': 0.0017294928473181666,
     'div_batch': True,
 }
+add_queue(BEST_NO_GP)
 
 BEST_DICT = {
     True: {
@@ -176,3 +207,37 @@ BEST_DICT = {
     }
 }
 BEST_DICT[False][True] = BEST_DICT[False][False]
+
+BEST_DICT = {
+    gp: {
+        gp_multiply: (
+            {
+                model: force_fix(
+                    params, 
+                    PARAM_SPACE=PARAM_SPACE,
+                    DEFAULTS=DEFAULTS,
+                    FORCE=FORCE,
+                    MINIMUMS=MINIMUMS,
+                )
+                for model, params in d2.items()
+            } if d2 is not None else None
+        )
+        for gp_multiply, d2 in d1.items()
+    }
+    for gp, d1 in BEST_DICT.items()
+}
+TRIAL_QUEUE = [force_fix(
+    p,
+    PARAM_SPACE=PARAM_SPACE,
+    DEFAULTS=DEFAULTS,
+    FORCE=FORCE,
+    MINIMUMS=MINIMUMS,
+) for p in TRIAL_QUEUE]
+TRIAL_QUEUE = sanitize_queue(
+    TRIAL_QUEUE,
+    PARAM_SPACE=PARAM_SPACE,
+    DEFAULTS=DEFAULTS,
+    FORCE=FORCE,
+    MINIMUMS=MINIMUMS,
+)
+TRIAL_QUEUE_EXT = list(TRIAL_QUEUE)

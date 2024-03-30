@@ -1,7 +1,29 @@
 from ..params.insurance import BEST
-from .default import update_params
+from .default import update_params, duplicate_params
 from ....params import BOOLEAN, OPTIMS, ACTIVATIONS, LOSSES
+from ....params import force_fix, sanitize_params, sanitize_queue
+
+TRIAL_QUEUE = []
+
+def add_queue(params):
+    TRIAL_QUEUE.append(dict(params))
+DEFAULTS = {
+    "t_start": 0,
+    "t_end": None,
+    "t_range": None,
+    "mlu_target": None,
+    "n_steps": 1,
+    "n_inner_steps": 1,
+    "n_inner_steps_2": 1,
+    "loss_mul": 1,
+    "div_batch": False,
+    "forgive_over": False,
+    "loss_fn": "mae",
+}
+FORCE = {}
+MINIMUMS = {}
 PARAM_SPACE = {
+    **DEFAULTS,
     "n_samples": ("int_exp_2", 512, 2048),
     #"sample_batch_size": ("int_exp_2", 16, 512),
     "t_steps": ("int", 8, 14),
@@ -26,10 +48,10 @@ PARAM_SPACE = {
     "div_batch": BOOLEAN,
     "forgive_over": BOOLEAN,
 }
-PARAM_SPACE = {
-    **{f"ae_{k}": v for k, v in PARAM_SPACE.items()},
-    **{f"gan_{k}": v for k, v in PARAM_SPACE.items()},
-}
+PARAM_SPACE = duplicate_params(PARAM_SPACE)
+DEFAULTS = duplicate_params(DEFAULTS)
+FORCE = duplicate_params(FORCE)
+MINIMUMS = duplicate_params(MINIMUMS)
 update_params(PARAM_SPACE, "ae_t_start", BEST["ae_epochs"] - 100)
 update_params(PARAM_SPACE, "gan_t_start", BEST["gan_epochs"] - 100)
 update_params(PARAM_SPACE, "ae_t_range", BEST["ae_epochs"])
@@ -48,6 +70,8 @@ BEST = {
     'Optim': 'adamw',
     'mlu_lr': 2.456828073201696e-06
 }
+BEST = duplicate_params(BEST)
+add_queue(BEST)
 #27
 #0.11825076436670068
 BEST = {
@@ -59,10 +83,14 @@ BEST = {
     'Optim': 'adamp',
     'mlu_lr': 1.371097624424988e-05
 }
+BEST = duplicate_params(BEST)
+add_queue(BEST)
 BEST = {
     **BEST,
     'loss_fn': 'mse',
 }
+BEST = duplicate_params(BEST)
+add_queue(BEST)
 #Worse
 #19
 #0.11374449305652079
@@ -77,10 +105,14 @@ BEST = {
     'Optim': 'adamp',
     'mlu_lr': 2.1302034187763432e-06
 }
-# BEST = {
-#     **BEST,
-#     'loss_fn': 'mae',
-# }
+BEST = duplicate_params(BEST)
+add_queue(BEST)
+BEST = {
+    **BEST,
+    'loss_fn': 'mae',
+}
+BEST = duplicate_params(BEST)
+add_queue(BEST)
 
 #gp_mul
 #35
@@ -96,6 +128,8 @@ BEST = {
     'Optim': 'adamw',
     'mlu_lr': 1.4927671838151544e-06
 }
+BEST = duplicate_params(BEST)
+add_queue(BEST)
 BEST_GP_MUL = BEST
 #no_gp
 #85
@@ -111,6 +145,8 @@ BEST = {
     'Optim': 'diffgrad',
     'mlu_lr': 7.323689567151148e-06
 }
+BEST = duplicate_params(BEST)
+add_queue(BEST)
 BEST_NO_GP = BEST
 
 #continue
@@ -128,6 +164,8 @@ BEST = {
     'Optim': 'diffgrad',
     'mlu_lr': 1.470229537515357e-06
 }
+BEST = duplicate_params(BEST)
+add_queue(BEST)
 BEST_GP_MUL = BEST
 
 #no_gp
@@ -144,6 +182,8 @@ BEST = {
     'Optim': 'adamp',
     'mlu_lr': 5.901168003963488e-06
 }
+BEST = duplicate_params(BEST)
+add_queue(BEST)
 BEST_NO_GP = BEST
 
 #reset
@@ -177,6 +217,8 @@ BEST_GP_MUL = {
     'gan_mlu_lr': 1.0547200535427459e-05,
     'gan_div_batch': True,
 }
+BEST_GP_MUL = duplicate_params(BEST_GP_MUL)
+add_queue(BEST_GP_MUL)
 
 #68
 #0.01781429301440899
@@ -208,6 +250,8 @@ BEST_NO_GP = {
     'gan_mlu_lr': 0.005859301498753242,
     'gan_div_batch': True,
 }
+BEST_NO_GP = duplicate_params(BEST_NO_GP)
+add_queue(BEST_NO_GP)
 
 BEST_DICT = {
     True: {
@@ -219,3 +263,37 @@ BEST_DICT = {
     }
 }
 BEST_DICT[False][True] = BEST_DICT[False][False]
+
+BEST_DICT = {
+    gp: {
+        gp_multiply: (
+            {
+                model: force_fix(
+                    params, 
+                    PARAM_SPACE=PARAM_SPACE,
+                    DEFAULTS=DEFAULTS,
+                    FORCE=FORCE,
+                    MINIMUMS=MINIMUMS,
+                )
+                for model, params in d2.items()
+            } if d2 is not None else None
+        )
+        for gp_multiply, d2 in d1.items()
+    }
+    for gp, d1 in BEST_DICT.items()
+}
+TRIAL_QUEUE = [force_fix(
+    p,
+    PARAM_SPACE=PARAM_SPACE,
+    DEFAULTS=DEFAULTS,
+    FORCE=FORCE,
+    MINIMUMS=MINIMUMS,
+) for p in TRIAL_QUEUE]
+TRIAL_QUEUE = sanitize_queue(
+    TRIAL_QUEUE,
+    PARAM_SPACE=PARAM_SPACE,
+    DEFAULTS=DEFAULTS,
+    FORCE=FORCE,
+    MINIMUMS=MINIMUMS,
+)
+TRIAL_QUEUE_EXT = list(TRIAL_QUEUE)

@@ -1,4 +1,5 @@
 from ....params import BOOLEAN, ISABMode, LoRAMode, OPTIMS, ACTIVATIONS, LOSSES, SOFTMAXES, GRADIENT_PENALTY_MODES, PMAFFNMode, CombineMode, IndsInitMode
+from ....params import force_fix, sanitize_params, sanitize_queue
 from torch import nn, optim
 from torch.nn import functional as F
 import random
@@ -86,7 +87,7 @@ PARAM_SPACE = {
         ###"nadam",
         ###"adabound",
         ### ##"adahessian",
-        #"adamp",
+        "adamp",
         "diffgrad",
         ### "qhadam",
         ### #"yogi",
@@ -145,7 +146,7 @@ PARAM_SPACE = {
     "inds_init_mode": ("categorical", [
         IndsInitMode.TORCH,
         #IndsInitMode.FIXNORM,
-        #IndsInitMode.XAVIER,
+        IndsInitMode.XAVIER,
     ]),
     # Transformer args
     "tf_d_inner": ("int_exp_2", 512, 512), #512
@@ -153,9 +154,9 @@ PARAM_SPACE = {
     #"tf_n_layers_dec": ("bool_int", 3, 4), #better false
     "tf_n_head": ("int_exp_2", 32, 64), #64
     "tf_activation": ("activation", [
-        ##"tanh", 
+        "tanh", 
         ## ##"sigmoid",
-        #"relu", 
+        "relu", 
         ##"leakyrelu", 
         ##"selu",
         #"prelu",
@@ -169,8 +170,8 @@ PARAM_SPACE = {
     ]),
     "tf_activation_final": ("activation", [
         "leakyhardtanh",
-        ##"leakyhardsigmoid",
-        #"identity",
+        "leakyhardsigmoid",
+        "identity",
     ]),
     "tf_num_inds": ("int_exp_2", 32, 64), #64
     #"tf_layer_norm": BOOLEAN,
@@ -187,18 +188,18 @@ PARAM_SPACE = {
     "ada_d_hid": ("int_exp_2", 1024, 2048), #1024
     "ada_n_layers": ("int", 6, 8),  #7
     "ada_activation": ("activation", [
-        #"tanh",  
+        "tanh",  
         #"sigmoid", 
         #"relu",
         #"leakyrelu", 
         "selu", #best
         #"prelu",
         #"rrelu",
-        #"relu6", 
+        "relu6", 
         #"hardtanh",
         #"hardsigmoid",
         #"softsign",
-        #"leakyhardtanh",
+        "leakyhardtanh",
         #"leakyhardsigmoid",
     ]),
     "ada_activation_final": ("activation", [
@@ -207,7 +208,7 @@ PARAM_SPACE = {
         # ##"relu6",
         # ##"hardtanh",
         # ## #"hardsigmoid",
-        # #"softsign",
+        "softsign",
         # ##"identity",
         # "leakyhardtanh",
         "leakyhardsigmoid", #best
@@ -1431,77 +1432,17 @@ BEST_DICT = {
 }
 BEST_DICT[False][True] = BEST_DICT[False][False]
 
-
-
-def check_param(k, v, PARAM_SPACE=PARAM_SPACE, strict=True):
-    if k not in PARAM_SPACE:
-        if strict:
-            return False
-    elif isinstance(PARAM_SPACE[k], (list, tuple)):
-        cats = PARAM_SPACE[k][1]
-        if isinstance(cats, (list, tuple)):
-            if v not in cats:
-                if k != "fixed_role_model" and not isinstance(v, (float, int)) and k not in DEFAULTS and len(cats) > 1:
-                    return False
-    #elif v != PARAM_SPACE[k]:
-    return True
-
-def check_params(p, PARAM_SPACE=PARAM_SPACE):
-    for k, v in p.items():
-        if not check_param(k, v, PARAM_SPACE=PARAM_SPACE, strict=False):
-            return False
-    return True
-
-def fallback_default(k, v, PARAM_SPACE=PARAM_SPACE, DEFAULTS=DEFAULTS):
-    if k in PARAM_SPACE:
-        dist = PARAM_SPACE[k]
-        if isinstance(dist, (list, tuple)):
-            cats = dist[1]
-            if isinstance(cats, (list, tuple)):
-                if v not in cats:
-                    if k == "fixed_role_model":
-                        return random.choice(cats)
-                    if isinstance(v, (float, int)):
-                        return min(cats, key=lambda x:abs(x-v))
-                    if k in DEFAULTS:
-                        return DEFAULTS[k]
-                    if len(cats) == 1:
-                        return cats[0]
-        elif v != dist:
-            return dist
-    return v
-
-def sanitize_params(p):
-    return {
-        k: fallback_default(
-            k, v,
-        ) for k, v in p.items() if k != "fixed_role_model"# if check_param(k, v)
-    }
-
-def sanitize_queue(TRIAL_QUEUE):
-    TRIAL_QUEUE = [sanitize_params(p) for p in TRIAL_QUEUE if check_params(p)]
-    return TRIAL_QUEUE
-
-def force_fix(params):
-    params = {
-        **DEFAULTS,
-        **params,
-        **FORCE,
-    }
-    for k, v in MINIMUMS.items():
-        if k in params:
-            params[k] = max(v, params[k])
-        else:
-            params[k] = v
-    params = sanitize_params(params)
-    return params
-
-
 BEST_DICT = {
     gp: {
         gp_multiply: (
             {
-                model: force_fix(params)
+                model: force_fix(
+                    params, 
+                    PARAM_SPACE=PARAM_SPACE,
+                    DEFAULTS=DEFAULTS,
+                    FORCE=FORCE,
+                    MINIMUMS=MINIMUMS,
+                )
                 for model, params in d2.items()
             } if d2 is not None else None
         )
@@ -1509,6 +1450,18 @@ BEST_DICT = {
     }
     for gp, d1 in BEST_DICT.items()
 }
-TRIAL_QUEUE = [force_fix(p) for p in TRIAL_QUEUE]
-TRIAL_QUEUE = sanitize_queue(TRIAL_QUEUE)
+TRIAL_QUEUE = [force_fix(
+    p,
+    PARAM_SPACE=PARAM_SPACE,
+    DEFAULTS=DEFAULTS,
+    FORCE=FORCE,
+    MINIMUMS=MINIMUMS,
+) for p in TRIAL_QUEUE]
+TRIAL_QUEUE = sanitize_queue(
+    TRIAL_QUEUE,
+    PARAM_SPACE=PARAM_SPACE,
+    DEFAULTS=DEFAULTS,
+    FORCE=FORCE,
+    MINIMUMS=MINIMUMS,
+)
 TRIAL_QUEUE_EXT = list(TRIAL_QUEUE)

@@ -24,3 +24,16 @@ def update_params(PARAM_SPACE, x, value=0, index=2):
     if x not in PARAM_SPACE:
         return
     PARAM_SPACE[x] = [*PARAM_SPACE[x][:index], value, *PARAM_SPACE[x][index+1:]]
+
+def duplicate_params(params):
+    single_params = {k: v for k, v in params.items() if not (
+        k.startswith("ae_") or k.startswith("gan_")
+    )}
+    double_params = {k: v for k, v in params.items() if (
+        k.startswith("ae_") or k.startswith("gan_")
+    )}
+    return {
+        **double_params,
+        **{f"ae_{k}": v for k, v in single_params.items()},
+        **{f"gan_{k}": v for k, v in single_params.items()},
+    }
