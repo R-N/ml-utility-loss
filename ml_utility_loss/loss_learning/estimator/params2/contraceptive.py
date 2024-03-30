@@ -212,8 +212,8 @@ PARAM_SPACE = {
         ## #"hardsigmoid",
         "softsign", 
         #"identity",
-        "leakyhardsigmoid",
         "leakyhardtanh",
+        "leakyhardsigmoid",
     ]),
     # Head args
     "head_d_hid": ("int_exp_2", 256, 512), #256
