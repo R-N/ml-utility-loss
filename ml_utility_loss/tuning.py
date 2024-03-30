@@ -222,7 +222,7 @@ def map_parameters(params_raw, param_space={}, param_map={}, unpack=True, strict
                     try:
                         v = param_map[type_0][v]
                         done = True # NO BREAK, NO LOOP HERE
-                    except KeyError:
+                    except (KeyError, TypeError):
                         pass
         if not done:
             for k0, v0 in param_space.items():
@@ -237,7 +237,7 @@ def map_parameters(params_raw, param_space={}, param_map={}, unpack=True, strict
                             v = map_parameters({k: v}, args[0], param_map=param_map)[k]
                             done = True
                         break
-                    except KeyError:
+                    except (KeyError, TypeError):
                         pass
         if not done:
             for k0, v0 in param_map.items():
@@ -246,7 +246,7 @@ def map_parameters(params_raw, param_space={}, param_map={}, unpack=True, strict
                         v = v0[v]
                         done = True
                         break
-                    except KeyError:
+                    except (KeyError, TypeError):
                         pass
         if strict and k not in param_space:
             continue
