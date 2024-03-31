@@ -326,19 +326,14 @@ BEST_DICT[False][True] = BEST_DICT[False][False]
 
 BEST_DICT = {
     gp: {
-        gp_multiply: (
-            {
-                model: force_fix(
-                    params, 
-                    PARAM_SPACE=PARAM_SPACE,
-                    DEFAULTS=DEFAULTS,
-                    FORCE=FORCE,
-                    MINIMUMS=MINIMUMS,
-                )
-                for model, params in d2.items()
-            } if d2 is not None else None
+        gp_multiply: force_fix(
+            params, 
+            PARAM_SPACE=PARAM_SPACE,
+            DEFAULTS=DEFAULTS,
+            FORCE=FORCE,
+            MINIMUMS=MINIMUMS,
         )
-        for gp_multiply, d2 in d1.items()
+        for gp_multiply, params in d1.items()
     }
     for gp, d1 in BEST_DICT.items()
 }
