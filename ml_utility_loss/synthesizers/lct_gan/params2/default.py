@@ -23,6 +23,8 @@ PARAM_SPACE = {
 def update_params(PARAM_SPACE, x, value=0, index=2):
     if x not in PARAM_SPACE:
         return
+    if not isinstance(PARAM_SPACE[x], (list, tuple)):
+        return
     PARAM_SPACE[x] = [*PARAM_SPACE[x][:index], value, *PARAM_SPACE[x][index+1:]]
 
 def duplicate_params(params):
