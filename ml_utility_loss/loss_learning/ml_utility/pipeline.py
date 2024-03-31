@@ -2,6 +2,8 @@ from .wrapper import CatBoostModel, NaiveModel, extract_class_names
 from .preprocessing import create_pool
 from catboost import Pool, CatBoostError
 import pandas as pd
+import numpy as np
+import torch
 
 def eval_ml_utility(
     datasets,
@@ -14,9 +16,14 @@ def eval_ml_utility(
 ):
     train, test = datasets
 
-    if isinstance(train, pd.DataFrame) and isinstance(test, pd.DataFrame):
-        train = train[test.columns]
-        train = train.astype(test.dtypes)
+    if isinstance(test, pd.DataFrame):
+        if torch.is_tensor(train):
+            train = train.detach().cpu().numpy()
+        if isinstance(train, np.ndarray):
+            train = pd.DataFframe(train, columns=list(test.columns))
+        if isinstance(train, pd.DataFrame):
+            train = train[test.columns]
+            train = train.astype(test.dtypes)
 
     if task == "multiclass" and not class_names:
         class_names = extract_class_names(target, train, test)
@@ -38,6 +45,9 @@ def eval_ml_utility(
 
             model.fit(train, test)
 
+            value = model.eval(test)
+            return value
+
         except CatBoostError as ex:
             msg = str(ex)
             if ("All train targets are equal" in msg) or ("Target contains only one unique value" in msg) or ("All features are either constant or ignored" in msg):
@@ -46,9 +56,6 @@ def eval_ml_utility(
                 raise
         except PermissionError:
             pass
-
-        value = model.eval(test)
-        return value
 
 def eval_ml_utility_2(
     synth,
