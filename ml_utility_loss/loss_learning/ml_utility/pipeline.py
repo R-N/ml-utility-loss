@@ -15,6 +15,9 @@ def eval_ml_utility(
         try:
             train, test = datasets
 
+            train = train[test.columns]
+            train = train.astype(test.dtypes)
+
             if task == "multiclass" and not class_names:
                 class_names = extract_class_names(target, train, test)
 
