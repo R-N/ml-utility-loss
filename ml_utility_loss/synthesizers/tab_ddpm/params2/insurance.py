@@ -224,6 +224,7 @@ BEST_GP_MUL = {
 }
 add_queue(BEST_GP_MUL)
 BEST_GP_MUL = {
+    **BEST_GP_MUL,
     'forgive_over': True,
 }
 add_queue(BEST_GP_MUL)
