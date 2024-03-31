@@ -305,6 +305,7 @@ PARAM_MAP = {
 }
 
 DROP_PARAM = "__DROP_PARAM__"
+BOOL_FALSE = "__BOOL_FALSE__"
 
 def check_param(k, v, PARAM_SPACE={}, DEFAULTS={}, IGNORES=["fixed_role_model"], strict=True, drop_unknown_cat=True, **kwargs):
     if k not in PARAM_SPACE:
@@ -342,6 +343,8 @@ def fallback_default(k, v, PARAM_SPACE={}, DEFAULTS={}, RANDOMS=["fixed_role_mod
                         return DROP_PARAM
                     if k in RANDOMS:
                         return random.choice(cats)
+            elif v is None or v is False:
+                return BOOL_FALSE
         elif v != dist:
             return dist
     return v
@@ -353,6 +356,11 @@ def sanitize_params(p, REMOVES=["fixed_role_model"], **kwargs):
         ) for k, v in p.items() if k not in REMOVES# if check_param(k, v)
     }
     p = {k: v for k, v in p.items() if v != DROP_PARAM}
+    for k, v in p.items():
+        if v == BOOL_FALSE:
+            p.pop(k)
+            p[f"{k}_bool"] = False
+            p[f"{k}_boolc"] = False
     return p
 
 def sanitize_queue(TRIAL_QUEUE, **kwargs):
