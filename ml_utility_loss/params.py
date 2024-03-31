@@ -356,7 +356,7 @@ def sanitize_params(p, REMOVES=["fixed_role_model"], **kwargs):
         ) for k, v in p.items() if k not in REMOVES# if check_param(k, v)
     }
     p = {k: v for k, v in p.items() if v != DROP_PARAM}
-    for k, v in p.items():
+    for k, v in list(p.items()):
         if v == BOOL_FALSE:
             p.pop(k)
             p[f"{k}_bool"] = False
