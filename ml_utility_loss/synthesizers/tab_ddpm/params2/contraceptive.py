@@ -44,7 +44,7 @@ PARAM_SPACE = {
         "adamp",
         #"diffgrad",
     ]),
-    "mlu_lr": ("log_float", 1e-6, 1e-2),
+    "mlu_lr": ("log_float", 1e-6, 2e-3),
     "div_batch": BOOLEAN,
     "forgive_over": BOOLEAN,
 }
@@ -189,6 +189,32 @@ BEST_NO_GP = {
     'div_batch': False,
 }
 add_queue(BEST_NO_GP)
+
+#reset
+#29
+#0.5247049223576736
+BEST_GP_MUL = {
+    'forgive_over': False,
+    'n_samples_exp_2': 9,
+    't_steps_exp_2': 11,
+    't_start': 5000,
+    't_end_bool': True,
+    't_end': 44415,
+    'mlu_target': None,
+    'n_steps': 2,
+    'n_inner_steps_exp_2': 0,
+    'n_inner_steps_2_exp_2': 1,
+    'loss_fn': 'mse',
+    'Optim': 'adamp',
+    'mlu_lr': 0.0015344949187174634,
+    'div_batch': False,
+}
+add_queue(BEST_GP_MUL)
+BEST_GP_MUL = {
+    'forgive_over': True,
+    'loss_fn': 'mae',
+}
+add_queue(BEST_GP_MUL)
 
 BEST_DICT = {
     True: {
