@@ -76,6 +76,7 @@ def objective(
             seed_(i)
             n = len(train)
             synth = gan.sample(n)[:n]
+            print("catboost params 0", ml_utility_params)
             value = eval_ml_utility_2(
                 synth=synth,
                 train=train,

@@ -88,6 +88,7 @@ class CatBoostModel:
         }
         if class_names:
             self.params["class_names"] = class_names
+        print("catboost params", self.params)
         self.model = self.Model(
             **self.params
         )
