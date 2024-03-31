@@ -67,8 +67,8 @@ def objective(
         if "Mix of label input types" in msg:
             raise TrialPruned(msg)
         raise
-    except CatBoostError:
-        raise TrialPruned()
+    except CatBoostError as ex:
+        raise TrialPruned(str(ex))
     except OutOfMemoryError as ex:
         clear_memory()
         raise TrialPruned(str(ex))

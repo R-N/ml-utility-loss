@@ -79,8 +79,8 @@ def objective(
     except OutOfMemoryError as ex:
         clear_memory()
         raise TrialPruned(str(ex))
-    except CatBoostError:
-        raise TrialPruned()
+    except CatBoostError as ex:
+        raise TrialPruned(str(ex))
     except RuntimeError as ex:
         msg = str(ex)
         if "outofmemory" in msg.lower().replace(" ", ""):
