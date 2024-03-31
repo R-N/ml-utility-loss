@@ -1,6 +1,7 @@
 from .wrapper import CatBoostModel, NaiveModel, extract_class_names
 from .preprocessing import create_pool
 from catboost import Pool, CatBoostError
+import pandas as pd
 
 def eval_ml_utility(
     datasets,
@@ -11,16 +12,22 @@ def eval_ml_utility(
     class_names=None,
     **model_params
 ):
+    train, test = datasets
+
+    if isinstance(train, pd.DataFrame) and isinstance(test, pd.DataFrame):
+        train = train[test.columns]
+        train = train.astype(test.dtypes)
+
+    if task == "multiclass" and not class_names:
+        class_names = extract_class_names(target, train, test)
+
+    if not isinstance(train, Pool):
+        train = create_pool(train, target=target, cat_features=cat_features)
+    if not isinstance(test, Pool):
+        test = create_pool(test, target=target, cat_features=cat_features)
+
     while True:
         try:
-            train, test = datasets
-
-            train = train[test.columns]
-            train = train.astype(test.dtypes)
-
-            if task == "multiclass" and not class_names:
-                class_names = extract_class_names(target, train, test)
-
             model = CatBoostModel(
                 task=task,
                 checkpoint_dir=checkpoint_dir,
@@ -28,11 +35,6 @@ def eval_ml_utility(
                 target=target,
                 **model_params
             )
-
-            if not isinstance(train, Pool):
-                train = create_pool(train, target=target, cat_features=cat_features)
-            if not isinstance(test, Pool):
-                test = create_pool(test, target=target, cat_features=cat_features)
 
             model.fit(train, test)
 
