@@ -20,7 +20,7 @@ def eval_ml_utility(
         if torch.is_tensor(train):
             train = train.detach().cpu().numpy()
         if isinstance(train, np.ndarray):
-            train = pd.DataFframe(train, columns=list(test.columns))
+            train = pd.DataFrame(train, columns=list(test.columns))
         if isinstance(train, pd.DataFrame):
             train = train[test.columns]
             train = train.astype(test.dtypes)
