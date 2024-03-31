@@ -30,8 +30,8 @@ insurance.TRIAL_QUEUE_EXT = insurance.sanitize_queue(
 )
 treatment.TRIAL_QUEUE_EXT = treatment.sanitize_queue(
     treatment.TRIAL_QUEUE_EXT,
-    PARAM_SPACE=insurance.PARAM_SPACE,
-    DEFAULTS=insurance.DEFAULTS,
-    FORCE=insurance.FORCE,
-    MINIMUMS=insurance.MINIMUMS,
+    PARAM_SPACE=treatment.PARAM_SPACE,
+    DEFAULTS=treatment.DEFAULTS,
+    FORCE=treatment.FORCE,
+    MINIMUMS=treatment.MINIMUMS,
 )
