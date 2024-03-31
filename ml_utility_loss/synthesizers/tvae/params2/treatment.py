@@ -236,7 +236,7 @@ BEST_DICT = {
             DEFAULTS=DEFAULTS,
             FORCE=FORCE,
             MINIMUMS=MINIMUMS,
-        )
+        ) if params is not None else None
         for gp_multiply, params in d1.items()
     }
     for gp, d1 in BEST_DICT.items()
