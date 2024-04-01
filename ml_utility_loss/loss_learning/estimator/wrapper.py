@@ -40,6 +40,8 @@ class MLUtilityTrainer:
         self.batched = batched
         self.model = model
         self.t_steps = t_steps
+        if not t_start:
+            t_start = 0
         if (not t_end) and isinstance(t_range, (int, float)):
             t_end = t_start + t_range
         #assert (not t_end) or ((t_end - t_start)//(t_steps+1)) >= 1, "t_start low must be lower than high t_end and the interval between must be at least t_steps +1"
