@@ -259,6 +259,40 @@ BEST_NO_GP = {
 BEST_NO_GP = duplicate_params(BEST_NO_GP)
 add_queue(BEST_NO_GP)
 
+#reset
+#5
+#0.4585709103393869
+BEST_GP_MUL = {
+    'ae_t_start': 0,
+    'ae_t_end_bool': False,
+    'ae_mlu_target': None,
+    'ae_n_steps': 2,
+    'ae_n_inner_steps_exp_2': 1,
+    'ae_n_inner_steps_2_exp_2': 0,
+    'ae_div_batch': False,
+    'ae_forgive_over': False,
+    'ae_loss_fn': 'mae',
+    'ae_n_samples_exp_2': 4,
+    'ae_t_steps': 11,
+    'ae_Optim': 'amsgradw',
+    'ae_mlu_lr': 4.352660169106302e-05,
+    'gan_t_start': 0,
+    'gan_t_end_bool': False,
+    'gan_mlu_target': None,
+    'gan_n_steps': 2,
+    'gan_n_inner_steps_exp_2': 1,
+    'gan_n_inner_steps_2_exp_2': 0,
+    'gan_div_batch': False,
+    'gan_forgive_over': False,
+    'gan_loss_fn': 'mae',
+    'gan_n_samples_exp_2': 4,
+    'gan_t_steps': 11,
+    'gan_Optim': 'amsgradw',
+    'gan_mlu_lr': 4.352660169106302e-05,
+}
+BEST_GP_MUL = duplicate_params(BEST_GP_MUL)
+add_queue(BEST_GP_MUL)
+
 BEST_DICT = {
     True: {
         True: BEST_GP_MUL,
