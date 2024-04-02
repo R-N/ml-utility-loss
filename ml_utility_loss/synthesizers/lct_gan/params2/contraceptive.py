@@ -292,6 +292,12 @@ BEST_GP_MUL = {
 }
 BEST_GP_MUL = duplicate_params(BEST_GP_MUL)
 add_queue(BEST_GP_MUL)
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'ae_forgive_over': True,
+    'gan_forgive_over': True,
+}
+add_queue(BEST_GP_MUL)
 
 BEST_DICT = {
     True: {
