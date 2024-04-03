@@ -16,7 +16,7 @@ DEFAULTS = {
     "n_inner_steps_2": 1,
     "loss_mul": 1,
     "div_batch": False,
-    "forgive_over": False,
+    "forgive_over": True,
     "loss_fn": "mae",
 }
 FORCE = {}
@@ -46,7 +46,7 @@ PARAM_SPACE = {
     ]),
     "mlu_lr": ("log_float", 1e-6, 2e-3),
     "div_batch": BOOLEAN,
-    "forgive_over": BOOLEAN,
+    #"forgive_over": BOOLEAN,
 }
 #58
 #0.5708228184577285
