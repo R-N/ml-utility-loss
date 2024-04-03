@@ -26,7 +26,7 @@ PARAM_SPACE = {
     "n_samples": ("int_exp_2", 16, 1024),
     #"sample_batch_size": ("int_exp_2", 256, 1024),
     "t_steps": ("int_exp_2", 256, 1024),
-    "t_start": ("int", 0, 66645, 5000),
+    "t_start": ("bool_int", 0, 66645, 5000),
     "t_end": ("bool_int", 66645, 76645, 2000, False, True),
     "mlu_target": ("categorical", [None, 1.0]),
     "n_steps": ("int", 1, 3),
