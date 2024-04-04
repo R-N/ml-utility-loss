@@ -152,5 +152,6 @@ def objective_mlu_2(
         assert objective_model is not None
         assert trial is not None
         mlu_model = objective_model(trial, return_model=True)
+        clear_memory()
     assert mlu_model is not None
     return objective_mlu(*args, mlu_model=mlu_model, trial=trial, **kwargs)
