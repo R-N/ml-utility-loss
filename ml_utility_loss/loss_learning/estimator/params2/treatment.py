@@ -61,7 +61,7 @@ DEFAULTS = {
     "grad_clip": 1.0,
     "bias_lr_mul": 1.0,
     "synth_data": 2,
-    "inds_init_mode": IndsInitMode.TORCH,
+    "inds_init_mode": IndsInitMode.FIXNORM,
     "loss_balancer_beta": 0.8,
     "loss_balancer_r": 0.98,
 }
