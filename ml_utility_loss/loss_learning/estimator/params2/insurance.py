@@ -186,7 +186,7 @@ PARAM_SPACE = {
         #PMAFFNMode.SHARED,
     )),
     # Adapter args
-    "ada_d_hid": ("int_exp_2", 256, 256), #256
+    "ada_d_hid": ("categorical", [256]), #256
     "ada_n_layers": ("int", 7, 8), #7
     "ada_activation": ("activation", [
         #"tanh",  
@@ -1840,5 +1840,5 @@ TRIAL_QUEUE = sanitize_queue(
     FORCE=FORCE,
     MINIMUMS=MINIMUMS,
 )
-TRIAL_QUEUE = list(reversed(TRIAL_QUEUE))
+TRIAL_QUEUE = reversed(TRIAL_QUEUE)
 TRIAL_QUEUE_EXT = list(TRIAL_QUEUE)
