@@ -112,9 +112,13 @@ def objective_mlu(
     Optim=torch.optim.AdamW,
     mlu_lr=1e-3,
     div_batch=False,
-    forgive_over=False,
+    forgive_over=True,
+    mlu_loss_fn=None,
+    mlu_Optim=None,
     **kwargs
 ):
+    loss_fn = mlu_loss_fn or loss_fn
+    Optim = mlu_Optim or Optim
     mlu_trainer = MLUtilityTrainer(
         model=mlu_model["tab_ddpm_concat"],
         dataset=mlu_dataset,

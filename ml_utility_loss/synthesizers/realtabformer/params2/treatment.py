@@ -18,6 +18,7 @@ DEFAULTS = {
     "div_batch": False,
     "forgive_over": True,
     "loss_fn": "mae",
+    "mlu_loss_fn": "mae",
 }
 FORCE = {}
 MINIMUMS = {}
@@ -32,12 +33,12 @@ PARAM_SPACE = {
     "n_steps": ("int", 1, 4),
     "n_inner_steps": ("int_exp_2", 1, 4),
     "n_inner_steps_2": ("int_exp_2", 1, 4),
-    "loss_fn": ("loss", [
+    "mlu_loss_fn": ("loss", [
         "mse",
         "mae",
     ]),
     "loss_mul": 1,
-    "Optim": ("optimizer", [
+    "mlu_Optim": ("optimizer", [
         #"adamw",  
         #"amsgradw",
         "adamp",

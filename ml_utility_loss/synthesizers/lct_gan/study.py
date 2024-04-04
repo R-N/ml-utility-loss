@@ -133,7 +133,9 @@ def objective_mlu(
     ae_Optim=torch.optim.AdamW,
     ae_mlu_lr=1e-3,
     ae_div_batch=False,
-    ae_forgive_over=False,
+    ae_forgive_over=True,
+    ae_mlu_loss_fn=None,
+    ae_mlu_Optim=None,
     gan_n_samples=512,
     gan_mlu_target=None,
     gan_t_steps=5,
@@ -148,9 +150,15 @@ def objective_mlu(
     gan_Optim=torch.optim.AdamW,
     gan_mlu_lr=1e-3,
     gan_div_batch=False,
-    gan_forgive_over=False,
+    gan_forgive_over=True,
+    gan_mlu_loss_fn=None,
+    gan_mlu_Optim=None,
     **kwargs
 ):
+    ae_loss_fn = ae_mlu_loss_fn or ae_loss_fn
+    ae_Optim = ae_mlu_Optim or ae_Optim
+    gan_loss_fn = gan_mlu_loss_fn or gan_loss_fn
+    gan_Optim = gan_mlu_Optim or gan_Optim
     ae_mlu_trainer = MLUtilityTrainer(
         model=mlu_model["lct_gan"],
         dataset=mlu_dataset,
