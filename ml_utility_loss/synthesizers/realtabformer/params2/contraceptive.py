@@ -57,15 +57,15 @@ BEST = {
     'n_steps': 4,
     'n_inner_steps_exp_2': 0,
     'n_inner_steps_2_exp_2': 0,
-    'loss_fn': 'mire',
+    'mlu_loss_fn': 'mire',
     'loss_mul': 0.019325689134243883,
-    'Optim': 'diffgrad',
+    'mlu_Optim': 'diffgrad',
     'mlu_lr': 0.00014520240030855788
 }
 add_queue(BEST)
 BEST = {
     **BEST,
-    'loss_fn': 'mae',
+    'mlu_loss_fn': 'mae',
 }
 add_queue(BEST)
 #29
@@ -77,14 +77,14 @@ BEST = {
     'n_steps': 4,
     'n_inner_steps_exp_2': 0,
     'n_inner_steps_2_exp_2': 2,
-    'loss_fn': 'mse',
-    'Optim': 'adamw',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'adamw',
     'mlu_lr': 1.6301752153438178e-05
 }
 add_queue(BEST)
 BEST = {
     **BEST,
-    'loss_fn': 'mae',
+    'mlu_loss_fn': 'mae',
 }
 add_queue(BEST)
 
@@ -98,8 +98,8 @@ BEST = {
     'n_steps': 4,
     'n_inner_steps_exp_2': 0,
     'n_inner_steps_2_exp_2': 3,
-    'loss_fn': 'mae',
-    'Optim': 'amsgradw',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'amsgradw',
     'mlu_lr': 1.2816312251850528e-05
 }
 add_queue(BEST)
@@ -115,8 +115,8 @@ BEST = {
     'n_steps': 4,
     'n_inner_steps_exp_2': 1,
     'n_inner_steps_2_exp_2': 0,
-    'loss_fn': 'mae',
-    'Optim': 'adamw',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'adamw',
     'mlu_lr': 6.754073028898102e-05
 }
 add_queue(BEST)
@@ -133,8 +133,8 @@ BEST = {
     'n_steps': 4,
     'n_inner_steps_exp_2': 2,
     'n_inner_steps_2_exp_2': 3,
-    'loss_fn': 'mse',
-    'Optim': 'adamw',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'adamw',
     'mlu_lr': 9.529180896803853e-05
 }
 add_queue(BEST)
@@ -169,8 +169,8 @@ BEST_GP_MUL = {
     'n_steps': 2,
     'n_inner_steps_exp_2': 1,
     'n_inner_steps_2_exp_2': 0,
-    'loss_fn': 'mse',
-    'Optim': 'adamw',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'adamw',
     'mlu_lr': 1.5538942494479487e-05,
     'div_batch': True,
 }
@@ -188,8 +188,8 @@ BEST_NO_GP = {
     'n_steps': 4,
     'n_inner_steps_exp_2': 1,
     'n_inner_steps_2_exp_2': 1,
-    'loss_fn': 'mae',
-    'Optim': 'amsgradw',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'amsgradw',
     'mlu_lr': 5.0854594544926506e-05,
     'div_batch': False,
 }
@@ -208,8 +208,8 @@ BEST_GP_MUL = {
     'n_steps': 3,
     'n_inner_steps_exp_2': 0,
     'n_inner_steps_2_exp_2': 0,
-    'loss_fn': 'mse',
-    'Optim': 'amsgradw',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'amsgradw',
     'mlu_lr': 4.6734238850098306e-05,
     'div_batch': False,
     'forgive_over': True,

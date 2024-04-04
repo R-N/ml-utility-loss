@@ -68,8 +68,8 @@ BEST = {
     't_steps': 12,
     'mlu_target': None,
     'n_steps': 2,
-    'loss_fn': 'mse',
-    'Optim': 'amsgradw',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'amsgradw',
     'mlu_lr': 3.625415799027284e-06
 }
 BEST = duplicate_params(BEST)
@@ -82,15 +82,15 @@ BEST = {
     't_steps': 25,
     'mlu_target': 1.0,
     'n_steps': 3,
-    'loss_fn': 'mire',
-    'Optim': 'adamp',
+    'mlu_loss_fn': 'mire',
+    'mlu_Optim': 'adamp',
     'mlu_lr': 7.513511695583268e-05
 }
 BEST = duplicate_params(BEST)
 add_queue(BEST)
 BEST = {
     **BEST,
-    'loss_fn': 'mse',
+    'mlu_loss_fn': 'mse',
 }
 BEST = duplicate_params(BEST)
 add_queue(BEST)
@@ -104,15 +104,15 @@ BEST = {
     'n_steps': 2,
     'n_inner_steps_exp_2': 1,
     'n_inner_steps_2_exp_2': 2,
-    'loss_fn': 'mse',
-    'Optim': 'adamp',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'adamp',
     'mlu_lr': 5.6334531381894664e-06
 }
 BEST = duplicate_params(BEST)
 add_queue(BEST)
 BEST = {
     **BEST,
-    'loss_fn': 'mae',
+    'mlu_loss_fn': 'mae',
 }
 BEST = duplicate_params(BEST)
 add_queue(BEST)
@@ -128,8 +128,8 @@ BEST = {
     'n_steps': 1,
     'n_inner_steps_exp_2': 2,
     'n_inner_steps_2_exp_2': 1,
-    'loss_fn': 'mae',
-    'Optim': 'amsgradw',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'amsgradw',
     'mlu_lr': 6.907182759642053e-05
 }
 #"""
@@ -146,8 +146,8 @@ BEST = {
     'n_steps': 2,
     'n_inner_steps_exp_2': 2,
     'n_inner_steps_2_exp_2': 2,
-    'loss_fn': 'mae',
-    'Optim': 'amsgradw',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'amsgradw',
     'mlu_lr': 2.4651874045626716e-05
 }
 BEST = duplicate_params(BEST)
@@ -164,8 +164,8 @@ BEST = {
     'n_steps': 1,
     'n_inner_steps_exp_2': 2,
     'n_inner_steps_2_exp_2': 0,
-    'loss_fn': 'mae',
-    'Optim': 'amsgradw',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'amsgradw',
     'mlu_lr': 1.6669293523684996e-06
 }
 BEST = duplicate_params(BEST)
@@ -183,8 +183,8 @@ BEST = {
     'n_steps': 1,
     'n_inner_steps_exp_2': 0,
     'n_inner_steps_2_exp_2': 2,
-    'loss_fn': 'mse',
-    'Optim': 'adamp',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'adamp',
     'mlu_lr': 2.7749954338890805e-06
 }
 BEST = duplicate_params(BEST)
@@ -207,8 +207,8 @@ BEST = {
     'n_steps': 2,
     'n_inner_steps_exp_2': 1,
     'n_inner_steps_2_exp_2': 0,
-    'loss_fn': 'mae',
-    'Optim': 'amsgradw',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'amsgradw',
     'mlu_lr': 3.641124321150397e-05
 }
 BEST = duplicate_params(BEST)
@@ -229,7 +229,7 @@ BEST_GP_MUL = {
     'ae_n_inner_steps_exp_2': 0,
     'ae_n_inner_steps_2_exp_2': 1,
     'ae_loss_fn': 'mse',
-    'ae_Optim': 'amsgradw',
+    'ae_mlu_Optim': 'amsgradw',
     'ae_mlu_lr': 0.001112561662305946,
     'ae_div_batch': False,
     'gan_n_samples_exp_2': 6,
@@ -241,7 +241,7 @@ BEST_GP_MUL = {
     'gan_n_inner_steps_exp_2': 0,
     'gan_n_inner_steps_2_exp_2': 1,
     'gan_loss_fn': 'mae',
-    'gan_Optim': 'adamp',
+    'gan_mlu_Optim': 'adamp',
     'gan_mlu_lr': 0.009314584600663187,
     'gan_div_batch': False,
 }
@@ -260,7 +260,7 @@ BEST_NO_GP = {
     'ae_n_inner_steps_exp_2': 1,
     'ae_n_inner_steps_2_exp_2': 0,
     'ae_loss_fn': 'mae',
-    'ae_Optim': 'adamp',
+    'ae_mlu_Optim': 'adamp',
     'ae_mlu_lr': 7.588772140825818e-05,
     'ae_div_batch': True,
     'gan_n_samples_exp_2': 5,
@@ -272,7 +272,7 @@ BEST_NO_GP = {
     'gan_n_inner_steps_exp_2': 1,
     'gan_n_inner_steps_2_exp_2': 2,
     'gan_loss_fn': 'mae',
-    'gan_Optim': 'adamp',
+    'gan_mlu_Optim': 'adamp',
     'gan_mlu_lr': 8.88610897344026e-06,
     'gan_div_batch': True,
 }
@@ -292,7 +292,7 @@ BEST_GP_MUL = {
     'ae_n_inner_steps_exp_2': 1,
     'ae_n_inner_steps_2_exp_2': 0,
     'ae_loss_fn': 'mse',
-    'ae_Optim': 'amsgradw',
+    'ae_mlu_Optim': 'amsgradw',
     'ae_mlu_lr': 8.396999208446065e-06,
     'ae_div_batch': True,
     'ae_forgive_over': True,
@@ -306,7 +306,7 @@ BEST_GP_MUL = {
     'gan_n_inner_steps_exp_2': 0,
     'gan_n_inner_steps_2_exp_2': 0,
     'gan_loss_fn': 'mse',
-    'gan_Optim': 'amsgradw',
+    'gan_mlu_Optim': 'amsgradw',
     'gan_mlu_lr': 5.031627080485319e-05,
     'gan_div_batch': False,
     'gan_forgive_over': True,

@@ -68,16 +68,16 @@ BEST = {
     't_steps': 4,
     'mlu_target': 1.0,
     'n_steps': 3,
-    'loss_fn': 'mse',
+    'mlu_loss_fn': 'mse',
     'loss_mul': 0.11145498455226478,
-    'Optim': 'amsgradw',
+    'mlu_Optim': 'amsgradw',
     'mlu_lr': 1.3353088732159107e-06
 }
 BEST = duplicate_params(BEST)
 add_queue(BEST)
 BEST = {
     **BEST,
-    'loss_fn': 'mse',
+    'mlu_loss_fn': 'mse',
 }
 BEST = duplicate_params(BEST)
 add_queue(BEST)
@@ -88,15 +88,15 @@ BEST = {
     't_steps': 16,
     'mlu_target': None,
     'n_steps': 3,
-    'loss_fn': 'mse',
-    'Optim': 'amsgradw',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'amsgradw',
     'mlu_lr': 5.450191609312942e-06
 }
 BEST = duplicate_params(BEST)
 add_queue(BEST)
 BEST = {
     **BEST,
-    'loss_fn': 'mse',
+    'mlu_loss_fn': 'mse',
 }
 BEST = duplicate_params(BEST)
 add_queue(BEST)
@@ -109,15 +109,15 @@ BEST = {
     'n_steps': 1,
     'n_inner_steps_exp_2': 2,
     'n_inner_steps_2_exp_2': 1,
-    'loss_fn': 'mse',
-    'Optim': 'amsgradw',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'amsgradw',
     'mlu_lr': 4.389341093321088e-06
 }
 BEST = duplicate_params(BEST)
 add_queue(BEST)
 BEST = {
     **BEST,
-    'loss_fn': 'mae',
+    'mlu_loss_fn': 'mae',
 }
 BEST = duplicate_params(BEST)
 add_queue(BEST)
@@ -132,8 +132,8 @@ BEST = {
     'n_steps': 1,
     'n_inner_steps_exp_2': 1,
     'n_inner_steps_2_exp_2': 0,
-    'loss_fn': 'mse',
-    'Optim': 'amsgradw',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'amsgradw',
     'mlu_lr': 4.352660169106302e-05
 }
 BEST = duplicate_params(BEST)
@@ -141,7 +141,7 @@ add_queue(BEST)
 BEST_GP_MUL = BEST
 BEST_GP_MUL_CORRECTED = {
     **BEST_GP_MUL,
-    'loss_fn': 'mae',
+    'mlu_loss_fn': 'mae',
     'mlu_target': None,
     'n_steps': 2,
     't_steps': 11,
@@ -159,8 +159,8 @@ BEST = {
     'n_steps': 4,
     'n_inner_steps_exp_2': 3,
     'n_inner_steps_2_exp_2': 0,
-    'loss_fn': 'mse',
-    'Optim': 'amsgradw',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'amsgradw',
     'mlu_lr': 3.1091539490467943e-06
 }
 BEST = duplicate_params(BEST)
@@ -181,8 +181,8 @@ BEST = {
     'n_steps': 4,
     'n_inner_steps_exp_2': 3,
     'n_inner_steps_2_exp_2': 2,
-    'loss_fn': 'mae',
-    'Optim': 'amsgradw',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'amsgradw',
     'mlu_lr': 8.411116149887689e-05
 }
 BEST = duplicate_params(BEST)
@@ -190,7 +190,7 @@ add_queue(BEST)
 BEST_NO_GP = BEST
 BEST_NO_GP_CORRECTED = {
     **BEST_NO_GP,
-    "loss_fn": "mse",
+    "mlu_loss_fn": "mse",
 }
 BEST_NO_GP_CORRECTED = duplicate_params(BEST_NO_GP_CORRECTED)
 add_queue(BEST_NO_GP_CORRECTED)
@@ -209,7 +209,7 @@ BEST_GP_MUL = {
     'ae_n_inner_steps_exp_2': 1,
     'ae_n_inner_steps_2_exp_2': 2,
     'ae_loss_fn': 'mae',
-    'ae_Optim': 'diffgrad',
+    'ae_mlu_Optim': 'diffgrad',
     'ae_mlu_lr': 0.0067611667917361435,
     'ae_div_batch': True,
     'gan_n_samples_exp_2': 7,
@@ -221,7 +221,7 @@ BEST_GP_MUL = {
     'gan_n_inner_steps_exp_2': 0,
     'gan_n_inner_steps_2_exp_2': 1,
     'gan_loss_fn': 'mse',
-    'gan_Optim': 'diffgrad',
+    'gan_mlu_Optim': 'diffgrad',
     'gan_mlu_lr': 3.824435914416134e-06,
     'gan_div_batch': False,
 }
@@ -240,7 +240,7 @@ BEST_NO_GP = {
     'ae_n_inner_steps_exp_2': 3,
     'ae_n_inner_steps_2_exp_2': 0,
     'ae_loss_fn': 'mse',
-    'ae_Optim': 'amsgradw',
+    'ae_mlu_Optim': 'amsgradw',
     'ae_mlu_lr': 0.007192298998852391,
     'ae_div_batch': False,
     'gan_n_samples_exp_2': 10,
@@ -253,7 +253,7 @@ BEST_NO_GP = {
     'gan_n_inner_steps_exp_2': 2,
     'gan_n_inner_steps_2_exp_2': 2,
     'gan_loss_fn': 'mae',
-    'gan_Optim': 'diffgrad',
+    'gan_mlu_Optim': 'diffgrad',
     'gan_mlu_lr': 0.0003414484015162617,
     'gan_div_batch': False,
 }
@@ -275,7 +275,7 @@ BEST_GP_MUL = {
     'ae_loss_fn': 'mae',
     'ae_n_samples_exp_2': 4,
     'ae_t_steps': 11,
-    'ae_Optim': 'amsgradw',
+    'ae_mlu_Optim': 'amsgradw',
     'ae_mlu_lr': 4.352660169106302e-05,
     'gan_t_start': 0,
     'gan_t_end_bool': False,
@@ -288,7 +288,7 @@ BEST_GP_MUL = {
     'gan_loss_fn': 'mae',
     'gan_n_samples_exp_2': 4,
     'gan_t_steps': 11,
-    'gan_Optim': 'amsgradw',
+    'gan_mlu_Optim': 'amsgradw',
     'gan_mlu_lr': 4.352660169106302e-05,
 }
 BEST_GP_MUL = duplicate_params(BEST_GP_MUL)

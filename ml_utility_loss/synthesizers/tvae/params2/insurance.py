@@ -55,15 +55,15 @@ BEST = {
     't_steps': 5,
     'mlu_target': 1.0,
     'n_steps': 12,
-    'loss_fn': 'mae',
+    'mlu_loss_fn': 'mae',
     'loss_mul': 7.632449003380145,
-    'Optim': 'adamp',
+    'mlu_Optim': 'adamp',
     'mlu_lr': 1e-3,
 }
 add_queue(BEST)
 BEST = {
     **BEST,
-    'loss_fn': 'mse',
+    'mlu_loss_fn': 'mse',
 }
 add_queue(BEST)
 #3
@@ -75,14 +75,14 @@ BEST = {
     'n_steps': 3,
     'n_inner_steps_exp_2': 2,
     'n_inner_steps_2_exp_2': 2,
-    'loss_fn': 'mae',
-    'Optim': 'adamw',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'adamw',
     'mlu_lr': 0.00013430770909688463
 }
 add_queue(BEST)
 BEST = {
     **BEST,
-    'Optim': 'adamp',
+    'mlu_Optim': 'adamp',
     'mlu_target': None,
 }
 add_queue(BEST)
@@ -97,8 +97,8 @@ BEST = {
     'n_steps': 4,
     'n_inner_steps_exp_2': 2,
     'n_inner_steps_2_exp_2': 1,
-    'loss_fn': 'mse',
-    'Optim': 'adamw',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'adamw',
     'mlu_lr': 0.006113162183595971
 }
 add_queue(BEST)
@@ -114,8 +114,8 @@ BEST = {
     'n_steps': 4,
     'n_inner_steps_exp_2': 2,
     'n_inner_steps_2_exp_2': 0,
-    'loss_fn': 'mae',
-    'Optim': 'adamw',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'adamw',
     'mlu_lr': 0.009790129270230475
 }
 add_queue(BEST)
@@ -132,16 +132,16 @@ BEST = {
     'n_steps': 4,
     'n_inner_steps_exp_2': 1,
     'n_inner_steps_2_exp_2': 3,
-    'loss_fn': 'mse',
-    'Optim': 'adamp',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'adamp',
     'mlu_lr': 0.00035780104129438424,
 }
 add_queue(BEST)
 BEST_GP_MUL = BEST
 BEST_GP_MUL_CORRECTED = {
     **BEST_GP_MUL,
-    'Optim': 'adamw',
-    'loss_fn': 'mae',
+    'mlu_Optim': 'adamw',
+    'mlu_loss_fn': 'mae',
     'mlu_target': None,
     't_steps': 10,
 }
@@ -160,8 +160,8 @@ BEST_GP_MUL = {
     'n_steps': 4,
     'n_inner_steps_exp_2': 0,
     'n_inner_steps_2_exp_2': 3,
-    'loss_fn': 'mae',
-    'Optim': 'adamw',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'adamw',
     'mlu_lr': 1.2875746220449674e-05,
     'div_batch': True,
 }
@@ -178,8 +178,8 @@ BEST_NO_GP = {
     'n_steps': 2,
     'n_inner_steps_exp_2': 3,
     'n_inner_steps_2_exp_2': 3,
-    'loss_fn': 'mse',
-    'Optim': 'adamp',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'adamp',
     'mlu_lr': 0.008700763781146061,
     'div_batch': False,
 }
@@ -197,8 +197,8 @@ BEST_GP_MUL = {
     'n_steps': 4,
     'n_inner_steps_exp_2': 2,
     'n_inner_steps_2_exp_2': 3,
-    'loss_fn': 'mse',
-    'Optim': 'adamw',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'adamw',
     'mlu_lr': 0.005996945012310201,
     'div_batch': False,
     'forgive_over': True,

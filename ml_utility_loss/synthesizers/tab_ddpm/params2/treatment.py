@@ -55,8 +55,8 @@ BEST = {
     't_steps_exp_2': 9,
     'mlu_target': None,
     'n_steps': 4,
-    'loss_fn': 'mire',
-    'Optim': 'adamw',
+    'mlu_loss_fn': 'mire',
+    'mlu_Optim': 'adamw',
     'mlu_lr': 1.92327175289903e-06
 }
 add_queue(BEST)
@@ -69,14 +69,14 @@ BEST = {
     'n_steps': 3,
     'n_inner_steps_exp_2': 0,
     'n_inner_steps_2_exp_2': 0,
-    'loss_fn': 'mse',
-    'Optim': 'amsgradw',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'amsgradw',
     'mlu_lr': 2.2345589890593438e-05
 }
 add_queue(BEST)
 # BEST = {
 #     **BEST,
-#     'loss_fn': 'mae',
+#     'mlu_loss_fn': 'mae',
 # }
 #29
 #0.623015873015873
@@ -87,8 +87,8 @@ add_queue(BEST)
 #     'n_steps': 2,
 #     'n_inner_steps_exp_2': 0,
 #     'n_inner_steps_2_exp_2': 0,
-#     'loss_fn': 'mse',
-#     'Optim': 'amsgradw',
+#     'mlu_loss_fn': 'mse',
+#     'mlu_Optim': 'amsgradw',
 #     'mlu_lr': 0.00029887808400728375
 # }
 
@@ -102,8 +102,8 @@ BEST = {
     'n_steps': 2,
     'n_inner_steps_exp_2': 1,
     'n_inner_steps_2_exp_2': 2,
-    'loss_fn': 'mae',
-    'Optim': 'amsgradw',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'amsgradw',
     'mlu_lr': 0.00017300517832497667
 }
 add_queue(BEST)
@@ -119,8 +119,8 @@ BEST = {
     'n_steps': 2,
     'n_inner_steps_exp_2': 2,
     'n_inner_steps_2_exp_2': 2,
-    'loss_fn': 'mae',
-    'Optim': 'amsgradw',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'amsgradw',
     'mlu_lr': 7.16303651246283e-05
 }
 add_queue(BEST)
@@ -146,15 +146,15 @@ BEST = {
     'n_steps': 3,
     'n_inner_steps_exp_2': 2,
     'n_inner_steps_2_exp_2': 2,
-    'loss_fn': 'mae',
-    'Optim': 'diffgrad',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'diffgrad',
     'mlu_lr': 0.0002562208626311282
 }
 add_queue(BEST)
 BEST_NO_GP = BEST
 BEST_NO_GP_CORRECTED = {
     **BEST_NO_GP,
-    'Optim': 'amsgradw',
+    'mlu_Optim': 'amsgradw',
     'n_samples_exp_2': 7,
 }
 add_queue(BEST_NO_GP_CORRECTED)
@@ -171,8 +171,8 @@ BEST = {
     'n_steps': 3,
     'n_inner_steps_exp_2': 1,
     'n_inner_steps_2_exp_2': 2,
-    'loss_fn': 'mae',
-    'Optim': 'adamw',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'adamw',
     'mlu_lr': 9.629775506786068e-05
 }
 add_queue(BEST)
@@ -190,8 +190,8 @@ BEST_GP_MUL = {
     'n_steps': 3,
     'n_inner_steps_exp_2': 1,
     'n_inner_steps_2_exp_2': 2,
-    'loss_fn': 'mae',
-    'Optim': 'adamw',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'adamw',
     'mlu_lr': 0.0003455067758846854,
     'div_batch': True,
 }
@@ -208,8 +208,8 @@ BEST_NO_GP = {
     'n_steps': 3,
     'n_inner_steps_exp_2': 0,
     'n_inner_steps_2_exp_2': 2,
-    'loss_fn': 'mae',
-    'Optim': 'adamw',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'adamw',
     'mlu_lr': 0.0002503832908731306,
     'div_batch': True,
 }
@@ -228,8 +228,8 @@ BEST_GP_MUL = {
     'n_steps': 3,
     'n_inner_steps_exp_2': 2,
     'n_inner_steps_2_exp_2': 2,
-    'loss_fn': 'mae',
-    'Optim': 'diffgrad',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'diffgrad',
     'mlu_lr': 0.00021798978756277303,
     'div_batch': False,
     'forgive_over': True,

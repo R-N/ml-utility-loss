@@ -67,8 +67,8 @@ BEST = {
     't_steps': 8,
     'mlu_target': 1.0,
     'n_steps': 1,
-    'loss_fn': 'mile',
-    'Optim': 'adamw',
+    'mlu_loss_fn': 'mile',
+    'mlu_Optim': 'adamw',
     'mlu_lr': 2.456828073201696e-06
 }
 BEST = duplicate_params(BEST)
@@ -80,15 +80,15 @@ BEST = {
     't_steps': 11,
     'mlu_target': 1.0,
     'n_steps': 1,
-    'loss_fn': 'mire',
-    'Optim': 'adamp',
+    'mlu_loss_fn': 'mire',
+    'mlu_Optim': 'adamp',
     'mlu_lr': 1.371097624424988e-05
 }
 BEST = duplicate_params(BEST)
 add_queue(BEST)
 BEST = {
     **BEST,
-    'loss_fn': 'mse',
+    'mlu_loss_fn': 'mse',
 }
 BEST = duplicate_params(BEST)
 add_queue(BEST)
@@ -102,15 +102,15 @@ BEST = {
     'n_steps': 3,
     'n_inner_steps_exp_2': 2,
     'n_inner_steps_2_exp_2': 1,
-    'loss_fn': 'mse',
-    'Optim': 'adamp',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'adamp',
     'mlu_lr': 2.1302034187763432e-06
 }
 BEST = duplicate_params(BEST)
 add_queue(BEST)
 BEST = {
     **BEST,
-    'loss_fn': 'mae',
+    'mlu_loss_fn': 'mae',
 }
 BEST = duplicate_params(BEST)
 add_queue(BEST)
@@ -125,8 +125,8 @@ BEST = {
     'n_steps': 3,
     'n_inner_steps_exp_2': 2,
     'n_inner_steps_2_exp_2': 2,
-    'loss_fn': 'mae',
-    'Optim': 'adamw',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'adamw',
     'mlu_lr': 1.4927671838151544e-06
 }
 BEST = duplicate_params(BEST)
@@ -142,8 +142,8 @@ BEST = {
     'n_steps': 1,
     'n_inner_steps_exp_2': 0,
     'n_inner_steps_2_exp_2': 1,
-    'loss_fn': 'mse',
-    'Optim': 'diffgrad',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'diffgrad',
     'mlu_lr': 7.323689567151148e-06
 }
 BEST = duplicate_params(BEST)
@@ -161,8 +161,8 @@ BEST = {
     'n_steps': 3,
     'n_inner_steps_exp_2': 3,
     'n_inner_steps_2_exp_2': 2,
-    'loss_fn': 'mae',
-    'Optim': 'diffgrad',
+    'mlu_loss_fn': 'mae',
+    'mlu_Optim': 'diffgrad',
     'mlu_lr': 1.470229537515357e-06
 }
 BEST = duplicate_params(BEST)
@@ -179,8 +179,8 @@ BEST = {
     'n_steps': 1,
     'n_inner_steps_exp_2': 3,
     'n_inner_steps_2_exp_2': 0,
-    'loss_fn': 'mse',
-    'Optim': 'adamp',
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'adamp',
     'mlu_lr': 5.901168003963488e-06
 }
 BEST = duplicate_params(BEST)
@@ -201,7 +201,7 @@ BEST_GP_MUL = {
     'ae_n_inner_steps_exp_2': 1,
     'ae_n_inner_steps_2_exp_2': 2,
     'ae_loss_fn': 'mse',
-    'ae_Optim': 'diffgrad',
+    'ae_mlu_Optim': 'diffgrad',
     'ae_mlu_lr': 0.0010006850796192282,
     'ae_div_batch': True,
     'gan_n_samples_exp_2': 10,
@@ -214,7 +214,7 @@ BEST_GP_MUL = {
     'gan_n_inner_steps_exp_2': 0,
     'gan_n_inner_steps_2_exp_2': 0,
     'gan_loss_fn': 'mae',
-    'gan_Optim': 'adamp',
+    'gan_mlu_Optim': 'adamp',
     'gan_mlu_lr': 1.0547200535427459e-05,
     'gan_div_batch': True,
 }
@@ -234,7 +234,7 @@ BEST_NO_GP = {
     'ae_n_inner_steps_exp_2': 0,
     'ae_n_inner_steps_2_exp_2': 2,
     'ae_loss_fn': 'mse',
-    'ae_Optim': 'adamp',
+    'ae_mlu_Optim': 'adamp',
     'ae_mlu_lr': 0.00037874251501338795,
     'ae_div_batch': False,
     'gan_n_samples_exp_2': 10,
@@ -247,7 +247,7 @@ BEST_NO_GP = {
     'gan_n_inner_steps_exp_2': 3,
     'gan_n_inner_steps_2_exp_2': 1,
     'gan_loss_fn': 'mse',
-    'gan_Optim': 'diffgrad',
+    'gan_mlu_Optim': 'diffgrad',
     'gan_mlu_lr': 0.005859301498753242,
     'gan_div_batch': True,
 }
@@ -267,7 +267,7 @@ BEST_GP_MUL = {
     'ae_n_inner_steps_exp_2': 2,
     'ae_n_inner_steps_2_exp_2': 2,
     'ae_loss_fn': 'mae',
-    'ae_Optim': 'adamp',
+    'ae_mlu_Optim': 'adamp',
     'ae_mlu_lr': 4.752041605343845e-05,
     'ae_div_batch': False,
     'ae_forgive_over': False,
@@ -281,7 +281,7 @@ BEST_GP_MUL = {
     'gan_n_inner_steps_exp_2': 2,
     'gan_n_inner_steps_2_exp_2': 0,
     'gan_loss_fn': 'mae',
-    'gan_Optim': 'adamw',
+    'gan_mlu_Optim': 'adamw',
     'gan_mlu_lr': 0.0014741054159492916,
     'gan_div_batch': False,
     'gan_forgive_over': True,
