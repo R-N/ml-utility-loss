@@ -132,3 +132,18 @@ def objective_mlu(
         mlu_trainer=mlu_trainer,
         **kwargs,
     )
+
+def objective_mlu_2(
+    *args,
+    use_pretrained=False,
+    mlu_model=None,
+    objective_model=None,
+    trial=None,
+    **kwargs,
+):
+    if not use_pretrained:
+        assert objective_model is not None
+        assert trial is not None
+        mlu_model = objective_model(trial, return_model=True)
+    assert mlu_model is not None
+    return objective_mlu(*args, mlu_model=mlu_model, trial=trial, **kwargs)

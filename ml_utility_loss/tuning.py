@@ -267,7 +267,7 @@ def create_objective(
     study_dir="studies",
 ):
     objective_kwargs = dict(objective_kwargs)
-    def f(trial):
+    def f(trial, **kwargs2):
         id = trial.number
         print(f"Begin trial {trial.number}")
         trial_dir = os.path.join(study_dir, str(id))
@@ -293,6 +293,7 @@ def create_objective(
             **params, 
             **kwargs,
             trial=trial,
+            **kwargs2,
         )
     return f
 
