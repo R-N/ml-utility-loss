@@ -16,7 +16,8 @@ def objective(
     #g_loss_mul=0.1,
     allow_same_prediction=False,
     seed=0,
-    **kwargs
+    return_model=False,
+    **kwargs,
 ):
     clear_memory()
     seed_(seed)
@@ -28,8 +29,10 @@ def objective(
             trial=trial,
             allow_same_prediction=allow_same_prediction,
             #g_loss_mul=g_loss_mul,
-            **kwargs
+            **kwargs,
         )
+        if return_model:
+            return train_results["whole_model"]
         eval_loss = train_results["eval_loss"]
         #return eval_loss["avg_loss"] + std_loss_mul * eval_loss["avg_std_loss"] +  mean_loss_mul * eval_loss["avg_mean_pred_loss"] + g_loss_mul * 0.5 * (eval_loss["avg_g_mag_loss"] + eval_loss["avg_g_cos_loss"])
         role_model_metrics = eval_loss["role_model_metrics"]
