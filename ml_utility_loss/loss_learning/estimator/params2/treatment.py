@@ -144,7 +144,7 @@ PARAM_SPACE = {
     ]),
     #"attn_residual": BOOLEAN,
     "inds_init_mode": ("categorical", [
-        IndsInitMode.TORCH,
+        #IndsInitMode.TORCH,
         IndsInitMode.FIXNORM,
         #IndsInitMode.XAVIER,
     ]),
@@ -1589,4 +1589,5 @@ TRIAL_QUEUE = sanitize_queue(
     FORCE=FORCE,
     MINIMUMS=MINIMUMS,
 )
+TRIAL_QUEUE = reversed(TRIAL_QUEUE)
 TRIAL_QUEUE_EXT = list(TRIAL_QUEUE)
