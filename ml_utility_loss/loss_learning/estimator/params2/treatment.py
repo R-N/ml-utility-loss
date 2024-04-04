@@ -1411,6 +1411,133 @@ BEST_GP_MUL_TAB_NEW = {
 }
 add_queue(BEST_GP_MUL_TAB_NEW)
 
+#reset
+#122
+#0.05041993781924248
+BEST_GP_MUL_OTHER = {
+    'gradient_penalty_mode': 'ALL',
+    'bias_weight_decay': 0.05,
+    'loss_balancer_beta': 0.8,
+    'loss_balancer_r': 0.98,
+    'grad_loss_fn': 'mae',
+    'pma_ffn_mode': 'none',
+    'tf_pma_low_exp_2': 3,
+    'patience': 4,
+    'grad_clip': 0.6795406537694029,
+    'inds_init_mode': 'fixnorm',
+    'dataset_size_exp_2': 11,
+    'batch_size_exp_2': 2,
+    'epochs': 49,
+    'lr_mul': 0.07098413821704204,
+    'n_warmup_steps': 86,
+    'Optim': 'amsgradw',
+    'fixed_role_model': 'tvae',
+    'mse_mag_target': 0.1,
+    'g_loss_mul': 0.5,
+    'd_model_exp_2': 8,
+    'attn_activation': 'leakyhardsigmoid',
+    'tf_d_inner_exp_2': 9,
+    'tf_n_layers_enc': 3,
+    'tf_n_head_exp_2': 5,
+    'tf_activation': 'tanh',
+    'tf_activation_final': 'leakyhardtanh',
+    'tf_num_inds_exp_2': 4,
+    'ada_d_hid_exp_2': 9,
+    'ada_n_layers': 9,
+    'ada_activation': 'softsign',
+    'ada_activation_final': 'leakyhardsigmoid',
+    'head_d_hid_exp_2': 9,
+    'head_n_layers': 9,
+    'head_n_head_exp_2': 6,
+    'head_activation': 'relu6',
+    'head_activation_final': 'sigmoid',
+}
+add_queue(BEST_GP_MUL_OTHER)
+
+#209
+#0.05388905107975006
+BEST_GP_MUL_TAB = {
+    'gradient_penalty_mode': 'ALL',
+    'bias_weight_decay': 0.05,
+    'loss_balancer_beta': 0.8,
+    'loss_balancer_r': 0.98,
+    'grad_loss_fn': 'mae',
+    'pma_ffn_mode': 'none',
+    'tf_pma_low_exp_2': 6,
+    'patience': 6,
+    'grad_clip': 0.85,
+    'inds_init_mode': 'fixnorm',
+    'dataset_size_exp_2': 11,
+    'batch_size_exp_2': 2,
+    'epochs': 60,
+    'lr_mul': 0.04,
+    'n_warmup_steps': 180,
+    'Optim': 'diffgrad',
+    'fixed_role_model': 'tab_ddpm_concat',
+    'mse_mag_target': 0.1,
+    'g_loss_mul': 0.1,
+    'd_model_exp_2': 8,
+    'attn_activation': 'sigmoid',
+    'tf_d_inner_exp_2': 8,
+    'tf_n_layers_enc': 5,
+    'tf_n_head_exp_2': 6,
+    'tf_activation': 'tanh',
+    'tf_activation_final': 'leakyhardtanh',
+    'tf_num_inds_exp_2': 5,
+    'ada_d_hid_exp_2': 10,
+    'ada_n_layers': 8,
+    'ada_activation': 'relu6',
+    'ada_activation_final': 'leakyhardtanh',
+    'head_d_hid_exp_2': 8,
+    'head_n_layers': 9,
+    'head_n_head_exp_2': 6,
+    'head_activation': 'rrelu',
+    'head_activation_final': 'sigmoid',
+}
+add_queue(BEST_GP_MUL_TAB)
+
+#103
+#0.0625993087887764
+BEST_GP_MUL_RTF = {
+    'gradient_penalty_mode': 'ALL',
+    'bias_weight_decay': 0.05,
+    'loss_balancer_beta': 0.8,
+    'loss_balancer_r': 0.98,
+    'grad_loss_fn': 'mae',
+    'pma_ffn_mode': 'none',
+    'tf_pma_low_exp_2': 2,
+    'patience': 5,
+    'grad_clip': 0.5157607964865846,
+    'inds_init_mode': 'torch',
+    'dataset_size_exp_2': 11,
+    'batch_size_exp_2': 1,
+    'epochs': 82,
+    'lr_mul': 0.02171928177614731,
+    'n_warmup_steps': 123,
+    'Optim': 'diffgrad',
+    'fixed_role_model': 'realtabformer',
+    'mse_mag_target': 0.2,
+    'g_loss_mul': 0.1,
+    'd_model_exp_2': 8,
+    'attn_activation': 'leakyrelu',
+    'tf_d_inner_exp_2': 8,
+    'tf_n_layers_enc': 5,
+    'tf_n_head_exp_2': 5,
+    'tf_activation': 'relu',
+    'tf_activation_final': 'identity',
+    'tf_num_inds_exp_2': 5,
+    'ada_d_hid_exp_2': 10,
+    'ada_n_layers': 9,
+    'ada_activation': 'selu',
+    'ada_activation_final': 'leakyhardsigmoid',
+    'head_d_hid_exp_2': 7,
+    'head_n_layers': 8,
+    'head_n_head_exp_2': 5,
+    'head_activation': 'leakyhardsigmoid',
+    'head_activation_final': 'leakyhardsigmoid',
+}
+add_queue(BEST_GP_MUL_RTF)
+
 BEST_DICT = {
     True: {
         True: {
