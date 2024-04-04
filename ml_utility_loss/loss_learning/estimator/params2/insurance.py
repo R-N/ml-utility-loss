@@ -186,7 +186,7 @@ PARAM_SPACE = {
         #PMAFFNMode.SHARED,
     )),
     # Adapter args
-    "ada_d_hid": ("categorical", [256]), #256
+    "ada_d_hid": ("categorical", [256, 1024]), #256
     "ada_n_layers": ("int", 7, 8), #7
     "ada_activation": ("activation", [
         #"tanh",  
