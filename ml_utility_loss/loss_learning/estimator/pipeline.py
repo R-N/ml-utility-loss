@@ -68,6 +68,9 @@ DATASET_TYPES_NO_VAL = ["synth", "train", "test"]
 DATASET_TYPES_VAL = ["synth", "train", "val", "test"]
 DATASET_INFO_COLS = [*DATASET_TYPES_VAL, "synth_value", "real_value"]
 
+DEFAULT_AUG_TRAIN = 400
+DEFAULT_BS_TRAIN = 100
+
 def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv", i=0, size=None, augmenter=None, seed=42, scale_start=0.0, scale_end=1.0):
     if not size:
         #size = len(df)
@@ -383,6 +386,8 @@ def train(
     save_on_cpu=False,
     bias_lr_mul=1.0,
     bias_weight_decay=0.0,
+    aug_train=DEFAULT_AUG_TRAIN,
+    bs_train=DEFAULT_BS_TRAIN,
     **model_args
 ):
     #print("Forcing g_loss_mul to be 0.1 for consistency due to bug")
@@ -390,7 +395,7 @@ def train(
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
 
     if callable(datasets):
-        datasets = datasets(model=fixed_role_model, synth_data=synth_data)
+        datasets = datasets(model=fixed_role_model, synth_data=synth_data, aug_train=aug_train, bs_train=bs_train)
 
     print(len(datasets), "datasets", [len(d) for d in datasets])
     
@@ -848,7 +853,7 @@ def load_dataset_3(
     preprocessor,
     model=None,
     starts=[0, 0, 0, 0, 0],
-    stops=[400, 0, 100, 0, 600], 
+    stops=[DEFAULT_AUG_TRAIN, 0, DEFAULT_BS_TRAIN, 0, 600], 
     ratios=[0, 1, 0, 1, 1/3],
     steps=[1, 1, 1, 1, 1],
     cache_dir="..",
@@ -996,15 +1001,14 @@ def load_dataset_3_factory(
     **kwargs,
 ):
     
-    def f(model, synth_data=2):
+    def f(model, synth_data=2, aug_train=DEFAULT_AUG_TRAIN, bs_train=DEFAULT_BS_TRAIN):
+        stops=[aug_train, 0, bs_train, 0, 600]
         return load_dataset_3(
             dataset_dir=dataset_dir,
             dataset_name=dataset_name,
             preprocessor=preprocessor,
             model=model,
-            # stops=stops,
-            # ratios=ratios,
-            # steps=steps,
+            stops=stops,
             **kwargs,
         )
     return f
