@@ -215,10 +215,13 @@ def objective_mlu_2(
     trial=None,
     **kwargs,
 ):
+    estimator_score = 0
     if not use_pretrained:
         assert objective_model is not None
         assert trial is not None
-        mlu_model = objective_model(trial, return_model=True)
+        estimator_results = objective_model(trial, return_all=True)
+        mlu_model = estimator_results["whole_model"]
+        estimator_score = estimator_results["eval_loss"]["role_model_metrics"]["pred_rmse"]
         clear_memory()
     assert mlu_model is not None
-    return objective_mlu(*args, mlu_model=mlu_model, trial=trial, **kwargs)
+    return objective_mlu(*args, mlu_model=mlu_model, trial=trial, **kwargs), estimator_score
