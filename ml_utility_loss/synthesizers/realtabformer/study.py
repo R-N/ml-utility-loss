@@ -142,6 +142,12 @@ def objective_mlu(
 
 def objective_mlu_2(
     *args,
+    **kwargs,
+):
+    return objective_mlu_3(*args, **kwargs)[0]
+
+def objective_mlu_3(
+    *args,
     use_pretrained=False,
     mlu_model=None,
     objective_model=None,
