@@ -31,7 +31,7 @@ setup(
         "libzero>=0.0.8",
         "matplotlib>=3.5.2",
         "numpy>=1.25.0",
-        "optuna>=2.10.1",
+        "optuna @ git+https://github.com/R-N/optuna@master",
         "pandas==1.5.3",
         "pyarrow==13.0.0",
         "rdt>=1.3.0",
