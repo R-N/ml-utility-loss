@@ -8,8 +8,8 @@ DEFAULTS = {
 }
 PARAM_SPACE = {
     **DEFAULTS,
-    "aug_train": ("int", 0, 400, 100),
-    "bs_train": ("int", 0, 100, 50),
+    "aug_train": ("bool_int", 0, 400, 100),
+    "bs_train": ("bool_int", 0, 100, 50),
 }
 BEST = DEFAULTS
 BESTS = [BEST]

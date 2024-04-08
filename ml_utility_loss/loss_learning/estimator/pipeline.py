@@ -1002,6 +1002,8 @@ def load_dataset_3_factory(
 ):
     
     def f(model, synth_data=2, aug_train=DEFAULT_AUG_TRAIN, bs_train=DEFAULT_BS_TRAIN):
+        aug_train = aug_train or 0
+        bs_train = bs_train or 0
         stops=[aug_train, 0, bs_train, 0, 600]
         return load_dataset_3(
             dataset_dir=dataset_dir,
