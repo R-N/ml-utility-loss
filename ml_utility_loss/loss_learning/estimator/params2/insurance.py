@@ -1768,48 +1768,11 @@ BEST_GP_MUL_OTHER = {
     'head_activation_final': 'softsign',
 }
 add_queue(BEST_GP_MUL_OTHER)
-
-#57
-#0.03651288524270058
-BEST_GP_MUL_TAB = {
-    'gradient_penalty_mode': 'ALL',
-    'bias_weight_decay': 0.05,
-    'loss_balancer_r': 0.95,
-    'grad_loss_fn': 'mae',
-    'pma_ffn_mode': 'none',
-    'head_final_mul': 'identity',
-    'tf_pma_low_exp_2': 3,
-    'patience': 5,
-    'grad_clip': 0.6656998064618554,
-    'inds_init_mode': 'fixnorm',
-    'dataset_size_exp_2': 11,
-    'batch_size_exp_2': 3,
-    'epochs': 106,
-    'lr_mul': 0.06497110649529726,
-    'n_warmup_steps': 152,
-    'Optim': 'diffgrad',
-    'fixed_role_model': 'tab_ddpm_concat',
-    'mse_mag_target': 0.1,
-    'g_loss_mul': 0.2,
-    'd_model_exp_2': 8,
-    'attn_activation': 'leakyrelu',
-    'tf_d_inner_exp_2': 9,
-    'tf_n_layers_enc': 4,
-    'tf_n_head_exp_2': 6,
-    'tf_activation': 'leakyhardsigmoid',
-    'tf_activation_final': 'leakyhardsigmoid',
-    'tf_num_inds_exp_2': 5,
-    'ada_d_hid': 1024,
-    'ada_n_layers': 7,
-    'ada_activation': 'relu',
-    'ada_activation_final': 'leakyhardtanh',
-    'head_d_hid_exp_2': 8,
-    'head_n_layers': 8,
-    'head_n_head_exp_2': 5,
-    'head_activation': 'rrelu',
-    'head_activation_final': 'softsign',
+BEST_GP_MUL_OTHER = {
+    **BEST_GP_MUL_OTHER,
+    'lr_mul': 0.1,
 }
-add_queue(BEST_GP_MUL_TAB)
+add_queue(BEST_GP_MUL_OTHER)
 
 #193
 #0.0233705285936594

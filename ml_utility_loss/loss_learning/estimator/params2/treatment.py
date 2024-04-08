@@ -1662,6 +1662,12 @@ BEST_GP_MUL_RTF = {
     'head_activation_final': 'sigmoid',
 }
 add_queue(BEST_GP_MUL_RTF)
+BEST_GP_MUL_RTF = {
+    **BEST_GP_MUL_RTF,
+    'attn_activation': 'leakyhardtanh',
+    'grad_loss_fn': 'mae',
+}
+add_queue(BEST_GP_MUL_RTF)
 
 BEST_DICT = {
     True: {
