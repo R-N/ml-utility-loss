@@ -1669,6 +1669,48 @@ BEST_GP_MUL_RTF = {
 }
 add_queue(BEST_GP_MUL_RTF)
 
+#121
+#0.060481347143650055
+BEST_GP_MUL_RTF = {
+    'gradient_penalty_mode': 'ALL',
+    'bias_weight_decay': 0.05,
+    'loss_balancer_beta': 0.8,
+    'loss_balancer_r': 0.95,
+    'grad_loss_fn': 'mae',
+    'pma_ffn_mode': 'none',
+    'tf_pma_low_exp_2': 4,
+    'patience': 6,
+    'grad_clip': 0.75,
+    'inds_init_mode': 'fixnorm',
+    'dataset_size_exp_2': 11,
+    'batch_size_exp_2': 1,
+    'epochs': 60,
+    'lr_mul': 0.05,
+    'n_warmup_steps': 140,
+    'Optim': 'diffgrad',
+    'fixed_role_model': 'realtabformer',
+    'mse_mag_target': 0.2,
+    'g_loss_mul': 0.1,
+    'd_model_exp_2': 8,
+    'attn_activation': 'sigmoid',
+    'tf_d_inner_exp_2': 9,
+    'tf_n_layers_enc': 3,
+    'tf_n_head_exp_2': 6,
+    'tf_activation': 'leakyhardsigmoid',
+    'tf_activation_final': 'leakyhardtanh',
+    'tf_num_inds_exp_2': 6,
+    'ada_d_hid_exp_2': 9,
+    'ada_n_layers': 9,
+    'ada_activation': 'selu',
+    'ada_activation_final': 'leakyhardtanh',
+    'head_d_hid_exp_2': 9,
+    'head_n_layers': 9,
+    'head_n_head_exp_2': 6,
+    'head_activation': 'relu6',
+    'head_activation_final': 'sigmoid',
+}
+add_queue(BEST_GP_MUL_RTF)
+
 BEST_DICT = {
     True: {
         True: {
