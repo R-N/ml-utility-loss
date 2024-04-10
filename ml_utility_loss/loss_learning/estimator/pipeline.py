@@ -389,6 +389,7 @@ def train(
     bias_weight_decay=0.0,
     aug_train=DEFAULT_AUG_TRAIN,
     bs_train=DEFAULT_BS_TRAIN,
+    real_train=DEFAULT_REAL_TRAIN,
     **model_args
 ):
     #print("Forcing g_loss_mul to be 0.1 for consistency due to bug")
@@ -396,7 +397,7 @@ def train(
     allow_same_prediction_eval = allow_same_prediction if allow_same_prediction_eval is None else allow_same_prediction_eval
 
     if callable(datasets):
-        datasets = datasets(model=fixed_role_model, synth_data=synth_data, aug_train=aug_train, bs_train=bs_train)
+        datasets = datasets(model=fixed_role_model, synth_data=synth_data, aug_train=aug_train, bs_train=bs_train, real_train=real_train)
 
     print(len(datasets), "datasets", [len(d) for d in datasets])
     

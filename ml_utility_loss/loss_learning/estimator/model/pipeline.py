@@ -60,6 +60,7 @@ NON_MODEL_PARAMS = (
     "mse_mag_target",
     "aug_train",
     "bs_train",
+    "real_train",
 )
 
 def remove_non_model_params(params, entries_to_remove=NON_MODEL_PARAMS):
