@@ -70,6 +70,7 @@ DATASET_INFO_COLS = [*DATASET_TYPES_VAL, "synth_value", "real_value"]
 
 DEFAULT_AUG_TRAIN = 400
 DEFAULT_BS_TRAIN = 100
+DEFAULT_REAL_TRAIN = 0
 
 def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv", i=0, size=None, augmenter=None, seed=42, scale_start=0.0, scale_end=1.0):
     if not size:
@@ -852,10 +853,10 @@ def load_dataset_3(
     dataset_name,
     preprocessor,
     model=None,
-    starts=[0, 0, 0, 0, 0],
-    stops=[DEFAULT_AUG_TRAIN, 0, DEFAULT_BS_TRAIN, 0, 600], 
-    ratios=[0, 1, 0, 1, 1/3],
-    steps=[1, 1, 1, 1, 1],
+    starts=[0, 0, 0, 0, 0, 0],
+    stops=[DEFAULT_AUG_TRAIN, 0, DEFAULT_BS_TRAIN, 0, 600, DEFAULT_REAL_TRAIN], 
+    ratios=[0, 1, 0, 1, 1/3, 0],
+    steps=[1, 1, 1, 1, 1, 4],
     cache_dir="..",
     **kwargs,
 ):
@@ -923,6 +924,23 @@ def load_dataset_3(
             val=False,
             drop_first_column=True,
             model=model,
+            **kwargs,
+        ),
+        dict(
+            dataset_dir=os.path.join(dataset_dir, "synthetics", dataset_name),
+            preprocessor=preprocessor,
+            cache_dir=os.path.join(cache_dir, dataset_name, "_cache_real"),
+            start=starts[5],
+            stop=stops[5],
+            ratio=ratios[5],
+            step=steps[5],
+            val=False,
+            drop_first_column=True,
+            model=model,
+            train="train", 
+            test="test", 
+            value="real_value",
+            #file="info_2.csv",
             **kwargs,
         ),
     ])
@@ -1001,10 +1019,11 @@ def load_dataset_3_factory(
     **kwargs,
 ):
     
-    def f(model, synth_data=2, aug_train=DEFAULT_AUG_TRAIN, bs_train=DEFAULT_BS_TRAIN):
+    def f(model, synth_data=2, aug_train=DEFAULT_AUG_TRAIN, bs_train=DEFAULT_BS_TRAIN, real_train=DEFAULT_REAL_TRAIN):
         aug_train = aug_train or 0
         bs_train = bs_train or 0
-        stops=[aug_train, 0, bs_train, 0, 600]
+        real_train = real_train or 0
+        stops=[aug_train, 0, bs_train, 0, 600, real_train]
         return load_dataset_3(
             dataset_dir=dataset_dir,
             dataset_name=dataset_name,

@@ -5,11 +5,13 @@ MINIMUMS = {
 DEFAULTS = {
     "aug_train": 400,
     "bs_train": 100,
+    "real_train": 0,
 }
 PARAM_SPACE = {
     **DEFAULTS,
     "aug_train": ("bool_int", 0, 400, 100),
     "bs_train": ("bool_int", 0, 100, 50),
+    "real_train": ("bool_int", 0, 20, 5),
 }
 BEST = DEFAULTS
 BESTS = [BEST]

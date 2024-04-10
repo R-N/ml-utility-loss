@@ -150,11 +150,17 @@ class BaseDataset(Dataset):
     def try_copy(self):
         return self
 
-    def slice(self, start=0, stop=None, step=1):
+    def slice(self, start=0, stop=None, step=1, step_first=True):
         index = pd.Series(self.index)
         if not isinstance(stop, int):
             stop = len(index)
-        sample = index[start:stop:step]
+        sample = index
+        if step_first:
+            sample = sample[::step]
+            stop = min(len(sample), stop)
+            sample = sample[start:stop]
+        else:
+            sample = sample[start:stop:step]
         dataset = SubDataset(self, sample)
         return dataset
 
