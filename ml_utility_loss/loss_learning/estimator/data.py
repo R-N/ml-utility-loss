@@ -333,7 +333,7 @@ class SubDataset(WrapperDataset):
         return [(k, SubDataset(v, self.index_, **self.sub_kwargs)) for k, v in self.dataset.items()]
 
     def calculate_stats(self):
-        self.y = self.dataset.y.iloc[self.index]
+        self.y = self.dataset.y.loc[self.index]
         self.calculate_stats_()
 
     @property
