@@ -344,7 +344,11 @@ class SubDataset(WrapperDataset):
         return len(self.index_)
 
     def __getitem__(self, idx):
-        return self.dataset[self.index[idx]]
+        try:
+            return self.dataset[self.index[idx]]
+        except IndexError as ex:
+            print("SubDataset", idx, len(self))
+            raise
     
     def check_cache(self, idx):
         if not self.cache:
@@ -708,7 +712,11 @@ class ConcatDataset(BaseDataset):
             if idx < ci:
                 break
             prev = ci
-        return self.datasets[i][idx-prev]
+        try:
+            return self.datasets[i][idx-prev]
+        except IndexError as ex:
+            print("ConcatDataset", idx, idx-prev, len(self.datasets[i]), self.counts[i], self.cumulatives[i])
+            raise
     
     def check_cache(self, idx):
         if not self.cache:
