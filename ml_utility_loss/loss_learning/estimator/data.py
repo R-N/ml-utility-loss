@@ -347,7 +347,7 @@ class SubDataset(WrapperDataset):
         try:
             return self.dataset[self.index[idx]]
         except IndexError as ex:
-            print("SubDataset", idx, len(self))
+            print("SubDataset", type(self), idx, self.index[idx], len(self), self.index)
             raise
     
     def check_cache(self, idx):
@@ -558,7 +558,10 @@ class PreprocessedDataset(WrapperDataset):
         if self.cache and idx in self.cache:
             return self.cache[idx]
         
-        sample = self.dataset[idx]
+        try:
+            sample = self.dataset[idx]
+        except IndexError as ex:
+            print("PreprocessedDataset", type(self), idx, len(self))
         sample = preprocess_sample(sample, self.preprocessor, self.model)
         sample = to_dtype(sample, self.dtype)
         sample = to_tensor(sample, self.Tensor)
@@ -715,7 +718,7 @@ class ConcatDataset(BaseDataset):
         try:
             return self.datasets[i][idx-prev]
         except IndexError as ex:
-            print("ConcatDataset", idx, idx-prev, len(self.datasets[i]), self.counts[i], self.cumulatives[i])
+            print("ConcatDataset", type(self), idx, idx-prev, len(self.datasets[i]), self.counts[i], self.cumulatives[i])
             raise
     
     def check_cache(self, idx):
