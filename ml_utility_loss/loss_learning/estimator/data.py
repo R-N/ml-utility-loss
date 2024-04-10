@@ -277,9 +277,9 @@ class WrapperDataset(BaseDataset):
     def items(self):
         return self.dataset.items()
 
-    @property
-    def index(self):
-        return self.dataset.index
+    # @property
+    # def index(self):
+    #     return self.dataset.index
 
     def __len__(self):
         return len(self.dataset)
@@ -333,21 +333,21 @@ class SubDataset(WrapperDataset):
         return [(k, SubDataset(v, self.index_, **self.sub_kwargs)) for k, v in self.dataset.items()]
 
     def calculate_stats(self):
-        self.y = self.dataset.y.loc[self.index]
+        self.y = self.dataset.y.loc[self.index_]
         self.calculate_stats_()
 
-    @property
-    def index(self):
-        return self.index_
+    # @property
+    # def index(self):
+    #     return self.index_
 
     def __len__(self):
         return len(self.index_)
 
     def __getitem__(self, idx):
         try:
-            return self.dataset[self.index[idx]]
+            return self.dataset[self.index_[idx]]
         except IndexError as ex:
-            print("SubDataset", type(self), idx, self.index[idx], len(self), self.index)
+            print("SubDataset", type(self), idx, self.index_[idx], len(self), self.index_)
             raise
     
     def check_cache(self, idx):
@@ -357,7 +357,7 @@ class SubDataset(WrapperDataset):
     
     def try_copy(self):
         if self.must_copy():
-            return SubDataset(self.dataset, index=self.index, **self.sub_kwargs)
+            return SubDataset(self.dataset, index=self.index_, **self.sub_kwargs)
         return self
     
 
@@ -377,9 +377,9 @@ class MultiSizeDatasetDataset(BaseDataset):
         self.y = self.dataset.y
         self.calculate_stats_()
 
-    @property
-    def index(self):
-        return self.dataset.index
+    # @property
+    # def index(self):
+    #     return self.dataset.index
 
     @property
     def y(self):
