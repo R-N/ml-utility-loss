@@ -209,7 +209,7 @@ class DatasetDataset(BaseDataset):
         self.calculate_stats()
 
     def calculate_stats(self):
-        self.y = y = self.info_all[self.real_value]
+        self.y = self.info_all[self.real_value]
         self.calculate_stats_()
 
     def set_size(self, size, force=False):
@@ -271,7 +271,7 @@ class WrapperDataset(BaseDataset):
             self.calculate_stats()
 
     def calculate_stats(self):
-        self.y = self.dataset.y
+        self.y = self.dataset.y.reset_index(drop=True)
         self.calculate_stats_()
 
     def items(self):
@@ -333,7 +333,10 @@ class SubDataset(WrapperDataset):
         return [(k, SubDataset(v, self.index_, **self.sub_kwargs)) for k, v in self.dataset.items()]
 
     def calculate_stats(self):
-        self.y = self.dataset.y.loc[self.index_]
+        try:
+            self.y = self.dataset.y.loc[self.index_].reset_index(drop=True)
+        except KeyError as ex:
+            raise
         self.calculate_stats_()
 
     # @property
@@ -374,7 +377,7 @@ class MultiSizeDatasetDataset(BaseDataset):
         self.set_size(size, force=True)
 
     def calculate_stats(self):
-        self.y = self.dataset.y
+        self.y = self.dataset.y.reset_index(drop=True)
         self.calculate_stats_()
 
     # @property
@@ -694,7 +697,7 @@ class ConcatDataset(BaseDataset):
         ]
 
     def calculate_stats(self):
-        self.y = pd.concat([d.y for d in self.datasets])
+        self.y = pd.concat([d.y for d in self.datasets]).reset_index(drop=True)
         self.calculate_stats_()
 
     @property
