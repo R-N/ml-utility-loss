@@ -65,6 +65,9 @@ DEFAULTS = {
     "inds_init_mode": IndsInitMode.FIXNORM,
     "loss_balancer_beta": 0.75,
     "loss_balancer_r": 0.95,
+    "aug_train": 0,
+    "bs_train": 0,
+    "real_train": 5,
 }
 
 PARAM_SPACE = {

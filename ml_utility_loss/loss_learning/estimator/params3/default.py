@@ -3,9 +3,9 @@ FORCE = {
 MINIMUMS = {
 }
 DEFAULTS = {
-    "aug_train": 400,
-    "bs_train": 100,
-    "real_train": 0,
+    "aug_train": 0,
+    "bs_train": 0,
+    "real_train": 5,
 }
 PARAM_SPACE = {
     **DEFAULTS,

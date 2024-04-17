@@ -66,6 +66,9 @@ DEFAULTS = {
     "tf_activation": "relu6",
     "loss_balancer_beta": 0.7,
     "loss_balancer_r": 0.96,
+    "aug_train": 0,
+    "bs_train": 0,
+    "real_train": 5,
 }
 
 PARAM_SPACE = {
