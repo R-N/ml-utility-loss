@@ -76,6 +76,12 @@ BEST = {
 }
 BEST = duplicate_params(BEST)
 add_queue(BEST)
+BEST = {
+    **BEST,
+    'ae_mlu_loss_fn': 'mae',
+    'gan_mlu_loss_fn': 'mae',
+}
+add_queue(BEST)
 #Fluke
 #29
 #0.6
@@ -87,12 +93,6 @@ BEST = {
     'mlu_loss_fn': 'mire',
     'mlu_Optim': 'adamp',
     'mlu_lr': 7.513511695583268e-05
-}
-BEST = duplicate_params(BEST)
-add_queue(BEST)
-BEST = {
-    **BEST,
-    'mlu_loss_fn': 'mse',
 }
 BEST = duplicate_params(BEST)
 add_queue(BEST)
@@ -198,6 +198,18 @@ BEST_GP_MUL_CORRECTED = {
 }
 BEST_GP_MUL_CORRECTED = duplicate_params(BEST_GP_MUL_CORRECTED)
 add_queue(BEST_GP_MUL_CORRECTED)
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'ae_mlu_loss_fn': 'mae',
+    'gan_mlu_loss_fn': 'mae',
+}
+add_queue(BEST_GP_MUL)
+BEST_GP_MUL_CORRECTED = {
+    **BEST_GP_MUL_CORRECTED,
+    'ae_mlu_loss_fn': 'mae',
+    'gan_mlu_loss_fn': 'mae',
+}
+add_queue(BEST_GP_MUL_CORRECTED)
 
 #no_gp
 #14
@@ -230,7 +242,7 @@ BEST_GP_MUL = {
     'ae_n_steps': 1,
     'ae_n_inner_steps_exp_2': 0,
     'ae_n_inner_steps_2_exp_2': 1,
-    'ae_loss_fn': 'mse',
+    'ae_mlu_loss_fn': 'mse',
     'ae_mlu_Optim': 'amsgradw',
     'ae_mlu_lr': 0.001112561662305946,
     'ae_div_batch': False,
@@ -242,12 +254,18 @@ BEST_GP_MUL = {
     'gan_n_steps': 1,
     'gan_n_inner_steps_exp_2': 0,
     'gan_n_inner_steps_2_exp_2': 1,
-    'gan_loss_fn': 'mae',
+    'gan_mlu_loss_fn': 'mae',
     'gan_mlu_Optim': 'adamp',
     'gan_mlu_lr': 0.009314584600663187,
     'gan_div_batch': False,
 }
 BEST_GP_MUL = duplicate_params(BEST_GP_MUL)
+add_queue(BEST_GP_MUL)
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'ae_mlu_loss_fn': 'mae',
+    'gan_mlu_loss_fn': 'mae',
+}
 add_queue(BEST_GP_MUL)
 
 #140
@@ -261,7 +279,7 @@ BEST_NO_GP = {
     'ae_n_steps': 2,
     'ae_n_inner_steps_exp_2': 1,
     'ae_n_inner_steps_2_exp_2': 0,
-    'ae_loss_fn': 'mae',
+    'ae_mlu_loss_fn': 'mae',
     'ae_mlu_Optim': 'adamp',
     'ae_mlu_lr': 7.588772140825818e-05,
     'ae_div_batch': True,
@@ -273,7 +291,7 @@ BEST_NO_GP = {
     'gan_n_steps': 2,
     'gan_n_inner_steps_exp_2': 1,
     'gan_n_inner_steps_2_exp_2': 2,
-    'gan_loss_fn': 'mae',
+    'gan_mlu_loss_fn': 'mae',
     'gan_mlu_Optim': 'adamp',
     'gan_mlu_lr': 8.88610897344026e-06,
     'gan_div_batch': True,
@@ -293,7 +311,7 @@ BEST_GP_MUL = {
     'ae_n_steps': 2,
     'ae_n_inner_steps_exp_2': 1,
     'ae_n_inner_steps_2_exp_2': 0,
-    'ae_loss_fn': 'mse',
+    'ae_mlu_loss_fn': 'mse',
     'ae_mlu_Optim': 'amsgradw',
     'ae_mlu_lr': 8.396999208446065e-06,
     'ae_div_batch': True,
@@ -307,13 +325,19 @@ BEST_GP_MUL = {
     'gan_n_steps': 2,
     'gan_n_inner_steps_exp_2': 0,
     'gan_n_inner_steps_2_exp_2': 0,
-    'gan_loss_fn': 'mse',
+    'gan_mlu_loss_fn': 'mse',
     'gan_mlu_Optim': 'amsgradw',
     'gan_mlu_lr': 5.031627080485319e-05,
     'gan_div_batch': False,
     'gan_forgive_over': True,
 }
 BEST_GP_MUL = duplicate_params(BEST_GP_MUL)
+add_queue(BEST_GP_MUL)
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'ae_mlu_loss_fn': 'mae',
+    'gan_mlu_loss_fn': 'mae',
+}
 add_queue(BEST_GP_MUL)
 
 #39

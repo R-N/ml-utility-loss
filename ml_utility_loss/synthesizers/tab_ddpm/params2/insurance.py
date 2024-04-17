@@ -64,7 +64,7 @@ BEST = {
 add_queue(BEST)
 BEST = {
     **BEST,
-    'mlu_loss_fn': 'mse',
+    'mlu_loss_fn': 'mae',
 }
 add_queue(BEST)
 #18
@@ -79,6 +79,11 @@ BEST = {
     'mlu_loss_fn': 'mse',
     'mlu_Optim': 'diffgrad',
     'mlu_lr': 7.158682330325561e-06
+}
+add_queue(BEST)
+BEST = {
+    **BEST,
+    'mlu_loss_fn': 'mae',
 }
 add_queue(BEST)
 # BEST = {
@@ -102,6 +107,11 @@ BEST = {
 }
 add_queue(BEST)
 BEST_GP_MUL = BEST
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'mlu_loss_fn': 'mae',
+}
+add_queue(BEST_GP_MUL)
 
 #no_gp
 #48
@@ -119,6 +129,11 @@ BEST = {
 }
 add_queue(BEST)
 BEST_NO_GP = BEST
+BEST_NO_GP = {
+    **BEST_NO_GP,
+    'mlu_loss_fn': 'mae',
+}
+add_queue(BEST_NO_GP)
 
 #continue
 #gp_mul
@@ -141,6 +156,16 @@ BEST_GP_MUL_CORRECTED = {
     **BEST_GP_MUL,
     "n_inner_steps_exp_2": 2,
     "n_samples_exp_2": 5,
+}
+add_queue(BEST_GP_MUL_CORRECTED)
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'mlu_loss_fn': 'mae',
+}
+add_queue(BEST_GP_MUL)
+BEST_GP_MUL_CORRECTED = {
+    **BEST_GP_MUL_CORRECTED,
+    'mlu_loss_fn': 'mae',
 }
 add_queue(BEST_GP_MUL_CORRECTED)
 
@@ -166,6 +191,16 @@ BEST_NO_GP_CORRECTED = {
     "n_inner_steps_2_exp_2": 2,
     'n_steps': 3,
     't_steps_exp_2': 10,
+}
+add_queue(BEST_NO_GP_CORRECTED)
+BEST_NO_GP = {
+    **BEST_NO_GP,
+    'mlu_loss_fn': 'mae',
+}
+add_queue(BEST_NO_GP)
+BEST_NO_GP_CORRECTED = {
+    **BEST_NO_GP_CORRECTED,
+    'mlu_loss_fn': 'mae',
 }
 add_queue(BEST_NO_GP_CORRECTED)
 
@@ -248,6 +283,11 @@ BEST_GP_MUL = {
     't_steps_exp_2': 9,
     'mlu_Optim': 'adamp',
     'mlu_lr': 0.0008522841166364129,
+}
+add_queue(BEST_GP_MUL)
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'mlu_loss_fn': 'mae',
 }
 add_queue(BEST_GP_MUL)
 

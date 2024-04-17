@@ -116,6 +116,11 @@ BEST = {
 }
 add_queue(BEST)
 BEST_NO_GP = BEST
+BEST_NO_GP = {
+    **BEST_NO_GP,
+    'mlu_loss_fn': 'mae',
+}
+add_queue(BEST_NO_GP)
 
 #reset
 #2
@@ -201,6 +206,11 @@ BEST_GP_MUL = {
     'forgive_over': True,
 }
 add_queue(BEST_GP_MUL)
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'mlu_loss_fn': 'mae',
+}
+add_queue(BEST_GP_MUL)
 
 #0.5255011895121632
 BEST_GP_MUL = {
@@ -216,6 +226,11 @@ BEST_GP_MUL = {
     't_steps': 8,
     'mlu_Optim': 'adamp',
     'mlu_lr': 3.303164825758783e-06,
+}
+add_queue(BEST_GP_MUL)
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'mlu_loss_fn': 'mae',
 }
 add_queue(BEST_GP_MUL)
 
@@ -234,6 +249,11 @@ BEST_GP_MUL = {
     't_steps': 6,
     'mlu_Optim': 'amsgradw',
     'mlu_lr': 8.526232994906357e-06,
+}
+add_queue(BEST_GP_MUL)
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'mlu_loss_fn': 'mae',
 }
 add_queue(BEST_GP_MUL)
 

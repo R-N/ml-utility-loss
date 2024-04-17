@@ -65,11 +65,6 @@ BEST = {
     'mlu_lr': 0.00014520240030855788
 }
 add_queue(BEST)
-BEST = {
-    **BEST,
-    'mlu_loss_fn': 'mae',
-}
-add_queue(BEST)
 #29
 #0.5669820384073829
 BEST = {
@@ -146,6 +141,16 @@ BEST_GP_MUL_CORRECTED = {
     "Optim": "amsgradw",
 }
 add_queue(BEST_GP_MUL_CORRECTED)
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'mlu_loss_fn': 'mae',
+}
+add_queue(BEST_GP_MUL)
+BEST_GP_MUL_CORRECTED = {
+    **BEST_GP_MUL_CORRECTED,
+    'mlu_loss_fn': 'mae',
+}
+add_queue(BEST_GP_MUL_CORRECTED)
 
 #no_gp
 
@@ -175,6 +180,11 @@ BEST_GP_MUL = {
     'mlu_Optim': 'adamw',
     'mlu_lr': 1.5538942494479487e-05,
     'div_batch': True,
+}
+add_queue(BEST_GP_MUL)
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'mlu_loss_fn': 'mae',
 }
 add_queue(BEST_GP_MUL)
 
@@ -215,6 +225,11 @@ BEST_GP_MUL = {
     'mlu_lr': 4.6734238850098306e-05,
     'div_batch': False,
     'forgive_over': True,
+}
+add_queue(BEST_GP_MUL)
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'mlu_loss_fn': 'mae',
 }
 add_queue(BEST_GP_MUL)
 

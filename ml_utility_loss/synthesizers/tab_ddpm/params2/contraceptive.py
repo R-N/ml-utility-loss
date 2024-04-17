@@ -78,16 +78,6 @@ BEST = {
     'mlu_lr': 5.9951458946241365e-06
 }
 add_queue(BEST)
-BEST = {
-    **BEST,
-    'mlu_loss_fn': 'mse',
-}
-add_queue(BEST)
-BEST = {
-    **BEST,
-    'mlu_loss_fn': 'mae',
-}
-add_queue(BEST)
 #Worse
 #13
 #0.5570993244390962
@@ -152,6 +142,16 @@ BEST_NO_GP_CORRECTED = {
     "n_inner_steps_2_exp_2": 2,
 }
 add_queue(BEST_NO_GP_CORRECTED)
+BEST_NO_GP = {
+    **BEST_NO_GP,
+    'mlu_loss_fn': 'mae',
+}
+add_queue(BEST_NO_GP)
+BEST_NO_GP_CORRECTED = {
+    **BEST_NO_GP_CORRECTED,
+    'mlu_loss_fn': 'mae',
+}
+add_queue(BEST_NO_GP_CORRECTED)
 BEST_NO_GP = BEST_NO_GP_CORRECTED
 
 #reset
@@ -171,6 +171,11 @@ BEST_GP_MUL = {
     'mlu_Optim': 'adamp',
     'mlu_lr': 1.8957648967573922e-05,
     'div_batch': True,
+}
+add_queue(BEST_GP_MUL)
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'mlu_loss_fn': 'mae',
 }
 add_queue(BEST_GP_MUL)
 

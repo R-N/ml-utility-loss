@@ -115,6 +115,11 @@ BEST = {
 }
 add_queue(BEST)
 BEST_NO_GP = BEST
+BEST_NO_GP = {
+    **BEST_NO_GP,
+    'mlu_loss_fn': 'mae',
+}
+add_queue(BEST_NO_GP)
 
 #continue
 #gp_mul
@@ -168,6 +173,11 @@ BEST_GP_MUL = {
     'mlu_Optim': 'amsgradw',
     'mlu_lr': 2.4021531818910256e-05,
     'div_batch': True,
+}
+add_queue(BEST_GP_MUL)
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'mlu_loss_fn': 'mae',
 }
 add_queue(BEST_GP_MUL)
 

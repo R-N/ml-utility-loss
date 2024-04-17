@@ -63,11 +63,6 @@ BEST = {
     'mlu_lr': 0.0007845651354945042
 }
 add_queue(BEST)
-BEST = {
-    **BEST,
-    'mlu_loss_fn': 'mse',
-}
-add_queue(BEST)
 #Worse
 #27
 #0.5991735537190083
@@ -117,6 +112,11 @@ BEST = {
 }
 add_queue(BEST)
 BEST_NO_GP = BEST
+BEST_NO_GP = {
+    **BEST_NO_GP,
+    'mlu_loss_fn': 'mae',
+}
+add_queue(BEST_NO_GP)
 
 #continue
 #gp_mul
@@ -135,6 +135,11 @@ BEST = {
 }
 add_queue(BEST)
 BEST_GP_MUL = BEST
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'mlu_loss_fn': 'mae',
+}
+add_queue(BEST_GP_MUL)
 
 #no_gp
 #57
