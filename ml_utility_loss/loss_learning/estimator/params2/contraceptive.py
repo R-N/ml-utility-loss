@@ -1845,6 +1845,7 @@ BEST_DICT = {
 }
 
 
+BEST_DICT[False][False] = BEST_DICT[True][True]
 BEST_DICT[False][True] = BEST_DICT[False][False]
 
 BEST_DICT = {
