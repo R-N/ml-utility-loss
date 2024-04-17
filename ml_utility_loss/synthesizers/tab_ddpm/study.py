@@ -11,6 +11,8 @@ from ...util import clear_memory, seed as seed_
 from torch.cuda import OutOfMemoryError
 import os
 from .util import FoundNANsError
+from ...loss_learning.estimator.model.pipeline import remove_non_model_params
+from ...loss_learning.estimator.pipeline import create_model as create_mlu_model
 
 def objective(
     datasets,
@@ -174,3 +176,29 @@ def objective_mlu_3(
         clear_memory()
     assert mlu_model is not None
     return objective_mlu(*args, mlu_model=mlu_model, trial=trial, **kwargs), estimator_score
+
+def objective_mlu_4(
+    *args,
+    adapters=None,
+    mlu_model=None,
+    mlu_run=None,
+    mlu_params=None,
+    mlu_model_dir=None,
+    mlu_model_name=None,
+    dataset_name=None,
+    trial=None,
+    **kwargs,
+):
+    assert mlu_model is not None
+    if isinstance(mlu_model, (int, str)) or (mlu_run and (mlu_model==True or not mlu_model)):
+        mlu_run = mlu_run or mlu_model
+        mlu_params = remove_non_model_params(mlu_params)
+        mlu_model = create_mlu_model(
+            adapters=adapters,
+            **mlu_params,
+        )
+        print(mlu_model.models, len(mlu_model.adapters))
+        mlu_model_dir_2 = os.path.join(mlu_model_dir, mlu_model_name, dataset_name, mlu_run)
+        mlu_model_path = os.path.join(mlu_model_dir_2, f"model.pt")
+        mlu_model.load_state_dict(torch.load(mlu_model_path))
+    return objective_mlu(*args, mlu_model=mlu_model, trial=trial, **kwargs)
