@@ -136,6 +136,7 @@ def objective_mlu(
     ae_forgive_over=True,
     ae_mlu_loss_fn=None,
     ae_mlu_Optim=None,
+    ae_n_real=None,
     gan_n_samples=512,
     gan_mlu_target=None,
     gan_t_steps=5,
@@ -153,6 +154,7 @@ def objective_mlu(
     gan_forgive_over=True,
     gan_mlu_loss_fn=None,
     gan_mlu_Optim=None,
+    gan_n_real=None,
     **kwargs
 ):
     ae_loss_fn = ae_mlu_loss_fn or ae_loss_fn
@@ -177,6 +179,7 @@ def objective_mlu(
         lr=ae_mlu_lr,
         div_batch=ae_div_batch,
         forgive_over=ae_forgive_over,
+        n_real=ae_n_real,
         log_path=os.path.join(log_dir, "mlu_log_ae.csv"),
     )
     gan_mlu_trainer = MLUtilityTrainer(
@@ -197,6 +200,7 @@ def objective_mlu(
         lr=gan_mlu_lr,
         div_batch=gan_div_batch,
         forgive_over=gan_forgive_over,
+        n_real=gan_n_real,
         log_path=os.path.join(log_dir, "mlu_log_gan.csv"),
     )
     return objective(

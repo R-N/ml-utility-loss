@@ -108,6 +108,7 @@ def objective_mlu(
     forgive_over=True,
     mlu_loss_fn=None,
     mlu_Optim=None,
+    n_real=None,
     **kwargs
 ):
     loss_fn = mlu_loss_fn or loss_fn
@@ -131,6 +132,7 @@ def objective_mlu(
         lr=mlu_lr,
         div_batch=div_batch,
         forgive_over=forgive_over,
+        n_real=n_real,
         log_path=os.path.join(log_dir, "mlu_log.csv"),
     )
     return objective(

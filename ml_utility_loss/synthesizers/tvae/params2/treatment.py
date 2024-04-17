@@ -19,6 +19,7 @@ DEFAULTS = {
     "forgive_over": True,
     "loss_fn": "mae",
     "mlu_loss_fn": "mae",
+    "n_real": None,
 }
 FORCE = {}
 MINIMUMS = {}
@@ -50,6 +51,7 @@ PARAM_SPACE = {
     "mlu_lr": ("log_float", 1e-6, 1e-2),
     "div_batch": BOOLEAN,
     #"forgive_over": BOOLEAN,
+    "n_real": ("bool_int_exp_2", 512, 4096),
 }
 #121
 #0.6189555125725339

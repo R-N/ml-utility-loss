@@ -31,6 +31,7 @@ class MLUtilityTrainer:
         log_path=None,
         div_batch=False,
         forgive_over=False,
+        n_real=None,
         **optim_kwargs
     ):
         for param in model.parameters():
@@ -54,7 +55,6 @@ class MLUtilityTrainer:
         self.n_inner_steps_2 = n_inner_steps_2
         dataset_size = dataset[0][model.name][0].shape[0]
         n_samples = min(n_samples, dataset_size)
-        print("mlu samples", n_samples, "/", dataset_size)
         self.n_samples = n_samples
         self.loss_fn = loss_fn
         self.target = target
@@ -62,6 +62,10 @@ class MLUtilityTrainer:
         self.sample_batch_size=sample_batch_size
         self.div_batch = div_batch
         self.forgive_over = forgive_over
+        n_real = n_real or dataset_size
+        n_real = max(n_samples, n_real)
+        self.n_real = n_real
+        print("mlu samples", n_samples, "/", n_real)
         
         self.dataloader = DataLoader(
             dataset, 
@@ -155,7 +159,7 @@ class MLUtilityTrainer:
                 if "realtabformer" in self.model.name.lower():
                     assert train.shape[-2] == samples.shape[-2], f"Mismatching shapes. train {train.shape}, samples {samples.shape}"
 
-                n = train.shape[1]
+                n = min(self.n_real, train.shape[1])
                 n_samples = samples.shape[1]
                 n_remain = max(0, n-n_samples)
                 if n_remain:
