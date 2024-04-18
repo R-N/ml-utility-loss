@@ -73,6 +73,8 @@ DEFAULT_BS_TRAIN = 0
 DEFAULT_REAL_TRAIN = 5
 DEFAULT_SYNTH_TRAIN_VAL = 1000
 MAX_SYNTH = 1200
+DEFAULT_SYNTH_VAL = 200
+DEFAULT_SYNTH_VAL_RATIO = DEFAULT_SYNTH_VAL/DEFAULT_SYNTH_TRAIN_VAL
 
 def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv", i=0, size=None, augmenter=None, seed=42, scale_start=0.0, scale_end=1.0):
     if not size:
@@ -858,7 +860,7 @@ def load_dataset_3(
     model=None,
     starts=[0, 0, 0, 0, 0, 0],
     stops=[DEFAULT_AUG_TRAIN, 0, DEFAULT_BS_TRAIN, 0, DEFAULT_SYNTH_TRAIN_VAL, DEFAULT_REAL_TRAIN], 
-    ratios=[0, 1, 0, 1, 1/5, 0],
+    ratios=[0, 1, 0, 1, DEFAULT_SYNTH_VAL_RATIO, 0],
     steps=[1, 1, 1, 1, 1, 4],
     cache_dir="..",
     **kwargs,
