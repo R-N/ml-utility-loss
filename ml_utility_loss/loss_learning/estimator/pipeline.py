@@ -71,6 +71,8 @@ DATASET_INFO_COLS = [*DATASET_TYPES_VAL, "synth_value", "real_value"]
 DEFAULT_AUG_TRAIN = 0
 DEFAULT_BS_TRAIN = 0
 DEFAULT_REAL_TRAIN = 5
+DEFAULT_SYNTH_TRAIN_VAL = 1000
+MAX_SYNTH = 1200
 
 def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv", i=0, size=None, augmenter=None, seed=42, scale_start=0.0, scale_end=1.0):
     if not size:
@@ -855,7 +857,7 @@ def load_dataset_3(
     preprocessor,
     model=None,
     starts=[0, 0, 0, 0, 0, 0],
-    stops=[DEFAULT_AUG_TRAIN, 0, DEFAULT_BS_TRAIN, 0, 1000, DEFAULT_REAL_TRAIN], 
+    stops=[DEFAULT_AUG_TRAIN, 0, DEFAULT_BS_TRAIN, 0, DEFAULT_SYNTH_TRAIN_VAL, DEFAULT_REAL_TRAIN], 
     ratios=[0, 1, 0, 1, 1/5, 0],
     steps=[1, 1, 1, 1, 1, 4],
     cache_dir="..",
@@ -957,8 +959,8 @@ def load_dataset_4(
     dataset_name,
     preprocessor,
     model=None,
-    starts=[0, 0, 1000],
-    stops=[0, 0, 1200], 
+    starts=[0, 0, DEFAULT_SYNTH_TRAIN_VAL],
+    stops=[0, 0, MAX_SYNTH], 
     ratios=[None, None, None],
     steps=[1, 1, 1],
     cache_dir="..",
@@ -1024,7 +1026,7 @@ def load_dataset_3_factory(
         aug_train = aug_train or 0
         bs_train = bs_train or 0
         real_train = real_train or 0
-        stops=[aug_train, 0, bs_train, 0, 600, real_train]
+        stops=[aug_train, 0, bs_train, 0, DEFAULT_SYNTH_TRAIN_VAL, real_train]
         return load_dataset_3(
             dataset_dir=dataset_dir,
             dataset_name=dataset_name,
