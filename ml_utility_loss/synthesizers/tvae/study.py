@@ -180,7 +180,8 @@ def objective_mlu_4(
     **kwargs,
 ):
     if isinstance(mlu_model, (int, str)) or (isinstance(mlu_run, (int, str)) and (mlu_model==True or not mlu_model)):
-        mlu_run = mlu_run or mlu_model
+        if (not isinstance(mlu_run, (int, str))):
+            mlu_run = mlu_model
         mlu_params = remove_non_model_params(mlu_params)
         mlu_model = create_mlu_model(
             adapters=adapters,
