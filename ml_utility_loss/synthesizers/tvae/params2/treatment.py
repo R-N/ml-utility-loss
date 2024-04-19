@@ -32,6 +32,7 @@ MLU_RUNS = {
         False: 1,
     }
 }
+MLU_RUNS[False][True] = MLU_RUNS[False][False]
 FORCE = {}
 MINIMUMS = {}
 PARAM_SPACE = {
