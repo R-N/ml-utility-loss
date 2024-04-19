@@ -20,8 +20,17 @@ DEFAULTS = {
     "loss_fn": "mae",
     "mlu_loss_fn": "mae",
     "n_real": None,
-    "mlu_run": 2,
-    "mlu_run": 2,
+    # "mlu_run": 2,
+    # "mlu_run": 2,
+}
+MLU_RUNS = {
+    True: {
+        True: 2,
+        False: None
+    },
+    False: {
+        False: 2,
+    }
 }
 FORCE = {}
 MINIMUMS = {}
