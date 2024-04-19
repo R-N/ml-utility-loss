@@ -189,6 +189,7 @@ def objective_mlu_4(
     trial=None,
     **kwargs,
 ):
+    clear_memory()
     if isinstance(mlu_model, (int, str)) or (isinstance(mlu_run, (int, str)) and (mlu_model==True or not mlu_model)):
         if (not isinstance(mlu_run, (int, str))):
             mlu_run = mlu_model
