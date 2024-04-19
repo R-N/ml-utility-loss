@@ -27,7 +27,12 @@ def update_params(PARAM_SPACE, x, value=0, index=2):
         return
     PARAM_SPACE[x] = [*PARAM_SPACE[x][:index], value, *PARAM_SPACE[x][index+1:]]
 
-def duplicate_params(params):
+EXCLUDE_DUPLICATE = [
+    "mlu_run",
+]
+def duplicate_params(params, exclude=EXCLUDE_DUPLICATE):
+    excluded_params = {k: v for k, v in params.items() if k in exclude}
+    params = {k: v for k, v in params.items() if k not in exclude}
     single_params = {k: v for k, v in params.items() if not (
         k.startswith("ae_") or k.startswith("gan_")
     )}
@@ -35,6 +40,7 @@ def duplicate_params(params):
         k.startswith("ae_") or k.startswith("gan_")
     )}
     return {
+        **excluded_params,
         **double_params,
         **{f"ae_{k}": v for k, v in single_params.items()},
         **{f"gan_{k}": v for k, v in single_params.items()},
