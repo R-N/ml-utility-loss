@@ -259,7 +259,7 @@ def objective_mlu_4(
             **mlu_params,
         )
         print(mlu_model.models, len(mlu_model.adapters))
-        mlu_model_dir_2 = os.path.join(mlu_model_dir, mlu_model_name, dataset_name, mlu_run)
+        mlu_model_dir_2 = os.path.join(mlu_model_dir, dataset_name, mlu_model_name, mlu_run)
         mlu_model_path = os.path.join(mlu_model_dir_2, f"model.pt")
         mlu_model.load_state_dict(torch.load(mlu_model_path))
     return objective_mlu(*args, mlu_model=mlu_model, trial=trial, **kwargs)

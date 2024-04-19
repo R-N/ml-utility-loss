@@ -21,6 +21,8 @@ DEFAULTS = {
     "loss_fn": "mae",
     "mlu_loss_fn": "mae",
     "n_real": None,
+    "mlu_run": 3,
+    "mlu_run": 3,
 }
 FORCE = {}
 MINIMUMS = {}
@@ -50,6 +52,7 @@ PARAM_SPACE = {
     "div_batch": BOOLEAN,
     #"forgive_over": BOOLEAN,
     "n_real": ("bool_int_exp_2", 16, 2048),
+    "mlu_run": ("categorical", [0, 1, 2, 3, 4]),
 }
 PARAM_SPACE = duplicate_params(PARAM_SPACE)
 DEFAULTS = duplicate_params(DEFAULTS)

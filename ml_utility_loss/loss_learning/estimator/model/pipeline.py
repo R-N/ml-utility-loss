@@ -61,6 +61,8 @@ NON_MODEL_PARAMS = (
     "aug_train",
     "bs_train",
     "real_train",
+    "preprocess_df",
+    "mlu_run",
 )
 
 def remove_non_model_params(params, entries_to_remove=NON_MODEL_PARAMS):
