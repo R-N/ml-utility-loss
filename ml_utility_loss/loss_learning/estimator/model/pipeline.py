@@ -58,11 +58,16 @@ NON_MODEL_PARAMS = (
     "mse_mag",
     "mse_mag_multiply",
     "mse_mag_target",
+    "preprocess_df",
+    "mlu_run",
     "aug_train",
     "bs_train",
     "real_train",
-    "preprocess_df",
-    "mlu_run",
+    "n_real",
+    "aug_train_bool",
+    "bs_train_bool",
+    "real_train_bool",
+    "n_real_bool",
 )
 
 def remove_non_model_params(params, entries_to_remove=NON_MODEL_PARAMS):
