@@ -339,6 +339,75 @@ BEST_GP_MUL = {
 }
 add_queue(BEST_GP_MUL)
 
+#39
+#0.07930912455954023
+BEST_GP_MUL = {
+    'mlu_run': 1,
+    'ae_t_start_bool': False,
+    'ae_t_end_bool': False,
+    'ae_mlu_target': 1.0,
+    'ae_n_steps': 1,
+    'ae_n_inner_steps_exp_2': 0,
+    'ae_n_inner_steps_2_exp_2': 0,
+    'ae_div_batch': False,
+    'ae_mlu_loss_fn': 'mse',
+    'ae_n_real_bool': False,
+    'ae_n_samples_exp_2': 11,
+    'ae_t_steps': 11,
+    'ae_mlu_Optim': 'adamw',
+    'ae_mlu_lr': 8.24635176848423e-05,
+    'gan_t_start_bool': False,
+    'gan_t_end_bool': False,
+    'gan_mlu_target': 1.0,
+    'gan_n_steps': 1,
+    'gan_n_inner_steps_exp_2': 0,
+    'gan_n_inner_steps_2_exp_2': 1,
+    'gan_div_batch': True,
+    'gan_mlu_loss_fn': 'mae',
+    'gan_n_real_bool': True,
+    'gan_n_real_exp_2': 9,
+    'gan_n_samples_exp_2': 10,
+    'gan_t_steps': 13,
+    'gan_mlu_Optim': 'adamp',
+    'gan_mlu_lr': 5.729166354295585e-06,
+}
+add_queue(BEST_GP_MUL)
+
+#90
+#0.08483653621527362
+BEST_NO_GP = {
+    'mlu_run': 4,
+    'ae_t_start_bool': False,
+    'ae_t_end_bool': True,
+    'ae_t_end': 267,
+    'ae_mlu_target': None,
+    'ae_n_steps': 3,
+    'ae_n_inner_steps_exp_2': 0,
+    'ae_n_inner_steps_2_exp_2': 3,
+    'ae_div_batch': True,
+    'ae_mlu_loss_fn': 'mse',
+    'ae_n_real_bool': False,
+    'ae_n_samples_exp_2': 9,
+    'ae_t_steps': 20,
+    'ae_mlu_Optim': 'adamp',
+    'ae_mlu_lr': 0.008483202909644388,
+    'gan_t_start_bool': True,
+    'gan_t_start': 650,
+    'gan_t_end_bool': False,
+    'gan_mlu_target': 1.0,
+    'gan_n_steps': 2,
+    'gan_n_inner_steps_exp_2': 1,
+    'gan_n_inner_steps_2_exp_2': 1,
+    'gan_div_batch': False,
+    'gan_mlu_loss_fn': 'mse',
+    'gan_n_real_bool': False,
+    'gan_n_samples_exp_2': 9,
+    'gan_t_steps': 32,
+    'gan_mlu_Optim': 'adamp',
+    'gan_mlu_lr': 0.0017067977115608197,
+}
+add_queue(BEST_NO_GP)
+
 BEST_DICT = {
     True: {
         True: BEST_GP_MUL,
