@@ -290,11 +290,11 @@ BEST_GP_MUL = {
     'mlu_run': 2,
 }
 add_queue(BEST_GP_MUL)
-BEST_GP_MUL = {
-    **BEST_GP_MUL,
-    'mlu_run': 1,
-}
-add_queue(BEST_GP_MUL)
+# BEST_GP_MUL = {
+#     **BEST_GP_MUL,
+#     'mlu_run': 1,
+# }
+# add_queue(BEST_GP_MUL)
 
 #279
 #0.1383043643283584
