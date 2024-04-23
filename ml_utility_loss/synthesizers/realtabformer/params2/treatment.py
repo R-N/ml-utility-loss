@@ -292,6 +292,12 @@ BEST_NO_GP = {
 }
 add_queue(BEST_NO_GP)
 
+BEST_GP_MUL = {
+    **BEST_NO_GP,
+    'mlu_run': 3,
+}
+add_queue(BEST_GP_MUL)
+
 BEST_DICT = {
     True: {
         True: BEST_GP_MUL,
