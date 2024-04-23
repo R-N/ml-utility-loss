@@ -1713,6 +1713,19 @@ BEST_GP_MUL_RTF = {
     'head_activation_final': 'sigmoid',
 }
 add_queue(BEST_GP_MUL_RTF)
+BEST_GP_MUL_RTF = {
+    **BEST_GP_MUL_RTF,
+    'ada_activation': 'relu6',
+    #'attn_activation': 'leakyhardtanh',
+    #'grad_loss_fn': 'mse',
+    #'head_activation': 'rrelu',
+    'lr_mul': 0.04,
+    #'mse_mag_target': 0.5,
+    #'mse_mag_target': 1.0,
+    'n_warmup_steps': 120,
+}
+add_queue(BEST_GP_MUL_RTF)
+
 
 BEST_DICT = {
     True: {

@@ -1860,6 +1860,11 @@ BEST_GP_MUL_RTF = {
     'head_activation_final': 'softsign',
 }
 add_queue(BEST_GP_MUL_RTF)
+BEST_GP_MUL_RTF = {
+    **BEST_GP_MUL_RTF,
+    'mse_mag_target': 0.5,
+}
+add_queue(BEST_GP_MUL_RTF)
 
 BEST_DICT = {
     True: {
