@@ -295,8 +295,8 @@ add_queue(BEST_NO_GP)
 
 BEST_GP_MUL = {
     **BEST_GP_MUL,
-    'mlu_target': None,
-    #'mlu_loss_fn': 'mse',
+    #'mlu_target': None,
+    'mlu_loss_fn': 'mse',
 }
 add_queue(BEST_GP_MUL)
 
