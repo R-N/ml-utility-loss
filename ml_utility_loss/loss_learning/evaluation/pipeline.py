@@ -3,6 +3,7 @@ import os
 from ..estimator.pipeline import DATASET_TYPES_VAL
 from ..ml_utility.pipeline import eval_ml_utility
 from .metrics import jsd, wasserstein, diff_corr, privacy_dist
+from pandas.errors import IntCastingNaNError
 
 def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params={}, save_info="info.csv", drop_first_column=True, augmenter=None):
     target = info["target"]
@@ -52,7 +53,10 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             df_val.drop(df_val.columns[0], axis=1, inplace=True)
             df_test.drop(df_test.columns[0], axis=1, inplace=True)
 
-        df_synth = df_synth.astype(df_train.dtypes)
+        try:
+            df_synth = df_synth.astype(df_train.dtypes)
+        except IntCastingNaNError as ex:
+            raise RuntimeError(f"{index} df_synth has NaN or Inf: {df_synth.isna().sum(axis=0)}")
 
         #assert len(df_synth) == len(df_train)
             
