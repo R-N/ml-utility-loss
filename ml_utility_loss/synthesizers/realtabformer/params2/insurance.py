@@ -138,6 +138,7 @@ add_queue(BEST_NO_GP)
 #gp_mul
 #9
 #0.13676244765098422
+#old best
 BEST = {
     'n_samples_exp_2': 8,
     't_steps': 14,
@@ -290,9 +291,25 @@ BEST_GP_MUL = {
     'mlu_run': 2,
 }
 add_queue(BEST_GP_MUL)
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'mlu_run': 1,
+    'mlu_loss_fn': 'mae',
+}
+add_queue(BEST_GP_MUL)
+
+
 # BEST_GP_MUL = {
 #     **BEST_GP_MUL,
-#     'mlu_run': 1,
+#     'n_samples_exp_2': 8,
+#     't_steps': 14,
+#     'mlu_target': None,
+#     'n_steps': 1,
+#     'n_inner_steps_exp_2': 0,
+#     'n_inner_steps_2_exp_2': 1,
+#     'mlu_loss_fn': 'mae',
+#     'mlu_Optim': 'amsgradw',
+#     'mlu_lr': 7.146100068720383e-05
 # }
 # add_queue(BEST_GP_MUL)
 
