@@ -324,13 +324,26 @@ def check_param(k, v, PARAM_SPACE={}, DEFAULTS={}, IGNORES=["fixed_role_model"],
                     return False
         elif isinstance(cats, dict):
             DEFAULTS = try_get(DEFAULTS, k)
-            return {k: fallback_default(
-                k1, v1,
-                PARAM_SPACE=cats,
-                DEFAULTS=DEFAULTS,
-                drop_unknown_cat=drop_unknown_cat,
-                **kwargs,
-            ) for k1, v1 in v.items()}
+            if isinstance(v, dict):
+                return {k: check_param(
+                    k1, v1,
+                    PARAM_SPACE=cats,
+                    DEFAULTS=DEFAULTS,
+                    IGNORES=IGNORES,
+                    strict=strict,
+                    drop_unknown_cat=drop_unknown_cat,
+                    **kwargs,
+                ) for k1, v1 in v.items()}
+            else:
+                return check_param(
+                    k, v,
+                    PARAM_SPACE=cats,
+                    DEFAULTS=DEFAULTS,
+                    IGNORES=IGNORES,
+                    strict=strict,
+                    drop_unknown_cat=drop_unknown_cat,
+                    **kwargs,
+                )
     #elif v != PARAM_SPACE[k]:
     return True
 
