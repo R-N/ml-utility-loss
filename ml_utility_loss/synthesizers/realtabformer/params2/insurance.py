@@ -293,7 +293,7 @@ BEST_GP_MUL = {
 add_queue(BEST_GP_MUL)
 BEST_GP_MUL = {
     **BEST_GP_MUL,
-    'mlu_run': 1,
+    #'mlu_run': 1,
     'mlu_loss_fn': 'mae',
 }
 add_queue(BEST_GP_MUL)
