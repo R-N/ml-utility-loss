@@ -293,26 +293,26 @@ BEST_NO_GP = {
 }
 add_queue(BEST_NO_GP)
 
-BEST_GP_MUL = {
-    **BEST_GP_MUL,
-    'mlu_target': None,
-    'mlu_loss_fn': 'mse',
-}
-add_queue(BEST_GP_MUL)
-
 # BEST_GP_MUL = {
 #     **BEST_GP_MUL,
-#     'n_samples_exp_2': 4,
-#     't_steps': 3,
-#     'mlu_target': 1.0,
-#     'n_steps': 1,
-#     'n_inner_steps_exp_2': 2,
-#     'n_inner_steps_2_exp_2': 2,
+#     'mlu_target': None,
 #     'mlu_loss_fn': 'mse',
-#     'mlu_Optim': 'adamp',
-#     'mlu_lr': 0.0009001449485417823,
 # }
 # add_queue(BEST_GP_MUL)
+
+BEST_GP_MUL = {
+    **BEST_GP_MUL,
+    'n_samples_exp_2': 4,
+    't_steps': 3,
+    'mlu_target': 1.0,
+    'n_steps': 1,
+    'n_inner_steps_exp_2': 2,
+    'n_inner_steps_2_exp_2': 2,
+    'mlu_loss_fn': 'mse',
+    'mlu_Optim': 'adamp',
+    'mlu_lr': 0.0009001449485417823,
+}
+add_queue(BEST_GP_MUL)
 
 BEST_DICT = {
     True: {
