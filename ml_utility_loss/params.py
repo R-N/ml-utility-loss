@@ -307,6 +307,11 @@ PARAM_MAP = {
 DROP_PARAM = "__DROP_PARAM__"
 BOOL_FALSE = "__BOOL_FALSE__"
 
+def try_get(d, k):
+    if k in d and isinstance(d[k], dict):
+        return d[k]
+    return d
+
 def check_param(k, v, PARAM_SPACE={}, DEFAULTS={}, IGNORES=["fixed_role_model"], strict=True, drop_unknown_cat=True, **kwargs):
     if k not in PARAM_SPACE:
         if strict:
@@ -317,6 +322,15 @@ def check_param(k, v, PARAM_SPACE={}, DEFAULTS={}, IGNORES=["fixed_role_model"],
             if v not in cats:
                 if (not drop_unknown_cat) and k not in IGNORES and not isinstance(v, (float, int)) and k not in DEFAULTS and len(cats) > 1:
                     return False
+        elif isinstance(cats, dict):
+            DEFAULTS = try_get(DEFAULTS, k)
+            return {k: fallback_default(
+                k1, v1,
+                PARAM_SPACE=cats,
+                DEFAULTS=DEFAULTS,
+                drop_unknown_cat=drop_unknown_cat,
+                **kwargs,
+            ) for k1, v1 in v.items()}
     #elif v != PARAM_SPACE[k]:
     return True
 
@@ -343,10 +357,39 @@ def fallback_default(k, v, PARAM_SPACE={}, DEFAULTS={}, RANDOMS=["fixed_role_mod
                         return DROP_PARAM
                     if k in RANDOMS:
                         return random.choice(cats)
+            elif isinstance(dist, dict):
+                DEFAULTS = try_get(DEFAULTS, k)
+                if isinstance(v, dict):
+                    return {k: fallback_default(
+                        k1, v1,
+                        PARAM_SPACE=dist,
+                        DEFAULTS=DEFAULTS,
+                        RANDOMS=RANDOMS,
+                        drop_unknown_cat=drop_unknown_cat,
+                        **kwargs,
+                    ) for k1, v1 in v.items()}
+                else:
+                    return fallback_default(
+                        k, v,
+                        PARAM_SPACE=dist,
+                        DEFAULTS=DEFAULTS,
+                        RANDOMS=RANDOMS,
+                        drop_unknown_cat=drop_unknown_cat,
+                        **kwargs,
+                    )
             elif v is None or v is False:
                 return BOOL_FALSE
         elif v != dist:
             return dist
+    elif isinstance(v, dict):
+        return {k: fallback_default(
+            k1, v1,
+            PARAM_SPACE=PARAM_SPACE,
+            DEFAULTS=DEFAULTS,
+            RANDOMS=RANDOMS,
+            drop_unknown_cat=drop_unknown_cat,
+            **kwargs,
+        ) for k1, v1 in v.items()}
     return v
 
 def sanitize_params(p, REMOVES=["fixed_role_model"], **kwargs):
@@ -374,6 +417,12 @@ def force_fix(params, DEFAULTS={}, FORCE={}, MINIMUMS={}, **kwargs):
         **FORCE,
     }
     for k, v in MINIMUMS.items():
+        if isinstance(v, dict):
+            DEFAULTS1 = try_get(DEFAULTS, k)
+            FORCE1 = try_get(FORCE, k)
+            MINIMUMS1 = try_get(MINIMUMS, k)
+            v = force_fix(v, DEFAULTS=DEFAULTS1, FORCE=FORCE1, MINIMUMS=MINIMUMS1, **kwargs)
+            continue
         if k in params:
             params[k] = max(v, params[k])
         else:
