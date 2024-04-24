@@ -334,27 +334,6 @@ def unpack_params(PARAMS):
             }
     return PARAMS
 
-def unpack_param_space(PARAM_SPACE):
-    for k, dist in PARAM_SPACE.items():
-        #dist = PARAM_SPACE[k]
-        if isinstance(dist, (list, tuple)):
-            cats = dist[1]
-            if isinstance(cats, dict):
-                PARAM_SPACE = {
-                    **cats,
-                    **PARAM_SPACE,
-                }
-    return PARAM_SPACE
-
-def unpack_params(PARAMS):
-    for k, cats in PARAMS.items():
-        if isinstance(cats, dict):
-            PARAMS = {
-                **cats,
-                **PARAMS,
-            }
-    return PARAMS
-
 def check_param(k, v, PARAM_SPACE={}, DEFAULTS={}, IGNORES=["fixed_role_model"], strict=True, drop_unknown_cat=True, **kwargs):
     #PARAM_SPACE = unpack_param_space(PARAM_SPACE)
     #DEFAULTS = unpack_params(DEFAULTS)
