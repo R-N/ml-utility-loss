@@ -126,7 +126,7 @@ PARAM_SPACE = {
     }),
     "g_loss_mul": ("float", 0.1, 0.1, 0.1),
     # Common model args
-    "d_model": ("int_exp_2", 256, 256), #256
+    "d_model": ("int_exp_2", 128, 256), #256
     #"dropout": ("categorical", [0.0, 0.01, 0.02]),
     "grad_clip": ("float", 0.7, 0.85, 0.05),
     #"bias": BOOLEAN,
@@ -189,7 +189,7 @@ PARAM_SPACE = {
         #PMAFFNMode.SHARED,
     )),
     # Adapter args
-    "ada_d_hid": ("categorical", [1024, 1024]), 
+    "ada_d_hid": ("int_exp_2", 1024, 1024), 
     "ada_n_layers": ("int", 8, 8), #7
     "ada_activation": ("activation", [
         #"tanh",  
