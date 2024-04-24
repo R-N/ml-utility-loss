@@ -460,14 +460,14 @@ def sanitize_queue(TRIAL_QUEUE, PARAM_SPACE={}, DEFAULTS={}, **kwargs):
 
 def force_fix(params, PARAM_SPACE={}, DEFAULTS={}, FORCE={}, MINIMUMS={}, **kwargs):
     PARAM_SPACE = unpack_param_space(PARAM_SPACE)
-    DEFAULTS = unpack_params(DEFAULTS)
-    FORCE = unpack_params(FORCE)
-    MINIMUMS = unpack_params(MINIMUMS)
     params = {
         **DEFAULTS,
         **params,
         **FORCE,
     }
+    DEFAULTS = unpack_params(DEFAULTS)
+    FORCE = unpack_params(FORCE)
+    MINIMUMS = unpack_params(MINIMUMS)
     for k, v in MINIMUMS.items():
         if isinstance(v, dict):
             PARAM_SPACE1 = try_get(PARAM_SPACE, k)
