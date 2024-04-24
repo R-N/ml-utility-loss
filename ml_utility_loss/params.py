@@ -312,7 +312,52 @@ def try_get(d, k):
         return d[k]
     return d
 
+
+def unpack_param_space(PARAM_SPACE):
+    for k, dist in PARAM_SPACE.items():
+        #dist = PARAM_SPACE[k]
+        if isinstance(dist, (list, tuple)):
+            cats = dist[1]
+            if isinstance(cats, dict):
+                PARAM_SPACE = {
+                    **cats,
+                    **PARAM_SPACE,
+                }
+    return PARAM_SPACE
+
+def unpack_params(PARAMS):
+    for k, cats in PARAMS.items():
+        if isinstance(cats, dict):
+            PARAMS = {
+                **cats,
+                **PARAMS,
+            }
+    return PARAMS
+
+def unpack_param_space(PARAM_SPACE):
+    for k, dist in PARAM_SPACE.items():
+        #dist = PARAM_SPACE[k]
+        if isinstance(dist, (list, tuple)):
+            cats = dist[1]
+            if isinstance(cats, dict):
+                PARAM_SPACE = {
+                    **cats,
+                    **PARAM_SPACE,
+                }
+    return PARAM_SPACE
+
+def unpack_params(PARAMS):
+    for k, cats in PARAMS.items():
+        if isinstance(cats, dict):
+            PARAMS = {
+                **cats,
+                **PARAMS,
+            }
+    return PARAMS
+
 def check_param(k, v, PARAM_SPACE={}, DEFAULTS={}, IGNORES=["fixed_role_model"], strict=True, drop_unknown_cat=True, **kwargs):
+    #PARAM_SPACE = unpack_param_space(PARAM_SPACE)
+    #DEFAULTS = unpack_params(DEFAULTS)
     if k not in PARAM_SPACE:
         if strict:
             return False
@@ -347,13 +392,17 @@ def check_param(k, v, PARAM_SPACE={}, DEFAULTS={}, IGNORES=["fixed_role_model"],
     #elif v != PARAM_SPACE[k]:
     return True
 
-def check_params(p, PARAM_SPACE={}, **kwargs):
+def check_params(p, PARAM_SPACE={}, DEFAULTS={}, **kwargs):
+    PARAM_SPACE = unpack_param_space(PARAM_SPACE)
+    DEFAULTS = unpack_params(DEFAULTS)
     for k, v in p.items():
-        if not check_param(k, v, PARAM_SPACE=PARAM_SPACE, strict=False, **kwargs):
+        if not check_param(k, v, PARAM_SPACE=PARAM_SPACE, DEFAULTS=DEFAULTS, strict=False, **kwargs):
             return False
     return True
 
 def fallback_default(k, v, PARAM_SPACE={}, DEFAULTS={}, RANDOMS=["fixed_role_model"], drop_unknown_cat=True,  **kwargs):
+    #PARAM_SPACE = unpack_param_space(PARAM_SPACE)
+    #DEFAULTS = unpack_params(DEFAULTS)
     if k in PARAM_SPACE:
         dist = PARAM_SPACE[k]
         if isinstance(dist, (list, tuple)):
@@ -370,12 +419,12 @@ def fallback_default(k, v, PARAM_SPACE={}, DEFAULTS={}, RANDOMS=["fixed_role_mod
                         return DROP_PARAM
                     if k in RANDOMS:
                         return random.choice(cats)
-            elif isinstance(dist, dict):
+            elif isinstance(cats, dict):
                 DEFAULTS = try_get(DEFAULTS, k)
                 if isinstance(v, dict):
                     return {k: fallback_default(
                         k1, v1,
-                        PARAM_SPACE=dist,
+                        PARAM_SPACE=cats,
                         DEFAULTS=DEFAULTS,
                         RANDOMS=RANDOMS,
                         drop_unknown_cat=drop_unknown_cat,
@@ -384,7 +433,7 @@ def fallback_default(k, v, PARAM_SPACE={}, DEFAULTS={}, RANDOMS=["fixed_role_mod
                 else:
                     return fallback_default(
                         k, v,
-                        PARAM_SPACE=dist,
+                        PARAM_SPACE=cats,
                         DEFAULTS=DEFAULTS,
                         RANDOMS=RANDOMS,
                         drop_unknown_cat=drop_unknown_cat,
@@ -405,10 +454,12 @@ def fallback_default(k, v, PARAM_SPACE={}, DEFAULTS={}, RANDOMS=["fixed_role_mod
         ) for k1, v1 in v.items()}
     return v
 
-def sanitize_params(p, REMOVES=["fixed_role_model"], **kwargs):
+def sanitize_params(p, PARAM_SPACE={}, DEFAULTS={}, REMOVES=["fixed_role_model"], **kwargs):
+    PARAM_SPACE = unpack_param_space(PARAM_SPACE)
+    DEFAULTS = unpack_params(DEFAULTS)
     p = {
         k: fallback_default(
-            k, v, REMOVES=REMOVES, **kwargs,
+            k, v, PARAM_SPACE=PARAM_SPACE, DEFAULTS=DEFAULTS, REMOVES=REMOVES, **kwargs,
         ) for k, v in p.items() if k not in REMOVES# if check_param(k, v)
     }
     p = {k: v for k, v in p.items() if v != DROP_PARAM}
@@ -419,11 +470,20 @@ def sanitize_params(p, REMOVES=["fixed_role_model"], **kwargs):
             p[f"{k}_boolc"] = False
     return p
 
-def sanitize_queue(TRIAL_QUEUE, **kwargs):
-    TRIAL_QUEUE = [sanitize_params(p, **kwargs) for p in TRIAL_QUEUE if check_params(p, **kwargs)]
+def sanitize_queue(TRIAL_QUEUE, PARAM_SPACE={}, DEFAULTS={}, **kwargs):
+    PARAM_SPACE = unpack_param_space(PARAM_SPACE)
+    DEFAULTS = unpack_params(DEFAULTS)
+    TRIAL_QUEUE = [
+        sanitize_params(p, PARAM_SPACE=PARAM_SPACE, DEFAULTS=DEFAULTS, **kwargs) 
+        for p in TRIAL_QUEUE if check_params(p, PARAM_SPACE=PARAM_SPACE, DEFAULTS=DEFAULTS, **kwargs)
+    ]
     return TRIAL_QUEUE
 
-def force_fix(params, DEFAULTS={}, FORCE={}, MINIMUMS={}, **kwargs):
+def force_fix(params, PARAM_SPACE={}, DEFAULTS={}, FORCE={}, MINIMUMS={}, **kwargs):
+    PARAM_SPACE = unpack_param_space(PARAM_SPACE)
+    DEFAULTS = unpack_params(DEFAULTS)
+    FORCE = unpack_params(FORCE)
+    MINIMUMS = unpack_params(MINIMUMS)
     params = {
         **DEFAULTS,
         **params,
@@ -431,14 +491,15 @@ def force_fix(params, DEFAULTS={}, FORCE={}, MINIMUMS={}, **kwargs):
     }
     for k, v in MINIMUMS.items():
         if isinstance(v, dict):
+            PARAM_SPACE1 = try_get(PARAM_SPACE, k)
             DEFAULTS1 = try_get(DEFAULTS, k)
             FORCE1 = try_get(FORCE, k)
             MINIMUMS1 = try_get(MINIMUMS, k)
-            v = force_fix(v, DEFAULTS=DEFAULTS1, FORCE=FORCE1, MINIMUMS=MINIMUMS1, **kwargs)
+            v = force_fix(v, PARAM_SPACE=PARAM_SPACE1, DEFAULTS=DEFAULTS1, FORCE=FORCE1, MINIMUMS=MINIMUMS1, **kwargs)
             continue
         if k in params:
             params[k] = max(v, params[k])
         else:
             params[k] = v
-    params = sanitize_params(params, DEFAULTS=DEFAULTS, FORCE=FORCE, MINIMUMS=MINIMUMS, **kwargs)
+    params = sanitize_params(params, PARAM_SPACE=PARAM_SPACE, DEFAULTS=DEFAULTS, FORCE=FORCE, MINIMUMS=MINIMUMS, **kwargs)
     return params
