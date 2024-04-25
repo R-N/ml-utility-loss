@@ -123,7 +123,7 @@ PARAM_SPACE = {
     }),
     "g_loss_mul": ("float", 0.1, 0.2, 0.1),
     # Common model args
-    "d_model": ("int_exp_2", 256, 512), #512
+    "d_model": ("int_exp_2", 128, 512), #512
     #"dropout": ("categorical", [0.0, 0.01, 0.02]),
     "grad_clip": ("float", 0.7, 0.85, 0.05),
     #"bias": BOOLEAN,
@@ -152,10 +152,10 @@ PARAM_SPACE = {
         #IndsInitMode.XAVIER,
     ]),
     # Transformer args
-    "tf_d_inner": ("int_exp_2", 512, 512), #512
-    "tf_n_layers_enc": ("int", 3, 5), #4
+    "tf_d_inner": ("int_exp_2", 256, 512), #512
+    "tf_n_layers_enc": ("int", 2, 5), #4
     #"tf_n_layers_dec": ("bool_int", 3, 4), #better false
-    "tf_n_head": ("int_exp_2", 32, 64), #64
+    "tf_n_head": ("int_exp_2", 16, 64), #64
     "tf_activation": ("activation", [
         "tanh", 
         ## ##"sigmoid",
@@ -176,17 +176,17 @@ PARAM_SPACE = {
         #"leakyhardsigmoid",
         #"identity",
     ]),
-    "tf_num_inds": ("int_exp_2", 16, 64), #64
+    "tf_num_inds": ("int_exp_2", 8, 64), #64
     #"tf_layer_norm": BOOLEAN,
     # Transformer PMA args
-    "tf_pma_low": ("int_exp_2", 4, 16), #8
+    "tf_pma_low": ("int_exp_2", 2, 16), #8
     "pma_ffn_mode": ("categorical", (
         PMAFFNMode.NONE,
         #PMAFFNMode.SEPARATE,
         #PMAFFNMode.SHARED,
     )),
     # Adapter args
-    "ada_d_hid": ("int_exp_2", 512, 1024), #1024
+    "ada_d_hid": ("int_exp_2", 256, 1024), #1024
     "ada_n_layers": ("int", 7, 9),  #7
     "ada_activation": ("activation", [
         #"tanh",  
@@ -215,9 +215,9 @@ PARAM_SPACE = {
         "leakyhardsigmoid", #best
     ]),
     # Head args
-    "head_d_hid": ("int_exp_2", 128, 512), #128
-    "head_n_layers": ("int", 8, 9), #8
-    "head_n_head": ("int_exp_2", 32, 64), #64
+    "head_d_hid": ("int_exp_2", 64, 512), #128
+    "head_n_layers": ("int", 7, 9), #8
+    "head_n_head": ("int_exp_2", 16, 64), #64
     "head_activation": ("activation", [
         #"tanh",  
         ##"sigmoid", 
