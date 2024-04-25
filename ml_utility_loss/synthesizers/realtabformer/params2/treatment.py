@@ -339,11 +339,11 @@ BEST_GP_MUL = {
     'mlu_run': 3,
 }
 add_queue(BEST_GP_MUL)
-BEST_GP_MUL = {
-    **BEST_GP_MUL,
-    'mlu_run': 4,
-}
-add_queue(BEST_GP_MUL)
+# BEST_GP_MUL = {
+#     **BEST_GP_MUL,
+#     'mlu_run': 4,
+# }
+# add_queue(BEST_GP_MUL)
 
 BEST_DICT = {
     True: {
