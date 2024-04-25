@@ -153,7 +153,7 @@ PARAM_SPACE = {
     ]),
     # Transformer args
     "tf_d_inner": ("int_exp_2", 256, 1024), #512
-    "tf_n_layers_enc": ("int", 2, 3), #4
+    "tf_n_layers_enc": ("int", 2, 4), #4
     #"tf_n_layers_dec": ("bool_int", 3, 4), #better false
     "tf_n_head": ("int_exp_2", 32, 128), #64
     "tf_activation": ("activation", [
@@ -179,14 +179,14 @@ PARAM_SPACE = {
     "tf_num_inds": ("int_exp_2", 32, 128), #64
     #"tf_layer_norm": BOOLEAN,
     # Transformer PMA args
-    "tf_pma_low": ("int_exp_2", 8, 16), #8
+    "tf_pma_low": ("int_exp_2", 8, 32), #8
     "pma_ffn_mode": ("categorical", (
         PMAFFNMode.NONE,
         #PMAFFNMode.SEPARATE,
         #PMAFFNMode.SHARED,
     )),
     # Adapter args
-    "ada_d_hid": ("int_exp_2", 256, 512), 
+    "ada_d_hid": ("int_exp_2", 256, 1024), 
     "ada_n_layers": ("int", 8, 10),
     "ada_activation": ("activation", [
         #"tanh",  
@@ -216,7 +216,7 @@ PARAM_SPACE = {
     ]),
     # Head args
     "head_d_hid": ("int_exp_2", 256, 1024), #128
-    "head_n_layers": ("int", 8, 9), #8
+    "head_n_layers": ("int", 8, 10), #8
     "head_n_head": ("int_exp_2", 32, 128), #64
     "head_activation": ("activation", [
         #"tanh",  
