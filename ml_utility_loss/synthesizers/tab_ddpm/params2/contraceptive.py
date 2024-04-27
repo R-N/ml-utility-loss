@@ -358,8 +358,8 @@ BEST_GP_MUL = {
     #'n_samples_exp_2': 4,
     # #'n_samples_exp_2': 5,
     # 'n_steps': 1,
-    # 't_end_bool': False,
-    # 't_end': 46415,
+    't_end_bool': False,
+    't_end': 46415,
     # #'t_steps_exp_2': 9,
 }
 add_queue(BEST_GP_MUL)
