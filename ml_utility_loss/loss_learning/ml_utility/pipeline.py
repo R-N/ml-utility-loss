@@ -12,6 +12,7 @@ def eval_ml_utility(
     target=None,
     cat_features=[],
     class_names=None,
+    feature_importance=False,
     **model_params
 ):
     train, test = datasets
@@ -46,12 +47,19 @@ def eval_ml_utility(
             model.fit(train, test)
 
             value = model.eval(test)
+            if feature_importance:
+                return value, model.get_feature_importance()
             return value
 
         except CatBoostError as ex:
             msg = str(ex)
             if ("All train targets are equal" in msg) or ("Target contains only one unique value" in msg) or ("All features are either constant or ignored" in msg):
                 model = NaiveModel().fit(train)
+
+                value = model.eval(test)
+                if feature_importance:
+                    return value, model.get_feature_importance()
+                return value
             else:
                 raise
         except PermissionError:

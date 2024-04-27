@@ -5,7 +5,7 @@ from ..ml_utility.pipeline import eval_ml_utility
 from .metrics import jsd, wasserstein, diff_corr, privacy_dist
 from pandas.errors import IntCastingNaNError
 
-def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params={}, save_info="info.csv", drop_first_column=True, augmenter=None):
+def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params={}, save_info="info.csv", drop_first_column=True, augmenter=None, feature_importance=False):
     target = info["target"]
     task = info["task"]
     cat_features = info["cat_features"]
@@ -65,6 +65,7 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             task,
             target=target,
             cat_features=cat_features,
+            feature_importance=feature_importance,
             **ml_utility_params
         )
         real_value = eval_ml_utility(
@@ -72,8 +73,14 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             task,
             target=target,
             cat_features=cat_features,
+            feature_importance=feature_importance,
             **ml_utility_params
         )
+        if feature_importance:
+            synth_value, synth_feature_importance = synth_value
+            real_value, real_feature_importance = real_value
+            obj["synth_feature_importance"] = json.dumps(synth_feature_importance)
+            obj["real_feature_importance"] = json.dumps(real_feature_importance)
         obj["synth_value"] = synth_value
         obj["real_value"] = real_value
         obj["jsd"] = jsd(df_train, df_synth, cat_features)

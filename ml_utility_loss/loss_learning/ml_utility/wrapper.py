@@ -33,6 +33,9 @@ class NaiveModel:
     def get_best_iteration(self):
         return 0
 
+    def get_feature_importance(self):
+        return {}
+
 def extract_class_names(target, *dfs):
     ret = set()
     for df in dfs:
@@ -88,12 +91,14 @@ class CatBoostModel:
         }
         if class_names:
             self.params["class_names"] = class_names
+        self.train = None
         self.model = self.Model(
             **self.params
         )
 
     def fit(self, train, val=None):
         try:
+            self.train = train
             if self.task ==  "multiclass" and "class_names" not in self.params and self.target:
                 self.params["class_names"] = extract_class_names(self.target, train, val)
                 self.model = self.Model(
@@ -134,3 +139,5 @@ class CatBoostModel:
         assert self.checkpoint_dir
         self.model.save_model(os.path.join(self.checkpoint_dir, file_name))
 
+    def get_feature_importance(self):
+        return dict(self.model.get_feature_importance(data=self.train, prettified=True))

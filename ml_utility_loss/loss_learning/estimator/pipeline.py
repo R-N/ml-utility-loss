@@ -76,7 +76,7 @@ MAX_SYNTH = 1500
 DEFAULT_SYNTH_VAL = 200
 DEFAULT_SYNTH_VAL_RATIO = DEFAULT_SYNTH_VAL/DEFAULT_SYNTH_TRAIN_VAL
 
-def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv", i=0, size=None, augmenter=None, seed=42, scale_start=0.0, scale_end=1.0):
+def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv", i=0, size=None, augmenter=None, seed=42, scale_start=0.0, scale_end=1.0, feature_importance=False):
     if not size:
         #size = len(df)
         save_dir = os.path.join(save_dir, "all")
@@ -150,6 +150,7 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
                 task,
                 target=target,
                 cat_features=cat_features,
+                feature_importance=feature_importance,
                 **ml_utility_params
             )
             real_value = eval_ml_utility(
@@ -157,8 +158,14 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
                 task,
                 target=target,
                 cat_features=cat_features,
+                feature_importance=feature_importance,
                 **ml_utility_params
             )
+            if feature_importance:
+                synth_value, synth_feature_importance = synth_value
+                real_value, real_feature_importance = real_value
+                obj["synth_feature_importance"] = json.dumps(synth_feature_importance)
+                obj["real_feature_importance"] = json.dumps(real_feature_importance)
             obj["synth_value"] = aug_value
             obj["real_value"] = real_value
 
@@ -175,7 +182,7 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
         info_out.to_csv(info_path)
     return info_out
 
-def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params={}, save_info="info.csv", drop_first_column=True, augmenter=None):
+def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params={}, save_info="info.csv", drop_first_column=True, augmenter=None, feature_importance=False):
     target = info["target"]
     task = info["task"]
     cat_features = info["cat_features"]
@@ -231,6 +238,7 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             task,
             target=target,
             cat_features=cat_features,
+            feature_importance=feature_importance,
             **ml_utility_params
         )
         real_value = eval_ml_utility(
@@ -238,8 +246,14 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             task,
             target=target,
             cat_features=cat_features,
+            feature_importance=feature_importance,
             **ml_utility_params
         )
+        if feature_importance:
+            synth_value, synth_feature_importance = synth_value
+            real_value, real_feature_importance = real_value
+            obj["synth_feature_importance"] = json.dumps(synth_feature_importance)
+            obj["real_feature_importance"] = json.dumps(real_feature_importance)
         obj["synth_value"] = synth_value
         obj["real_value"] = real_value
 
