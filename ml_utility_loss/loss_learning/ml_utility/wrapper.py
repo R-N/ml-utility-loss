@@ -140,4 +140,4 @@ class CatBoostModel:
         self.model.save_model(os.path.join(self.checkpoint_dir, file_name))
 
     def get_feature_importance(self):
-        return self.model.get_feature_importance(data=self.train, prettified=True)
+        return dict(self.model.get_feature_importance(data=self.train, prettified=True).values.tolist())
