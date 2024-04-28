@@ -2041,25 +2041,25 @@ BEST_DICT = {
 }
 
 
-BEST_DICT = {
-    True: {
-        True: {
-            "lct_gan": BEST_GP_MUL_LCT_GAN,
-            "realtabformer": BEST_GP_MUL_REALTABFORMER,
-            "tab_ddpm_concat": BEST_GP_MUL_TAB_DDPM_CONCAT,
-            "tvae": BEST_GP_MUL_TVAE,
-        },
-        False: None
-    },
-    False: {
-        False: {
-            "lct_gan": BEST_NO_GP_OTHER,
-            "realtabformer": BEST_NO_GP_RTF,
-            "tab_ddpm_concat": BEST_NO_GP_TAB,
-            "tvae": BEST_NO_GP_OTHER,
-        }
-    }
-}
+# BEST_DICT = {
+#     True: {
+#         True: {
+#             "lct_gan": BEST_GP_MUL_LCT_GAN,
+#             "realtabformer": BEST_GP_MUL_REALTABFORMER,
+#             "tab_ddpm_concat": BEST_GP_MUL_TAB_DDPM_CONCAT,
+#             "tvae": BEST_GP_MUL_TVAE,
+#         },
+#         False: None
+#     },
+#     False: {
+#         False: {
+#             "lct_gan": BEST_NO_GP_OTHER,
+#             "realtabformer": BEST_NO_GP_RTF,
+#             "tab_ddpm_concat": BEST_NO_GP_TAB,
+#             "tvae": BEST_NO_GP_OTHER,
+#         }
+#     }
+# }
 BEST_DICT[False][False] = BEST_DICT[True][True]
 BEST_DICT[False][True] = BEST_DICT[False][False]
 
