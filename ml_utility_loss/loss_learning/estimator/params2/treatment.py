@@ -2020,6 +2020,135 @@ BEST_GP_MUL_TVAE = {
 }
 add_queue(BEST_GP_MUL_TVAE)
 
+#final_update
+#79
+#0.04816937819123268
+BEST_GP_MUL_LCT_GAN = {
+    'gradient_penalty_mode': 'ALL',
+    'bias_weight_decay': 0.05,
+    'loss_balancer_beta': 0.8,
+    'loss_balancer_r': 0.98,
+    'grad_loss_fn': 'mae',
+    'pma_ffn_mode': 'none',
+    'tf_pma_low_exp_2': 4,
+    'patience': 6,
+    'grad_clip': 0.7,
+    'inds_init_mode': 'fixnorm',
+    'dataset_size_exp_2': 11,
+    'batch_size_exp_2': 1,
+    'epochs': 80,
+    'lr_mul': 0.08,
+    'n_warmup_steps': 140,
+    'Optim': 'diffgrad',
+    'fixed_role_model': 'lct_gan',
+    'mse_mag_target': 0.5,
+    'g_loss_mul': 0.1,
+    'd_model_exp_2': 8,
+    'attn_activation': 'sigmoid',
+    'tf_d_inner_exp_2': 9,
+    'tf_n_layers_enc': 4,
+    'tf_n_head_exp_2': 6,
+    'tf_activation': 'leakyhardsigmoid',
+    'tf_activation_final': 'leakyhardtanh',
+    'tf_num_inds_exp_2': 5,
+    'ada_d_hid_exp_2': 9,
+    'ada_n_layers': 7,
+    'ada_activation': 'softsign',
+    'ada_activation_final': 'leakyhardtanh',
+    'head_d_hid_exp_2': 8,
+    'head_n_layers': 7,
+    'head_n_head_exp_2': 6,
+    'head_activation': 'rrelu',
+    'head_activation_final': 'sigmoid',
+}
+add_queue(BEST_GP_MUL_LCT_GAN)
+
+#86
+#0.02806108258664608
+BEST_GP_MUL_TAB_DDPM_CONCAT = {
+    'gradient_penalty_mode': 'ALL',
+    'bias_weight_decay': 0.05,
+    'loss_balancer_beta': 0.8,
+    'loss_balancer_r': 0.98,
+    'grad_loss_fn': 'mae',
+    'pma_ffn_mode': 'none',
+    'tf_pma_low_exp_2': 3,
+    'patience': 5,
+    'grad_clip': 0.7,
+    'inds_init_mode': 'fixnorm',
+    'dataset_size_exp_2': 11,
+    'batch_size_exp_2': 1,
+    'epochs': 70,
+    'lr_mul': 0.01,
+    'n_warmup_steps': 200,
+    'Optim': 'amsgradw',
+    'fixed_role_model': 'tab_ddpm_concat',
+    'mse_mag_target': 0.2,
+    'g_loss_mul': 0.1,
+    'd_model_exp_2': 6,
+    'attn_activation': 'sigmoid',
+    'tf_d_inner_exp_2': 7,
+    'tf_n_layers_enc': 5,
+    'tf_n_head_exp_2': 4,
+    'tf_activation': 'leakyhardsigmoid',
+    'tf_activation_final': 'leakyhardtanh',
+    'tf_num_inds_exp_2': 7,
+    'ada_d_hid_exp_2': 10,
+    'ada_n_layers': 6,
+    'ada_activation': 'relu6',
+    'ada_activation_final': 'leakyhardsigmoid',
+    'head_d_hid_exp_2': 7,
+    'head_n_layers': 7,
+    'head_n_head_exp_2': 3,
+    'head_activation': 'leakyhardsigmoid',
+    'head_activation_final': 'leakyhardsigmoid',
+}
+add_queue(BEST_GP_MUL_TAB_DDPM_CONCAT)
+
+
+
+#80
+#0.05116423964500427
+BEST_GP_MUL_TVAE = {
+    'gradient_penalty_mode': 'ALL',
+    'bias_weight_decay': 0.05,
+    'loss_balancer_beta': 0.8,
+    'loss_balancer_r': 0.98,
+    'grad_loss_fn': 'mae',
+    'pma_ffn_mode': 'none',
+    'tf_pma_low_exp_2': 2,
+    'patience': 50,
+    'grad_clip': 0.8591353407826531,
+    'inds_init_mode': 'fixnorm',
+    'dataset_size_exp_2': 11,
+    'batch_size_exp_2': 1,
+    'epochs': 1000,
+    'lr_mul': 0.04176182541902775,
+    'n_warmup_steps': 48,
+    'Optim': 'amsgradw',
+    'fixed_role_model': 'tvae',
+    'mse_mag_target': 1.0,
+    'g_loss_mul': 0.2,
+    'd_model_exp_2': 7,
+    'attn_activation': 'leakyhardtanh',
+    'tf_d_inner_exp_2': 8,
+    'tf_n_layers_enc': 4,
+    'tf_n_head_exp_2': 6,
+    'tf_activation': 'tanh',
+    'tf_activation_final': 'leakyhardtanh',
+    'tf_num_inds_exp_2': 4,
+    'ada_d_hid_exp_2': 9,
+    'ada_n_layers': 7,
+    'ada_activation': 'selu',
+    'ada_activation_final': 'leakyhardsigmoid',
+    'head_d_hid_exp_2': 7,
+    'head_n_layers': 7,
+    'head_n_head_exp_2': 4,
+    'head_activation': 'leakyhardsigmoid',
+    'head_activation_final': 'leakyhardsigmoid',
+}
+add_queue(BEST_GP_MUL_TVAE)
+
 BEST_DICT = {
     True: {
         True: {
@@ -2041,25 +2170,20 @@ BEST_DICT = {
 }
 
 
-# BEST_DICT = {
-#     True: {
-#         True: {
-#             "lct_gan": BEST_GP_MUL_LCT_GAN,
-#             "realtabformer": BEST_GP_MUL_REALTABFORMER,
-#             "tab_ddpm_concat": BEST_GP_MUL_TAB_DDPM_CONCAT,
-#             "tvae": BEST_GP_MUL_TVAE,
-#         },
-#         False: None
-#     },
-#     False: {
-#         False: {
-#             "lct_gan": BEST_NO_GP_OTHER,
-#             "realtabformer": BEST_NO_GP_RTF,
-#             "tab_ddpm_concat": BEST_NO_GP_TAB,
-#             "tvae": BEST_NO_GP_OTHER,
-#         }
-#     }
-# }
+BEST_DICT = {
+    True: {
+        True: {
+            "lct_gan": BEST_GP_MUL_LCT_GAN,
+            "realtabformer": BEST_GP_MUL_REALTABFORMER,
+            "tab_ddpm_concat": BEST_GP_MUL_TAB_DDPM_CONCAT,
+            "tvae": BEST_GP_MUL_TVAE,
+        },
+        False: None
+    },
+    False: {
+        False: None
+    }
+}
 BEST_DICT[False][False] = BEST_DICT[True][True]
 BEST_DICT[False][True] = BEST_DICT[False][False]
 

@@ -2154,6 +2154,48 @@ BEST_GP_MUL_TVAE = {
 }
 add_queue(BEST_GP_MUL_TVAE)
 
+#final update
+#101
+#0.012419713661074638
+BEST_GP_MUL_TVAE = {
+    'gradient_penalty_mode': 'ALL',
+    'bias_weight_decay': 0.1,
+    'loss_balancer_r': 0.95,
+    'grad_loss_fn': 'mae',
+    'pma_ffn_mode': 'none',
+    'head_final_mul': 'identity',
+    'tf_pma_low_exp_2': 3,
+    'patience': 5,
+    'grad_clip': 0.7,
+    'inds_init_mode': 'fixnorm',
+    'dataset_size_exp_2': 11,
+    'batch_size_exp_2': 3,
+    'epochs': 70,
+    'lr_mul': 0.08,
+    'n_warmup_steps': 80,
+    'Optim': 'amsgradw',
+    'fixed_role_model': 'tvae',
+    'mse_mag_target': 0.2,
+    'g_loss_mul': 0.2,
+    'd_model_exp_2': 10,
+    'attn_activation': 'leakyhardtanh',
+    'tf_d_inner_exp_2': 7,
+    'tf_n_layers_enc': 3,
+    'tf_n_head_exp_2': 5,
+    'tf_activation': 'leakyhardtanh',
+    'tf_activation_final': 'leakyhardsigmoid',
+    'tf_num_inds_exp_2': 4,
+    'ada_d_hid_exp_2': 11,
+    'ada_n_layers': 6,
+    'ada_activation': 'relu6',
+    'ada_activation_final': 'leakyhardtanh',
+    'head_d_hid_exp_2': 10,
+    'head_n_layers': 11,
+    'head_n_head_exp_2': 5,
+    'head_activation': 'rrelu',
+    'head_activation_final': 'softsign',
+}
+add_queue(BEST_GP_MUL_TVAE)
 
 BEST_DICT = {
     True: {
@@ -2176,25 +2218,20 @@ BEST_DICT = {
 }
 
 
-# BEST_DICT = {
-#     True: {
-#         True: {
-#             "lct_gan": BEST_GP_MUL_LCT_GAN,
-#             "realtabformer": BEST_GP_MUL_REALTABFORMER,
-#             "tab_ddpm_concat": BEST_GP_MUL_TAB_DDPM_CONCAT,
-#             "tvae": BEST_GP_MUL_TVAE,
-#         },
-#         False: None
-#     },
-#     False: {
-#         False: {
-#             "lct_gan": BEST_NO_GP_OTHER,
-#             "realtabformer": BEST_NO_GP_RTF,
-#             "tab_ddpm_concat": BEST_NO_GP_TAB,
-#             "tvae": BEST_NO_GP_OTHER,
-#         }
-#     }
-# }
+BEST_DICT = {
+    True: {
+        True: {
+            "lct_gan": BEST_GP_MUL_LCT_GAN,
+            "realtabformer": BEST_GP_MUL_REALTABFORMER,
+            "tab_ddpm_concat": BEST_GP_MUL_TAB_DDPM_CONCAT,
+            "tvae": BEST_GP_MUL_TVAE,
+        },
+        False: None
+    },
+    False: {
+        False: None
+    }
+}
 BEST_DICT[False][False] = BEST_DICT[True][True]
 BEST_DICT[False][True] = BEST_DICT[False][False]
 
