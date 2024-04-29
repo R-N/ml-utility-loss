@@ -25,7 +25,7 @@ DEFAULTS = {
 }
 MLU_RUNS = {
     True: {
-        True: 0,
+        True: 2,
         False: None
     },
     False: {
@@ -335,11 +335,11 @@ BEST_NO_GP = {
 add_queue(BEST_NO_GP)
 
 
-BEST_GP_MUL = {
-    **BEST_GP_MUL,
-    'mlu_run': 0,
-}
-add_queue(BEST_GP_MUL)
+# BEST_GP_MUL = {
+#     **BEST_GP_MUL,
+#     'mlu_run': 0,
+# }
+# add_queue(BEST_GP_MUL)
 
 #6
 #0.1383043643283584

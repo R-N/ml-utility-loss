@@ -25,7 +25,7 @@ DEFAULTS = {
 }
 MLU_RUNS = {
     True: {
-        True: 4,
+        True: 0,
         False: None
     },
     False: {
@@ -326,18 +326,18 @@ BEST_GP_MUL = {
 }
 add_queue(BEST_GP_MUL)
 
-BEST_GP_MUL = {
-    **BEST_GP_MUL,
-    #'mlu_loss_fn': 'mae',
-    #'mlu_run': 4,
-    # 'n_inner_steps_2_exp_2': 1,
-    # 'n_inner_steps_exp_2': 1,
-    # 'n_real_bool': False,
-    # 'n_real_exp_2': 11,
-    't_end_bool': False,
-    't_end': 42617,
-}
-add_queue(BEST_GP_MUL)
+# BEST_GP_MUL = {
+#     **BEST_GP_MUL,
+#     #'mlu_loss_fn': 'mae',
+#     #'mlu_run': 4,
+#     # 'n_inner_steps_2_exp_2': 1,
+#     # 'n_inner_steps_exp_2': 1,
+#     # 'n_real_bool': False,
+#     # 'n_real_exp_2': 11,
+#     # #'t_end_bool': False,
+#     # #'t_end': 42617,
+# }
+# add_queue(BEST_GP_MUL)
 
 #194
 #0.14601770769889919

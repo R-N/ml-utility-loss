@@ -25,7 +25,7 @@ DEFAULTS = {
 }
 MLU_RUNS = {
     True: {
-        True: 1,
+        True: 2,
         False: None
     },
     False: {
