@@ -350,6 +350,8 @@ def load_params(study_name, storage, trials):
     del study
     return good_params
 
-def enqueue_params(study, params):
+def enqueue_params(study, params, remove=["mlu_run"]):
+    remove = set(remove)
     for p in params:
+        p = {k: v for k, v in p.items() if k not in remove}
         study.enqueue_trial(p, skip_if_exists=True)
