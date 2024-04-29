@@ -5,8 +5,11 @@ from ....params import force_fix, sanitize_params, sanitize_queue
 
 TRIAL_QUEUE = []
 
-def add_queue(params):
+def add_queue(params, remove=["mlu_run"]):
+    remove = set(remove)
+    params = {k: v for k, v in params.items() if k not in remove}
     TRIAL_QUEUE.append(dict(params))
+
 DEFAULTS = {
     "t_start": 0,
     "t_end": None,
