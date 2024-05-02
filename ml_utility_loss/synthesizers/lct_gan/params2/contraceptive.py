@@ -483,6 +483,42 @@ BEST_NO_GP = {
 }
 add_queue(BEST_NO_GP)
 
+#reset
+#74
+#0.4843864866534422
+BEST_GP_MUL = {
+    'mlu_run': 3,
+    'ae_t_start_bool': False,
+    'ae_t_end_bool': True,
+    'ae_t_end': 131,
+    'ae_mlu_target': None,
+    'ae_n_steps': 3,
+    'ae_n_inner_steps_exp_2': 2,
+    'ae_n_inner_steps_2_exp_2': 0,
+    'ae_div_batch': False,
+    'ae_mlu_loss_fn': 'mae',
+    'ae_n_real_bool': False,
+    'ae_n_samples_exp_2': 10,
+    'ae_t_steps': 4,
+    'ae_mlu_Optim': 'amsgradw',
+    'ae_mlu_lr': 5.2209804302780504e-06,
+    'gan_t_start_bool': False,
+    'gan_t_end_bool': False,
+    'gan_mlu_target': None,
+    'gan_n_steps': 4,
+    'gan_n_inner_steps_exp_2': 3,
+    'gan_n_inner_steps_2_exp_2': 2,
+    'gan_div_batch': False,
+    'gan_mlu_loss_fn': 'mse',
+    'gan_n_real_bool': True,
+    'gan_n_real_exp_2': 6,
+    'gan_n_samples_exp_2': 8,
+    'gan_t_steps': 4,
+    'gan_mlu_Optim': 'amsgradw',
+    'gan_mlu_lr': 1.1692242737273404e-06,
+}
+add_queue(BEST_GP_MUL)
+
 BEST_DICT = {
     True: {
         True: BEST_GP_MUL,
