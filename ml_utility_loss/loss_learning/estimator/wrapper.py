@@ -167,10 +167,11 @@ class MLUtilityTrainer:
                     samples = torch.cat([samples, train[:, idx]], dim=1)
 
                 samples, est = self.model(samples, test)
-                target = self.target or y.flatten().item()
+                yi = y.flatten().item()
+                target = self.target or yi
                 if target <= 0.1:
-                    target = y + target
-                target = max(target, y)
+                    target = yi + target
+                target = max(target, yi)
                 target = torch.full(est.shape, target, device=est.device)
                 if self.forgive_over:
                     est = torch.clamp(est, max=target)
