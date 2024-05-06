@@ -168,7 +168,7 @@ class MLUtilityTrainer:
 
                 samples, est = self.model(samples, test)
                 target = self.target or y.flatten().item()
-                if target < 0.1:
+                if target <= 0.1:
                     target = y + target
                 target = max(target, y)
                 target = torch.full(est.shape, target, device=est.device)
