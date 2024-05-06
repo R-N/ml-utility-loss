@@ -446,7 +446,7 @@ def sanitize_params(p, PARAM_SPACE={}, DEFAULTS={}, REMOVES=["fixed_role_model"]
         if v == BOOL_FALSE:
             p.pop(k)
             p[f"{k}_bool"] = False
-            p[f"{k}_boolc"] = False
+            #p[f"{k}_boolc"] = False
     return p
 
 def sanitize_queue(TRIAL_QUEUE, PARAM_SPACE={}, DEFAULTS={}, **kwargs):
