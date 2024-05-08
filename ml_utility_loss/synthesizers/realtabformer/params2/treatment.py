@@ -397,10 +397,10 @@ BEST_GP_MUL = {
 }
 add_queue(BEST_GP_MUL)
 
-# #mlu target true
-# #47
-# #0.620780635285055
-add_queue({
+#mlu target true
+#47
+#0.620780635285055
+BEST_GP_MUL = {
     't_start_bool': False,
     't_end_bool': False,
     'mlu_target_bool': True,
@@ -416,8 +416,8 @@ add_queue({
     'mlu_Optim': 'adamp',
     'mlu_lr': 0.002263302939027342,
     'mlu_run': 3,
-})
-# add_queue(BEST_GP_MUL)
+}
+add_queue(BEST_GP_MUL)
 
 # #diff
 # #24
