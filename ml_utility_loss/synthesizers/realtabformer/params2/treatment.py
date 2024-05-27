@@ -353,94 +353,94 @@ add_queue(BEST_GP_MUL)
 # # }
 # # add_queue(BEST_GP_MUL)
 
-#reset
-#37
-#0.6320744707640675
-BEST_GP_MUL = {
-    't_start_bool': False,
-    't_end_bool': True,
-    't_end': 100,
-    'mlu_target': 1.0,
-    'n_steps': 1,
-    'n_inner_steps_exp_2': 2,
-    'n_inner_steps_2_exp_2': 2,
-    'div_batch': True,
-    'mlu_loss_fn': 'mae',
-    'n_real_bool': False,
-    'n_samples_exp_2': 3,
-    't_steps': 3,
-    'mlu_Optim': 'adamp',
-    'mlu_lr': 0.0008314939766483033,
-    'mlu_run': 0,
-}
-add_queue(BEST_GP_MUL)
+# #reset
+# #37
+# #0.6320744707640675
+# BEST_GP_MUL = {
+#     't_start_bool': False,
+#     't_end_bool': True,
+#     't_end': 100,
+#     'mlu_target': 1.0,
+#     'n_steps': 1,
+#     'n_inner_steps_exp_2': 2,
+#     'n_inner_steps_2_exp_2': 2,
+#     'div_batch': True,
+#     'mlu_loss_fn': 'mae',
+#     'n_real_bool': False,
+#     'n_samples_exp_2': 3,
+#     't_steps': 3,
+#     'mlu_Optim': 'adamp',
+#     'mlu_lr': 0.0008314939766483033,
+#     'mlu_run': 0,
+# }
+# add_queue(BEST_GP_MUL)
 
-#5
-#53
-#0.633091875056457
-BEST_GP_MUL = {
-    't_start_bool': False,
-    't_end_bool': True,
-    't_end': 85,
-    'mlu_target_bool': False,
-    'n_steps': 1,
-    'n_inner_steps_exp_2': 0,
-    'n_inner_steps_2_exp_2': 0,
-    'div_batch': False,
-    'mlu_loss_fn': 'mae',
-    'n_real_bool': False,
-    'n_samples_exp_2': 3,
-    't_steps': 3,
-    'mlu_Optim': 'adamp',
-    'mlu_lr': 0.0019024857246658533,
-    'mlu_run': 3,
-}
-add_queue(BEST_GP_MUL)
+# #5
+# #53
+# #0.633091875056457
+# BEST_GP_MUL = {
+#     't_start_bool': False,
+#     't_end_bool': True,
+#     't_end': 85,
+#     'mlu_target_bool': False,
+#     'n_steps': 1,
+#     'n_inner_steps_exp_2': 0,
+#     'n_inner_steps_2_exp_2': 0,
+#     'div_batch': False,
+#     'mlu_loss_fn': 'mae',
+#     'n_real_bool': False,
+#     'n_samples_exp_2': 3,
+#     't_steps': 3,
+#     'mlu_Optim': 'adamp',
+#     'mlu_lr': 0.0019024857246658533,
+#     'mlu_run': 3,
+# }
+# add_queue(BEST_GP_MUL)
 
-#mlu target true
-#47
-#0.620780635285055
-BEST_GP_MUL = {
-    't_start_bool': False,
-    't_end_bool': False,
-    'mlu_target_bool': True,
-    'mlu_target': 0.6749999999999999,
-    'n_steps': 1,
-    'n_inner_steps_exp_2': 0,
-    'n_inner_steps_2_exp_2': 0,
-    'div_batch': True,
-    'mlu_loss_fn': 'mae',
-    'n_real_bool': False,
-    'n_samples_exp_2': 4,
-    't_steps': 4,
-    'mlu_Optim': 'adamp',
-    'mlu_lr': 0.002263302939027342,
-    'mlu_run': 3,
-}
-add_queue(BEST_GP_MUL)
+# #mlu target true
+# #47
+# #0.620780635285055
+# BEST_GP_MUL = {
+#     't_start_bool': False,
+#     't_end_bool': False,
+#     'mlu_target_bool': True,
+#     'mlu_target': 0.6749999999999999,
+#     'n_steps': 1,
+#     'n_inner_steps_exp_2': 0,
+#     'n_inner_steps_2_exp_2': 0,
+#     'div_batch': True,
+#     'mlu_loss_fn': 'mae',
+#     'n_real_bool': False,
+#     'n_samples_exp_2': 4,
+#     't_steps': 4,
+#     'mlu_Optim': 'adamp',
+#     'mlu_lr': 0.002263302939027342,
+#     'mlu_run': 3,
+# }
+# add_queue(BEST_GP_MUL)
 
-#diff
-#148
-#0.633572162783065
-BEST_GP_MUL = {
-    't_start_bool': True,
-    't_start': 0,
-    't_end_bool': True,
-    't_end': 85,
-    'mlu_target': 0.005,
-    'n_steps': 1,
-    'n_inner_steps_exp_2': 1,
-    'n_inner_steps_2_exp_2': 2,
-    'div_batch': True,
-    'mlu_loss_fn': 'mae',
-    'n_real_bool': False,
-    'n_samples_exp_2': 3,
-    't_steps': 3,
-    'mlu_Optim': 'adamp',
-    'mlu_lr': 0.0022271609175328884,
-    'mlu_run': 3,
-}
-add_queue(BEST_GP_MUL)
+# #diff
+# #148
+# #0.633572162783065
+# BEST_GP_MUL = {
+#     't_start_bool': True,
+#     't_start': 0,
+#     't_end_bool': True,
+#     't_end': 85,
+#     'mlu_target': 0.005,
+#     'n_steps': 1,
+#     'n_inner_steps_exp_2': 1,
+#     'n_inner_steps_2_exp_2': 2,
+#     'div_batch': True,
+#     'mlu_loss_fn': 'mae',
+#     'n_real_bool': False,
+#     'n_samples_exp_2': 3,
+#     't_steps': 3,
+#     'mlu_Optim': 'adamp',
+#     'mlu_lr': 0.0022271609175328884,
+#     'mlu_run': 3,
+# }
+# add_queue(BEST_GP_MUL)
 
 BEST_DICT = {
     True: {
