@@ -45,7 +45,7 @@ PARAM_SPACE = {
     "t_steps": ("int_exp_2", 512, 4096),
     "t_start": ("bool_int", 0, 36415, 5000),
     "t_end": ("bool_int", 36415, 46415, 2000, False, True),
-    "mlu_target": ("categorical", [None, 1.0]),
+    #"mlu_target": ("float", 0.0, 0.01, 0.005),
     "n_steps": ("int", 1, 3),
     "n_inner_steps": ("int_exp_2", 1, 8),
     "n_inner_steps_2": ("int_exp_2", 1, 8),

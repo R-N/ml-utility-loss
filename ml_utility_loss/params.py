@@ -385,43 +385,50 @@ def fallback_default(k, v, PARAM_SPACE={}, DEFAULTS={}, RANDOMS=["fixed_role_mod
     if k in PARAM_SPACE:
         dist = PARAM_SPACE[k]
         if isinstance(dist, (list, tuple)):
-            cats = dist[1]
-            if isinstance(cats, (list, tuple)):
-                if v not in cats:
-                    if isinstance(v, (float, int)):
-                        cats1 = [c for c in cats if c is not None]
-                        if cats1:
-                            return min(cats1, key=lambda x:abs(x-v))
-                    if k in DEFAULTS:
-                        return DEFAULTS[k]
-                    if len(cats) == 1:
-                        return cats[0]
-                    if drop_unknown_cat:
-                        return DROP_PARAM
-                    if k in RANDOMS:
-                        return random.choice(cats)
-            elif isinstance(cats, dict):
-                DEFAULTS = try_get(DEFAULTS, k)
-                if isinstance(v, dict):
-                    return {k: fallback_default(
-                        k1, v1,
-                        PARAM_SPACE=cats,
-                        DEFAULTS=DEFAULTS,
-                        RANDOMS=RANDOMS,
-                        drop_unknown_cat=drop_unknown_cat,
-                        **kwargs,
-                    ) for k1, v1 in v.items()}
-                else:
-                    return fallback_default(
-                        k, v,
-                        PARAM_SPACE=cats,
-                        DEFAULTS=DEFAULTS,
-                        RANDOMS=RANDOMS,
-                        drop_unknown_cat=drop_unknown_cat,
-                        **kwargs,
-                    )
-            elif v is None or v is False:
-                return BOOL_FALSE
+            t = dist[0]
+            if "float" in t or "int" in t:
+                if v is None:
+                    v = 0
+                # low, high = dist[1:]
+                # v = min(high, max(low, v))
+            else:
+                cats = dist[1]
+                if isinstance(cats, (list, tuple)):
+                    if v not in cats:
+                        if isinstance(v, (float, int)):
+                            cats1 = [c for c in cats if c is not None]
+                            if cats1:
+                                return min(cats1, key=lambda x:abs(x-v))
+                        if k in DEFAULTS:
+                            return DEFAULTS[k]
+                        if len(cats) == 1:
+                            return cats[0]
+                        if drop_unknown_cat:
+                            return DROP_PARAM
+                        if k in RANDOMS:
+                            return random.choice(cats)
+                elif isinstance(cats, dict):
+                    DEFAULTS = try_get(DEFAULTS, k)
+                    if isinstance(v, dict):
+                        return {k: fallback_default(
+                            k1, v1,
+                            PARAM_SPACE=cats,
+                            DEFAULTS=DEFAULTS,
+                            RANDOMS=RANDOMS,
+                            drop_unknown_cat=drop_unknown_cat,
+                            **kwargs,
+                        ) for k1, v1 in v.items()}
+                    else:
+                        return fallback_default(
+                            k, v,
+                            PARAM_SPACE=cats,
+                            DEFAULTS=DEFAULTS,
+                            RANDOMS=RANDOMS,
+                            drop_unknown_cat=drop_unknown_cat,
+                            **kwargs,
+                        )
+                elif v is None or v is False:
+                    return BOOL_FALSE
         elif v != dist:
             return dist
     elif isinstance(v, dict):
