@@ -29,7 +29,7 @@ DEFAULTS = {
 }
 MLU_RUNS = {
     True: {
-        True: 4,
+        True: 1,
         False: None
     },
     False: {
@@ -411,40 +411,39 @@ BEST_NO_GP = {
 }
 add_queue(BEST_NO_GP)
 
-# #reset
-# #56
-# #0.12332106501963594
+#reset
+#56
+#0.12332106501963594
 
-# BEST_GP_MUL = {
-#     'mlu_run': 4,
-#     'ae_t_start_bool': False,
-#     'ae_t_end_bool': False,
-#     'ae_mlu_target': 1.0,
-#     'ae_n_steps': 2,
-#     'ae_n_inner_steps_exp_2': 0,
-#     'ae_n_inner_steps_2_exp_2': 1,
-#     'ae_div_batch': False,
-#     'ae_mlu_loss_fn': 'mse',
-#     'ae_n_real_bool': False,
-#     'ae_n_samples_exp_2': 11,
-#     'ae_t_steps': 8,
-#     'ae_mlu_Optim': 'adamw',
-#     'ae_mlu_lr': 1.181177820769137e-05,
-#     'gan_t_start_bool': False,
-#     'gan_t_end_bool': False,
-#     'gan_mlu_target': 1.0,
-#     'gan_n_steps': 1,
-#     'gan_n_inner_steps_exp_2': 0,
-#     'gan_n_inner_steps_2_exp_2': 0,
-#     'gan_div_batch': True,
-#     'gan_mlu_loss_fn': 'mae',
-#     'gan_n_real_bool': False,
-#     'gan_n_samples_exp_2': 11,
-#     'gan_t_steps': 8,
-#     'gan_mlu_Optim': 'adamp',
-#     'gan_mlu_lr': 1.492796295764037e-06,
-# }
-# add_queue(BEST_GP_MUL)
+add_queue({
+    'mlu_run': 4,
+    'ae_t_start_bool': False,
+    'ae_t_end_bool': False,
+    'ae_mlu_target': 1.0,
+    'ae_n_steps': 2,
+    'ae_n_inner_steps_exp_2': 0,
+    'ae_n_inner_steps_2_exp_2': 1,
+    'ae_div_batch': False,
+    'ae_mlu_loss_fn': 'mse',
+    'ae_n_real_bool': False,
+    'ae_n_samples_exp_2': 11,
+    'ae_t_steps': 8,
+    'ae_mlu_Optim': 'adamw',
+    'ae_mlu_lr': 1.181177820769137e-05,
+    'gan_t_start_bool': False,
+    'gan_t_end_bool': False,
+    'gan_mlu_target': 1.0,
+    'gan_n_steps': 1,
+    'gan_n_inner_steps_exp_2': 0,
+    'gan_n_inner_steps_2_exp_2': 0,
+    'gan_div_batch': True,
+    'gan_mlu_loss_fn': 'mae',
+    'gan_n_real_bool': False,
+    'gan_n_samples_exp_2': 11,
+    'gan_t_steps': 8,
+    'gan_mlu_Optim': 'adamp',
+    'gan_mlu_lr': 1.492796295764037e-06,
+})
 
 BEST_DICT = {
     True: {

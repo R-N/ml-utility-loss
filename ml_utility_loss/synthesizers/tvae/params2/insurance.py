@@ -28,7 +28,7 @@ DEFAULTS = {
 }
 MLU_RUNS = {
     True: {
-        True: 4,
+        True: 3,
         False: None
     },
     False: {
@@ -292,27 +292,26 @@ BEST_NO_GP = {
 }
 add_queue(BEST_NO_GP)
 
-# #reset
-# #15
-# #0.14251995701228984
-# BEST_GP_MUL = {
-#     't_start_bool': True,
-#     't_start': 0,
-#     't_end_bool': False,
-#     'mlu_target': 1.0,
-#     'n_steps': 12,
-#     'n_inner_steps_exp_2': 2,
-#     'n_inner_steps_2_exp_2': 2,
-#     'div_batch': False,
-#     'mlu_loss_fn': 'mae',
-#     'n_real_bool': False,
-#     'n_samples_exp_2': 6,
-#     't_steps': 5,
-#     'mlu_Optim': 'adamp',
-#     'mlu_lr': 0.001,
-#     'mlu_run': 4,
-# }
-# add_queue(BEST_GP_MUL)
+#reset
+#15
+#0.14251995701228984
+add_queue({
+    't_start_bool': True,
+    't_start': 0,
+    't_end_bool': False,
+    'mlu_target': 1.0,
+    'n_steps': 12,
+    'n_inner_steps_exp_2': 2,
+    'n_inner_steps_2_exp_2': 2,
+    'div_batch': False,
+    'mlu_loss_fn': 'mae',
+    'n_real_bool': False,
+    'n_samples_exp_2': 6,
+    't_steps': 5,
+    'mlu_Optim': 'adamp',
+    'mlu_lr': 0.001,
+    'mlu_run': 4,
+})
 
 BEST_DICT = {
     True: {
