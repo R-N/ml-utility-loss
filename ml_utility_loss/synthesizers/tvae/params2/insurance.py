@@ -313,6 +313,26 @@ add_queue({
     'mlu_run': 4,
 })
 
+#reset
+#0
+#0.11042366308156212
+BEST_GP_MUL = {
+    't_start_bool': False,
+    't_end_bool': False,
+    'n_steps': 12,
+    'n_inner_steps_exp_2': 2,
+    'n_inner_steps_2_exp_2': 2,
+    'div_batch': False,
+    'mlu_loss_fn': 'mae',
+    'n_real_bool': False,
+    'n_samples_exp_2': 6,
+    't_steps': 5,
+    'mlu_Optim': 'adamp',
+    'mlu_lr': 0.001,
+    'mlu_run': 3,
+}
+add_queue(BEST_GP_MUL)
+
 BEST_DICT = {
     True: {
         True: BEST_GP_MUL,
