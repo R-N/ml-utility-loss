@@ -414,7 +414,7 @@ add_queue({
 #reset
 #62
 #0.46058192807090215
-BEST_GP_MUL = {
+add_queue({
     't_start_bool': False,
     't_end_bool': True,
     't_end': 38415,
@@ -429,8 +429,7 @@ BEST_GP_MUL = {
     'mlu_Optim': 'adamp',
     'mlu_lr': 3.2667904511471194e-06,
     'mlu_run': 4,
-}
-add_queue(BEST_GP_MUL)
+})
 
 BEST_DICT = {
     True: {

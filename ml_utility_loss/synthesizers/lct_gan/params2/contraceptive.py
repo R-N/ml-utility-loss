@@ -521,7 +521,7 @@ add_queue({
 #reset
 #72
 #0.4421594740399272
-BEST_GP_MUL = {
+add_queue({
     'mlu_run': 3,
     'ae_t_start_bool': False,
     'ae_t_end_bool': False,
@@ -549,8 +549,7 @@ BEST_GP_MUL = {
     'gan_t_steps': 32,
     'gan_mlu_Optim': 'amsgradw',
     'gan_mlu_lr': 0.00031753920089282883,
-}
-add_queue(BEST_GP_MUL)
+})
 
 BEST_DICT = {
     True: {
