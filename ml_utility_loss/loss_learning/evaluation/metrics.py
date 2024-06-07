@@ -79,7 +79,7 @@ def wasserstein(real,fake,cat_cols=None,Stat_dict=None,mean=True):
   return np.mean(num_stat)
 
 def corr(df, cat_cols=None):
-  return associations(df, nominal_columns=cat_cols, theil_u=True, compute_only=True)['corr'].astype("float")
+  return associations(df, nominal_columns=cat_cols, nom_nom_assoc="theil", compute_only=True)['corr'].astype("float")
 
 def diff_corr(real,fake,cat_cols=None):
 
