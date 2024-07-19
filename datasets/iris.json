@@ -6,6 +6,7 @@
     "mixed_features": [],
     "longtail_features": [],
     "integer_features": [],
+    "ordinal_features": [],
     "target": "species",
     "num_class": 3,
     "sizes": [32, 64, 128, 256]

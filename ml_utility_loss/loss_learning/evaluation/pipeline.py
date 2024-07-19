@@ -9,6 +9,9 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
     target = info["target"]
     task = info["task"]
     cat_features = info["cat_features"]
+    ordinal_features = info["ordinal_features"]
+    ordinal_features = [x for x in ordinal_features if x not in cat_features]
+    cat_features_2 = [*ordinal_features, *cat_features]
     info_path = os.path.join(data_dir, save_info)
 
     if not info_out:
@@ -83,12 +86,12 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             obj["real_feature_importance"] = json.dumps(real_feature_importance)
         obj["synth_value"] = synth_value
         obj["real_value"] = real_value
-        obj["jsd"] = jsd(df_train, df_synth, cat_features)
-        obj["wasserstein"] = wasserstein(df_train, df_synth, cat_features)
-        obj["diff_corr"] = diff_corr(df_train, df_synth, cat_features)
-        obj["dcr_rf"], obj["nndr_rf"] = privacy_dist(df_train, df_synth, cat_cols=cat_features)
-        obj["dcr_rr"], obj["nndr_rr"] = privacy_dist(df_train, cat_cols=cat_features)
-        obj["dcr_ff"], obj["nndr_ff"] = privacy_dist(df_synth, cat_cols=cat_features)
+        obj["jsd"] = jsd(df_train, df_synth, cat_features_2)
+        obj["wasserstein"] = wasserstein(df_train, df_synth, cat_features_2)
+        obj["diff_corr"] = diff_corr(df_train, df_synth, cat_features_2)
+        obj["dcr_rf"], obj["nndr_rf"] = privacy_dist(df_train, df_synth, cat_cols=cat_features_2)
+        obj["dcr_rr"], obj["nndr_rr"] = privacy_dist(df_train, cat_cols=cat_features_2)
+        obj["dcr_ff"], obj["nndr_ff"] = privacy_dist(df_synth, cat_cols=cat_features_2)
 
         objs.append(obj)
         indices.append(index)
