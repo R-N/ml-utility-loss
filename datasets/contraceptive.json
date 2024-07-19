@@ -1,6 +1,9 @@
 {
     "task": "multiclass",
     "cat_features": [
+        "education",
+        "partner_education",
+        "living_standard",
         "islam",
         "working",
         "husband_occupation",
@@ -13,10 +16,7 @@
     ],
     "integer_features": [
         "age",
-        "education",
-        "partner_education",
-        "n_children",
-        "living_standard"
+        "n_children"
     ],
     "target": "contraceptive",
     "num_class": 3,
