@@ -11,6 +11,7 @@ from functools import partial
 from .metrics import mile, mire, mean_penalty, mean_penalty_tan, mean_penalty_tan_half, mean_penalty_tan_double, mean_penalty_rational, mean_penalty_rational_half, mean_penalty_rational_double, mean_penalty_log, mean_penalty_log_half, mean_penalty_log_double
 import torch_optimizer
 import random
+import numpy as np
 
 class GradMagLoss:
     MSE_CORR = {
@@ -150,9 +151,16 @@ class GradientPenaltyMode:
         "AVERAGE_MUL": AVERAGE_MUL
     }
 
+def numpify(a):
+    if isinstance(a, list):
+        return np.array(a)
+    return a
+
 def total_f1(y_true, y_pred):
     # ValueError: Mix of label input types (string and number)
     try:
+        y_true = numpify(y_true)
+        y_pred = numpify(y_pred)
         if y_true.shape != y_pred.shape:
             y_pred = y_pred.reshape(y_true.shape)
         if y_true.dtype != y_pred.dtype:
