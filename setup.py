@@ -25,6 +25,7 @@ setup(
         "datasets>=2.6.1",
         "delu==0.0.18",
         "dython~=0.6.4.post1",
+        "fsspec==2023.6.0",
         "icecream>=2.1.2",
         "imbalanced-learn>=0.7.0",
         "jupyter>=1.0.0",
