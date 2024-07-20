@@ -1,7 +1,7 @@
 from ....params import BOOLEAN
 
 GPT2_PARAM_SPACE = {
-    "vocab_size": ("int", 32000, 64000),
+    "vocab_size": ("int", 1000, 64000, 1000),
     "n_positions": ("int_exp_2", 512, 2048),
     "n_embd": ("int", 128, 1024, 32),
     "n_layer": ("int", 4, 16),
