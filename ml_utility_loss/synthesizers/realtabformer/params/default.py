@@ -17,7 +17,7 @@ GPT2_PARAM_SPACE = {
 }
 REALTABFORMER_PARAM_SPACE = {
     "epochs": ("log_int", 2, 100),
-    "batch_size": ("int_exp_2", 4, 32),
+    "batch_size": ("int_exp_2", 4, 256),
     "mask_rate": ("float", 0.0, 0.2),
     "numeric_nparts": ("int", 1, 2),
     "numeric_precision": ("int", 3, 5),
