@@ -1,17 +1,26 @@
-from . import default, contraceptive, treatment, insurance
+from . import default, contraceptive, treatment, insurance, iris
 contraceptive.TRIAL_QUEUE_EXT = [
     *contraceptive.TRIAL_QUEUE,
     *insurance.TRIAL_QUEUE,
     *treatment.TRIAL_QUEUE,
+    *iris.TRIAL_QUEUE,
 ]
 insurance.TRIAL_QUEUE_EXT = [
     *insurance.TRIAL_QUEUE,
     *treatment.TRIAL_QUEUE,
     *contraceptive.TRIAL_QUEUE,
+    *iris.TRIAL_QUEUE,
 ]
 treatment.TRIAL_QUEUE_EXT = [
     *treatment.TRIAL_QUEUE,
     *contraceptive.TRIAL_QUEUE,
+    *insurance.TRIAL_QUEUE,
+    *iris.TRIAL_QUEUE,
+]
+iris.TRIAL_QUEUE_EXT = [
+    *iris.TRIAL_QUEUE,
+    *contraceptive.TRIAL_QUEUE,
+    *treatment.TRIAL_QUEUE,
     *insurance.TRIAL_QUEUE,
 ]
 contraceptive.TRIAL_QUEUE_EXT = contraceptive.sanitize_queue(
@@ -34,4 +43,11 @@ treatment.TRIAL_QUEUE_EXT = treatment.sanitize_queue(
     DEFAULTS=treatment.DEFAULTS,
     FORCE=treatment.FORCE,
     MINIMUMS=treatment.MINIMUMS,
+)
+iris.TRIAL_QUEUE_EXT = iris.sanitize_queue(
+    iris.TRIAL_QUEUE_EXT,
+    PARAM_SPACE=iris.PARAM_SPACE,
+    DEFAULTS=iris.DEFAULTS,
+    FORCE=iris.FORCE,
+    MINIMUMS=iris.MINIMUMS,
 )
