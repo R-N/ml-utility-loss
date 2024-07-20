@@ -29,4 +29,13 @@ DEFAULT = {
 }
 
 BEST = {
+    **DEFAULT,
+    'epochs': 622,
+    'colsample_bylevel': 0.5527696443563834,
+    'depth': 9,
+    'l2_leaf_reg': 3,
+    'lr': 0.196852225079279,
+    'subsample': 0.679353210414074,
+    'min_data_in_leaf': 19,
+    'max_ctr_complexity': 4
 }
