@@ -31,7 +31,7 @@ def sample_int_exp_2(trial, k, low, high, *args, **kwargs):
 def sample_int(trial, name, low, high, step=1, log=False, roundup=False, **kwargs):
     high = roundmul(high, multiple=step, offset=low, up=roundup)
     if log:
-        step = None
+        step = 1
     return trial.suggest_int(name, low, high, step=step, log=log, **kwargs)
 
 def sample_float(trial, name, low, high, step=None, log=False, **kwargs):
