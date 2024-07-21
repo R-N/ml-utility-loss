@@ -28,6 +28,7 @@ DEFAULT = {
     "loss_function": "MultiClass"
 }
 
+#0.9925696594427244
 BEST = {
     **DEFAULT,
     'epochs': 622,

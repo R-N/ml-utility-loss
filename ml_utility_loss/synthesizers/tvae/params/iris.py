@@ -10,3 +10,16 @@ PARAM_SPACE = {
     "epochs": ("log_int", 100, 1000),
     "loss_factor": ("log_float", 0.5, 2.8),
 }
+
+#0.9830864458674394
+BEST = {
+    'embedding_dim_exp_2': 7,
+    'compress_dims_exp_2': 7,
+    'compress_depth': 4,
+    'decompress_dims_exp_2': 8,
+    'decompress_depth': 2,
+    'l2scale': 1.120288771085309e-05,
+    'batch_size_exp_2': 5,
+    'epochs': 964,
+    'loss_factor': 2.0995228775290835
+}

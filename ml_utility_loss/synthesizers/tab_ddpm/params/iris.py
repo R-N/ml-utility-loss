@@ -14,3 +14,18 @@ PARAM_SPACE = {
     "d_layers_n": ("int_exp_2", 32, 2048),
     "steps": ("log_int", 100, 100000),
 }
+
+#0.9728562668393064
+BEST = {
+    'lr': 0.00029793361579898554,
+    'weight_decay': 3.4963750137785564e-05,
+    'batch_size_exp_2': 8,
+    'num_timesteps': 400,
+    'cat_encoding': 'ordinal',
+    'dropout': 0.11105753254123253,
+    'n_layers': 3,
+    'd_layers_0_exp_2': 11,
+    'd_layers_i_exp_2': 9,
+    'd_layers_n_exp_2': 9,
+    'steps': 84830
+}
