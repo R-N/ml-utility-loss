@@ -19,13 +19,13 @@ PARAM_SPACE = {
 BEST = {
     'lr': 0.00029793361579898554,
     'weight_decay': 3.4963750137785564e-05,
-    'batch_size_exp_2': 8,
+    'batch_size': 256,
     'num_timesteps': 400,
     'cat_encoding': 'ordinal',
     'dropout': 0.11105753254123253,
     'n_layers': 3,
-    'd_layers_0_exp_2': 11,
-    'd_layers_i_exp_2': 9,
-    'd_layers_n_exp_2': 9,
+    'd_layers_0': 2048,
+    'd_layers_i': 512,
+    'd_layers_n': 512,
     'steps': 84830
 }

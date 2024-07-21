@@ -14,11 +14,11 @@ PARAM_SPACE = {
 BEST = {
     'ae_lr': 0.0007738094430242642,
     'ae_epochs': 988,
-    'ae_batch_size_exp_2': 5,
-    'embedding_size_exp_2': 4,
-    'gan_latent_dim_exp_2': 3,
+    'ae_batch_size': 32,
+    'embedding_size': 16,
+    'gan_latent_dim': 8,
     'gan_epochs': 179,
     'gan_n_critic': 7,
-    'gan_batch_size_exp_2': 9,
+    'gan_batch_size': 256,
     'gan_lr': 0.0007175302364812544
 }

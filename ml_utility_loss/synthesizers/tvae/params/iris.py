@@ -13,13 +13,13 @@ PARAM_SPACE = {
 
 #0.9830864458674394
 BEST = {
-    'embedding_dim_exp_2': 7,
-    'compress_dims_exp_2': 7,
+    'embedding_dim': 128,
+    'compress_dims': 128,
     'compress_depth': 4,
-    'decompress_dims_exp_2': 8,
+    'decompress_dims': 256,
     'decompress_depth': 2,
     'l2scale': 1.120288771085309e-05,
-    'batch_size_exp_2': 5,
+    'batch_size': 32,
     'epochs': 964,
     'loss_factor': 2.0995228775290835
 }
