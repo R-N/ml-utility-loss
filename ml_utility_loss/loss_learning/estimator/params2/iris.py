@@ -247,6 +247,7 @@ BEST_GP_MUL_OTHER = {
     'head_n_head_exp_2': 5,
     'head_activation_final': 'leakyhardsigmoid',
 }
+add_queue(BEST_GP_MUL_OTHER)
 
 #1
 #0.08053620159626007
@@ -288,6 +289,7 @@ BEST_GP_MUL_TAB = {
     'head_n_head_exp_2': 0,
     'head_activation_final': 'leakyhardsigmoid',
 }
+add_queue(BEST_GP_MUL_TAB)
 
 #12
 #0.07858634740114212
@@ -329,6 +331,7 @@ BEST_GP_MUL_RTF = {
     'head_n_head_exp_2': 1,
     'head_activation_final': 'leakyhardsigmoid',
 }
+add_queue(BEST_GP_MUL_RTF)
 
 #26
 #0.0766277015209198
@@ -367,6 +370,7 @@ BEST_NO_GP_OTHER = {
     'head_n_head_exp_2': 4,
     'head_activation_final': 'sigmoid',
 }
+add_queue(BEST_NO_GP_OTHER)
 
 #26
 #0.08012678474187851
@@ -405,6 +409,7 @@ BEST_NO_GP_TAB = {
     'head_n_head_exp_2': 0,
     'head_activation_final': 'sigmoid',
 }
+add_queue(BEST_NO_GP_TAB)
 
 #23
 #0.08309425413608551
@@ -443,6 +448,7 @@ BEST_NO_GP_RTF = {
     'head_n_head_exp_2': 5,
     'head_activation_final': 'sigmoid',
 }
+add_queue(BEST_NO_GP_RTF)
 
 BEST_DICT = {
     True: {
