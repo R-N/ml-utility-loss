@@ -784,7 +784,9 @@ def load_lct_ae(dataset_name, model_dir, model_name="lct_ae", df_name="df"):
 
 def load_rtf_embed(dataset_name, model_dir, model_name="realtabformer", df_name="df", ckpt_type="best-disc-model"):
     rtf_embed_model_dir, rtf_embed_model_name, rtf_embed_df_name, rtf_embed_type = model_dir, model_name, df_name, ckpt_type
-    rtf_embed_model_dir_2 = os.path.join(rtf_embed_model_dir, rtf_embed_model_name, dataset_name, rtf_embed_df_name, rtf_embed_df_name, rtf_embed_type)
+    rtf_embed_model_dir_2 = os.path.join(rtf_embed_model_dir, rtf_embed_model_name, dataset_name, rtf_embed_df_name, rtf_embed_df_name)
+    if rtf_embed_type:
+        rtf_embed_model_dir_2 = os.path.join(rtf_embed_model_dir_2, rtf_embed_type)
     rtf_embed_model_path = os.path.join(rtf_embed_model_dir_2, f"text_embedding.pt")
     rtf_embed_state_path = os.path.join(rtf_embed_model_dir_2, f"text_embedding.states.pt")
 
@@ -882,8 +884,9 @@ def load_dataset_3(
     **kwargs,
 ):
     print(dataset_dir, synth_dir, dataset_name)
-    datasetsn = load_dataset_2([
-        dict(
+    datasetsn = []
+    if stops[0] != 0 and ratios[0] != 0:
+        datasetsn.append(dict(
             dataset_dir=os.path.join(dataset_dir, "aug_train", dataset_name),
             preprocessor=preprocessor,
             cache_dir=os.path.join(cache_dir, dataset_name, "_cache_aug_train"),
@@ -895,8 +898,9 @@ def load_dataset_3(
             drop_first_column=False,
             model=model,
             **kwargs,
-        ),
-        dict(
+        ))
+    if stops[1] != 0 and ratios[1] != 0:
+        datasetsn.append(dict(
             dataset_dir=os.path.join(dataset_dir, "aug_val", dataset_name),
             preprocessor=preprocessor,
             cache_dir=os.path.join(cache_dir, dataset_name, "_cache_aug_val"),
@@ -908,8 +912,9 @@ def load_dataset_3(
             drop_first_column=False,
             model=model,
             **kwargs,
-        ),
-        dict(
+        ))
+    if stops[2] != 0 and ratios[2] != 0:
+        datasetsn.append(dict(
             dataset_dir=os.path.join(dataset_dir, "bs_train", dataset_name),
             preprocessor=preprocessor,
             cache_dir=os.path.join(cache_dir, dataset_name, "_cache_bs_train"),
@@ -921,8 +926,9 @@ def load_dataset_3(
             drop_first_column=False,
             model=model,
             **kwargs,
-        ),
-        dict(
+        ))
+    if stops[3] != 0 and ratios[3] != 0:
+        datasetsn.append(dict(
             dataset_dir=os.path.join(dataset_dir, "bs_val", dataset_name),
             preprocessor=preprocessor,
             cache_dir=os.path.join(cache_dir, dataset_name, "_cache_bs_val"),
@@ -934,8 +940,9 @@ def load_dataset_3(
             drop_first_column=False,
             model=model,
             **kwargs,
-        ),
-        dict(
+        ))
+    if stops[4] != 0 and ratios[4] != 0:
+        datasetsn.append(dict(
             dataset_dir=os.path.join(dataset_dir, synth_dir, dataset_name),
             preprocessor=preprocessor,
             cache_dir=os.path.join(cache_dir, dataset_name, "_cache_synth"),
@@ -947,8 +954,9 @@ def load_dataset_3(
             drop_first_column=True,
             model=model,
             **kwargs,
-        ),
-        dict(
+        ))
+    if stops[5] != 0 and ratios[5] != 0:
+        datasetsn.append(dict(
             dataset_dir=os.path.join(dataset_dir, synth_dir, dataset_name),
             preprocessor=preprocessor,
             cache_dir=os.path.join(cache_dir, dataset_name, "_cache_real"),
@@ -964,8 +972,8 @@ def load_dataset_3(
             value="real_value",
             #file="info_2.csv",
             **kwargs,
-        ),
-    ])
+        ))
+    datasetsn = load_dataset_2(datasetsn)
     if None in ratios:
         print(len(datasetsn))
     else:
@@ -987,8 +995,9 @@ def load_dataset_4(
     **kwargs,
 ):
     print(dataset_dir, synth_dir, dataset_name)
-    datasetsn = load_dataset_2([
-        dict(
+    datasetsn = []
+    if stops[0] != 0 and ratios[0] != 0:
+        datasetsn.append(dict(
             dataset_dir=os.path.join(dataset_dir, "aug_test", dataset_name),
             preprocessor=preprocessor,
             cache_dir=os.path.join(cache_dir, dataset_name, "_cache_aug_test"),
@@ -1000,8 +1009,9 @@ def load_dataset_4(
             drop_first_column=False,
             model=model,
             **kwargs,
-        ),
-        dict(
+        ))
+    if stops[1] != 0 and ratios[1] != 0:
+        datasetsn.append(dict(
             dataset_dir=os.path.join(dataset_dir, "bs_test", dataset_name),
             preprocessor=preprocessor,
             cache_dir=os.path.join(cache_dir, dataset_name, "_cache_bs_test"),
@@ -1013,8 +1023,9 @@ def load_dataset_4(
             drop_first_column=False,
             model=model,
             **kwargs,
-        ),
-        dict(
+        ))
+    if stops[2] != 0 and ratios[2] != 0:
+        datasetsn.append(dict(
             dataset_dir=os.path.join(dataset_dir, synth_dir, dataset_name),
             preprocessor=preprocessor,
             cache_dir=os.path.join(cache_dir, dataset_name, "_cache_synth_test"),
@@ -1026,8 +1037,8 @@ def load_dataset_4(
             drop_first_column=True,
             model=model,
             **kwargs,
-        ),
-    ])
+        ))
+    datasetsn = load_dataset_2(datasetsn)
     if None in ratios:
         #assert len(datasetsn) == 450
         print(len(datasetsn))
