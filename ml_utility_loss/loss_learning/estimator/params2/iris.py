@@ -156,7 +156,7 @@ PARAM_SPACE = {
     )),
     # Adapter args
     "ada_d_hid": ("int_exp_2", 4, 1024), 
-    "ada_n_layers": ("int", 1, 9),
+    "ada_n_layers": ("int", 2, 9),
     "ada_activation": ("activation", [
         #"tanh",  
         "relu",
@@ -175,7 +175,7 @@ PARAM_SPACE = {
     ]),
     # Head args
     "head_d_hid": ("int_exp_2", 4, 512),
-    "head_n_layers": ("int", 1, 9),
+    "head_n_layers": ("int", 2, 9),
     "head_n_head": ("int_exp_2", 1, 64),
     "head_activation": ("activation", [
         #"tanh",  
