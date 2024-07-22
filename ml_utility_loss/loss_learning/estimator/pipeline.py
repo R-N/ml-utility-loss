@@ -784,7 +784,9 @@ def load_lct_ae(dataset_name, model_dir, model_name="lct_ae", df_name="df"):
 
 def load_rtf_embed(dataset_name, model_dir, model_name="realtabformer", df_name="df", ckpt_type="best-disc-model"):
     rtf_embed_model_dir, rtf_embed_model_name, rtf_embed_df_name, rtf_embed_type = model_dir, model_name, df_name, ckpt_type
-    rtf_embed_model_dir_2 = os.path.join(rtf_embed_model_dir, rtf_embed_model_name, dataset_name, rtf_embed_df_name, rtf_embed_df_name, rtf_embed_type)
+    rtf_embed_model_dir_2 = os.path.join(rtf_embed_model_dir, rtf_embed_model_name, dataset_name, rtf_embed_df_name, rtf_embed_df_name)
+    if rtf_embed_type:
+        rtf_embed_model_dir_2 = os.path.join(rtf_embed_model_dir_2, rtf_embed_type)
     rtf_embed_model_path = os.path.join(rtf_embed_model_dir_2, f"text_embedding.pt")
     rtf_embed_state_path = os.path.join(rtf_embed_model_dir_2, f"text_embedding.states.pt")
 
