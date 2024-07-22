@@ -111,7 +111,7 @@ PARAM_SPACE = {
     }),
     "g_loss_mul": ("float", 0.1, 0.2, 0.1),
     # Common model args
-    "d_model": ("int_exp_2", 4, 128),
+    "d_model": ("int_exp_2", 4, 256),
     "grad_clip": ("float", 0.7, 0.85, 0.05),
     "attn_activation": ("activation", [
         "sigmoid", 
@@ -129,7 +129,7 @@ PARAM_SPACE = {
         #IndsInitMode.XAVIER,
     ]),
     # Transformer args
-    "tf_d_inner": ("int_exp_2", 4, 32),
+    "tf_d_inner": ("int_exp_2", 4, 64),
     "tf_n_layers_enc": ("int", 1, 5), 
     "tf_n_head": ("int_exp_2", 4, 16),
     "tf_activation": ("activation", [
