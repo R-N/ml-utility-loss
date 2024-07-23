@@ -76,7 +76,7 @@ PARAM_SPACE = {
     # Dataset args
     #"synth_data": ("int", 1, 3), #3
     "dataset_size": ("int_exp_2", 256, 256),
-    "batch_size": ("int_exp_2", 4, 16),
+    "batch_size": ("int_exp_2", 4, 32),
     # Training args
     "epochs": ("int", 20, 100, 10),
     "lr_mul": ("float", 0.01, 0.15, 0.01),
@@ -131,7 +131,7 @@ PARAM_SPACE = {
     # Transformer args
     "tf_d_inner": ("int_exp_2", 4, 64),
     "tf_n_layers_enc": ("int", 1, 5), 
-    "tf_n_head": ("int_exp_2", 4, 16),
+    "tf_n_head": ("int_exp_2", 4, 32),
     "tf_activation": ("activation", [
         "tanh", 
         #"relu", 
@@ -148,7 +148,7 @@ PARAM_SPACE = {
     ]),
     "tf_num_inds": ("int_exp_2", 2, 32),
     # Transformer PMA args
-    "tf_pma_low": ("int_exp_2", 2, 8),
+    "tf_pma_low": ("int_exp_2", 2, 16),
     "pma_ffn_mode": ("categorical", (
         PMAFFNMode.NONE,
         ##PMAFFNMode.SEPARATE,
@@ -176,7 +176,7 @@ PARAM_SPACE = {
     # Head args
     "head_d_hid": ("int_exp_2", 4, 256),
     "head_n_layers": ("int", 2, 8),
-    "head_n_head": ("int_exp_2", 1, 32),
+    "head_n_head": ("int_exp_2", 1, 16),
     "head_activation": ("activation", [
         #"tanh",  
         "prelu",
@@ -207,8 +207,8 @@ TRIAL_QUEUE = []
 def add_queue(params):
     TRIAL_QUEUE.append(dict(params))
 
-#7
-#0.08874209970235825
+#33
+#0.08210256695747375
 BEST_GP_MUL_OTHER = {
     'bias_weight_decay': 0.05,
     'loss_balancer_beta': 0.7,
@@ -216,78 +216,78 @@ BEST_GP_MUL_OTHER = {
     'grad_loss_fn': 'mae',
     'pma_ffn_mode': 'none',
     'gradient_penalty_mode': 'ALL',
-    'tf_pma_low_exp_2': 3,
+    'tf_pma_low_exp_2': 2,
     'patience': 5,
     'grad_clip': 0.7999999999999999,
     'inds_init_mode': 'fixnorm',
-    'head_activation': 'rrelu',
+    'head_activation': 'relu6',
     'tf_activation': 'relu6',
     'dataset_size_exp_2': 8,
     'batch_size_exp_2': 2,
-    'epochs': 80,
+    'epochs': 60,
     'lr_mul': 0.15,
     'n_warmup_steps': 120,
     'Optim': 'amsgradw',
     'fixed_role_model': 'tvae',
     'mse_mag_target': 0.5,
     'g_loss_mul': 0.1,
-    'd_model_exp_2': 6,
+    'd_model_exp_2': 5,
     'attn_activation': 'leakyhardtanh',
     'tf_d_inner_exp_2': 4,
-    'tf_n_layers_enc': 1,
+    'tf_n_layers_enc': 2,
     'tf_n_head_exp_2': 4,
     'tf_activation_final': 'leakyhardsigmoid',
-    'tf_num_inds_exp_2': 6,
+    'tf_num_inds_exp_2': 5,
     'ada_d_hid_exp_2': 5,
     'ada_n_layers': 3,
-    'ada_activation': 'relu',
+    'ada_activation': 'relu6',
     'ada_activation_final': 'sigmoid',
     'head_d_hid_exp_2': 5,
-    'head_n_layers': 2,
-    'head_n_head_exp_2': 5,
-    'head_activation_final': 'leakyhardsigmoid',
+    'head_n_layers': 7,
+    'head_n_head_exp_2': 1,
+    'head_activation_final': 'sigmoid',
 }
 add_queue(BEST_GP_MUL_OTHER)
 
-#1
-#0.08053620159626007
+#36
+#0.07245630770921707
 BEST_GP_MUL_TAB = {
-    'bias_weight_decay': 0.1,
+    'bias_weight_decay': 0.05,
     'loss_balancer_beta': 0.7,
-    'loss_balancer_r': 0.97,
-    'grad_loss_fn': 'mse',
+    'loss_balancer_r': 0.95,
+    'grad_loss_fn': 'mae',
     'pma_ffn_mode': 'none',
     'gradient_penalty_mode': 'ALL',
-    'tf_pma_low_exp_2': 5,
-    'patience': 5,
-    'grad_clip': 0.75,
+    'tf_pma_low_exp_2': 3,
+    'patience': 6,
+    'grad_clip': 0.7999999999999999,
     'inds_init_mode': 'fixnorm',
     'head_activation': 'leakyhardsigmoid',
-    'tf_activation': 'relu6',
+    'tf_activation': 'leakyhardtanh',
     'dataset_size_exp_2': 8,
-    'batch_size_exp_2': 4,
-    'epochs': 100,
+    'batch_size_exp_2': 3,
+    'epochs': 60,
     'lr_mul': 0.09999999999999999,
-    'n_warmup_steps': 180,
+    'n_warmup_steps': 60,
     'Optim': 'amsgradw',
     'fixed_role_model': 'tab_ddpm_concat',
-    'mse_mag_target': 0.2,
+    'mse_mag_target': 0.5,
     'g_loss_mul': 0.2,
-    'd_model_exp_2': 9,
+    'd_model_exp_2': 7,
     'attn_activation': 'leakyrelu',
-    'tf_d_inner_exp_2': 7,
-    'tf_n_layers_enc': 5,
+    'tf_d_inner_exp_2': 2,
+    'tf_n_layers_enc': 1,
     'tf_n_head_exp_2': 3,
-    'tf_activation_final': 'leakyhardsigmoid',
+    'tf_activation_final': 'leakyhardtanh',
     'tf_num_inds_exp_2': 2,
-    'ada_d_hid_exp_2': 10,
-    'ada_n_layers': 6,
-    'ada_activation': 'softsign',
-    'ada_activation_final': 'leakyhardsigmoid',
-    'head_d_hid_exp_2': 8,
-    'head_n_layers': 6,
-    'head_n_head_exp_2': 0,
-    'head_activation_final': 'leakyhardsigmoid',
+    'ada_d_hid_exp_2': 8,
+    'ada_n_layers': 2,
+    'ada_activation': 'selu',
+    'ada_activation_final': 'leakyhardtanh',
+    'head_d_hid_exp_2': 7,
+    'head_n_layers': 7,
+    'head_n_head_exp_2': 4,
+    'head_activation_final': 'sigmoid',
 }
 add_queue(BEST_GP_MUL_TAB)
 
@@ -333,12 +333,12 @@ BEST_GP_MUL_RTF = {
 }
 add_queue(BEST_GP_MUL_RTF)
 
-#26
+#40
 #0.0766277015209198
 BEST_NO_GP_OTHER = {
     'bias_weight_decay': 0.05,
     'loss_balancer_beta': 0.7,
-    'loss_balancer_r': 0.97,
+    'loss_balancer_r': 0.96,
     'pma_ffn_mode': 'none',
     'gradient_penalty_mode': 'NONE',
     'tf_pma_low_exp_2': 4,
@@ -372,83 +372,83 @@ BEST_NO_GP_OTHER = {
 }
 add_queue(BEST_NO_GP_OTHER)
 
-#26
-#0.08012678474187851
+#36
+#0.07683456689119339
 BEST_NO_GP_TAB = {
     'bias_weight_decay': 0.05,
-    'loss_balancer_beta': 0.75,
+    'loss_balancer_beta': 0.7,
     'loss_balancer_r': 0.96,
     'pma_ffn_mode': 'none',
     'gradient_penalty_mode': 'NONE',
-    'tf_pma_low_exp_2': 1,
-    'patience': 5,
-    'grad_clip': 0.7,
+    'tf_pma_low_exp_2': 4,
+    'patience': 6,
+    'grad_clip': 0.75,
     'inds_init_mode': 'fixnorm',
     'head_activation': 'leakyhardsigmoid',
     'tf_activation': 'tanh',
     'dataset_size_exp_2': 8,
     'batch_size_exp_2': 4,
-    'epochs': 90,
-    'lr_mul': 0.14,
-    'n_warmup_steps': 120,
-    'Optim': 'diffgrad',
+    'epochs': 60,
+    'lr_mul': 0.11,
+    'n_warmup_steps': 80,
+    'Optim': 'amsgradw',
     'fixed_role_model': 'tab_ddpm_concat',
-    'd_model_exp_2': 6,
-    'attn_activation': 'sigmoid',
-    'tf_d_inner_exp_2': 5,
-    'tf_n_layers_enc': 5,
-    'tf_n_head_exp_2': 4,
-    'tf_activation_final': 'leakyhardsigmoid',
-    'tf_num_inds_exp_2': 3,
-    'ada_d_hid_exp_2': 2,
-    'ada_n_layers': 3,
-    'ada_activation': 'relu6',
-    'ada_activation_final': 'leakyhardtanh',
-    'head_d_hid_exp_2': 8,
-    'head_n_layers': 6,
-    'head_n_head_exp_2': 0,
+    'd_model_exp_2': 8,
+    'attn_activation': 'leakyrelu',
+    'tf_d_inner_exp_2': 2,
+    'tf_n_layers_enc': 1,
+    'tf_n_head_exp_2': 3,
+    'tf_activation_final': 'leakyhardtanh',
+    'tf_num_inds_exp_2': 5,
+    'ada_d_hid_exp_2': 9,
+    'ada_n_layers': 4,
+    'ada_activation': 'selu',
+    'ada_activation_final': 'sigmoid',
+    'head_d_hid_exp_2': 7,
+    'head_n_layers': 8,
+    'head_n_head_exp_2': 4,
     'head_activation_final': 'sigmoid',
 }
 add_queue(BEST_NO_GP_TAB)
 
-#23
-#0.08309425413608551
-BEST_NO_GP_RTF = {
-    'bias_weight_decay': 0.1,
+#51
+#0.08154026418924332
+BEST_NO_GP_TAB = {
+    'bias_weight_decay': 0.05,
     'loss_balancer_beta': 0.7,
-    'loss_balancer_r': 0.97,
+    'loss_balancer_r': 0.96,
     'pma_ffn_mode': 'none',
     'gradient_penalty_mode': 'NONE',
     'tf_pma_low_exp_2': 2,
-    'patience': 5,
-    'grad_clip': 0.7,
+    'patience': 6,
+    'grad_clip': 0.75,
     'inds_init_mode': 'fixnorm',
     'head_activation': 'relu6',
-    'tf_activation': 'leakyhardtanh',
+    'tf_activation': 'leakyhardsigmoid',
     'dataset_size_exp_2': 8,
     'batch_size_exp_2': 3,
-    'epochs': 30,
+    'epochs': 60,
     'lr_mul': 0.14,
-    'n_warmup_steps': 120,
+    'n_warmup_steps': 180,
     'Optim': 'amsgradw',
     'fixed_role_model': 'realtabformer',
-    'd_model_exp_2': 6,
+    'd_model_exp_2': 7,
     'attn_activation': 'leakyrelu',
     'tf_d_inner_exp_2': 6,
-    'tf_n_layers_enc': 4,
-    'tf_n_head_exp_2': 2,
+    'tf_n_layers_enc': 5,
+    'tf_n_head_exp_2': 3,
     'tf_activation_final': 'leakyhardtanh',
-    'tf_num_inds_exp_2': 3,
-    'ada_d_hid_exp_2': 9,
+    'tf_num_inds_exp_2': 4,
+    'ada_d_hid_exp_2': 4,
     'ada_n_layers': 4,
-    'ada_activation': 'selu',
-    'ada_activation_final': 'leakyhardtanh',
+    'ada_activation': 'relu',
+    'ada_activation_final': 'leakyhardsigmoid',
     'head_d_hid_exp_2': 8,
-    'head_n_layers': 3,
-    'head_n_head_exp_2': 5,
-    'head_activation_final': 'sigmoid',
+    'head_n_layers': 4,
+    'head_n_head_exp_2': 1,
+    'head_activation_final': 'leakyhardsigmoid',
 }
-add_queue(BEST_NO_GP_RTF)
+add_queue(BEST_NO_GP_TAB)
 
 BEST_DICT = {
     True: {
