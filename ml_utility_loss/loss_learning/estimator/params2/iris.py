@@ -413,7 +413,7 @@ add_queue(BEST_NO_GP_TAB)
 
 #51
 #0.08154026418924332
-BEST_NO_GP_TAB = {
+BEST_NO_GP_RTF = {
     'bias_weight_decay': 0.05,
     'loss_balancer_beta': 0.7,
     'loss_balancer_r': 0.96,
@@ -448,7 +448,7 @@ BEST_NO_GP_TAB = {
     'head_n_head_exp_2': 1,
     'head_activation_final': 'leakyhardsigmoid',
 }
-add_queue(BEST_NO_GP_TAB)
+add_queue(BEST_NO_GP_RTF)
 
 BEST_DICT = {
     True: {
