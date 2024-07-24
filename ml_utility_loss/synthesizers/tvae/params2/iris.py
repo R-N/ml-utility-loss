@@ -28,11 +28,11 @@ DEFAULTS = {
 }
 MLU_RUNS = {
     True: {
-        True: 1,
+        True: 2,
         False: None
     },
     False: {
-        False: 2,
+        False: 1,
     }
 }
 MLU_RUNS[False][True] = MLU_RUNS[False][False]
