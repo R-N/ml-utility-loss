@@ -41,30 +41,30 @@ FORCE = {}
 MINIMUMS = {}
 PARAM_SPACE = {
     **DEFAULTS,
-    "n_samples": ("int_exp_2", 16, 2048),
+    "n_samples": ("int_exp_2", 16, 256),
     #"sample_batch_size": ("int_exp_2", 16, 512),
-    "t_steps": ("int", 4, 32, 4),
-    "t_start": ("bool_int", 0, 676, 50),
-    "t_end": ("bool_int", 676, 776, 20, False, True),
+    "t_steps": ("int_exp_2", 4, 128),
+    "t_start": ("bool_int", 0, 888, 50),
+    "t_end": ("bool_int", 888, 988, 20, False, True),
     #"mlu_target": ("float", 0.0, 0.01, 0.005),
     "n_steps": ("int", 1, 4),
     "n_inner_steps": ("int_exp_2", 1, 8),
-    "n_inner_steps_2": ("int_exp_2", 1, 4),
+    "n_inner_steps_2": ("int_exp_2", 1, 8),
     "mlu_loss_fn": ("loss", [
         "mse",
         "mae",
     ]),
     "loss_mul": 1,
     "mlu_Optim": ("optimizer", [
-        #"adamw",  
+        "adamw",  
         "amsgradw",
-        #"adamp",
+        "adamp",
         "diffgrad",
     ]),
     "mlu_lr": ("log_float", 1e-6, 1e-2),
     "div_batch": BOOLEAN,
     #"forgive_over": BOOLEAN,
-    "n_real": ("bool_int_exp_2", 16, 2048),
+    "n_real": ("bool_int_exp_2", 16, 256),
     "mlu_run": ("categorical", [0, 1, 2, 3, 4]),
 }
 PARAM_SPACE = duplicate_params(PARAM_SPACE)

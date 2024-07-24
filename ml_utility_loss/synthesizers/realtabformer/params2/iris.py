@@ -40,15 +40,15 @@ FORCE = {}
 MINIMUMS = {}
 PARAM_SPACE = {
     **DEFAULTS,
-    "n_samples": ("int_exp_2", 32, 256),
+    "n_samples": ("int_exp_2", 16, 256),
     #"sample_batch_size": ("int_exp_2", 2, 64),
-    "t_steps": ("int", 4, 10),
-    "t_start": ("bool_int", 0, 80, 20),
-    "t_end": ("bool_int", 80, 100, 5, False, True),
+    "t_steps": ("int", 4, 16),
+    "t_start": ("bool_int", 0, 34, 17),
+    "t_end": ("bool_int", 34, 44, 2, False, True),
     #"mlu_target": ("float", 0.0, 0.01, 0.005),
-    "n_steps": ("int", 2, 5),
+    "n_steps": ("int", 1, 4),
     "n_inner_steps": ("int_exp_2", 1, 4),
-    "n_inner_steps_2": ("int_exp_2", 1, 16),
+    "n_inner_steps_2": ("int_exp_2", 1, 8),
     "mlu_loss_fn": ("loss", [
         "mse",
         "mae",
@@ -57,13 +57,13 @@ PARAM_SPACE = {
     "mlu_Optim": ("optimizer", [
         "adamw",  
         "amsgradw",
-        #"adamp",
-        #"diffgrad",
+        "adamp",
+        "diffgrad",
     ]),
     "mlu_lr": ("log_float", 1e-6, 1e-2),
     "div_batch": BOOLEAN,
     #"forgive_over": BOOLEAN,
-    "n_real": ("bool_int_exp_2", 32, 2048),
+    "n_real": ("bool_int_exp_2", 16, 256),
     "mlu_run": ("categorical", [0, 1, 2, 3, 4]),
 }
 
