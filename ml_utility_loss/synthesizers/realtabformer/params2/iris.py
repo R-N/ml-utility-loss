@@ -46,7 +46,7 @@ PARAM_SPACE = {
     "t_start": ("bool_int", 0, 34, 17),
     "t_end": ("bool_int", 34, 44, 2, False, True),
     #"mlu_target": ("float", 0.0, 0.01, 0.005),
-    "n_steps": ("int", 1, 4),
+    "n_steps": ("int", 1, 8),
     "n_inner_steps": ("int_exp_2", 1, 4),
     "n_inner_steps_2": ("int_exp_2", 1, 8),
     "mlu_loss_fn": ("loss", [
@@ -63,17 +63,57 @@ PARAM_SPACE = {
     "mlu_lr": ("log_float", 1e-6, 1e-2),
     "div_batch": BOOLEAN,
     #"forgive_over": BOOLEAN,
-    "n_real": ("bool_int_exp_2", 16, 256),
+    "n_real": ("bool_int_exp_2", 128, 256),
     "mlu_run": ("categorical", [0, 1, 2, 3, 4]),
 }
 
+#24
+#0.9419191919191918
+BEST_GP_MUL = {
+    't_start_bool': False,
+    't_end_bool': True,
+    't_end': 36,
+    'n_steps': 1,
+    'n_inner_steps_exp_2': 1,
+    'n_inner_steps_2_exp_2': 2,
+    'div_batch': True,
+    'mlu_loss_fn': 'mae',
+    'n_real_bool': False,
+    'n_samples_exp_2': 8,
+    't_steps': 5,
+    'mlu_Optim': 'amsgradw',
+    'mlu_lr': 0.0003752442436730226,
+    'mlu_run': 0,
+}
+add_queue(BEST_GP_MUL)
+
+#34
+#0.9499943245160637
+BEST_NO_GP = {
+    't_start_bool': False,
+    't_end_bool': False,
+    'n_steps': 4,
+    'n_inner_steps_exp_2': 0,
+    'n_inner_steps_2_exp_2': 0,
+    'div_batch': False,
+    'mlu_loss_fn': 'mae',
+    'n_real_bool': True,
+    'n_real_exp_2': 4,
+    'n_samples_exp_2': 4,
+    't_steps': 5,
+    'mlu_Optim': 'diffgrad',
+    'mlu_lr': 0.00039137535394222233,
+    'mlu_run': 2,
+}
+add_queue(BEST_NO_GP)
+
 BEST_DICT = {
     True: {
-        True: None,
+        True: BEST_GP_MUL,
         False: None
     },
     False: {
-        False: None,
+        False: BEST_NO_GP,
     }
 }
 BEST_DICT[False][True] = BEST_DICT[False][False]

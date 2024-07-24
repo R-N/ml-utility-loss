@@ -40,7 +40,7 @@ FORCE = {}
 MINIMUMS = {}
 PARAM_SPACE = {
     **DEFAULTS,
-    "n_samples": ("int_exp_2", 16, 256),
+    "n_samples": ("int_exp_2", 32, 256),
     #"sample_batch_size": ("int_exp_2", 256, 1024),
     "t_steps": ("int_exp_2", 512, 8192),
     "t_start": ("bool_int", 0, 74830, 10000),
@@ -48,7 +48,7 @@ PARAM_SPACE = {
     #"mlu_target": ("float", 0.0, 0.01, 0.005),
     "n_steps": ("int", 1, 4),
     "n_inner_steps": ("int_exp_2", 1, 4),
-    "n_inner_steps_2": ("int_exp_2", 1, 8),
+    "n_inner_steps_2": ("int_exp_2", 1, 16),
     "mlu_loss_fn": ("loss", [
         "mse",
         "mae",
@@ -64,17 +64,57 @@ PARAM_SPACE = {
     "mlu_lr": ("log_float", 1e-6, 1e-2),
     "div_batch": BOOLEAN,
     #"forgive_over": BOOLEAN,
-    "n_real": ("bool_int_exp_2", 16, 256),
+    "n_real": ("bool_int_exp_2", 128, 256),
     "mlu_run": ("categorical", [0, 1, 2, 3, 4]),
 }
 
+#17
+#0.939020515716168
+BEST_GP_MUL = {
+    't_start_bool': True,
+    't_start': 30000,
+    't_end_bool': False,
+    'n_steps': 1,
+    'n_inner_steps_exp_2': 1,
+    'n_inner_steps_2_exp_2': 3,
+    'div_batch': False,
+    'mlu_loss_fn': 'mae',
+    'n_real_bool': False,
+    'n_samples_exp_2': 5,
+    't_steps_exp_2': 10,
+    'mlu_Optim': 'amsgradw',
+    'mlu_lr': 0.0021337872195045216,
+    'mlu_run': 0,
+}
+add_queue(BEST_GP_MUL)
+
+#35
+#0.9269379789008946
+BEST_NO_GP = {
+    't_start_bool': False,
+    't_end_bool': True,
+    't_end': 74830,
+    'n_steps': 2,
+    'n_inner_steps_exp_2': 0,
+    'n_inner_steps_2_exp_2': 2,
+    'div_batch': False,
+    'mlu_loss_fn': 'mae',
+    'n_real_bool': False,
+    'n_samples_exp_2': 6,
+    't_steps_exp_2': 13,
+    'mlu_Optim': 'adamp',
+    'mlu_lr': 4.1107112552678594e-05,
+    'mlu_run': 1,
+}
+add_queue(BEST_NO_GP)
+
 BEST_DICT = {
     True: {
-        True: None,
+        True: BEST_GP_MUL,
         False: None
     },
     False: {
-        False: None,
+        False: BEST_NO_GP,
     }
 }
 BEST_DICT[False][True] = BEST_DICT[False][False]
