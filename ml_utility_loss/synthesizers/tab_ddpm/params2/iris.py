@@ -88,23 +88,23 @@ BEST_GP_MUL = {
 }
 add_queue(BEST_GP_MUL)
 
-#35
-#0.9269379789008946
+#85
+#0.9290571305125083
 BEST_NO_GP = {
     't_start_bool': False,
     't_end_bool': True,
-    't_end': 74830,
-    'n_steps': 2,
-    'n_inner_steps_exp_2': 0,
-    'n_inner_steps_2_exp_2': 2,
+    't_end': 82830,
+    'n_steps': 1,
+    'n_inner_steps_exp_2': 2,
+    'n_inner_steps_2_exp_2': 3,
     'div_batch': False,
     'mlu_loss_fn': 'mae',
     'n_real_bool': False,
-    'n_samples_exp_2': 6,
-    't_steps_exp_2': 13,
-    'mlu_Optim': 'adamp',
-    'mlu_lr': 4.1107112552678594e-05,
-    'mlu_run': 1,
+    'n_samples_exp_2': 5,
+    't_steps_exp_2': 12,
+    'mlu_Optim': 'amsgradw',
+    'mlu_lr': 0.0054671236814086204,
+    'mlu_run': 4,
 }
 add_queue(BEST_NO_GP)
 
