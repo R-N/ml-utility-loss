@@ -4,6 +4,7 @@ from ..estimator.pipeline import DATASET_TYPES_VAL
 from ..ml_utility.pipeline import eval_ml_utility
 from .metrics import jsd, wasserstein, diff_corr, privacy_dist
 from pandas.errors import IntCastingNaNError
+import json
 
 def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params={}, save_info="info.csv", drop_first_column=True, augmenter=None, feature_importance=False):
     target = info["target"]
