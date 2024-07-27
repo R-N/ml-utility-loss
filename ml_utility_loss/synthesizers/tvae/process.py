@@ -104,6 +104,7 @@ def train(
                     n_samples = mlu_trainer.n_samples
                     #batch_size = mlu_trainer.sample_batch_size
                     samples = sample(model=model, transformer=transformer, samples=n_samples, batch_size=batch_size, raw=True)
+                    model.train()
                     mlu_loss = mlu_trainer.step(samples, batch_size=batch_size)
 
                     total_mlu_loss += mlu_loss
