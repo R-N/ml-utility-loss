@@ -250,6 +250,8 @@ class LatentGAN:
         # turning the generator into inference mode to effectively use running statistics in batch norm layers
         if not raw:
             self.generator.eval()
+        else:
+            self.generator.train()
         
         # generating synthetic data in batches accordingly to the total no. required
         steps = (n // self.batch_size) + 1

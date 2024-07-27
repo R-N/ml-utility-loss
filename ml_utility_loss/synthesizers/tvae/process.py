@@ -145,6 +145,8 @@ def sample(
 ):
     if not raw:
         model.eval()
+    else:
+        model.train()
 
     steps = samples // batch_size + 1
     data = []
