@@ -196,6 +196,7 @@ class LatentGAN:
                         save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext()
                         with save_cm:
                             samples = self.sample(n_samples, raw=True)
+                            self.generator.train()
                         mlu_loss = self.mlu_trainer.step(samples, batch_size=self.batch_size)
                         total_mlu_loss += mlu_loss
                     total_mlu_loss /= self.mlu_trainer.n_steps
