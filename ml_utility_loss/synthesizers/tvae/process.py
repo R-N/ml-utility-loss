@@ -143,7 +143,8 @@ def sample(
     batch_size=500,
     raw=False,
 ):
-    model.eval()
+    if not raw:
+        model.eval()
 
     steps = samples // batch_size + 1
     data = []
