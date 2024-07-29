@@ -16,21 +16,22 @@ def update_ema(target_params, source_params, rate=0.999):
         targ.detach().mul_(rate).add_(src.detach(), alpha=1 - rate)
 
 class Trainer:
-    def __init__(self, diffusion, train_iter, lr, weight_decay, steps, device=DEFAULT_DEVICE, mlu_trainer=None, batch_size=1024, mlu_tries=3, mlu_max_consecutive_fails=3):
+    def __init__(self, diffusion, train_iter, lr, weight_decay, steps, device=DEFAULT_DEVICE, mlu_trainer=None, batch_size=1024, mlu_tries=3, mlu_max_consecutive_fails=3, log_every=1000, print_every=1000, ema_every=1000):
         self.diffusion = diffusion
         self.ema_model = deepcopy(self.diffusion._denoise_fn)
         for param in self.ema_model.parameters():
             param.detach_()
 
+        self.train_history = []
         self.train_iter = train_iter
         self.steps = steps
         self.init_lr = lr
         self.optimizer = torch.optim.AdamW(self.diffusion.parameters(), lr=lr, weight_decay=weight_decay)
         self.device = device
         self.loss_history = pd.DataFrame(columns=['step', 'mloss', 'gloss', 'loss'])
-        self.log_every = 1000
-        self.print_every = 1000
-        self.ema_every = 1000
+        self.log_every = log_every
+        self.print_every = print_every
+        self.ema_every = ema_every
         self.mlu_trainer=mlu_trainer
         self.mlu_tries = mlu_tries
         self.mlu_max_consecutive_fails = mlu_max_consecutive_fails
@@ -88,6 +89,7 @@ class Trainer:
             if (step + 1) % self.log_every == 0:
                 mloss = np.around(curr_loss_multi / curr_count, 4)
                 gloss = np.around(curr_loss_gauss / curr_count, 4)
+                self.train_history.append((step, mloss, gloss))
                 sum_loss = mloss+gloss
                 if (step + 1) % self.print_every == 0:
                     print(f'Step {(step + 1)}/{self.steps} MLoss: {mloss} GLoss: {gloss} Sum: {sum_loss}')
