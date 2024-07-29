@@ -197,6 +197,7 @@ class AENetwork(nn.Module):
 class AutoEncoder(object):
 
     def __init__(self, mlu_trainer=None, **kwargs):
+        self.train_history = []
         self.kwargs = kwargs  # has to have 'embedding_size' and 'cuda' = True
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = None
@@ -262,7 +263,6 @@ class AutoEncoder(object):
             self.mlu_trainer.create_optim(self.model.parameters())
 
         self.model.train()
-        train_loss = 0
 
         last_loss = 0
 
@@ -270,6 +270,7 @@ class AutoEncoder(object):
         data_2 = torch.from_numpy(data.astype('float32')).to(self.device)
         for e in range(epochs):
             epoch_loss = 0
+            batch_counter = 0
             for i in range(steps):
                 # sample all conditional vectors for the training
                 _, _, col, opt = cond_generator.sample_train(batch_size)
@@ -287,11 +288,13 @@ class AutoEncoder(object):
                 loss = self.loss_function(recon_batch, batch, input_size=self.input_size)
                 loss.backward()
 
-                train_loss += loss.item()
                 self.optimizer.step()
 
-                epoch_loss = (loss.item() / len(batch))
+                epoch_loss += (loss.item() * len(batch))
+                batch_counter += len(batch)
+            epoch_loss /= batch_counter
             last_loss = epoch_loss
+            self.train_history.append(epoch_loss)
 
             if self.mlu_trainer:
                 if self.mlu_trainer.should_step(e):

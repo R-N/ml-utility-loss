@@ -49,9 +49,12 @@ class LatentGAN:
         self.mlu_trainer = mlu_trainer
         self.log_every = 10
 
+        self.train_history = []
+
         self.prepare_training()
 
     def prepare_training(self):
+        self.train_history = []
 
         # self.generator = FCGenerator(self.input_size, self.latent_dim + cond_generator.n_opt)
         self.generator = FCGenerator(self.input_size, self.latent_dim)
@@ -187,6 +190,8 @@ class LatentGAN:
             total_loss_d /= steps
             total_loss_g /= g_step_count
             total_loss  = total_loss_g + total_loss_d
+
+            self.train_history.append((total_loss_d, total_loss_g))
                     
             if self.mlu_trainer:
                 if self.mlu_trainer.should_step(epoch):
