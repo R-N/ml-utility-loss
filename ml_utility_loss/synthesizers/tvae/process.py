@@ -64,6 +64,7 @@ def train(
     mlu_trainer=None,
     batch_size=512,
 ):
+    model.train_history = []
     model.train()
 
     optimizerAE = Optimizer(
@@ -89,6 +90,8 @@ def train(
             counter += len(data)
 
         epoch_loss /= counter
+
+        model.train_history.append(epoch_loss)
                     
         if mlu_trainer:
             if mlu_trainer.should_step(i):
