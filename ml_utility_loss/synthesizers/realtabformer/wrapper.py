@@ -67,6 +67,9 @@ class REaLTabFormer:
         numeric_precision: int = 4,
         numeric_max_len: int = 10,
         mlu_trainer=None,
+        logging_steps=100,
+        save_steps=100,
+        eval_steps=100,
         **training_args_kwargs,
     ) -> None:
         self.model: PreTrainedModel = None
@@ -105,9 +108,9 @@ class REaLTabFormer:
             per_device_eval_batch_size=self.batch_size,
             gradient_accumulation_steps=4,
             remove_unused_columns=True,
-            logging_steps=100,
-            save_steps=100,
-            eval_steps=100,
+            logging_steps=logging_steps,
+            save_steps=save_steps,
+            eval_steps=eval_steps,
             load_best_model_at_end=True,
             save_total_limit=1,
             optim="adamw_torch",
