@@ -56,8 +56,10 @@ class CatBoostModel:
         checkpoint_dir=None,
         class_names=None,
         target=None,
+        plot=False,
         **kwargs
     ):
+        self.plot = plot
         self.task = task
         self.target = target
         self.Model = CatBoostRegressor if task == "regression" else CatBoostClassifier
@@ -108,7 +110,7 @@ class CatBoostModel:
                 train,
                 eval_set=val,
                 #logging_level="Verbose",
-                plot=False
+                plot=self.plot
             )
         except CatBoostError as ex:
             msg = str(ex)
