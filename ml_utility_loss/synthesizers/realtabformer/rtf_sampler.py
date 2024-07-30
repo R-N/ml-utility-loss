@@ -482,14 +482,14 @@ class REaLSampler:
 
         synth_df = self._recover_data_values(synth_sample)
         logging.info(f"Generation stats: {synth_df.shape[0]}")
-        print("len3", len(synth_sample))
+        print("len3", len(synth_df))
 
         synth_df = self._convert_to_table(synth_df)
-        print("len4", len(synth_sample))
+        print("len4", len(synth_df))
         synth_df = self._validate_missing(synth_df)
-        print("len5", len(synth_sample))
+        print("len5", len(synth_df))
         synth_df = self._validate_data(synth_df, validator)
-        print("len6", len(synth_sample))
+        print("len6", len(synth_df))
 
         if synth_df.empty:
             # Handle this exception in the sampling function.
