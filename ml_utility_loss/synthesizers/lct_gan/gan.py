@@ -117,84 +117,94 @@ class LatentGAN:
             self.generator.train()
             self.discriminator.train()
 
-            total_loss_d = 0
-            total_loss_g = 0
-            g_step_count = 0
+            def do_epoch(val=False):
+                total_loss_d = 0
+                total_loss_g = 0
+                g_step_count = 0
+                for i in range(steps):
+                    
+                    cond_vecs = cond_generator.sample_train(self.batch_size)
+                    c, m, col, opt = cond_vecs
+                    c = torch.from_numpy(c).to(self.device)
+                    m = torch.from_numpy(m).to(self.device)
 
-            for i in range(steps):
-                
-                cond_vecs = cond_generator.sample_train(self.batch_size)
-                c, m, col, opt = cond_vecs
-                c = torch.from_numpy(c).to(self.device)
-                m = torch.from_numpy(m).to(self.device)
+                    original_idx = data_sampler.sample_idx(self.batch_size, col, opt)
+                    real = latent_data[original_idx]
+                    if isinstance(real, np.ndarray):
+                        real = torch.from_numpy(real.astype('float32'))
+                    real = real.to(self.device)
+                    
+                    ### TRAIN DISCRIMINATOR
+                    if not val:
+                        self.optimizer_D.zero_grad()
 
-                original_idx = data_sampler.sample_idx(self.batch_size, col, opt)
-                real = latent_data[original_idx]
-                if isinstance(real, np.ndarray):
-                    real = torch.from_numpy(real.astype('float32'))
-                real = real.to(self.device)
-                
-                ### TRAIN DISCRIMINATOR
-                self.optimizer_D.zero_grad()
+                    z = Tensor(np.random.uniform(0, 1, (self.batch_size, self.latent_dim))).to(self.device)
+                    # z = torch.cat([z , c], dim=1).to(self.device)
+                    z = torch.cat([z], dim=1).to(self.device)
+                    z = Variable(z).to(self.device)
 
-                z = Tensor(np.random.uniform(0, 1, (self.batch_size, self.latent_dim))).to(self.device)
-                # z = torch.cat([z , c], dim=1).to(self.device)
-                z = torch.cat([z], dim=1).to(self.device)
-                z = Variable(z).to(self.device)
-
-                fake = self.generator(z).to(self.device)
-                
-                # fake_cat_d = torch.cat([fake, c], dim=1).to(self.device).to(self.device)
-                fake_cat_d = torch.cat([fake], dim=1).to(self.device)
-                # real_cat_d = torch.cat([Variable(real.type(Tensor)), c], dim=1).to(self.device)
-                real_cat_d = torch.cat([Variable(real.type(Tensor))], dim=1).to(self.device)
-
-                real_probability = self.discriminator(real_cat_d).to(self.device)
-                fake_probability = self.discriminator(fake_cat_d).to(self.device)
-
-                # Gradient penalty
-                # gradient_penalty = self.compute_gradient_penalty(self.discriminator, real_cat_d.data, fake_cat_d.data)
-                gradient_penalty = 0
-                # Adversarial loss
-                loss_d = -torch.mean(real_probability) + torch.mean(fake_probability) + self.lambda_gp * gradient_penalty
-                # loss_d = (-(torch.log(real_probability).mean()) - (torch.log(1. - fake_probability).mean()))
-
-                # real_loss = adversarial_loss(real_probability, valid)
-                # fake_loss = adversarial_loss(fake_probability, non_valid)
-                # loss_d = (real_loss + fake_loss) / 2
-                loss_d.backward()
-
-                total_loss_d += loss_d.item()
-
-                self.optimizer_D.step()
-
-                ### TRAIN GENERATOR
-                self.optimizer_G.zero_grad()
-
-                if i % self.n_critic == 0:
-                        # Generate a batch of data
                     fake = self.generator(z).to(self.device)
-                    # fake_probability = self.discriminator(torch.cat([fake, c], dim=1).to(self.device))
-                    fake_probability = self.discriminator(torch.cat([fake], dim=1).to(self.device))
+                    
+                    # fake_cat_d = torch.cat([fake, c], dim=1).to(self.device).to(self.device)
+                    fake_cat_d = torch.cat([fake], dim=1).to(self.device)
+                    # real_cat_d = torch.cat([Variable(real.type(Tensor)), c], dim=1).to(self.device)
+                    real_cat_d = torch.cat([Variable(real.type(Tensor))], dim=1).to(self.device)
 
-                    # loss_g = adversarial_loss(fake_probability, valid)
-                    # loss_g = -(torch.log(fake_probability + 1e-4).mean())
-                    loss_g = -torch.mean(fake_probability)
-                    loss_g.backward()
+                    real_probability = self.discriminator(real_cat_d).to(self.device)
+                    fake_probability = self.discriminator(fake_cat_d).to(self.device)
 
-                    self.optimizer_G.step()
+                    # Gradient penalty
+                    # gradient_penalty = self.compute_gradient_penalty(self.discriminator, real_cat_d.data, fake_cat_d.data)
+                    gradient_penalty = 0
+                    # Adversarial loss
+                    loss_d = -torch.mean(real_probability) + torch.mean(fake_probability) + self.lambda_gp * gradient_penalty
+                    # loss_d = (-(torch.log(real_probability).mean()) - (torch.log(1. - fake_probability).mean()))
 
-                    g_step_count += 1
-                    total_loss_g += loss_g.item()
+                    # real_loss = adversarial_loss(real_probability, valid)
+                    # fake_loss = adversarial_loss(fake_probability, non_valid)
+                    # loss_d = (real_loss + fake_loss) / 2
+                    if not val:
+                        loss_d.backward()
+                        self.optimizer_D.step()
 
-            total_loss_d /= steps
-            total_loss_g /= g_step_count
-            total_loss  = total_loss_g + total_loss_d
+                    total_loss_d += loss_d.item()
+
+                    ### TRAIN GENERATOR
+                    if not val:
+                        self.optimizer_G.zero_grad()
+
+                    if i % self.n_critic == 0:
+                            # Generate a batch of data
+                        fake = self.generator(z).to(self.device)
+                        # fake_probability = self.discriminator(torch.cat([fake, c], dim=1).to(self.device))
+                        fake_probability = self.discriminator(torch.cat([fake], dim=1).to(self.device))
+
+                        # loss_g = adversarial_loss(fake_probability, valid)
+                        # loss_g = -(torch.log(fake_probability + 1e-4).mean())
+                        loss_g = -torch.mean(fake_probability)
+                        if not val:
+                            loss_g.backward()
+                            self.optimizer_G.step()
+
+                        g_step_count += 1
+                        total_loss_g += loss_g.item()
+
+                total_loss_d /= steps
+                total_loss_g /= g_step_count
+                return total_loss_d, total_loss_g
+            
+            total_loss_d, total_loss_g = do_epoch(val=False)
+
+            total_loss  = total_loss_d + total_loss_g
 
             self.train_history.append((total_loss_d, total_loss_g))
                     
             if self.mlu_trainer:
                 if self.mlu_trainer.should_step(epoch):
+                    with torch.no_grad():
+                        pre_loss_d, pre_loss_g = do_epoch(val=True)
+                    pre_loss = pre_loss_d + pre_loss_g
+
                     total_mlu_loss = 0
                     for i in range(self.mlu_trainer.n_steps):
                         n_samples = self.mlu_trainer.n_samples
@@ -205,13 +215,22 @@ class LatentGAN:
                         mlu_loss, mlu_grad = self.mlu_trainer.step(samples, batch_size=self.batch_size)
                         total_mlu_loss += mlu_loss
                     total_mlu_loss /= self.mlu_trainer.n_steps
+                    with torch.no_grad():
+                        post_loss_d, post_loss_g = do_epoch(val=True)
+                    post_loss = post_loss_d + post_loss_g
                     self.mlu_trainer.log(
                         synthesizer_step=epoch,
                         train_loss=total_loss,
+                        pre_loss=pre_loss,
                         mlu_loss=total_mlu_loss,
                         mlu_grad=mlu_grad,
+                        post_loss=post_loss,
                         train_loss_d=total_loss_d,
                         train_loss_g=total_loss_g,
+                        pre_loss_d=pre_loss_d,
+                        pre_loss_g=pre_loss_g,
+                        post_loss_d=post_loss_d,
+                        post_loss_g=post_loss_g,
                         synthesizer_type="lct_gan",
                     )
                 else:
