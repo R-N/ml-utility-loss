@@ -228,6 +228,7 @@ class AutoEncoder(object):
         data_2,
     ):
         epoch_loss = 0
+        batch_counter = 0
         with torch.no_grad():
             for i in range(steps):
                 # sample all conditional vectors for the training
@@ -245,7 +246,9 @@ class AutoEncoder(object):
 
                 loss = self.loss_function(recon_batch, batch, input_size=self.input_size)
 
-                epoch_loss = (loss.item() / len(batch))
+                epoch_loss += (loss.item() * len(batch))
+                batch_counter += len(batch)
+        epoch_loss /= batch_counter
         return epoch_loss
 
     def train(self, data, output_dim: int, output_info, epochs, batch_size, lr=1e-3):
