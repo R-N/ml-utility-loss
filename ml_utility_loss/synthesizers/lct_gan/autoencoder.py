@@ -324,7 +324,7 @@ class AutoEncoder(object):
                                 samples.append(sample)
                         samples = samples[:n_samples]
                         samples = torch.cat(samples, dim=0)
-                        mlu_loss = self.mlu_trainer.step(samples, batch_size=batch_size)
+                        mlu_loss, mlu_grad = self.mlu_trainer.step(samples, batch_size=batch_size)
                         total_mlu_loss += mlu_loss
                     total_mlu_loss /= self.mlu_trainer.n_steps
                     post_loss = self.eval_step(
@@ -338,7 +338,8 @@ class AutoEncoder(object):
                         synthesizer_step=e,
                         train_loss=epoch_loss,
                         pre_loss=pre_loss,
-                        mlu_loss=mlu_loss,
+                        mlu_loss=total_mlu_loss,
+                        mlu_grad=mlu_grad,
                         post_loss=post_loss,
                         synthesizer_type="lct_ae",
                     )

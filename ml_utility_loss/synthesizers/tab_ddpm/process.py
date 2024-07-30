@@ -121,7 +121,7 @@ class Trainer:
                                         num_samples=n_samples, 
                                         raw=True
                                     )
-                                mlu_loss = self.mlu_trainer.step(samples, batch_size=self.batch_size)
+                                mlu_loss, mlu_grad = self.mlu_trainer.step(samples, batch_size=self.batch_size)
                                 del samples
                                 total_mlu_loss += mlu_loss
                                 mlu_success += 1
@@ -137,11 +137,13 @@ class Trainer:
                     post_loss = self._eval_step(x, out_dict).item()# * len(x)
                     self.mlu_trainer.log(
                         synthesizer_step=step,
-                        train_loss=batch_loss_multi.item() + batch_loss_gauss.item(),
+                        train_loss=mloss+gloss,
                         pre_loss=pre_loss,
                         mlu_loss=total_mlu_loss,
+                        mlu_grad=mlu_grad,
                         post_loss=post_loss,
-                        #batch_size=len(x),
+                        train_loss_m=mloss,
+                        train_loss_g=gloss,
                         synthesizer_type="tab_ddpm",
                     )
                     if mlu_success:

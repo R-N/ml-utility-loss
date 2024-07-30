@@ -72,12 +72,14 @@ class MLUtilityCallback(TrainerCallback):
         **kwargs,
     ):
         self.epoch += 1
+        step = 0
         last_log = state.log_history[-1:]
         #last_log = parse_log_history(last_log)
         train_loss = None
         if len(last_log) > 0:
             last_log = last_log[-1]
             train_loss = last_log.get("eval_loss", last_log.get("loss", None))
+            step = last_log.get("step", None)
         if self.mlu_trainer:
             if self.mlu_trainer.should_step(self.epoch):
                 total_mlu_loss = 0
@@ -96,7 +98,7 @@ class MLUtilityCallback(TrainerCallback):
                                     gen_batch=batch_size,
                                     raw=True,
                                 )
-                            mlu_loss = self.mlu_trainer.step(samples, batch_size=self.batch_size)
+                            mlu_loss, mlu_grad = self.mlu_trainer.step(samples, batch_size=self.batch_size)
                             total_mlu_loss += mlu_loss
                             mlu_success += 1
                             break
@@ -110,8 +112,10 @@ class MLUtilityCallback(TrainerCallback):
                 
                 self.mlu_trainer.log(
                     synthesizer_step=self.epoch,
+                    synthesizer_step_2=step,
                     train_loss=train_loss,
-                    mlu_loss=mlu_loss,
+                    mlu_loss=total_mlu_loss,
+                    mlu_grad=mlu_grad,
                     synthesizer_type="realtabformer",
                 )
                 if mlu_success:

@@ -202,13 +202,16 @@ class LatentGAN:
                         with save_cm:
                             samples = self.sample(n_samples, raw=True)
                             self.generator.train()
-                        mlu_loss = self.mlu_trainer.step(samples, batch_size=self.batch_size)
+                        mlu_loss, mlu_grad = self.mlu_trainer.step(samples, batch_size=self.batch_size)
                         total_mlu_loss += mlu_loss
                     total_mlu_loss /= self.mlu_trainer.n_steps
                     self.mlu_trainer.log(
                         synthesizer_step=epoch,
                         train_loss=total_loss,
-                        mlu_loss=mlu_loss,
+                        mlu_loss=total_mlu_loss,
+                        mlu_grad=mlu_grad,
+                        train_loss_d=total_loss_d,
+                        train_loss_g=total_loss_g,
                         synthesizer_type="lct_gan",
                     )
                 else:

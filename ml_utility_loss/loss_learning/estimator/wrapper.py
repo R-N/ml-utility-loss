@@ -204,19 +204,23 @@ class MLUtilityTrainer:
         else:
             samples_0.backward(gradient=grads)
 
+        p_grads = []
         for param in self.parameters:
             assert torch.isfinite(param.grad).all(), "Grad is not populated"
+            p_grads.append(param.grad.view(-1))
+        p_grads = torch.cat(p_grads)
+        grad_norm = p_grads.norm(2, dim=-1).item()
 
         self.optim.step()
 
         if self.debug:
-            print("MLU loss", total_loss)
+            print("MLU loss", total_loss, "grad", grad_norm)
 
         clear_memory()
 
-        return total_loss
+        return total_loss, grad_norm
     
-    def log(self, synthesizer_step, train_loss=None, pre_loss=None, mlu_loss=None, post_loss=None, synthesizer_type=None, **kwargs):
+    def log(self, synthesizer_step=None, train_loss=None, pre_loss=None, mlu_loss=None, mlu_grad=None, post_loss=None, synthesizer_type=None, **kwargs):
         log = {
             "synthesizer_type": synthesizer_type,
             "synthesizer_step": synthesizer_step,
@@ -230,6 +234,7 @@ class MLUtilityTrainer:
                 "sample_step": self.i_step % self.n_steps,
                 "pre_loss": pre_loss,
                 "mlu_loss": mlu_loss,
+                "mlu_grad": mlu_grad,
                 "post_loss": post_loss,
             }
         log = {

@@ -108,7 +108,7 @@ def train(
                     #batch_size = mlu_trainer.sample_batch_size
                     samples = sample(model=model, transformer=transformer, samples=n_samples, batch_size=batch_size, raw=True)
                     model.train()
-                    mlu_loss = mlu_trainer.step(samples, batch_size=batch_size)
+                    mlu_loss, mlu_grad = mlu_trainer.step(samples, batch_size=batch_size)
 
                     total_mlu_loss += mlu_loss
                 total_mlu_loss /= mlu_trainer.n_steps
@@ -123,7 +123,8 @@ def train(
                     synthesizer_step=i,
                     train_loss=epoch_loss,
                     pre_loss=pre_loss,
-                    mlu_loss=mlu_loss,
+                    mlu_loss=total_mlu_loss,
+                    mlu_grad=mlu_grad,
                     post_loss=post_loss,
                     synthesizer_type="tvae",
                 )
