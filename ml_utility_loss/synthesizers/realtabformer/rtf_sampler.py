@@ -400,7 +400,6 @@ class REaLSampler:
         relate_ids: Optional[List[Any]] = None,
         validator: Optional[ObservationValidator] = None,
     ):
-        print("len0", len(sample_outputs))
         assert isinstance(sample_outputs, np.ndarray)
 
         def _decode_tokens(s):
@@ -460,7 +459,6 @@ class REaLSampler:
             synth_sample = pd.DataFrame(
                 samples, columns=self.processed_columns, index=group_ids
             )
-        print("len1", len(synth_sample))
 
         # # Is this useful when we actually filter the vocabulary
         # # during generation???
@@ -478,8 +476,6 @@ class REaLSampler:
             if synth_sample[col].iloc[0].startswith(col):
                 synth_sample[col] = decode_column_values(synth_sample[col])
 
-        print("len2", len(synth_sample))
-
         synth_df = self._recover_data_values(synth_sample)
         logging.info(f"Generation stats: {synth_df.shape[0]}")
         print("len3", len(synth_df))
@@ -487,9 +483,7 @@ class REaLSampler:
         synth_df = self._convert_to_table(synth_df)
         print("len4", len(synth_df))
         synth_df = self._validate_missing(synth_df)
-        print("len5", len(synth_df))
         synth_df = self._validate_data(synth_df, validator)
-        print("len6", len(synth_df))
 
         if synth_df.empty:
             # Handle this exception in the sampling function.
