@@ -195,6 +195,8 @@ class ResumableTrainer(Trainer):
         if mlu_callback:
             mlu_callback.mlu_trainer.create_optim(model.parameters())
             mlu_callback.mlu_trainer.set_embedding(model.transformer.wte)
+        self.mlu_callback = mlu_callback
+        self.sampler = sampler
 
     def create_scheduler(
         self, num_training_steps: int, optimizer: torch.optim.Optimizer = None
