@@ -194,7 +194,8 @@ def total_recall(y_true, y_pred):
 
 def total_auc(y_true, y_pred):
     y_true, y_pred = prepare_y(y_true, y_pred)
-    ohe = OneHotEncoder()
+    ohe = OneHotEncoder(sparse_output=False)
+    y_true, y_pred = y_true.reshape(-1, 1), y_pred.reshape(-1, 1)
     ohe.fit(np.concatenate((y_true, y_pred), axis=0))
     y_true = ohe.transform(y_true)
     y_pred = ohe.transform(y_pred)
