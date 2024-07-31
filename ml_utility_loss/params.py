@@ -156,7 +156,7 @@ def numpify(a):
         return np.array(a)
     return a
 
-def total_f1(y_true, y_pred):
+def prepare_y(y_true, y_pred):
     # ValueError: Mix of label input types (string and number)
     try:
         y_true = numpify(y_true)
@@ -165,6 +165,17 @@ def total_f1(y_true, y_pred):
             y_pred = y_pred.reshape(y_true.shape)
         if y_true.dtype != y_pred.dtype:
             y_pred = y_pred.astype(y_true.dtype)
+        return y_true, y_pred
+    except ValueError:
+        print(y_true.dtype, y_pred.dtype)
+        print(y_true.shape, y_pred.shape)
+        print(y_true, y_pred)
+        raise
+
+def total_f1(y_true, y_pred):
+    # ValueError: Mix of label input types (string and number)
+    try:
+        y_true, y_pred = prepare_y(y_true, y_pred)
         return sklearn.metrics.f1_score(y_true, y_pred, average="macro")
     except ValueError:
         print(y_true.dtype, y_pred.dtype)
@@ -172,14 +183,24 @@ def total_f1(y_true, y_pred):
         print(y_true, y_pred)
         raise
 
+def total_precision(y_true, y_pred):
+    y_true, y_pred = prepare_y(y_true, y_pred)
+    return sklearn.metrics.precision_score(y_true, y_pred, average="macro")
+
+def total_recall(y_true, y_pred):
+    y_true, y_pred = prepare_y(y_true, y_pred)
+    return sklearn.metrics.recall_score(y_true, y_pred, average="macro")
+
 SKLEARN_METRICS = {
     "F1": sklearn.metrics.f1_score,
     "R2": sklearn.metrics.r2_score,
     "TotalF1": total_f1,
     "AUC": sklearn.metrics.roc_auc_score,
     "Accuracy": sklearn.metrics.accuracy_score,
-    "Recall": sklearn.metrics.recall_score,
     "Precision": sklearn.metrics.precision_score,
+    "Recall": sklearn.metrics.recall_score,
+    "TotalPrecision": sklearn.metrics.precision_score,
+    "TotalRecall": sklearn.metrics.recall_score,
 }
 
 CATBOOST_METRICS = {
