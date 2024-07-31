@@ -6,7 +6,7 @@ from .metrics import jsd, wasserstein, diff_corr, privacy_dist
 from pandas.errors import IntCastingNaNError
 import json
 
-def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params={}, save_info="info.csv", drop_first_column=True, augmenter=None, feature_importance=False, additional_metrics=False):
+def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params={}, save_info="info.csv", drop_first_column=True, augmenter=None, feature_importance=False, additional_metrics=False, seed_all=False):
     target = info["target"]
     task = info["task"]
     cat_features = info["cat_features"]
@@ -71,6 +71,7 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             cat_features=cat_features,
             feature_importance=feature_importance,
             additional_metrics=additional_metrics,
+            seed_all=seed_all,
             **ml_utility_params
         )
         real_value = eval_ml_utility(
@@ -80,6 +81,7 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             cat_features=cat_features,
             feature_importance=feature_importance,
             additional_metrics=additional_metrics,
+            seed_all=seed_all,
             **ml_utility_params
         )
         if feature_importance:

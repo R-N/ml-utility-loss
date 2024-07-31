@@ -1,6 +1,6 @@
 from catboost import CatBoostClassifier, CatBoostRegressor, CatBoostError
 from ...params import CATBOOST_METRICS, SKLEARN_METRICS
-from ...util import mkdir
+from ...util import mkdir, seed
 from .params.default import PARAM_SPACE_2
 import os
 import numpy as np
@@ -58,6 +58,7 @@ class CatBoostModel:
         target=None,
         plot=False,
         additional_metrics=False,
+        seed_all=False,
         **kwargs
     ):
         self.plot = plot
@@ -101,11 +102,16 @@ class CatBoostModel:
         if class_names:
             self.params["class_names"] = class_names
         self.train = None
+        self.seed_all = seed_all
+        if self.seed_all:
+            seed(self.params["random_seed"])
         self.model = self.Model(
             **self.params
         )
 
     def fit(self, train, val=None):
+        if self.seed_all:
+            seed(self.params["random_seed"])
         try:
             self.train = train
             if self.task ==  "multiclass" and "class_names" not in self.params and self.target:

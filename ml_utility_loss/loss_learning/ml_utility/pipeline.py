@@ -14,6 +14,7 @@ def eval_ml_utility(
     class_names=None,
     feature_importance=False,
     additional_metrics=False,
+    seed_all=False,
     **model_params
 ):
     train, test = datasets
@@ -43,6 +44,7 @@ def eval_ml_utility(
                 class_names=class_names,
                 target=target,
                 additional_metrics=additional_metrics,
+                seed_all=seed_all,
                 **model_params
             )
 
