@@ -110,8 +110,6 @@ class CatBoostModel:
         )
 
     def fit(self, train, val=None):
-        if self.seed_all:
-            seed(self.params["random_seed"])
         try:
             self.train = train
             if self.task ==  "multiclass" and "class_names" not in self.params and self.target:
