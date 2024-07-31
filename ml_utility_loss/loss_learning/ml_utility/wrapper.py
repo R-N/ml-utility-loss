@@ -77,7 +77,6 @@ class CatBoostModel:
                 self.metric = "TotalF1"
                 if additional_metrics:
                     self.additional_metrics = ["Accuracy", "TotalPrecision", "TotalRecall", "TotalAUC"]
-        print(additional_metrics)
         if loss_function is None:
             loss_function = PARAM_SPACE_2[task]["loss_function"][1][0]
         self.od_wait = od_wait
