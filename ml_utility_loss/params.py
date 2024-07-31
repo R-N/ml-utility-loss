@@ -191,16 +191,21 @@ def total_recall(y_true, y_pred):
     y_true, y_pred = prepare_y(y_true, y_pred)
     return sklearn.metrics.recall_score(y_true, y_pred, average="macro")
 
+def total_auc(y_true, y_pred):
+    y_true, y_pred = prepare_y(y_true, y_pred)
+    return sklearn.metrics.recall_score(y_true, y_pred, average="macro")
+
 SKLEARN_METRICS = {
     "F1": sklearn.metrics.f1_score,
     "R2": sklearn.metrics.r2_score,
     "TotalF1": total_f1,
-    "AUC": sklearn.metrics.roc_auc_score,
     "Accuracy": sklearn.metrics.accuracy_score,
     "Precision": sklearn.metrics.precision_score,
     "Recall": sklearn.metrics.recall_score,
-    "TotalPrecision": sklearn.metrics.precision_score,
-    "TotalRecall": sklearn.metrics.recall_score,
+    "AUC": sklearn.metrics.roc_auc_score,
+    "TotalPrecision": total_precision,
+    "TotalRecall": total_recall,
+    "TotalAUC": total_auc,
 }
 
 CATBOOST_METRICS = {
