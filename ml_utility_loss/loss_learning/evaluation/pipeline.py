@@ -94,10 +94,6 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
         if return_pred:
             synth_value, (synth_pred, synth_true) = synth_value
             real_value, (real_pred, real_true) = real_value
-            obj["synth_pred"] = json.dumps(synth_pred.tolist())
-            obj["synth_true"] = json.dumps(synth_true)
-            obj["real_pred"] = json.dumps(real_pred.tolist())
-            obj["real_true"] = json.dumps(real_true)
         synth_additional_values, real_additional_values = {}, {}
         if additional_metrics:
             synth_value, synth_additional_values = synth_value
@@ -114,6 +110,11 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             obj[f"synth_{k.lower()}"] = v
         for k, v in real_additional_values.items():
             obj[f"real_{k.lower()}"] = v
+        if return_pred:
+            obj["synth_pred"] = json.dumps(synth_pred.tolist())
+            obj["synth_true"] = json.dumps(synth_true)
+            obj["real_pred"] = json.dumps(real_pred.tolist())
+            obj["real_true"] = json.dumps(real_true)
 
         objs.append(obj)
         indices.append(index)
