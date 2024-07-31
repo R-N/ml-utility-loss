@@ -70,6 +70,7 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             target=target,
             cat_features=cat_features,
             feature_importance=feature_importance,
+            additional_metrics=additional_metrics,
             **ml_utility_params
         )
         real_value = eval_ml_utility(
@@ -78,6 +79,7 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             target=target,
             cat_features=cat_features,
             feature_importance=feature_importance,
+            additional_metrics=additional_metrics,
             **ml_utility_params
         )
         if feature_importance:
