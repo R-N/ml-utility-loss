@@ -12,6 +12,7 @@ from .metrics import mile, mire, mean_penalty, mean_penalty_tan, mean_penalty_ta
 import torch_optimizer
 import random
 import numpy as np
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
 class GradMagLoss:
     MSE_CORR = {
@@ -193,6 +194,10 @@ def total_recall(y_true, y_pred):
 
 def total_auc(y_true, y_pred):
     y_true, y_pred = prepare_y(y_true, y_pred)
+    ohe = OneHotEncoder()
+    ohe.fit(np.concatenate((y_true, y_pred), axis=0))
+    y_true = ohe.transform(y_true)
+    y_pred = ohe.transform(y_pred)
     return sklearn.metrics.roc_auc_score(y_true, y_pred, average="macro")
 
 SKLEARN_METRICS = {
