@@ -6,7 +6,7 @@ from .metrics import jsd, wasserstein, diff_corr, privacy_dist
 from pandas.errors import IntCastingNaNError
 import json
 
-def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params={}, save_info="info.csv", drop_first_column=True, augmenter=None, feature_importance=False, additional_metrics=False, seed_all=False):
+def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params={}, save_info="info.csv", drop_first_column=True, augmenter=None, feature_importance=False, additional_metrics=False, seed_all=False, return_pred=False):
     target = info["target"]
     task = info["task"]
     cat_features = info["cat_features"]
@@ -72,6 +72,7 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             feature_importance=feature_importance,
             additional_metrics=additional_metrics,
             seed_all=seed_all,
+            return_pred=return_pred,
             **ml_utility_params
         )
         real_value = eval_ml_utility(
@@ -82,6 +83,7 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             feature_importance=feature_importance,
             additional_metrics=additional_metrics,
             seed_all=seed_all,
+            return_pred=return_pred,
             **ml_utility_params
         )
         if feature_importance:
@@ -89,6 +91,13 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             real_value, real_feature_importance = real_value
             obj["synth_feature_importance"] = json.dumps(synth_feature_importance)
             obj["real_feature_importance"] = json.dumps(real_feature_importance)
+        if return_pred:
+            synth_value, (synth_pred, synth_true) = synth_value
+            real_value, (real_pred, real_true) = real_value
+            obj["synth_pred"] = json.dumps(synth_pred)
+            obj["synth_true"] = json.dumps(synth_true)
+            obj["real_pred"] = json.dumps(real_pred)
+            obj["real_true"] = json.dumps(real_true)
         synth_additional_values, real_additional_values = {}, {}
         if additional_metrics:
             synth_value, synth_additional_values = synth_value

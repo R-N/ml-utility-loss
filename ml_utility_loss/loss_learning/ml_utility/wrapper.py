@@ -133,15 +133,14 @@ class CatBoostModel:
         if val:
             return self.eval(val)
 
-    def eval(self, val):
+    def eval(self, val, return_pred=False):
         #ret = self.model.eval_metrics(val, [self.metric])[self.metric]
         #return sum(ret)/len(ret)
         y_pred = self.model.predict(val)
         y_true = val.get_label()
         value = SKLEARN_METRICS[self.metric](y_true, y_pred)
-        if not self.additional_metrics:
-            return value
-        else:
+        ret = value
+        if self.additional_metrics:
             values = {
                 metric: SKLEARN_METRICS[metric](y_true, y_pred) 
                 for metric in self.additional_metrics
@@ -150,7 +149,10 @@ class CatBoostModel:
                 self.metric: value,
                 **values
             }
-            return value, values
+            ret = ret, values
+        if return_pred:
+            ret = ret, (y_pred, y_true)
+        return ret
         
 
     def load_model(self, file_name="best.dump"):

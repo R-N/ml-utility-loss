@@ -15,6 +15,7 @@ def eval_ml_utility(
     feature_importance=False,
     additional_metrics=False,
     seed_all=False,
+    return_pred=False,
     **model_params
 ):
     train, test = datasets
@@ -50,7 +51,7 @@ def eval_ml_utility(
 
             model.fit(train, test)
 
-            value = model.eval(test)
+            value = model.eval(test, return_pred=return_pred)
             if feature_importance:
                 return value, model.get_feature_importance()
             return value
