@@ -5,6 +5,7 @@ from sklearn.preprocessing import MinMaxScaler,StandardScaler, OneHotEncoder
 from dython.nominal import associations
 from scipy.stats import wasserstein_distance
 from scipy.spatial import distance
+from sklearn.metrics import roc_auc_score as auc, accuracy_score as accuracy, precision_score as precision, recall_score as recall
 
 
 def jsd_single(real, fake):

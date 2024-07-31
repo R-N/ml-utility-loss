@@ -2,7 +2,7 @@ import pandas as pd
 import os
 from ..estimator.pipeline import DATASET_TYPES_VAL
 from ..ml_utility.pipeline import eval_ml_utility
-from .metrics import jsd, wasserstein, diff_corr, privacy_dist
+from .metrics import jsd, wasserstein, diff_corr, privacy_dist, accuracy, auc, precision, recall
 from pandas.errors import IntCastingNaNError
 import json
 
@@ -93,6 +93,10 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
         obj["dcr_rf"], obj["nndr_rf"] = privacy_dist(df_train, df_synth, cat_cols=cat_features_2)
         obj["dcr_rr"], obj["nndr_rr"] = privacy_dist(df_train, cat_cols=cat_features_2)
         obj["dcr_ff"], obj["nndr_ff"] = privacy_dist(df_synth, cat_cols=cat_features_2)
+        obj["accuracy"], obj["accuracy"] = accuracy(df_synth, cat_cols=cat_features_2)
+        obj["precision"], obj["precision"] = precision(df_synth, cat_cols=cat_features_2)
+        obj["recall"], obj["recall"] = recall(df_synth, cat_cols=cat_features_2)
+        obj["auc"], obj["auc"] = auc(df_synth, cat_cols=cat_features_2)
 
         objs.append(obj)
         indices.append(index)
