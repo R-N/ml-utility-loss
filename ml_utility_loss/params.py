@@ -193,7 +193,7 @@ def total_recall(y_true, y_pred):
 
 def total_auc(y_true, y_pred):
     y_true, y_pred = prepare_y(y_true, y_pred)
-    return sklearn.metrics.recall_score(y_true, y_pred, average="macro")
+    return sklearn.metrics.roc_auc_score(y_true, y_pred, average="macro")
 
 SKLEARN_METRICS = {
     "F1": sklearn.metrics.f1_score,
