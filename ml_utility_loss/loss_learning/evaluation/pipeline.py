@@ -6,7 +6,7 @@ from .metrics import jsd, wasserstein, diff_corr, privacy_dist, accuracy, auc, p
 from pandas.errors import IntCastingNaNError
 import json
 
-def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params={}, save_info="info.csv", drop_first_column=True, augmenter=None, feature_importance=False):
+def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params={}, save_info="info.csv", drop_first_column=True, augmenter=None, feature_importance=False, additional_metrics=False):
     target = info["target"]
     task = info["task"]
     cat_features = info["cat_features"]
@@ -85,6 +85,10 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             real_value, real_feature_importance = real_value
             obj["synth_feature_importance"] = json.dumps(synth_feature_importance)
             obj["real_feature_importance"] = json.dumps(real_feature_importance)
+        synth_additional_values, real_additional_values = {}, {}
+        if additional_metrics:
+            synth_value, synth_additional_values = synth_value
+            real_value, real_additional_values = real_value
         obj["synth_value"] = synth_value
         obj["real_value"] = real_value
         obj["jsd"] = jsd(df_train, df_synth, cat_features_2)
@@ -93,10 +97,10 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
         obj["dcr_rf"], obj["nndr_rf"] = privacy_dist(df_train, df_synth, cat_cols=cat_features_2)
         obj["dcr_rr"], obj["nndr_rr"] = privacy_dist(df_train, cat_cols=cat_features_2)
         obj["dcr_ff"], obj["nndr_ff"] = privacy_dist(df_synth, cat_cols=cat_features_2)
-        obj["accuracy"] = accuracy(df_synth, cat_cols=cat_features_2)
-        obj["precision"] = precision(df_synth, cat_cols=cat_features_2)
-        obj["recall"] = recall(df_synth, cat_cols=cat_features_2)
-        obj["auc"] = auc(df_synth, cat_cols=cat_features_2)
+        for k, v in synth_additional_values.items():
+            obj[f"synth_{k.lower()}"] = v
+        for k, v in real_additional_values.items():
+            obj[f"real_{k.lower()}"] = v
 
         objs.append(obj)
         indices.append(index)

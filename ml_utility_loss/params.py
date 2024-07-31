@@ -176,7 +176,12 @@ SKLEARN_METRICS = {
     "F1": sklearn.metrics.f1_score,
     "R2": sklearn.metrics.r2_score,
     "TotalF1": total_f1,
+    "AUC": sklearn.metrics.roc_auc_score,
+    "Accuracy": sklearn.metrics.accuracy_score,
+    "Recall": sklearn.metrics.recall_score,
+    "Precision": sklearn.metrics.precision_score,
 }
+
 CATBOOST_METRICS = {
     s: getattr(catboost.metrics, s)()
     for s in [

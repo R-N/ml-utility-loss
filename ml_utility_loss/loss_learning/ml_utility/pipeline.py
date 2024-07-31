@@ -13,6 +13,7 @@ def eval_ml_utility(
     cat_features=[],
     class_names=None,
     feature_importance=False,
+    additional_metrics=False,
     **model_params
 ):
     train, test = datasets
@@ -41,6 +42,7 @@ def eval_ml_utility(
                 checkpoint_dir=checkpoint_dir,
                 class_names=class_names,
                 target=target,
+                additional_metrics=additional_metrics,
                 **model_params
             )
 

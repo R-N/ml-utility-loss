@@ -57,19 +57,24 @@ class CatBoostModel:
         class_names=None,
         target=None,
         plot=False,
+        additional_metrics=False,
         **kwargs
     ):
         self.plot = plot
         self.task = task
         self.target = target
         self.Model = CatBoostRegressor if task == "regression" else CatBoostClassifier
+        self.additional_metrics = []
         
         if task == "regression":
             self.metric = "R2"
-        elif task == "binclass":
-            self.metric = "F1"
-        elif task == "multiclass":
-            self.metric = "TotalF1"
+        else:
+            if task == "binclass":
+                self.metric = "F1"
+            elif task == "multiclass":
+                self.metric = "TotalF1"
+            if additional_metrics:
+                self.additional_metrics = ["Accuracy", "Precision", "Recall", "AUC"]
         if loss_function is None:
             loss_function = PARAM_SPACE_2[task]["loss_function"][1][0]
         self.od_wait = od_wait
@@ -127,7 +132,20 @@ class CatBoostModel:
         #return sum(ret)/len(ret)
         y_pred = self.model.predict(val)
         y_true = val.get_label()
-        return SKLEARN_METRICS[self.metric](y_true, y_pred)
+        value = SKLEARN_METRICS[self.metric](y_true, y_pred)
+        if not self.additional_metrics:
+            return value
+        else:
+            values = {
+                metric: SKLEARN_METRICS[metric](y_true, y_pred) 
+                for metric in self.additional_metrics
+            }
+            values = {
+                self.metric: value,
+                **values
+            }
+            return value, values
+        
 
     def load_model(self, file_name="best.dump"):
         assert self.checkpoint_dir
