@@ -25,6 +25,7 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
     indices = []
     #objs = info_out.to_dict("records")
     objs = []
+    objs2 = []
 
     for index in subfolders:
         index = str(index)
@@ -111,13 +112,21 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
         for k, v in real_additional_values.items():
             obj[f"real_{k.lower()}"] = v
         if return_pred:
+            objs2.append((
+                synth_pred,
+                synth_true,
+                real_pred,
+                real_true,
+            ))
+
+        objs.append(obj)
+        indices.append(index)
+    if return_pred:
+        for obj, (synth_pred, synth_true, real_pred, real_true) in zip(objs, objs2):
             obj["synth_pred"] = json.dumps(synth_pred.tolist())
             obj["synth_true"] = json.dumps(synth_true)
             obj["real_pred"] = json.dumps(real_pred.tolist())
             obj["real_true"] = json.dumps(real_true)
-
-        objs.append(obj)
-        indices.append(index)
 
     df = pd.DataFrame(objs, index=indices)
     info_out = pd.concat([info_out, df], axis=0)
