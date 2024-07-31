@@ -2,7 +2,7 @@ import pandas as pd
 import os
 from ..estimator.pipeline import DATASET_TYPES_VAL
 from ..ml_utility.pipeline import eval_ml_utility
-from .metrics import jsd, wasserstein, diff_corr, privacy_dist, accuracy, auc, precision, recall
+from .metrics import jsd, wasserstein, diff_corr, privacy_dist
 from pandas.errors import IntCastingNaNError
 import json
 
