@@ -18,8 +18,6 @@ DEFAULT = {
     "epochs": 200,
     "colsample_bylevel": 0.55,
     "depth": 6,
-    "boosting_type": "Ordered",
-    "bootstrap_type": "Bernoulli",
     "l2_leaf_reg": 2, 
     "lr": 0.1,
     "subsample": 0.75,

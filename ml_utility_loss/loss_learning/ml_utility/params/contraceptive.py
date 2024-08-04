@@ -18,8 +18,6 @@ DEFAULT = {
     "epochs": 200,
     "colsample_bylevel": 0.55,
     "depth": 6,
-    "boosting_type": "Ordered",
-    "bootstrap_type": "Bernoulli",
     "l2_leaf_reg": 2, 
     "lr": 0.1,
     "subsample": 0.75,
@@ -33,8 +31,6 @@ BEST = {
     "epochs": 204,
     "colsample_bylevel": 0.5602197328703657,
     "depth": 6,
-    "boosting_type": "Ordered",
-    "bootstrap_type": "Bernoulli",
     "l2_leaf_reg": 2, # 2.11327468011683, # 0.7482387255079432
     "lr": 0.09676909170025419,
     "subsample": 0.7530421675765739,
