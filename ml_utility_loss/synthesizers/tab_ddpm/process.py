@@ -75,6 +75,8 @@ class Trainer:
 
         curr_count = 0
 
+        mloss, gloss = None, None
+
         while step < self.steps:
             x, y = next(self.train_iter)
             out_dict = {'y': y}
@@ -135,6 +137,9 @@ class Trainer:
                     total_mlu_loss /= self.mlu_trainer.n_steps
                     clear_memory()
                     post_loss = self._eval_step(x, out_dict).item()# * len(x)
+                    if mloss is None or gloss is None:
+                        mloss = curr_loss_multi / curr_count
+                        gloss = curr_loss_gauss / curr_count
                     self.mlu_trainer.log(
                         synthesizer_step=step,
                         train_loss=mloss+gloss,
