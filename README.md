@@ -23,6 +23,6 @@ Treat MLU results as exploratory. Before making comparative claims, use independ
 
 The callbacks intentionally own model construction, cloning, and sampling because each synthesizer has a different differentiable representation.
 
-A dated failure diagnosis (why prior MLU runs helped only weak synthesizers — proxy leakage, an unsupervised surrogate gradient, and a soft/hard guided-tensor mismatch) and a ranked fix list are in `CLAUDE.md` under "Diagnosis". The go/no-go gate is `run_local_update_test`: an MLU-proposed generator step must beat an equal-norm random step on true held-out utility.
+A dated failure diagnosis (why prior MLU runs helped only weak synthesizers — proxy leakage, an unsupervised surrogate gradient, and guided-tensor mismatches) and a ranked fix list with a per-synthesizer audit are in `CLAUDE.md` under "Diagnosis". A wrong-activation bug in the TVAE guided tensor is fixed; LCT-GAN was already correct; tab_ddpm and REaLTabFormer need a larger redesign. The go/no-go gate is `loss_learning/evaluation/gate_a_tvae.py:run_gate_a` (built on `run_local_update_test`): an MLU decoder step must beat an equal-norm random step on true held-out utility, and passes only if the paired 95% CI is above zero.
 
 See `CLAUDE.md` for architecture and the detailed audit constraints, and `AGENTS.md` for development guidance.

@@ -32,7 +32,7 @@ Do not tune MLU hyperparameters or make quality claims until these gates pass:
 
 `loss_learning/evaluation/experiments.py` provides optional three-way splits, paired benchmark runs, and equal-norm local-update comparisons; callers supply synthesizer-specific callbacks.
 
-A dated failure diagnosis (why prior MLU runs helped only weak synthesizers) and a ranked fix list live under "Diagnosis" in `CLAUDE.md`. Key open code defect: the guided tensor in `synthesizers/*/process.py:sample(raw=True)` uses the wrong activation (e.g. a blanket `torch.tanh` over softmax categorical spans), so its gradient does not match the sampled table. Run `evaluation/experiments.py:run_local_update_test` as the go/no-go gate before any tuning.
+A dated failure diagnosis (why prior MLU runs helped only weak synthesizers) and a ranked fix list with a per-synthesizer guided-tensor audit live under "Diagnosis" in `CLAUDE.md`. Guided-tensor status after tracing each `sample(raw=True)` path: TVAE had a wrong-activation bug, now fixed (`synthesizers/tvae/process.py:_apply_activate`); LCT-GAN is already correct (its MSE-trained decoder emits the estimator's feature space — do not "fix" it); tab_ddpm and REaLTabFormer have dead categorical gradients through `round()`/argmax/token sampling and need Gumbel straight-through plus an estimator retrain, not an activation swap. Before any of that, run the go/no-go gate `evaluation/gate_a_tvae.py:run_gate_a` (an MLU decoder step must beat an equal-norm random step on true held-out utility; passes only if `ci95_low > 0`).
 
 ## Model and Parameters
 
