@@ -13,4 +13,14 @@ Prior experiments do not establish that the learned ML-utility loss improves str
 
 Treat MLU results as exploratory. Before making comparative claims, use independent generator/CatBoost-tuning/final-test splits, repeated paired seeds, held-out surrogate calibration, and a direct test that an MLU-proposed generator step beats an equal-norm random step on true held-out utility.
 
+## Optional Experiments
+
+`ml_utility_loss.loss_learning.evaluation` exports optional helpers for these gates:
+
+- `split_experiment_data()` creates disjoint generator, CatBoost-selection, and final-test DataFrames.
+- `run_paired_benchmark()` runs a caller-provided baseline/MLU synthesizer callback over matched seeds and returns per-seed deltas plus an approximate 95% interval.
+- `run_local_update_test()` compares caller-provided equal-norm MLU and random updates on a held-out true-utility evaluator.
+
+The callbacks intentionally own model construction, cloning, and sampling because each synthesizer has a different differentiable representation.
+
 See `CLAUDE.md` for architecture and the detailed audit constraints, and `AGENTS.md` for development guidance.

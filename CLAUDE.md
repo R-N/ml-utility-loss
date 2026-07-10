@@ -28,6 +28,8 @@ Do not tune MLU hyperparameters or make quality claims until these gates pass:
 4. Test local guidance directly: an MLU-proposed generator update must beat an equal-norm random update on true held-out utility.
 5. Begin with a continuous, representation-aligned synthesizer; preserve its native objective and add only a small, annealed MLU auxiliary loss.
 
+`loss_learning/evaluation/experiments.py` provides optional three-way splits, paired benchmark runs, and equal-norm local-update comparisons; callers supply synthesizer-specific callbacks.
+
 ## Setup
 
 ```bash
