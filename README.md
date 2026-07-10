@@ -23,4 +23,6 @@ Treat MLU results as exploratory. Before making comparative claims, use independ
 
 The callbacks intentionally own model construction, cloning, and sampling because each synthesizer has a different differentiable representation.
 
+A dated failure diagnosis (why prior MLU runs helped only weak synthesizers — proxy leakage, an unsupervised surrogate gradient, and a soft/hard guided-tensor mismatch) and a ranked fix list are in `CLAUDE.md` under "Diagnosis". The go/no-go gate is `run_local_update_test`: an MLU-proposed generator step must beat an equal-norm random step on true held-out utility.
+
 See `CLAUDE.md` for architecture and the detailed audit constraints, and `AGENTS.md` for development guidance.

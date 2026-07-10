@@ -32,6 +32,8 @@ Do not tune MLU hyperparameters or make quality claims until these gates pass:
 
 `loss_learning/evaluation/experiments.py` provides optional three-way splits, paired benchmark runs, and equal-norm local-update comparisons; callers supply synthesizer-specific callbacks.
 
+A dated failure diagnosis (why prior MLU runs helped only weak synthesizers) and a ranked fix list live under "Diagnosis" in `CLAUDE.md`. Key open code defect: the guided tensor in `synthesizers/*/process.py:sample(raw=True)` uses the wrong activation (e.g. a blanket `torch.tanh` over softmax categorical spans), so its gradient does not match the sampled table. Run `evaluation/experiments.py:run_local_update_test` as the go/no-go gate before any tuning.
+
 ## Model and Parameters
 
 - `create_model()` builds `MLUtilityWhole`: synthesizer-specific adapters -> shared Transformer or TwinEncoder body -> `mlu` head. `MLUtilityWhole[model]` returns a cached single-model view sharing the body/head.
