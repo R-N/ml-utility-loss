@@ -6,7 +6,8 @@ Research code for a learned surrogate of ML utility in synthetic tabular-data ge
 
 Prior experiments do not establish that the learned ML-utility loss improves strong synthesizers. They reused holdouts, targeted arbitrary historical scores, and used unvalidated surrogate gradients. Cached utility labels must be regenerated before another comparison.
 
-- `eval_ml_utility()` now supports separate train/validation/final-test partitions, and two-way estimator training does not inspect its test set while fitting.
+- `eval_ml_utility()` now supports separate train/validation/final-test partitions, derives multiclass labels only from train/validation data, and two-way estimator training does not inspect its test set while fitting.
+- TVAE, TabDDPM, REaLTabFormer, and LCT-GAN studies propagate separate validation and final-test partitions when provided.
 - MLU now directly maximizes its surrogate when no target is provided; its heuristic gradient penalty is disabled by default.
 - The surrogate gradient remains unvalidated, and soft/internal guidance still differs from final decoded tables for several synthesizers.
 
