@@ -38,7 +38,7 @@ def eval_ml_utility(
             val = val[test.columns].astype(test.dtypes)
 
     if task == "multiclass" and not class_names:
-        class_names = extract_class_names(target, train, val, test)
+        class_names = extract_class_names(target, train, val)
 
     if not isinstance(train, Pool):
         train = create_pool(train, target=target, cat_features=cat_features)

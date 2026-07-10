@@ -38,7 +38,13 @@ def objective(
     seed_(seed)
 
     try:
-        train, test, *_ = datasets
+        if len(datasets) == 3:
+            train, val, test = datasets
+        elif len(datasets) == 2:
+            train, test = datasets
+            val = None
+        else:
+            raise ValueError("datasets must contain (train, test) or (train, val, test)")
 
         #gan_params = filter_dict_2(kwargs, GAN_PARAMS)
         #ae_params = filter_dict_2(kwargs, AE_PARAMS)
@@ -82,6 +88,7 @@ def objective(
                 synth=synth,
                 train=train,
                 test=test,
+                val=val,
                 diff=diff,
                 task=task,
                 target=target,

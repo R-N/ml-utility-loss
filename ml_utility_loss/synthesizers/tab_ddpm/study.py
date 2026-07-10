@@ -32,7 +32,13 @@ def objective(
     seed_(seed)
 
     try:
-        train, test = datasets
+        if len(datasets) == 3:
+            train, val, test = datasets
+        elif len(datasets) == 2:
+            train, test = datasets
+            val = None
+        else:
+            raise ValueError("datasets must contain (train, test) or (train, val, test)")
 
         model, diffusion, trainer = train_2(
             train,
@@ -57,6 +63,7 @@ def objective(
                 synth=synth,
                 train=train,
                 test=test,
+                val=val,
                 diff=diff,
                 task=task,
                 target=target,

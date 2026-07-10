@@ -28,7 +28,7 @@ FORCE = {
     "bias": True,
     "bias_final": True,
     "pma_ffn_mode": PMAFFNMode.NONE,
-    "gradient_penalty_mode": "ALL",
+    "gradient_penalty_mode": "NONE",
 }
 MINIMUMS = {
     "bias_weight_decay": 0.05,

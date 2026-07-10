@@ -159,7 +159,7 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=True, info_out=None, ml
                 **ml_utility_params
             )
             if feature_importance:
-                synth_value, synth_feature_importance = synth_value
+                aug_value, synth_feature_importance = aug_value
                 real_value, real_feature_importance = real_value
                 obj["synth_feature_importance"] = json.dumps(synth_feature_importance)
                 obj["real_feature_importance"] = json.dumps(real_feature_importance)
