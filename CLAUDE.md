@@ -37,19 +37,30 @@ Observed symptom: MLU improved only weak synthesizers, inconsistently, and never
 1. **Label + selection leakage.** Old `eval_ml_utility()` scored utility on the same holdout later reused for estimator selection/eval, so surrogate labels were optimistic and miscalibrated. Fixed to a 3-way split, but all cached labels and every prior comparison are leaked and must be regenerated.
 2. **The surrogate gradient is never supervised toward true utility — and cannot be.** CatBoost is non-differentiable, so a ground-truth `∂utility/∂samples` does not exist to train against. The estimator only fits the utility *value* (`F.mse_loss(est, catboost_value)`); its input→output gradient is an unconstrained byproduct. The heuristic gradient penalty (`calc_g_loss` → `calc_g_mse_mag_loss`/`calc_g_mag_corr_loss`/cos terms in `estimator/process.py`) shapes only gradient *magnitude* (`get_g = target*|error|`) and sign-correlation — no term constrains *direction* toward higher true utility. Correctly disabled now (`GradientPenaltyMode.NONE`); the differentiable-gradient premise remains unvalidated.
 3. **Old downstream objective pushed toward an arbitrary label.** `MLUtilityTrainer(target=X)` minimized `MSE(est, X)` against a sampled historical value; when `X < est` it pushed utility *down*. Fixed to `target=None → loss=-mean(est)` (`estimator/wrapper.py`), but maximizing an unvalidated surrogate just searches its blind spots.
-4. **Gradient applied to the wrong tensor (soft/hard mismatch).** `synthesizers/tvae/process.py:sample(raw=True)` returns `torch.tanh(fake)` — a blanket tanh over the *entire* decoder output — while the transformer's `output_info_list` marks each span as `tanh` (continuous) or `softmax` (categorical one-hot), and real sampling argmaxes the softmax spans. So MLU gradients on categorical spans flow through the wrong activation (meaningless direction), and continuous spans are guided in decoder space, not the estimator's input space. Same class of bug for LCT-GAN soft outputs, REaLTabFormer hidden states, and hard token sampling.
+4. **Gradient applied to the wrong tensor (guided-tensor mismatch).** The synthesizers do not share one bug — each `sample(raw=True)` path was audited separately (see the per-synthesizer table below). TVAE had a genuine wrong-activation bug (blanket `torch.tanh` over softmax categorical spans); LCT-GAN is actually correct; tab_ddpm and REaLTabFormer have a deeper dead-gradient problem through discrete sampling.
 5. **Off-distribution estimator input.** The estimator is trained on preprocessed real/augmented tables but fed raw decoder tensors at guidance time, so predictions are least reliable exactly where they are used.
 6. **Utility defined by one CatBoost config/metric.** The surrogate mimics one model's idiosyncrasies; a strong synthesizer already captures that signal, so extra MLU pressure chases CatBoost-specific quirks rather than model-agnostic utility.
 7. **Sampling artifacts** (LCT-GAN BatchNorm in train mode during sampling, wrong LCT-AE sample count) injected variance; both already fixed.
 
 Fix priority:
 
-- **Gate A first (go/no-go):** run `evaluation/experiments.py:run_local_update_test` — an MLU-proposed equal-norm step must beat an equal-norm *random* step on true held-out utility across seeds. If it does not, the loss is noise; redesign before tuning.
+- **Gate A first (go/no-go):** run `evaluation/gate_a_tvae.py:run_gate_a` (built on `experiments.py:run_local_update_test`) — one MLU decoder step must beat an equal-norm *random* step on true held-out utility across seeds. Pass a trained `TVAEModel`, its `DataTransformer`, and a trained `MLUtilityWhole`; Gate A passes only if the summary's `ci95_low > 0`. If it does not, the loss is noise; redesign before tuning (and before touching tab_ddpm / RTF).
 - **B. Fix the guided tensor:** apply per-span activation (tanh vs softmax) so categorical gradients flow through a differentiable argmax surrogate (softmax / straight-through / Gumbel), and align the guided tensor with the estimator's input preprocessing.
 - **C.** Regenerate all labels 3-way and rerun comparisons.
 - **D.** If Gate A fails, treat MLU as a black-box score (best-of-n / rerank / ES), sidestepping the direction problem.
 - **E.** Start with a continuous, representation-aligned synthesizer (native loss preserved, small annealed MLU auxiliary); avoid hard categorical sampling initially.
 - **F.** Calibrate on held-out generator runs (Spearman of est vs true) and add a trust region; **G.** define utility over an ensemble of downstream models/metrics.
+
+Per-synthesizer guided-tensor audit (2026-07-11), tracing each `sample(raw=True)` decode path:
+
+| Synthesizer | Guided tensor | Status |
+|---|---|---|
+| **TVAE** (`synthesizers/tvae/process.py`) | decoder logits; trained with tanh (value) + cross-entropy (categorical) | **Bug, fixed.** Blanket `torch.tanh` replaced with per-span `_apply_activate` (tanh value spans, softmax categorical spans). Decoded path unchanged (argmax-invariant). |
+| **LCT-GAN** (`synthesizers/lct_gan/autoencoder.py:LatentTAE.decode`) | raw `FCDecoder` output, trained with pure MSE to the preprocessed feature space | **No bug.** The MSE-trained decoder already emits the estimator's representation; applying an activation would be a regression. Left as-is. |
+| **tab_ddpm** (`synthesizers/tab_ddpm/gaussian_multinomial_diffusion.py:sample`) | `undecorated` sampling restores grad, but `z_ohe = torch.exp(log_z).round()` + `ohe_to_categories` (argmax) are non-differentiable | **Deeper defect, not fixed.** Categorical gradient is dead, and the `tab_ddpm_concat` adapter (dim 7) expects integer-coded categories. Needs Gumbel straight-through in the categorical reverse step plus a one-hot estimator representation (retrain) — not an activation swap. |
+| **REaLTabFormer** (`synthesizers/realtabformer/rtf_sampler.py`) | autoregressive discrete vocab tokens | **Deeper defect, not fixed.** Discrete token generation has no gradient to the sampled table; differentiable guidance needs soft-embedding / Gumbel over the vocab and estimator retraining on that representation. |
+
+Only TVAE was a drop-in fix. Do not "fix" LCT-GAN. tab_ddpm and RTF are gated on the larger redesign — and on Gate A first: if the surrogate gradient is noise even for the clean TVAE path, that redesign is not worth doing.
 
 ## Setup
 
