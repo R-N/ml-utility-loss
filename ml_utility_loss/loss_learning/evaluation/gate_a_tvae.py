@@ -80,6 +80,16 @@ def mlu_decoder_update(
     samples = _raw_samples(
         candidate, transformer, n_samples, batch_size, estimator_single.device
     )
+    # The generator's DataTransformer and the estimator's must produce the same
+    # output_dimensions, or the estimator adapter cannot consume the guided
+    # samples. Fail early and clearly instead of on a cryptic matmul error.
+    if samples.shape[-1] != reference_tensor.shape[-1]:
+        raise ValueError(
+            f"guided sample dim {samples.shape[-1]} != estimator reference dim "
+            f"{reference_tensor.shape[-1]}; the generator's DataTransformer and "
+            "the estimator's tvae transformer must be fit to matching "
+            "output_dimensions"
+        )
     _, est = estimator_single(samples, reference_tensor)
     # A missing target means maximize estimated utility (see MLUtilityTrainer).
     loss = -est.mean()
