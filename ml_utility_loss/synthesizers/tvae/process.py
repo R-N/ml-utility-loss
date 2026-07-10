@@ -12,13 +12,17 @@ def _apply_activate(data, output_info_list):
     ``tanh`` spans are continuous scalar values; ``softmax`` spans are the
     mode indicators / one-hot categorical blocks. The decoder emits raw logits,
     and the training data (``DataTransformer.transform``) stores tanh-range
-    values and one-hot categoricals. Applying tanh to every span (the previous
-    behaviour) squashes each categorical logit independently, so the guided
-    ``raw`` samples did not match the representation the estimator was trained
-    on and MLU gradients on categorical spans flowed through the wrong
-    activation. Softmax keeps categorical spans as a distribution (a
-    differentiable argmax surrogate) that matches training and inverse
-    transform.
+    values and *hard one-hot* categoricals. Applying tanh to every span (the
+    previous behaviour) squashes each categorical logit independently, so the
+    guided ``raw`` samples did not match the representation the estimator was
+    trained on and MLU gradients on categorical spans flowed through the wrong
+    activation.
+
+    Categorical spans use a straight-through one-hot: the forward value is the
+    hard argmax one-hot (matching the estimator's training inputs and the
+    inverse transform), while the backward pass flows through softmax so the
+    categorical logits still receive a gradient. This removes the residual
+    soft/hard gap that a plain softmax would leave.
     """
     activated = []
     st = 0
@@ -29,7 +33,10 @@ def _apply_activate(data, output_info_list):
             if span_info.activation_fn == 'tanh':
                 activated.append(torch.tanh(span))
             elif span_info.activation_fn == 'softmax':
-                activated.append(torch.softmax(span, dim=1))
+                soft = torch.softmax(span, dim=1)
+                index = soft.argmax(dim=1, keepdim=True)
+                hard = torch.zeros_like(soft).scatter_(1, index, 1.0)
+                activated.append(hard + soft - soft.detach())
             else:
                 raise ValueError(f"Unexpected activation {span_info.activation_fn}")
             st = ed
