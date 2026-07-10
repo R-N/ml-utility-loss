@@ -10,7 +10,9 @@ def objective(
     trial=None,
     **model_params
 ):
-    train, test = datasets
+    if len(datasets) != 3:
+        raise ValueError("CatBoost tuning requires (train, val, test) datasets")
+    train, val, test = datasets
 
     subsample_bool = model_params.pop("subsample_bool", True)
     if "subsample" in model_params and (not subsample_bool or model_params["bootstrap_type"] == "Bayesian"):
@@ -22,12 +24,13 @@ def objective(
                 model = CatBoostModel(
                     task=task,
                     checkpoint_dir=checkpoint_dir,
+                    use_best_model=True,
                     **model_params
                 )
-                model.fit(train, test)
+                model.fit(train, val)
             except CatBoostError:
                 raise TrialPruned()
-            value = model.eval(test)
+            value = model.eval(val)
             if checkpoint_dir:
                 model.save_model()
             if trial:

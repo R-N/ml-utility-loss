@@ -314,19 +314,17 @@ class AutoEncoder(object):
                         #_, _, col, opt = cond_generator.sample_train(n_samples)
                         samples = []
                         indices = np.random.choice(np.arange(len(data)), n_samples)
-                        i = 0
                         save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext()
                         with save_cm:
-                            while len(samples) < n_samples:
+                            for start in range(0, n_samples, batch_size):
                                 #sample = data_sampler.sample(
                                 #    batch_size, col, opt,
                                 #)
-                                sample = data[indices[i*batch_size:(i+1)*batch_size]]
+                                sample = data[indices[start:start+batch_size]]
                                 sample = self.encode(sample)
                                 sample = self.decode(sample)
                                 samples.append(sample)
-                        samples = samples[:n_samples]
-                        samples = torch.cat(samples, dim=0)
+                        samples = torch.cat(samples, dim=0)[:n_samples]
                         mlu_loss, mlu_grad = self.mlu_trainer.step(samples, batch_size=batch_size)
                         total_mlu_loss += mlu_loss
                     total_mlu_loss /= self.mlu_trainer.n_steps

@@ -18,7 +18,13 @@ def eval_ml_utility(
     return_pred=False,
     **model_params
 ):
-    train, test = datasets
+    if len(datasets) == 2:
+        train, test = datasets
+        val = None
+    elif len(datasets) == 3:
+        train, val, test = datasets
+    else:
+        raise ValueError("datasets must contain (train, test) or (train, val, test)")
 
     if isinstance(test, pd.DataFrame):
         if torch.is_tensor(train):
@@ -28,12 +34,16 @@ def eval_ml_utility(
         if isinstance(train, pd.DataFrame):
             train = train[test.columns]
             train = train.astype(test.dtypes)
+        if isinstance(val, pd.DataFrame):
+            val = val[test.columns].astype(test.dtypes)
 
     if task == "multiclass" and not class_names:
-        class_names = extract_class_names(target, train, test)
+        class_names = extract_class_names(target, train, val, test)
 
     if not isinstance(train, Pool):
         train = create_pool(train, target=target, cat_features=cat_features)
+    if val is not None and not isinstance(val, Pool):
+        val = create_pool(val, target=target, cat_features=cat_features)
     if not isinstance(test, Pool):
         test = create_pool(test, target=target, cat_features=cat_features)
 
@@ -46,10 +56,11 @@ def eval_ml_utility(
                 target=target,
                 additional_metrics=additional_metrics,
                 seed_all=seed_all,
+                use_best_model=val is not None,
                 **model_params
             )
 
-            model.fit(train, test)
+            model.fit(train, val)
 
             value = model.eval(test, return_pred=return_pred)
             if feature_importance:
@@ -74,16 +85,19 @@ def eval_ml_utility_2(
     synth,
     train,
     test,
+    val=None,
     diff=False,
     **kwargs
 ):
+    synth_datasets = (synth, val, test) if val is not None else (synth, test)
+    real_datasets = (train, val, test) if val is not None else (train, test)
     synth_value = eval_ml_utility(
-        (synth, test),
+        synth_datasets,
         **kwargs
     )
     if diff:
         real_value = eval_ml_utility(
-            (train, test),
+            real_datasets,
             **kwargs
         )
         value=abs(synth_value-real_value)

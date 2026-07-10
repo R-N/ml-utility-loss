@@ -59,6 +59,7 @@ class CatBoostModel:
         plot=False,
         additional_metrics=False,
         seed_all=False,
+        use_best_model=False,
         **kwargs
     ):
         self.plot = plot
@@ -94,7 +95,7 @@ class CatBoostModel:
             "eval_metric":CATBOOST_METRICS[self.metric],
             "random_seed":random_seed,
             "od_wait":od_wait,
-            "use_best_model":True,
+            "use_best_model":use_best_model,
             "od_type":od_type,
             "logging_level":logging_level,
             **kwargs
@@ -129,8 +130,9 @@ class CatBoostModel:
                 self.model = NaiveModel().fit(train)
             else:
                 raise
-        self.epoch = self.model.get_best_iteration() + self.od_wait
-        if val:
+        best_iteration = self.model.get_best_iteration()
+        self.epoch = best_iteration if best_iteration is not None else 0
+        if val is not None:
             return self.eval(val)
 
     def eval(self, val, return_pred=False):

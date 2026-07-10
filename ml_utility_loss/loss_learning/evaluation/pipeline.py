@@ -66,7 +66,7 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
         #assert len(df_synth) == len(df_train)
             
         synth_value = eval_ml_utility(
-            (df_synth, df_val),
+            (df_synth, df_val, df_test),
             task,
             target=target,
             cat_features=cat_features,
@@ -77,7 +77,7 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             **ml_utility_params
         )
         real_value = eval_ml_utility(
-            (df_train, df_test),
+            (df_train, df_val, df_test),
             task,
             target=target,
             cat_features=cat_features,

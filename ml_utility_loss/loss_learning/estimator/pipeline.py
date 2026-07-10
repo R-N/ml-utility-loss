@@ -76,7 +76,9 @@ MAX_SYNTH = 1500
 DEFAULT_SYNTH_VAL = 200
 DEFAULT_SYNTH_VAL_RATIO = DEFAULT_SYNTH_VAL/DEFAULT_SYNTH_TRAIN_VAL
 
-def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, ml_utility_params={}, save_info="info.csv", i=0, size=None, augmenter=None, seed=42, scale_start=0.0, scale_end=1.0, feature_importance=False):
+def augment_kfold(df, info, save_dir, n=1, test=0.2, val=True, info_out=None, ml_utility_params={}, save_info="info.csv", i=0, size=None, augmenter=None, seed=42, scale_start=0.0, scale_end=1.0, feature_importance=False):
+    if not val:
+        raise ValueError("augment_kfold requires a separate validation partition for CatBoost selection")
     if not size:
         #size = len(df)
         save_dir = os.path.join(save_dir, "all")
@@ -122,17 +124,12 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
             df_1, 
             ratio=test,
             val=val,
-            seed=seed,
+            seed=seed + i,
         )
         objs = []
         indices = []
         for j, datasets in enumerate(splits):
-            df_val = None
-            if val:
-                df_train, df_val, df_test = datasets
-            else:
-                df_train, df_test = datasets
-                df_val = df_test
+            df_train, df_val, df_test = datasets
             df_aug = augmenter.augment(df_train, scale=scale)
 
             index = f"{i}_{j}"
@@ -146,7 +143,7 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
             
 
             aug_value = eval_ml_utility(
-                (df_aug, df_val),
+                (df_aug, df_val, df_test),
                 task,
                 target=target,
                 cat_features=cat_features,
@@ -154,7 +151,7 @@ def augment_kfold(df, info, save_dir, n=1, test=0.2, val=False, info_out=None, m
                 **ml_utility_params
             )
             real_value = eval_ml_utility(
-                (df_train, df_test),
+                (df_train, df_val, df_test),
                 task,
                 target=target,
                 cat_features=cat_features,
@@ -234,7 +231,7 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
         #assert len(df_synth) == len(df_train)
             
         synth_value = eval_ml_utility(
-            (df_synth, df_val),
+            (df_synth, df_val, df_test),
             task,
             target=target,
             cat_features=cat_features,
@@ -242,7 +239,7 @@ def score_datasets(data_dir, subfolders, info, info_out=None, ml_utility_params=
             **ml_utility_params
         )
         real_value = eval_ml_utility(
-            (df_train, df_test),
+            (df_train, df_val, df_test),
             task,
             target=target,
             cat_features=cat_features,
@@ -308,6 +305,8 @@ def augment_2(dataset_name, save_dir, dataset_dir="datasets", augmenter=None, si
 
 
 def log(writer, i, train_loss, val_loss, train_set=None, val_set=None, size_scheduler=None):
+    if writer is None:
+        return
     """
     for k, v in train_loss.items():
         writer.add_scalar(f"{k}/train", v, i)
@@ -315,12 +314,13 @@ def log(writer, i, train_loss, val_loss, train_set=None, val_set=None, size_sche
         writer.add_scalar(f"{k}/val", v, i)
     """
     for k in train_loss.keys():
-        writer.add_scalars(k, {
-            "train": train_loss[k],
-            "val": val_loss[k],
-        }, i)
+        values = {"train": train_loss[k]}
+        if val_loss is not None:
+            values["val"] = val_loss[k]
+        writer.add_scalars(k, values, i)
     writer.add_scalars("train", train_loss, i)
-    writer.add_scalars("val", val_loss, i)
+    if val_loss is not None:
+        writer.add_scalars("val", val_loss, i)
     size = {}
     if train_set is not None and isinstance(train_set.size, (int, float)):
         size["train"] = train_set.size
@@ -361,7 +361,7 @@ def train(
     loss_balancer_log=True,
     loss_balancer_lbtw=True,
     fixed_role_model="tab_ddpm_concat",
-    gradient_penalty_mode=GradientPenaltyMode.AVERAGE_MUL,
+    gradient_penalty_mode=GradientPenaltyMode.NONE,
     loss_clamp=None,
     grad_clip=4.0,
     head="mlu",
@@ -424,7 +424,9 @@ def train(
         train_set, val_set, test_set = datasets
     elif len(datasets) == 2:
         train_set, test_set = datasets
-        val_set = test_set
+        val_set = None
+    else:
+        raise ValueError("datasets must contain (train, test) or (train, val, test)")
 
     if not loss_balancer:
         loss_balancer = MyLossTransformer(
@@ -448,9 +450,6 @@ def train(
         dataset_size = size_scheduler.get_size()
         aug_scale = size_scheduler.get_aug()
     
-    if early_stopping:
-        early_stopping.model = whole_model
-
     def prepare_loader(dataset, val=False, dataset_size=dataset_size, aug_scale=aug_scale, batch_size=batch_size, size_scheduler=None):
         if size_scheduler:
             dataset_size=size_scheduler.get_size()
@@ -470,7 +469,7 @@ def train(
         return loader
     
     train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
-    val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
+    val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler) if val_set is not None else None
 
     adapters = preprocessor.adapter_sizes
     if whole_model and not models:
@@ -487,6 +486,8 @@ def train(
             models=models,
             **model_args
         )
+    if early_stopping:
+        early_stopping.model = whole_model
 
     if wandb:
         wandb_inited = False
@@ -611,26 +612,30 @@ def train(
                         print("Train loss", train_loss)
                     if timer:
                         timer.check_time()
-                    val_loss = train_epoch_(val_loader, gradient_penalty_mode=gradient_penalty_mode_, val=True)
-                    if verbose:
-                        print("Val loss", val_loss)
-                    if timer:
-                        timer.check_time()
+                    val_loss = None
+                    if val_loader is not None:
+                        val_loss = train_epoch_(val_loader, gradient_penalty_mode=gradient_penalty_mode_, val=True)
+                        if verbose:
+                            print("Val loss", val_loss)
+                        if timer:
+                            timer.check_time()
                     break
                 except RuntimeError as ex:
                     if "stack expects each tensor to be equal size" in str(ex) and broken_loader_counter > 0:
                         print("Forgiving broken loader. Remaining: ", broken_loader_counter)
                         del train_loader
-                        del val_loader
+                        if val_loader is not None:
+                            del val_loader
                         clear_memory()
                         train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
-                        val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
+                        val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler) if val_set is not None else None
                         broken_loader_counter -= 1
                         continue
                     raise
 
             train_results.append(train_loss)
-            val_results.append(val_loss)
+            if val_loss is not None:
+                val_results.append(val_loss)
 
             #print("[INFO] Logging", i, torch.cuda.mem_get_info())
             log(
@@ -644,22 +649,24 @@ def train(
             )
 
             train_value = train_loss["avg_loss"]
-            val_value = val_loss["avg_loss"]
+            monitor_loss = val_loss if val_loss is not None else train_loss
+            val_value = monitor_loss["avg_loss"]
 
             if not include_std_loss:
-                val_value += val_loss["avg_role_model_std_loss"]
+                val_value += monitor_loss["avg_role_model_std_loss"]
             if not include_mean_pred_loss:
-                val_value += val_loss["avg_role_model_mean_pred_loss"]
+                val_value += monitor_loss["avg_role_model_mean_pred_loss"]
 
             if not optim.warming_up and size_scheduler and size_scheduler.step(val_value, epoch=i):
                 print("Prepare loader")
                 del train_loader
-                del val_loader
+                if val_loader is not None:
+                    del val_loader
                 clear_memory()
                 if early_stopping:
                     early_stopping.reset_counter(reset_best=False)
                 train_loader = prepare_loader(train_set, val=False, size_scheduler=size_scheduler)
-                val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler)
+                val_loader = prepare_loader(val_set, val=True, size_scheduler=size_scheduler) if val_set is not None else None
 
 
             if epoch_callback:
@@ -672,7 +679,7 @@ def train(
             if wandb:
                 wandb.log({
                     **{f"{k}_train": v for k, v in train_loss.items()}, 
-                    **{f"{k}_test": v for k, v in val_loss.items()},
+                    **({f"{k}_val": v for k, v in val_loss.items()} if val_loss is not None else {}),
                 })
 
             if not optim.warming_up and early_stopping:
@@ -710,10 +717,10 @@ def train(
                     raise
 
     train_results_2 = [{f"{k}_train": v for k, v in x.items()} for x in train_results]
-    val_results_2 = [{f"{k}_test": v for k, v in x.items()} for x in val_results]
+    val_results_2 = [{f"{k}_val": v for k, v in x.items()} for x in val_results]
     train_result_df = pd.DataFrame.from_records(train_results_2)
     val_result_df = pd.DataFrame.from_records(val_results_2)
-    result_df = pd.concat([train_result_df, val_result_df], axis=1)
+    result_df = pd.concat([train_result_df, val_result_df], axis=1) if val_results else train_result_df
     result_df.head()
 
     #print("[INFO] Setting test size", i, torch.cuda.mem_get_info())
@@ -733,7 +740,7 @@ def train(
         fixed_role_model=fixed_role_model,
         #grad_loss_scale=grad_loss_scale,
     )
-    if eval_val and val_set is not test_set:
+    if eval_val and val_set is not None:
         val_set.set_size(None)
         val_set.set_aug_scale(0)
         eval_loss = eval(

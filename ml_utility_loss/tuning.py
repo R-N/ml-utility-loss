@@ -299,7 +299,7 @@ def make_objective_random(
     objective,
     loader=None,
     ratio=0.2,
-    val=False,
+    val=True,
 ):
     def f(df, *args, **kwargs):
         datasets = split_df_ratio(
@@ -320,7 +320,7 @@ def make_objective_kfold(
     objective,
     loader=None,
     ratio=0.2,
-    val=False,
+    val=True,
     seed=42
 ):
     def f(df, *args, **kwargs):

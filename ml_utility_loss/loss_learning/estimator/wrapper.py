@@ -138,8 +138,7 @@ class MLUtilityTrainer:
 
         for i in range(self.n_inner_steps):
             
-            train, test, y, y_real = batch
-            assert y == y_real
+            train, test, _, _ = batch
             
             if train.dtype != samples_0.dtype:
                 samples_0 = samples_0.type(train.dtype)
@@ -167,18 +166,17 @@ class MLUtilityTrainer:
                     samples = torch.cat([samples, train[:, idx]], dim=1)
 
                 samples, est = self.model(samples, test)
-                yi = y.flatten().item()
-                target = self.target or yi
-                if target <= 0.1:
-                    target = yi + target
-                target = max(target, yi)
-                target = torch.full(est.shape, target, device=est.device)
-                if self.forgive_over:
-                    est = torch.clamp(est, max=target)
-                loss = self.loss_mul * self.loss_fn(
-                    est, 
-                    target,
-                )
+                if self.target is None:
+                    # A missing target means maximize estimated utility, not match a random label.
+                    loss = -self.loss_mul * torch.mean(est)
+                else:
+                    target = torch.full(est.shape, self.target, device=est.device)
+                    if self.forgive_over:
+                        est = torch.clamp(est, max=target)
+                    loss = self.loss_mul * self.loss_fn(
+                        est,
+                        target,
+                    )
 
                 grads = grads + torch.autograd.grad(
                     inputs=samples_0,
@@ -206,8 +204,11 @@ class MLUtilityTrainer:
 
         p_grads = []
         for param in self.parameters:
-            assert torch.isfinite(param.grad).all(), "Grad is not populated"
+            if param.grad is None:
+                continue
+            assert torch.isfinite(param.grad).all(), "Grad is not finite"
             p_grads.append(param.grad.view(-1))
+        assert p_grads, "MLU samples are disconnected from optimizer parameters"
         p_grads = torch.cat(p_grads)
         grad_norm = p_grads.norm(2, dim=-1).item()
 

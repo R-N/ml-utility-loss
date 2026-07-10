@@ -211,7 +211,6 @@ class LatentGAN:
                         save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if self.mlu_trainer.save_on_cpu else nullcontext()
                         with save_cm:
                             samples = self.sample(n_samples, raw=True)
-                            self.generator.train()
                         mlu_loss, mlu_grad = self.mlu_trainer.step(samples, batch_size=self.batch_size)
                         total_mlu_loss += mlu_loss
                     total_mlu_loss /= self.mlu_trainer.n_steps
@@ -274,11 +273,8 @@ class LatentGAN:
 
     def sample(self, n, raw=False):
         
-        # turning the generator into inference mode to effectively use running statistics in batch norm layers
-        if not raw:
-            self.generator.eval()
-        else:
-            self.generator.train()
+        # Keep BatchNorm statistics aligned with normal inference while preserving autograd.
+        self.generator.eval()
         
         # generating synthetic data in batches accordingly to the total no. required
         steps = (n // self.batch_size) + 1
