@@ -44,7 +44,7 @@ Observed symptom: MLU improved only weak synthesizers, inconsistently, and never
 
 Fix priority:
 
-- **Gate A first (go/no-go):** run `evaluation/gate_a_tvae.py:run_gate_a` (built on `experiments.py:run_local_update_test`) — one MLU decoder step must beat an equal-norm *random* step on true held-out utility across seeds. Pass a trained `TVAEModel`, its `DataTransformer`, and a trained `MLUtilityWhole`; Gate A passes only if the summary's `ci95_low > 0`. If it does not, the loss is noise; redesign before tuning (and before touching tab_ddpm / RTF).
+- **Gate A first (go/no-go):** run `evaluation/gate_a_tvae.py:run_gate_a` (built on `experiments.py:run_local_update_test`) — one MLU decoder step must beat an equal-norm *random* step on true held-out utility across seeds. Pass a trained `TVAEModel`, its `DataTransformer`, and a trained `MLUtilityWhole`; Gate A passes only if the summary's `ci95_low > 0`. It fails fast if the generator and estimator `DataTransformer`s have mismatched `output_dimensions`. If it does not pass, the loss is noise; redesign before tuning (and before touching tab_ddpm / RTF).
 - **B. Fix the guided tensor:** apply per-span activation (tanh vs softmax) so categorical gradients flow through a differentiable argmax surrogate (softmax / straight-through / Gumbel), and align the guided tensor with the estimator's input preprocessing.
 - **C.** Regenerate all labels 3-way and rerun comparisons.
 - **D.** If Gate A fails, treat MLU as a black-box score (best-of-n / rerank / ES), sidestepping the direction problem.
