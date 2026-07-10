@@ -6,6 +6,37 @@ import numpy as np
 from .preprocessing import DataTransformer
 
 
+def _apply_activate(data, output_info_list):
+    """Apply the transformer's per-span activation to raw decoder logits.
+
+    ``tanh`` spans are continuous scalar values; ``softmax`` spans are the
+    mode indicators / one-hot categorical blocks. The decoder emits raw logits,
+    and the training data (``DataTransformer.transform``) stores tanh-range
+    values and one-hot categoricals. Applying tanh to every span (the previous
+    behaviour) squashes each categorical logit independently, so the guided
+    ``raw`` samples did not match the representation the estimator was trained
+    on and MLU gradients on categorical spans flowed through the wrong
+    activation. Softmax keeps categorical spans as a distribution (a
+    differentiable argmax surrogate) that matches training and inverse
+    transform.
+    """
+    activated = []
+    st = 0
+    for column_info in output_info_list:
+        for span_info in column_info:
+            ed = st + span_info.dim
+            span = data[:, st:ed]
+            if span_info.activation_fn == 'tanh':
+                activated.append(torch.tanh(span))
+            elif span_info.activation_fn == 'softmax':
+                activated.append(torch.softmax(span, dim=1))
+            else:
+                raise ValueError(f"Unexpected activation {span_info.activation_fn}")
+            st = ed
+    assert st == data.size(1), f"activation spans {st} != data dim {data.size(1)}"
+    return torch.cat(activated, dim=1)
+
+
 def loss_function(recon_x, x, sigmas, mu, logvar, output_info, factor):
     st = 0
     loss = []
@@ -159,7 +190,10 @@ def sample(
         std = mean + 1
         noise = torch.normal(mean=mean, std=std).to(model.device)
         fake, sigmas = model.decoder(noise)
-        fake = torch.tanh(fake)
+        if transformer is not None:
+            fake = _apply_activate(fake, transformer.output_info_list)
+        else:
+            fake = torch.tanh(fake)
         if not raw:
             fake = fake.detach().cpu().numpy()
         data.append(fake)
