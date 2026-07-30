@@ -66,6 +66,8 @@ Only TVAE was a drop-in fix. Do not "fix" LCT-GAN. tab_ddpm and RTF are gated on
 
 Separate from the correctness gates above: the estimator's training loop, data path, and Optuna search all waste large multiples of their necessary cost. Measured against the current code and the cached `aug_train/*/all/info.csv` labels. Ordered by payoff per unit of effort.
 
+**Read the findings below as the state on 2026-07-30, not as the state now.** They are kept in the present tense as the original diagnosis; most have since been acted on. The dated "Applied" lists that follow, and the "Still open" list at the end of the section, are what is actually true of the code today.
+
 **Correctness flag first.** `train()` evaluates on `test_set` at the end of `estimator/pipeline.py`, and `study.py:objective` selects hyperparameters on that value, because `eval_val=False` is the default. Estimator hyperparameter selection therefore reads the final test partition — the same leakage class already flagged for labels. Set `eval_val=True` whenever three datasets are supplied and reserve `test_set` for the final report.
 
 Throughput, `estimator/process.py`:
@@ -96,7 +98,7 @@ Model and learning:
 - The estimator trains on preprocessed real/augmented tables and is fed raw decoder tensors at guidance time (diagnosis point 5). The cheapest countermeasure is to mix decoder-produced tensors from a trained TVAE into the training set, labelled by `eval_ml_utility` on the decoded table. Gated on Gate A being worth running at all.
 - `create_model` silently forces `dropout=0` when `layer_norm=True`. Today `layer_norm` is fixed False in `DEFAULTS` so nothing breaks, but a trial that flips it silently discards the tuned `dropout` dimension. Make it an explicit prune or a conditional in the search space.
 
-Suggested order: strip the per-batch `clear_memory()`, switch the cache to memory, delete the dead search dimensions, and set `eval_val=True` (all small edits); then add pruning; then standardize the target.
+Suggested order at the time — all of it has since been done, in this order: strip the per-batch `clear_memory()`, switch the cache to memory, delete the dead search dimensions, and set `eval_val=True` (all small edits); then add pruning; then standardize the target.
 
 Applied on 2026-07-30 (syntax-checked only — no GPU run yet, so the speedups are unmeasured):
 
@@ -126,6 +128,7 @@ Final pass on 2026-07-31, same caveat — syntax-checked only, no GPU run:
 
 Still open, with reasons rather than as a to-do list:
 
+- **The roughly twenty forced device syncs per batch.** Untouched, and the only item from the audit with real throughput left in it. Nine `try_tensor_item` calls in the `train_epoch` accumulator block each pull a scalar back from the GPU, and `assert torch.isfinite(...).all()` fires in `forward_pass_1`, `forward_pass_2`, `forward_pass_gradient`, and the pre-backward block. The asserts are cheap to gate behind a debug flag; the accumulators are not, because nine of them plus the "has nan" prune in `study.py` read the Python floats directly, so keeping them as tensors until the end of the epoch is a wider change than it looks.
 - **The cache key and `m_test` reuse.** Deprioritized, not forgotten. With `cache_type=memory` and `max_cache=True` every index caches on first touch, so the eighty-fold re-read of the five distinct source files now recurs only once per `SizeScheduler` size step. What is left is memory — four hundred cached samples holding five distinct test tensors — and deduplicating that means teaching `PreprocessedDataset` about file paths it does not currently see.
 - **ASHA over the `SizeScheduler` ladder** and **multi-seed re-runs of the top configurations** are both caller-side: the package never calls `create_study`, and re-running the top-k is a loop over `objective`. Pruning now reports per epoch, which is what ASHA needs from this side.
 - **AMP** conflicts with the double-backward the gradient penalty path uses, and with `LossBalancer`'s own scaling. Not worth it while the penalty is off and unvalidated.

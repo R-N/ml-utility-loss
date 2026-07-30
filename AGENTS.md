@@ -47,7 +47,8 @@ A dated audit of training throughput, the data path, and the Optuna search lives
 - `train()`/`train_epoch()` take `rank_loss_mul` (default `0.0`) for `metrics.pairwise_rank_loss`, a RankNet term over the pairs the labels order. Turn it on only if `pred_spearman` matters more than calibration for what you are doing.
 - The gradient-penalty search group in `params2/` is commented out and pinned to `NONE`; `single_model=True` also disables the non-role-model group. Do not re-enable either without a Gate A result.
 - `head_activation_final` is pinned to `identity` in `params/` and `params2/`; `params3/` only searches the data mix. `create_model` asserts rather than silently zeroing `dropout` when `layer_norm=True`.
-- Still unoptimized, deliberately: the sample cache is keyed by row index although only five distinct source files back four hundred rows (in-memory caching made this a memory cost, not a throughput one), plus AMP, conditional SDPA, and TF32. ASHA and multi-seed re-runs are caller-side.
+- Still unoptimized: about twenty forced device syncs per batch (`try_tensor_item` in the accumulator block, plus the `torch.isfinite` asserts) — the one item with real throughput left in it. Deliberately left alone: the row-index cache key (in-memory caching made it a memory cost, not a throughput one), AMP, conditional SDPA, TF32. ASHA and multi-seed re-runs are caller-side.
+- The findings under "Efficiency and tuning audit" in `CLAUDE.md` are written in the present tense but describe 2026-07-30. Read the dated "Applied" lists and the "Still open" list at the end of that section for what is true now.
 
 ## Model and Parameters
 
