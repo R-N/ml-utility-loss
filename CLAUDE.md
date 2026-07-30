@@ -98,6 +98,16 @@ Model and learning:
 
 Suggested order: strip the per-batch `clear_memory()`, switch the cache to memory, delete the dead search dimensions, and set `eval_val=True` (all small edits); then add pruning; then standardize the target.
 
+Applied on 2026-07-30 (syntax-checked only — no GPU run yet, so the speedups are unmeasured):
+
+- Per-batch `clear_memory()` removed from `train_epoch`, `train_epoch_student`, and the evaluation loop in `estimator/process.py`. The pre-loop and post-loop calls stay, as does the one in `pred`.
+- `estimator/pipeline.py:load_dataset` now takes `cache_type`, defaulting to the in-memory cache. Pass the on-disk type back if RAM binds.
+- `train()` now scores the validation partition when one exists (`eval_val=True` by default) and no longer scores the test partition first and throws that result away. Selection therefore stops reading the final test partition.
+- `prepare_loader` passes `pin_memory=True` (new `train()` argument).
+- The gradient-penalty search group is commented out in all of `params2/` (`gradient_penalty_mode`, `g_loss_mul`, `mse_mag`, `mag_corr`, `cos_loss`, `grad_loss_fn`) plus `adapter_loss_fn` in `params2/default.py`. In the four per-dataset files `FORCE` already pinned `gradient_penalty_mode="NONE"` and `grad_loss_fn="mae"`, so those entries were sampled and discarded; `params2/default.py` is now pinned to `"NONE"` to match.
+
+Still open from this audit: Optuna pruning, target standardization, the cache key and `m_test` reuse, the hardcoded gradient metrics in the evaluation loop, and the metric change to normalized RMSE plus Spearman. TF32 was deliberately not enabled: the labels span as little as 0.014, so precision should not be traded away before the target is standardized.
+
 ## Setup
 
 ```bash

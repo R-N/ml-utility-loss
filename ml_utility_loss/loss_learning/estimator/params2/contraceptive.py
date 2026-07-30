@@ -104,10 +104,12 @@ PARAM_SPACE = {
         "loss_balancer_r": ("float", 0.95, 0.98, 0.01),
     }),
     #"loss_fn": ("loss", "mse"),
-    "grad_loss_fn": ("loss", [
-        #"mse", 
-        "mae", #best
-    ]),
+    # dead: FORCE pins grad_loss_fn="mae" and gradient_penalty_mode="NONE",
+    # so the gradient-penalty group below is sampled and then discarded.
+    #"grad_loss_fn": ("loss", [
+    #    #"mse",
+    #    "mae", #best
+    #]),
     "fixed_role_model": ("categorical", [
         #None, 
         "tvae", 
@@ -115,17 +117,17 @@ PARAM_SPACE = {
         #"tab_ddpm_concat", 
         #"realtabformer",
     ]),
-    "gradient_penalty_mode": ("gradient_penalty_mode", [
-        #"NONE",
-        "ALL",
-    ]),
-    "mse_mag": ("dict", {
-        "mse_mag": True,
-        "mse_mag_target": ("categorical", [0.1, 0.2, 0.5, 1.0]),
-        #"mse_mag_forgive_over": BOOLEAN,
-        #"mse_mag_multiply": True,
-    }),
-    "g_loss_mul": ("float", 0.1, 0.2, 0.1),
+    #"gradient_penalty_mode": ("gradient_penalty_mode", [
+    #    #"NONE",
+    #    "ALL",
+    #]),
+    #"mse_mag": ("dict", {
+    #    "mse_mag": True,
+    #    "mse_mag_target": ("categorical", [0.1, 0.2, 0.5, 1.0]),
+    #    #"mse_mag_forgive_over": BOOLEAN,
+    #    #"mse_mag_multiply": True,
+    #}),
+    #"g_loss_mul": ("float", 0.1, 0.2, 0.1),
     # Common model args
     "d_model": ("int_exp_2", 64, 1024), #256
     #"dropout": ("categorical", [0.0, 0.01, 0.02]),

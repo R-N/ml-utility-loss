@@ -924,11 +924,7 @@ def train_epoch(
             timer.check_time()
 
         for batch, batch_dict in enumerate(train_loader):
-            clear_memory()
-
             batch_dict = filter_dict(batch_dict, models)
-
-            clear_memory()
 
             if timer:
                 timer.check_time()
@@ -1217,7 +1213,6 @@ def train_epoch(
         
             n_size += batch_size
             n_batch += 1
-            clear_memory()
             if timer:
                 timer.check_time()
         if timer:
@@ -1329,11 +1324,7 @@ def train_epoch_student(
             timer.check_time()
 
         for batch, batch_dict in enumerate(train_loader):
-            clear_memory()
-
             batch_dict = filter_dict(batch_dict, models)
-
-            clear_memory()
 
             if timer:
                 timer.check_time()
@@ -1534,7 +1525,6 @@ def train_epoch_student(
         
             n_size += batch_size
             n_batch += 1
-            clear_memory()
             if timer:
                 timer.check_time()
         if timer:
@@ -1614,11 +1604,7 @@ def eval(
         clear_memory()
 
         for batch, batch_dict in enumerate(eval_loader):
-            clear_memory()
-
             batch_dict = filter_dict(batch_dict, models)
-
-            clear_memory()
 
             batch_size = 1
             # Compute prediction and loss for all adapters
@@ -1699,7 +1685,6 @@ def eval(
 
             n_size += batch_size
             n_batch += 1
-            clear_memory()
 
 
         #n = n_batch if reduction == torch.mean else n_size

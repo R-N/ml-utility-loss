@@ -67,8 +67,11 @@ PARAM_SPACE = {
     "loss_balancer_lbtw": BOOLEAN,
     #"loss_fn": ("loss", "mse"),
     "std_loss_fn": ("loss", ["mean_penalty_log_half"]),
-    "grad_loss_fn": ("loss", ["mse", "mae", "huber", "mile", "mire"]),
-    "adapter_loss_fn": ("loss", ["mse", "mae", "huber", "mile", "mire"]),
+    # dead while the gradient penalty stays off and single_model is True:
+    # grad_loss_fn only feeds the penalty, and adapter_loss_fn only feeds the
+    # embed loss, which never fires with a single adapter.
+    #"grad_loss_fn": ("loss", ["mse", "mae", "huber", "mile", "mire"]),
+    #"adapter_loss_fn": ("loss", ["mse", "mae", "huber", "mile", "mire"]),
     "fixed_role_model": ("categorical", [
         #None, 
         "tvae", 
@@ -78,30 +81,33 @@ PARAM_SPACE = {
         #"realtabformer",
         "realtabformer_latent",
     ]),
+    # The heuristic gradient penalty has no true-utility supervision and stays
+    # off (GradientPenaltyMode.NONE). Everything below only feeds it, so it is
+    # pinned rather than searched. Re-enable only behind the Gate A result.
     "gradient_penalty_mode": ("gradient_penalty_mode", [
-        #"NONE", # for now, let's not grad penalty
+        "NONE",
         ##"ALL", # ALL was the best, but it takes a long time to train
-        "ONCE",
+        #"ONCE",
         #"ESTIMATE",
         ##"AVERAGE_NO_MUL",
         #"AVERAGE_MUL"
     ]),
-    "g_loss_mul": ("log_float", 1e-5, 1.0),
-    "mse_mag": ("conditional", {
-        "mse_mag": True,
-        "mse_mag_target": ("log_float", 1e-3, 2.0),
-    }),
-    "mag_corr": ("conditional", {
-        "mag_corr": True,
-        "mag_corr_target": ("log_float", 1e-3, 1.0),
-        "mag_corr_only_sign": BOOLEAN,
-        "mag_corr_sign": BOOLEAN,
-    }),
-    "cos_loss": ("conditional", {
-        "cos_loss": True,
-        "cos_loss_target": ("log_float", 1e-3, 1.0),
-        "cos_loss_only_sign": BOOLEAN,
-    }),
+    #"g_loss_mul": ("log_float", 1e-5, 1.0),
+    #"mse_mag": ("conditional", {
+    #    "mse_mag": True,
+    #    "mse_mag_target": ("log_float", 1e-3, 2.0),
+    #}),
+    #"mag_corr": ("conditional", {
+    #    "mag_corr": True,
+    #    "mag_corr_target": ("log_float", 1e-3, 1.0),
+    #    "mag_corr_only_sign": BOOLEAN,
+    #    "mag_corr_sign": BOOLEAN,
+    #}),
+    #"cos_loss": ("conditional", {
+    #    "cos_loss": True,
+    #    "cos_loss_target": ("log_float", 1e-3, 1.0),
+    #    "cos_loss_only_sign": BOOLEAN,
+    #}),
     # Common model args
     "d_model": ("int_exp_2", 16, 64), 
     "dropout": ("float", 0.02, 0.2), 

@@ -370,6 +370,7 @@ def train(
     size_scheduler=None,
     early_stopping=None,
     dataloader_worker=0,
+    pin_memory=True,
     max_seconds=1800,
     timer=None,
     log_dir=None,
@@ -380,7 +381,7 @@ def train(
     broken_loader_counter=3,
     allow_same_prediction=True,
     allow_same_prediction_eval=None,
-    eval_val=False,
+    eval_val=True,
     create_model=create_model,
     train_epoch=train_epoch,
     _eval=_eval,
@@ -465,6 +466,7 @@ def train(
             num_workers=dataloader_worker,
             persistent_workers=persistent_workers,
             multiprocessing_context=multiprocessing_context,
+            pin_memory=pin_memory,
         )
         return loader
     
@@ -723,12 +725,16 @@ def train(
     result_df = pd.concat([train_result_df, val_result_df], axis=1) if val_results else train_result_df
     result_df.head()
 
-    #print("[INFO] Setting test size", i, torch.cuda.mem_get_info())
-    test_set.set_size(None)
-    test_set.set_aug_scale(0)
+    # Score the validation partition when one exists. Callers select
+    # hyperparameters on this value, so it must not be the final test
+    # partition; that one is reserved for the reported result.
+    eval_set = val_set if (eval_val and val_set is not None) else test_set
+    #print("[INFO] Setting eval size", i, torch.cuda.mem_get_info())
+    eval_set.set_size(None)
+    eval_set.set_aug_scale(0)
     #print("[INFO] Eval", i, torch.cuda.mem_get_info())
     eval_loss = eval(
-        test_set, whole_model,
+        eval_set, whole_model,
         batch_size=size_scheduler.get_batch_size() if size_scheduler else batch_size,
         dataloader_worker=dataloader_worker,
         persistent_workers=persistent_workers,
@@ -740,22 +746,6 @@ def train(
         fixed_role_model=fixed_role_model,
         #grad_loss_scale=grad_loss_scale,
     )
-    if eval_val and val_set is not None:
-        val_set.set_size(None)
-        val_set.set_aug_scale(0)
-        eval_loss = eval(
-            val_set, whole_model,
-            batch_size=size_scheduler.get_batch_size() if size_scheduler else batch_size,
-            dataloader_worker=dataloader_worker,
-            persistent_workers=persistent_workers,
-            DataLoader=DataLoader,
-            multiprocessing_context=multiprocessing_context,
-            allow_same_prediction=allow_same_prediction_eval,
-            models=models,
-            _eval=_eval,
-            fixed_role_model=fixed_role_model,
-            #grad_loss_scale=grad_loss_scale,
-        )
     if verbose:
         print("Eval loss", eval_loss)
     #print("[INFO] Done eval", i, torch.cuda.mem_get_info())
@@ -817,6 +807,7 @@ def load_dataset(
     df=None,
     drop_first_column=False,
     reverse_split=True,
+    cache_type="memory",
     **kwargs,
 ):
     dtypes = df.dtypes.to_dict() if df is not None else None
@@ -832,9 +823,12 @@ def load_dataset(
     dataset = PreprocessedDataset(
         dataset, 
         preprocessor, 
-        max_cache=True, 
-        cache_dir=f"{cache_dir}/{model}", 
-        cache_type="pickle",
+        max_cache=True,
+        cache_dir=f"{cache_dir}/{model}",
+        # memory by default: the on-disk cache re-reads every sample from disk
+        # on every epoch. Pass CacheType.PICKLE back if RAM is the binding
+        # constraint.
+        cache_type=cache_type,
         model=model,
         as_dict=True,
     )
