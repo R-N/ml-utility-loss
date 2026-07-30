@@ -62,6 +62,42 @@ Per-synthesizer guided-tensor audit (2026-07-11), tracing each `sample(raw=True)
 
 Only TVAE was a drop-in fix. Do not "fix" LCT-GAN. tab_ddpm and RTF are gated on the larger redesign — and on Gate A first: if the surrogate gradient is noise even for the clean TVAE path, that redesign is not worth doing.
 
+### Efficiency and tuning audit (2026-07-30)
+
+Separate from the correctness gates above: the estimator's training loop, data path, and Optuna search all waste large multiples of their necessary cost. Measured against the current code and the cached `aug_train/*/all/info.csv` labels. Ordered by payoff per unit of effort.
+
+**Correctness flag first.** `train()` evaluates on `test_set` at the end of `estimator/pipeline.py`, and `study.py:objective` selects hyperparameters on that value, because `eval_val=False` is the default. Estimator hyperparameter selection therefore reads the final test partition — the same leakage class already flagged for labels. Set `eval_val=True` whenever three datasets are supplied and reserve `test_set` for the final report.
+
+Throughput, `estimator/process.py`:
+
+- `clear_memory()` (`util.py`: `torch.cuda.empty_cache()` + `gc.collect()`) runs three times per batch inside `train_epoch` and again inside the evaluation loop. `empty_cache` returns blocks to the driver so the next allocation hits `cudaMalloc`, and `gc.collect()` walks the whole pandas/torch/optuna object graph. One call per epoch is enough; keep the OOM-recovery call in `study.py`.
+- About twenty forced device syncs per batch: nine `try_tensor_item` calls in the accumulator block, plus `assert torch.isfinite(...).all()` in `forward_pass_1`, `forward_pass_2`, `forward_pass_gradient`, and the pre-backward block. Accumulate loss statistics as tensors and take one `.item()` per epoch; put the finite asserts behind a debug flag (they exist to feed the "has nan" prune in `study.py`).
+- The evaluation loop hardcodes `mag_loss=True, mag_corr=True, cos_loss=True` and calls `calc_gradient(..., create_graph=True)` regardless of `GradientPenaltyMode.NONE`, so every evaluation builds a second-order graph for metrics that have no true-utility supervision. Gate it behind a flag and evaluate under `no_grad`.
+- No AMP, no TF32, no `torch.compile`, no `F.scaled_dot_product_attention` anywhere in the package. `torch.set_float32_matmul_precision("high")` is a one-line start. SDPA can only replace the hand-rolled `matmul`+softmax in `estimator/model/modules.py:ScaledDotProductAttention` when `softmax is nn.Softmax` and `attn_residual` is off — the custom-softmax path is load-bearing. `torch.compile` is not worth it: `SizeScheduler` changes shapes and forces recompiles.
+
+Data path, `estimator/data.py` and `estimator/pipeline.py:load_dataset`:
+
+- `load_dataset` selects `CacheType.PICKLE`, so every sample is a `torch.load` from disk on every epoch, serial (`dataloader_worker=0` default), with no `pin_memory` and blocking `.to(device)`. The preprocessed tensors for one dataset are on the order of a hundred megabytes, so `CacheType.MEMORY` fits and removes the per-epoch disk round trip.
+- The cache is keyed by row index, but the underlying files are not unique per row. `aug_train/contraceptive/all/info.csv` has 400 rows and only **five** distinct `test` files, five distinct `val`, and five distinct `train`; only `synth` is 400-unique. The right branch of the model is therefore re-read, re-preprocessed (TVAE BGM transform / `lct_ae.encode`), and re-encoded about eighty times per epoch for no new information. Key the tensor cache by file path. Caching the encoder output `m_test` per unique file is valid too — with PMA on (`tf_pma_start=-1`) the encoder is permutation-invariant, so the per-read row shuffle does not change it — but dropout makes it stochastic in train mode, so cache in evaluation only or accept fixed test embeddings.
+
+Optuna search, `estimator/study.py` and `estimator/params2/`:
+
+- **No pruning exists.** `trial` reaches `train_2`/`train_3` and is used only to build `run_name`; there is no `trial.report` or `should_prune` anywhere in the estimator path. Every trial runs its full `epochs` (search range 100–1000). Reporting the per-epoch `val_value` and adding a `HyperbandPruner` is the single largest tuning win available.
+- `SizeScheduler` already ramps dataset size 32 to 2048 while shrinking batch size. That is Hyperband's rung structure built by hand — report at each size step and let ASHA kill trials at low fidelity, where they are cheap.
+- Roughly twelve of about forty-five search dimensions are dead. `params2/default.py` pins `gradient_penalty_mode` to `["ONCE"]` while the code default is `GradientPenaltyMode.NONE`, so `g_loss_mul`, `mse_mag*`, `mag_corr*`, `cos_loss*`, and `grad_loss_fn` tune a term that must stay off. Separately, `train(single_model=True)` is the default, which reduces `models` to the role model alone, so `non_role_model_count == 0` and `adapter_loss_fn` / `non_role_model_mul` / the embed-loss path never fire.
+- `objective_2` is multi-objective, which disables pruners and weakens TPE; under `single_model=True` its second term is degenerate. Use single-objective unless several adapters are actually being trained.
+- One seed per trial (`objective(seed=0)`, `objective_2(seed=42)`) means trial noise gets selected on. Search with one seed, then re-run the top configurations over three to five seeds and pick on the mean.
+- `objective` returns raw `pred_rmse`, which is not interpretable and not comparable across datasets. Cached label variance is 0.0113 (contraceptive), 0.0018 (insurance), 0.0644 (treatment), 0.0975 (iris) — a constant predictor already reaches RMSE 0.043 on insurance. Report normalized RMSE or R², and add Spearman, since gate 3 is a rank-correlation gate.
+
+Model and learning:
+
+- **Targets are unstandardized and nearly constant, and that is the root of the std-penalty scaffolding.** Insurance `real_value` spans 0.130–0.144 and `synth_value` reaches −0.018, while the head ends in sigmoid or `leakyhardsigmoid` and cannot represent a negative label at all. MSE is then dominated by an offset the model learns as a constant, prediction variance collapses, and the code fights that symptom with `calc_std_loss`, `mean_penalty_log_half`, `allow_same_prediction`, and the "predicts the same for every input" prune. Standardize `y` per source dataset — `BaseDataset.calculate_stats_` already computes mean/std/range/iqr and they go unused for this — then use a linear head and delete the std penalty. Net deletion of code.
+- Pure per-sample MSE optimizes calibration, not ranking, but gate 3 is graded on rank correlation. Add a pairwise ranking term over pairs within a source dataset alongside the MSE.
+- The estimator trains on preprocessed real/augmented tables and is fed raw decoder tensors at guidance time (diagnosis point 5). The cheapest countermeasure is to mix decoder-produced tensors from a trained TVAE into the training set, labelled by `eval_ml_utility` on the decoded table. Gated on Gate A being worth running at all.
+- `create_model` silently forces `dropout=0` when `layer_norm=True`. Today `layer_norm` is fixed False in `DEFAULTS` so nothing breaks, but a trial that flips it silently discards the tuned `dropout` dimension. Make it an explicit prune or a conditional in the search space.
+
+Suggested order: strip the per-batch `clear_memory()`, switch the cache to memory, delete the dead search dimensions, and set `eval_val=True` (all small edits); then add pruning; then standardize the target.
+
 ## Setup
 
 ```bash

@@ -34,6 +34,16 @@ Do not tune MLU hyperparameters or make quality claims until these gates pass:
 
 A dated failure diagnosis (why prior MLU runs helped only weak synthesizers) and a ranked fix list with a per-synthesizer guided-tensor audit live under "Diagnosis" in `CLAUDE.md`. Guided-tensor status after tracing each `sample(raw=True)` path: TVAE had a wrong-activation bug, now fixed (`synthesizers/tvae/process.py:_apply_activate`, straight-through one-hot for categorical spans); LCT-GAN is already correct (its MSE-trained decoder emits the estimator's feature space — do not "fix" it); tab_ddpm and REaLTabFormer have dead categorical gradients through `round()`/argmax/token sampling and need Gumbel straight-through plus an estimator retrain, not an activation swap. Before any of that, run the go/no-go gate `evaluation/gate_a_tvae.py:run_gate_a` (an MLU decoder step must beat an equal-norm random step on true held-out utility; passes only if `ci95_low > 0`; it fails fast if the generator and estimator `DataTransformer`s have mismatched `output_dimensions`). The TVAE `Decoder` is `Linear`+`ReLU` only (no BatchNorm/dropout), so raw guided sampling is deterministic.
 
+## Efficiency and Tuning
+
+A dated audit of training throughput, the data path, and the Optuna search lives under "Efficiency and tuning audit" in `CLAUDE.md`. Facts that change how you run things:
+
+- `train()` scores `test_set` and `study.py:objective` selects on that value, because `eval_val=False` is the default. Pass `eval_val=True` with three datasets so hyperparameter selection stops reading the final test partition.
+- There is no Optuna pruning in the estimator path; `trial` only supplies `run_name`. Every trial runs its full `epochs` (search range 100–1000).
+- Roughly twelve of about forty-five search dimensions in `params2/` are dead: the gradient-penalty group is pinned on while the code default is `GradientPenaltyMode.NONE`, and `single_model=True` disables the non-role-model group.
+- `clear_memory()` runs three times per batch, and per-batch `.item()` and `isfinite` asserts force about twenty device syncs per batch.
+- Utility labels are unstandardized and nearly constant (insurance spans 0.130–0.144 and goes negative) under a sigmoid head; the std penalty and the same-prediction prune exist to fight that symptom.
+
 ## Model and Parameters
 
 - `create_model()` builds `MLUtilityWhole`: synthesizer-specific adapters -> shared Transformer or TwinEncoder body -> `mlu` head. `MLUtilityWhole[model]` returns a cached single-model view sharing the body/head.
