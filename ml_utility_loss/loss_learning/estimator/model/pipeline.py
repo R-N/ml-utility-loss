@@ -45,6 +45,7 @@ NON_MODEL_PARAMS = (
     "n_warmup_steps",
     "single_model",
     "non_role_model_mul",
+    "rank_loss_mul",
     "dropout",
     "max_seconds",
     "grad_loss_scale",
@@ -219,8 +220,10 @@ def create_model(
         ada_lora_mode = LoRAMode.FULL
     if not head_lora:
         head_lora_mode = LoRAMode.FULL
-    if layer_norm:
-        dropout=0
+    # Explicit, because this used to silently discard a tuned dropout: a trial
+    # that flips layer_norm on would have had its dropout dimension zeroed
+    # without saying so. Search them as one dimension instead.
+    assert not (layer_norm and dropout), f"layer_norm disables dropout, but dropout={dropout} was requested"
 
     body = create_body(
         dropout=dropout, 

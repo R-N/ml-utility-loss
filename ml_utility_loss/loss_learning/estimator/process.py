@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 from ...util import stack_samples, stack_sample_dicts, clear_memory, clear_cuda_memory, zero_tensor, filter_dict
 from torch.nn.utils import clip_grad_norm_
-from ...metrics import rmse, mae, mape, spearman, mean_penalty, mean_penalty_rational, mean_penalty_rational_half, ScaledLoss, SCALING, mean_penalty_log, mean_penalty_log_half
+from ...metrics import rmse, mae, mape, spearman, pairwise_rank_loss, mean_penalty, mean_penalty_rational, mean_penalty_rational_half, ScaledLoss, SCALING, mean_penalty_log, mean_penalty_log_half
 import time
 import numpy as np
 from ...loss_balancer import FixedWeights, MyLossWeighter, LossBalancer, MyLossTransformer
@@ -878,6 +878,7 @@ def train_epoch(
     include_std_loss=False,
     g_loss_mul=0.1,
     non_role_model_mul=0.5,
+    rank_loss_mul=0.0,
     save_on_cpu=False,
     **g_loss_kwargs
 ):
@@ -1175,6 +1176,11 @@ def train_epoch(
                         non_role_model_mul * g_loss_mul * 0.5,
                         non_role_model_mul * g_loss_mul * 0.5,
                     )
+            if rank_loss_mul:
+                batch_loss = (*batch_loss, pairwise_rank_loss(
+                    role_model_compute["pred"], role_model_compute["y"]
+                ))
+                loss_weights = (*loss_weights, rank_loss_mul)
             if include_std_loss:
                 batch_loss = (*batch_loss, role_model_std_loss)
                 loss_weights = (*loss_weights, 0.5)
@@ -1574,8 +1580,14 @@ def eval(
     allow_same_prediction=True,
     fixed_role_model=None,
     eps=1e-8,
+    gradient_metrics=False,
 ):
-    grad_cm = nullcontext()
+    # The gradient metrics need a second-order graph (calc_gradient keeps the
+    # graph so calc_g_loss can be differentiated), which costs more than the
+    # prediction pass itself. Nothing supervises them toward true utility and
+    # the penalty they belong to is off by default, so they are opt-in and the
+    # rest of the evaluation runs under no_grad.
+    grad_cm = nullcontext() if gradient_metrics else torch.no_grad()
 
     with grad_cm:
         size = len(eval_loader.dataset)
@@ -1621,64 +1633,66 @@ def eval(
                 y_real = y_real.to(whole_model.device)
 
 
-                train.requires_grad_()
+                if gradient_metrics:
+                    train.requires_grad_()
                 train, pred = whole_model(
                     train, test, model
                 )
 
                 time_1 = time.time()
+                time_2 = time_1
                 # We reduce directly because no further need for shape
                 loss = loss_fn(pred, y, reduction="none")
-                error = pred - y
-                dbody_dx = calc_gradient(train, loss)
-                """
-                loss_real = loss_fn(pred, y_real, reduction="none")
-                error = pred - y_real
-                dbody_dx = calc_gradient(train, loss_real)
-                """
-
-                time_2 = time.time()
-
-                g = get_g(error=error)
-                g_mag_loss, g_cos_loss = calc_g_loss(
-                    dbody_dx=dbody_dx,
-                    error=error,
-                    grad_loss_fn=grad_loss_fn,
-                    grad_loss_scale=grad_loss_scale,
-                    loss_clamp=None,
-                    reduction=reduction,
-                    eps=eps,
-                    mag_loss=True,
-                    mse_mag=False,
-                    mag_corr=True,
-                    seq_mag=False,
-                    cos_loss=True,
-                    mag_corr_kwargs=dict(
-                        target=1.0,
-                        only_sign=False,
-                    ),
-                    cos_loss_kwargs=dict(
-                        only_sign=True,
-                    ),
-                )
-                # The gradient is of shape (batch, size, dim)
-                # Sum gradient over the size dimension, resulting in (batch, dim)
-                dbody_dx = torch.sum(dbody_dx, dim=-2)
-                # Calculate the magnitude of the gradient
-                # No keep_dim, so this results in (batch)
-                dbody_dx_norm = dbody_dx.norm(2, dim=-1)
-                
                 preds[model].extend(pred.detach().cpu())
-                grads[model].extend(dbody_dx_norm.detach().cpu())
-                gs[model].extend(g.detach().cpu())
 
                 n_mul = (batch_size if reduction == torch.mean else 1)
-                loss = reduction(loss).item()
-                avg_losses[model] += loss * n_mul
-                g_mag_loss = reduction(g_mag_loss).item()
-                g_cos_loss = reduction(g_cos_loss).item()
-                avg_g_mag_losses[model] += g_mag_loss * n_mul
-                avg_g_cos_losses[model] += g_cos_loss * n_mul
+                avg_losses[model] += reduction(loss).item() * n_mul
+
+                if gradient_metrics:
+                    error = pred - y
+                    dbody_dx = calc_gradient(train, loss)
+                    """
+                    loss_real = loss_fn(pred, y_real, reduction="none")
+                    error = pred - y_real
+                    dbody_dx = calc_gradient(train, loss_real)
+                    """
+
+                    time_2 = time.time()
+
+                    g = get_g(error=error)
+                    g_mag_loss, g_cos_loss = calc_g_loss(
+                        dbody_dx=dbody_dx,
+                        error=error,
+                        grad_loss_fn=grad_loss_fn,
+                        grad_loss_scale=grad_loss_scale,
+                        loss_clamp=None,
+                        reduction=reduction,
+                        eps=eps,
+                        mag_loss=True,
+                        mse_mag=False,
+                        mag_corr=True,
+                        seq_mag=False,
+                        cos_loss=True,
+                        mag_corr_kwargs=dict(
+                            target=1.0,
+                            only_sign=False,
+                        ),
+                        cos_loss_kwargs=dict(
+                            only_sign=True,
+                        ),
+                    )
+                    # The gradient is of shape (batch, size, dim)
+                    # Sum gradient over the size dimension, resulting in (batch, dim)
+                    dbody_dx = torch.sum(dbody_dx, dim=-2)
+                    # Calculate the magnitude of the gradient
+                    # No keep_dim, so this results in (batch)
+                    dbody_dx_norm = dbody_dx.norm(2, dim=-1)
+
+                    grads[model].extend(dbody_dx_norm.detach().cpu())
+                    gs[model].extend(g.detach().cpu())
+
+                    avg_g_mag_losses[model] += reduction(g_mag_loss).item() * n_mul
+                    avg_g_cos_losses[model] += reduction(g_cos_loss).item() * n_mul
 
                 pred_duration[model] += time_1 - time_0
                 grad_duration[model] += time_2 - time_1
@@ -1692,8 +1706,9 @@ def eval(
 
         preds = {k: torch.stack(v) for k, v in preds.items()}
         ys = {k: torch.stack(v) for k, v in ys.items()}
-        gs = {k: torch.stack(v) for k, v in gs.items()}
-        grads = {k: torch.stack(v) for k, v in grads.items()}
+        if gradient_metrics:
+            gs = {k: torch.stack(v) for k, v in gs.items()}
+            grads = {k: torch.stack(v) for k, v in grads.items()}
 
         pred_stds = {k: torch.std(v).detach() for k, v in preds.items()}
         y_stds = {k: torch.std(v).detach() for k, v in ys.items()}
@@ -1739,7 +1754,10 @@ def eval(
         )
 
         pred_metrics = {model: calc_metrics(preds[model], ys[model], prefix="pred") for model in models}
-        grad_metrics = {model: calc_metrics(grads[model], gs[model], prefix="grad") for model in models}
+        grad_metrics = {
+            model: calc_metrics(grads[model], gs[model], prefix="grad") if gradient_metrics else {}
+            for model in models
+        }
 
         total_duration = {model: (pred_duration[model] + grad_duration[model]) for model in models}
 

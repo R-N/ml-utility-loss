@@ -117,7 +117,20 @@ Also applied on 2026-07-30, same caveat — syntax-checked only, no GPU run:
 
 Consequences to be aware of: every checkpoint in `models/` predicts in the old raw-utility scale and is incompatible with the standardized head. `MLUtilityTrainer` and Gate A only use the estimate's direction, so they are unaffected. The std penalty was left in place — it is not in the training loss by default (`include_std_loss=False`), only in the early-stopping value — and with a standardized target it now targets a std of ~1, which is sane; delete it only if it still misbehaves.
 
-Still open from this audit: the cache key and `m_test` reuse, the hardcoded gradient metrics in the evaluation loop, ASHA over the `SizeScheduler` ladder, AMP, conditional SDPA, a pairwise ranking loss term, and multi-seed re-runs of the top configurations. TF32 stays off for now: it should be re-evaluated after a run confirms the standardized target trains, not before.
+Final pass on 2026-07-31, same caveat — syntax-checked only, no GPU run:
+
+- **The evaluation loop no longer builds a second-order graph.** `eval()` takes `gradient_metrics=False`; when it is off the whole loop runs under `torch.no_grad()` and skips `requires_grad_`, `calc_gradient`, and `calc_g_loss`. It was previously unconditional, so every evaluation paid for a double-backward graph feeding metrics for a penalty that is off. **Consequence:** `grad_rmse`/`grad_mae`/`grad_mape`/`grad_spearman` and `avg_g_mag_loss`/`avg_g_cos_loss` are absent or zero unless a caller passes `gradient_metrics=True`; `grad_duration` is zero. Nothing in the package reads them — the `study.py` lines that did are commented out.
+- **A pairwise ranking loss exists.** `metrics.py:pairwise_rank_loss` is RankNet: logistic loss over every pair the labels actually order. `train_epoch`/`train()` take `rank_loss_mul`, defaulting to `0.0`, so it is off until someone opts in; when set, the term joins the `LossBalancer` tuple next to the MSE. Pairs are taken over the whole batch rather than within a source dataset — acceptable because the targets are standardized per dataset, and marked with a `ponytail:` comment. Verified numerically: a constant prediction scores exactly `log 2`, correct order scores below that, reversed order above.
+- **The `layer_norm` / `dropout` override is explicit.** `create_model` used to silently set `dropout=0` when `layer_norm=True`, discarding a tuned dimension without a word. It is now an assert. Nothing hits it today: `layer_norm` is pinned `False` in every `params2/` `DEFAULTS` and appears in no search space.
+- `params/contraceptive.py` and `params/treatment.py` still searched `sigmoid`/`hardsigmoid` for `head_activation_final`; both are pinned to `identity` now, matching `params2/`. `params3/` only searches the data mix (`aug_train`, `bs_train`, `real_train`) and has no model dimensions, so it needed nothing.
+
+Still open, with reasons rather than as a to-do list:
+
+- **The cache key and `m_test` reuse.** Deprioritized, not forgotten. With `cache_type=memory` and `max_cache=True` every index caches on first touch, so the eighty-fold re-read of the five distinct source files now recurs only once per `SizeScheduler` size step. What is left is memory — four hundred cached samples holding five distinct test tensors — and deduplicating that means teaching `PreprocessedDataset` about file paths it does not currently see.
+- **ASHA over the `SizeScheduler` ladder** and **multi-seed re-runs of the top configurations** are both caller-side: the package never calls `create_study`, and re-running the top-k is a loop over `objective`. Pruning now reports per epoch, which is what ASHA needs from this side.
+- **AMP** conflicts with the double-backward the gradient penalty path uses, and with `LossBalancer`'s own scaling. Not worth it while the penalty is off and unvalidated.
+- **Conditional SDPA** would have to drop the attention weights that `ScaledDotProductAttention.forward` returns as its second value, and only applies when `softmax is nn.Softmax` and `attn_residual` is off. Small, conditional, unmeasured.
+- **TF32** stays off: re-evaluate after a run confirms the standardized target trains, not before.
 
 ## Setup
 

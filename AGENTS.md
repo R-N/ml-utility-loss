@@ -42,9 +42,12 @@ A dated audit of training throughput, the data path, and the Optuna search lives
 - `train()` reports `val_value` to `trial` each non-warmup epoch and raises `TrialPruned`. **Pass a pruner when you create the study** (`HyperbandPruner`); the package never calls `create_study` itself.
 - `objective_2` returns one value now. Build its study with `direction="minimize"`, not `directions=[...]`.
 - Utility labels are standardized per source dataset (`DatasetDataset.standardize_y`) and the head is `nn.Identity`. Consequences: checkpoints in `models/` are in the old raw scale and cannot be reused, `pred_rmse` is in standard deviations and comparable across datasets, and `pred_mape` is meaningless.
-- Rank quality is `pred_spearman` from `calc_metrics`. `test_metrics.py` at the repo root checks the tie handling; run it after touching `metrics.py:rank`.
+- Rank quality is `pred_spearman` from `calc_metrics`. `test_metrics.py` at the repo root checks the tie handling and the ranking loss; run it after touching `metrics.py`.
+- `process.eval` takes `gradient_metrics=False` and otherwise runs under `no_grad`. The `grad_*` metrics and `avg_g_*_loss` are therefore absent or zero unless you ask for them, and asking costs a second-order graph.
+- `train()`/`train_epoch()` take `rank_loss_mul` (default `0.0`) for `metrics.pairwise_rank_loss`, a RankNet term over the pairs the labels order. Turn it on only if `pred_spearman` matters more than calibration for what you are doing.
 - The gradient-penalty search group in `params2/` is commented out and pinned to `NONE`; `single_model=True` also disables the non-role-model group. Do not re-enable either without a Gate A result.
-- Still unoptimized: the sample cache is keyed by row index although only five distinct source files back four hundred rows, and the evaluation loop still builds a second-order graph for gradient metrics that are switched off.
+- `head_activation_final` is pinned to `identity` in `params/` and `params2/`; `params3/` only searches the data mix. `create_model` asserts rather than silently zeroing `dropout` when `layer_norm=True`.
+- Still unoptimized, deliberately: the sample cache is keyed by row index although only five distinct source files back four hundred rows (in-memory caching made this a memory cost, not a throughput one), plus AMP, conditional SDPA, and TF32. ASHA and multi-seed re-runs are caller-side.
 
 ## Model and Parameters
 

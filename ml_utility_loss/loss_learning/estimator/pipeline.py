@@ -393,6 +393,9 @@ def train(
     grad_loss_scale=None,
     g_loss_mul=0.1,
     non_role_model_mul=0.5,
+    # Off by default: MSE alone optimizes calibration, and this term trades some
+    # of that for ranking. See metrics.pairwise_rank_loss.
+    rank_loss_mul=0.0,
     single_model=True,
     study_name="ml_utility",
     gradient_penalty_kwargs={},
@@ -586,6 +589,7 @@ def train(
             grad_loss_scale=grad_loss_scale,
             g_loss_mul=g_loss_mul,
             non_role_model_mul=non_role_model_mul,
+            rank_loss_mul=rank_loss_mul,
             save_on_cpu=save_on_cpu,
             **gradient_penalty_mode,
             **gradient_penalty_kwargs,

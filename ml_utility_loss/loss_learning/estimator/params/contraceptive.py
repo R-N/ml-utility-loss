@@ -247,9 +247,12 @@ PARAM_SPACE = {
         #"hardsigmoid",
         #"softsign",
     ]),
+    # Targets are standardized now, so every saturating option here is
+    # unrepresentable. Pinned to identity rather than searched.
     "head_activation_final": ("activation", [
-        "sigmoid", 
-        "hardsigmoid",
+        #"sigmoid",
+        #"hardsigmoid",
+        "identity",
     ]),
     "patience": ("log_int", 55, 100),
 }

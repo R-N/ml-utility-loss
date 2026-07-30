@@ -94,6 +94,19 @@ def spearman(pred, y, eps=1e-9):
     p, t = p - p.mean(), t - t.mean()
     return (p @ t) / torch.clamp(p.norm() * t.norm(), min=eps)
 
+def pairwise_rank_loss(pred, y):
+    # RankNet: logistic loss on every pair the labels actually order. Per-sample
+    # MSE optimizes calibration; gate 3 is graded on rank correlation, which
+    # this is the differentiable stand-in for.
+    # ponytail: pairs are taken over the whole batch rather than within a source
+    # dataset. Targets are standardized per dataset, so cross-dataset pairs are
+    # at least on one scale; group the mask by dataset if that stops holding.
+    pred, y = pred.flatten(), y.flatten()
+    mask = (y[:, None] - y[None, :]) > 0
+    if not mask.any():
+        return zero_tensor(device=pred.device)
+    return F.softplus(-(pred[:, None] - pred[None, :])[mask]).mean()
+
 def range(x, dim=None):
     return torch.max(x, dim=dim) - torch.min(x, dim=dim)
 
