@@ -79,6 +79,21 @@ def mape(pred, y, eps=1e-9, reduction=torch.mean):
     value = reduction(ape)
     return value
 
+def rank(x):
+    # Average ranks, not ordinal ones: a model that predicts the same value for
+    # every input must come out as zero correlation, and ordinal ranks would
+    # instead hand it whatever order the sort happened to produce.
+    x = x.flatten()
+    _, inverse, counts = torch.unique(x, return_inverse=True, return_counts=True)
+    ends = counts.cumsum(0).to(torch.float32)
+    starts = ends - counts
+    return ((starts + ends - 1) / 2)[inverse]
+
+def spearman(pred, y, eps=1e-9):
+    p, t = rank(pred), rank(y)
+    p, t = p - p.mean(), t - t.mean()
+    return (p @ t) / torch.clamp(p.norm() * t.norm(), min=eps)
+
 def range(x, dim=None):
     return torch.max(x, dim=dim) - torch.min(x, dim=dim)
 

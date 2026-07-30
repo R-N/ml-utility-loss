@@ -185,7 +185,7 @@ class BaseDataset(Dataset):
 
 class DatasetDataset(BaseDataset):
 
-    def __init__(self, dir, file="info.csv", Tensor=None, mode="shuffle", train="synth", test="val", value="synth_value", real_value="real_value", drop_first_column=False, dtypes=None, **kwargs):
+    def __init__(self, dir, file="info.csv", Tensor=None, mode="shuffle", train="synth", test="val", value="synth_value", real_value="real_value", drop_first_column=False, dtypes=None, standardize=True, **kwargs):
         super().__init__(**kwargs)
         self._dir = dir
         subdir = self.size
@@ -205,12 +205,28 @@ class DatasetDataset(BaseDataset):
         self.mode = mode
         self.drop_first_column = drop_first_column
         self.dtypes = dtypes
+        self.standardize = standardize
 
         self.calculate_stats()
 
     def calculate_stats(self):
         self.y = self.info_all[self.real_value]
         self.calculate_stats_()
+        # Stats of the trained-on column, which is `value`, not `real_value`.
+        target = self.info_all[self.value]
+        self.target_mean = target.mean()
+        self.target_std = target.std()
+
+    def standardize_y(self, y):
+        # Utility labels are near-constant and dataset-specific (insurance spans
+        # 0.130-0.144), so raw MSE is dominated by an offset the model can only
+        # learn as a constant. Centre and scale per source dataset so the head
+        # has to spend its capacity on the variation instead. Both y and y_real
+        # get the same transform: they are the same measurement. Requires an
+        # unbounded head activation; see head_activation_final.
+        if not self.standardize or not (self.target_std > 0):
+            return y
+        return (y - self.target_mean) / self.target_std
 
     def set_size(self, size, force=False):
         return False
@@ -243,8 +259,8 @@ class DatasetDataset(BaseDataset):
         if len(train.columns) > len(test.columns) or "" in list(train.columns) or self.drop_first_column:
             train.drop(train.columns[0], axis=1, inplace=True)
 
-        y = info[self.value]
-        y_real = info[self.real_value]
+        y = self.standardize_y(info[self.value])
+        y_real = self.standardize_y(info[self.real_value])
 
         if self.mode == "shuffle":
             train, test = shuffle_df(train), shuffle_df(test)

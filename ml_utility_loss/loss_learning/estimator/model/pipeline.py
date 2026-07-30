@@ -199,7 +199,10 @@ def create_model(
     head_n_layers=2, 
     head_n_head=8,   
     head_activation=nn.LeakyReLU,
-    head_activation_final=nn.Sigmoid,
+    # Targets are standardized (DatasetDataset.standardize_y), so the head has
+    # to be able to emit negatives and values past 1. A saturating final
+    # activation cannot represent them.
+    head_activation_final=nn.Identity,
     head_final_mul=None,
     head_pma_rank=0,
     head_lora=True, #This is just a dummy flag for optuna. It sets lora mode to full if false

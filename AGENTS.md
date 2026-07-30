@@ -38,11 +38,13 @@ A dated failure diagnosis (why prior MLU runs helped only weak synthesizers) and
 
 A dated audit of training throughput, the data path, and the Optuna search lives under "Efficiency and tuning audit" in `CLAUDE.md`. Facts that change how you run things:
 
-- `train()` scores `test_set` and `study.py:objective` selects on that value, because `eval_val=False` is the default. Pass `eval_val=True` with three datasets so hyperparameter selection stops reading the final test partition.
-- There is no Optuna pruning in the estimator path; `trial` only supplies `run_name`. Every trial runs its full `epochs` (search range 100–1000).
-- Roughly twelve of about forty-five search dimensions in `params2/` are dead: the gradient-penalty group is pinned on while the code default is `GradientPenaltyMode.NONE`, and `single_model=True` disables the non-role-model group.
-- `clear_memory()` runs three times per batch, and per-batch `.item()` and `isfinite` asserts force about twenty device syncs per batch.
-- Utility labels are unstandardized and nearly constant (insurance spans 0.130–0.144 and goes negative) under a sigmoid head; the std penalty and the same-prediction prune exist to fight that symptom.
+- `train()` scores the validation partition when one exists (`eval_val=True`), so selection no longer reads the final test partition. Reserve `test_set` for the reported result.
+- `train()` reports `val_value` to `trial` each non-warmup epoch and raises `TrialPruned`. **Pass a pruner when you create the study** (`HyperbandPruner`); the package never calls `create_study` itself.
+- `objective_2` returns one value now. Build its study with `direction="minimize"`, not `directions=[...]`.
+- Utility labels are standardized per source dataset (`DatasetDataset.standardize_y`) and the head is `nn.Identity`. Consequences: checkpoints in `models/` are in the old raw scale and cannot be reused, `pred_rmse` is in standard deviations and comparable across datasets, and `pred_mape` is meaningless.
+- Rank quality is `pred_spearman` from `calc_metrics`. `test_metrics.py` at the repo root checks the tie handling; run it after touching `metrics.py:rank`.
+- The gradient-penalty search group in `params2/` is commented out and pinned to `NONE`; `single_model=True` also disables the non-role-model group. Do not re-enable either without a Gate A result.
+- Still unoptimized: the sample cache is keyed by row index although only five distinct source files back four hundred rows, and the evaluation loop still builds a second-order graph for gradient metrics that are switched off.
 
 ## Model and Parameters
 

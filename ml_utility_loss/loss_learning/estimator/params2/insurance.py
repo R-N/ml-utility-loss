@@ -238,13 +238,15 @@ PARAM_SPACE = {
         #"leakyhardtanh",
         #"leakyhardsigmoid",
     ]),
+    # Targets are standardized now, so every saturating option here is
+    # unrepresentable. Pinned to identity rather than searched.
     "head_activation_final": ("activation", [
-        #"sigmoid", 
+        #"sigmoid",
         #"tanh",
         #"hardtanh",
-        "softsign",
+        #"softsign",
         #"logsigmoid",
-        #"identity",
+        "identity",
         #"leakyhardtanh",
     ]),
     "head_final_mul": ("categorical", [

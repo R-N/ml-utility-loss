@@ -369,6 +369,7 @@ def train(
     epoch_callback=None,
     size_scheduler=None,
     early_stopping=None,
+    trial=None,
     dataloader_worker=0,
     pin_memory=True,
     max_seconds=1800,
@@ -658,6 +659,15 @@ def train(
                 val_value += monitor_loss["avg_role_model_std_loss"]
             if not include_mean_pred_loss:
                 val_value += monitor_loss["avg_role_model_mean_pred_loss"]
+
+            # Report to Optuna so a pruner can kill this trial at low fidelity.
+            # Same quantity early stopping monitors, so a pruned trial is one
+            # that was losing on the metric selection would have used anyway.
+            # Warmup epochs are not comparable, so they are not reported.
+            if trial is not None and not optim.warming_up:
+                trial.report(val_value, i)
+                if trial.should_prune():
+                    raise TrialPruned(f"Pruned at epoch {i}, val_value {val_value}")
 
             if not optim.warming_up and size_scheduler and size_scheduler.step(val_value, epoch=i):
                 print("Prepare loader")
@@ -1118,6 +1128,7 @@ def train_2(
         log_dir=log_dir,
         run_name=run_name,
         early_stopping=early_stopping,
+        trial=trial,
         **kwargs
     )
     return train_results

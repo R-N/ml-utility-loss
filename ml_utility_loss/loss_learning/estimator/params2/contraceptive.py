@@ -239,10 +239,13 @@ PARAM_SPACE = {
         # "leakyhardtanh",
         # "leakyhardsigmoid",
     ]),
+    # Targets are standardized now, so every saturating option here is
+    # unrepresentable. Pinned to identity rather than searched.
     "head_activation_final": ("activation", [
-        "sigmoid", 
+        #"sigmoid",
         ##"hardsigmoid",
-        "leakyhardsigmoid",
+        #"leakyhardsigmoid",
+        "identity",
     ]),
     "patience": ("int", 5, 6), #5
 }

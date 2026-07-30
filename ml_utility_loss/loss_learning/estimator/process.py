@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 from ...util import stack_samples, stack_sample_dicts, clear_memory, clear_cuda_memory, zero_tensor, filter_dict
 from torch.nn.utils import clip_grad_norm_
-from ...metrics import rmse, mae, mape, mean_penalty, mean_penalty_rational, mean_penalty_rational_half, ScaledLoss, SCALING, mean_penalty_log, mean_penalty_log_half
+from ...metrics import rmse, mae, mape, spearman, mean_penalty, mean_penalty_rational, mean_penalty_rational_half, ScaledLoss, SCALING, mean_penalty_log, mean_penalty_log_half
 import time
 import numpy as np
 from ...loss_balancer import FixedWeights, MyLossWeighter, LossBalancer, MyLossTransformer
@@ -1820,7 +1820,9 @@ def calc_metrics(pred, y, prefix=""):
     return {
         f"{prefix}_rmse": rmse(pred, y).item(),
         f"{prefix}_mae": mae(pred, y).item(),
-        f"{prefix}_mape": mape(pred, y).item()
+        f"{prefix}_mape": mape(pred, y).item(),
+        # Gate 3 is graded on rank correlation, not calibration.
+        f"{prefix}_spearman": spearman(pred, y).item(),
     }
 
 def pred(
