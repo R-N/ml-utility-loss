@@ -48,7 +48,18 @@ A dated audit of training throughput, the data path, and the Optuna search lives
 - The gradient-penalty search group in `params2/` is commented out and pinned to `NONE`; `single_model=True` also disables the non-role-model group. Do not re-enable either without a Gate A result.
 - `head_activation_final` is pinned to `identity` in `params/` and `params2/`; `params3/` only searches the data mix. `create_model` asserts rather than silently zeroing `dropout` when `layer_norm=True`.
 - Still unoptimized: about twenty forced device syncs per batch (`try_tensor_item` in the accumulator block, plus the `torch.isfinite` asserts) — the one item with real throughput left in it. Deliberately left alone: the row-index cache key (in-memory caching made it a memory cost, not a throughput one), AMP, conditional SDPA, TF32. ASHA and multi-seed re-runs are caller-side.
+- Two of those deferrals rested on wrong reasons, corrected 2026-07-31. AMP is not blocked by a double-backward (with the penalty off, `create_graph=True` never fires) and SDPA is not blocked by `attn_residual` (`output + q` applies after the part SDPA computes). Both are still smaller wins than they look — see the literature-review section in `CLAUDE.md`.
 - The findings under "Efficiency and tuning audit" in `CLAUDE.md` are written in the present tense but describe 2026-07-30. Read the dated "Applied" lists and the "Still open" list at the end of that section for what is true now.
+
+## Literature
+
+A dated survey of published work against this architecture is under "Literature review" in `CLAUDE.md`, with the criticism of each result recorded alongside it. None of it is implemented. What changes how you work:
+
+- Do not treat MSE-on-standardized-targets as settled. Yoo & Kweon (CVPR 2019) hit this project's exact failure mode — a scalar-quality predictor collapsing to the mean under a drifting target — and fixed it with a ranking loss, not with target scaling. If you turn on `rank_loss_mul`, use the LearningLoss++ formulation; `metrics.pairwise_rank_loss` is currently vanilla RankNet, which has a known wrong-penalty case.
+- `SizeScheduler` is the mechanism curriculum learning replicates on (ICLR 2021); example-difficulty ordering is the contested part. Do not add ordering expecting a free win.
+- Run a random-forest-on-meta-features baseline before proposing architecture changes. If it matches `pred_spearman`, the set transformer is not earning its cost.
+- `tf_num_inds=0` is reachable in `params2/default.py:151` and turns ISAB into full 2048×2048 self-attention. Exclude it from the search.
+- TabPFN is worth pursuing for label *cost* (envelope: ≤10k rows, ≤500 dims, ≤10 classes — all four datasets fit). It is **not** an established source of a utility gradient; no paper backs that, and it stays behind Gate A.
 
 ## Model and Parameters
 
