@@ -69,6 +69,15 @@ Second pass, same file, same caveat that none of it is implemented:
 - Any "which tables to label next" scheme ships with a random-selection control (Munjal et al., CVPR 2022, found active-learning gains vanish under strong regularization). Use EL2N, not GraNd-at-init — the latter failed replication.
 - Whether the Deep Sets latent-width bound applies to PMA is unresolved in print. Settle it with a `d_model` × `head_n_seeds` × `dataset_size` sweep before treating it as a constraint.
 
+Third pass, latest first:
+
+- TabPFN's envelope is now **50k rows × 2k features** (TabPFN-2.5), not the v2 figures quoted earlier in this file. But RealTabPFN is **non-commercially licensed** and TabArena is not a disinterested benchmark. Try Google's openly-licensed TabFM first for label generation.
+- TabPFN-2.5 ships a distillation engine to MLPs. A distilled MLP is differentiable, which is a cheaper route to a real utility gradient than anything requiring gradients through in-context rows.
+- If you build Gate A, build it ZeroGrads-style — a **local, online, resampled** surrogate. The current offline-global estimator is the configuration most likely to fail it, and failing it that way tells you nothing.
+- Add a mean-pool Deep Set baseline to the latent-width sweep. If attention pooling is not earning its cost on `pred_spearman`, the set-encoder literature offers ~100× training savings that PMA cannot use.
+- Ensembling mitigates but does not eliminate proxy overoptimization — members share out-of-distribution error patterns, which is precisely the regime guidance runs in. Pair it with staying on-distribution.
+- FlashAttention-4 is Blackwell-only. Irrelevant on this hardware.
+
 ## Model and Parameters
 
 - `create_model()` builds `MLUtilityWhole`: synthesizer-specific adapters -> shared Transformer or TwinEncoder body -> `mlu` head. `MLUtilityWhole[model]` returns a cached single-model view sharing the body/head.
