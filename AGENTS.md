@@ -78,6 +78,14 @@ Third pass, latest first:
 - Ensembling mitigates but does not eliminate proxy overoptimization — members share out-of-distribution error patterns, which is precisely the regime guidance runs in. Pair it with staying on-distribution.
 - FlashAttention-4 is Blackwell-only. Irrelevant on this hardware.
 
+Fourth pass — meta-learning, transformers, PyTorch:
+
+- **Profile before optimising.** This supersedes the SDPA/bf16 ordering given earlier. `dataloader_worker=0` and ~20 syncs per batch are the two anti-patterns PyTorch guidance names first, so input-bound is the live hypothesis and kernel work would buy nothing. Run `torch.profiler` over ~30 steps after warmup first.
+- **Landmarkers** (1-NN, decision stump, linear SVM, Naive Bayes, ZeroR — 1-10s per dataset) are the cheap alternative to a CatBoost fit per label. Use them as features for the random-forest baseline. A linear landmarker is also differentiable through the synthetic table, which is the smallest version of the whole idea — but its gradient points at linear separability, not CatBoost utility, so it goes behind Gate A like everything else.
+- Meta-features gave "at most weak routing signal" over 51 datasets under false-discovery control, and none survived for neural-net vs tree comparisons. This project has 4 datasets. Prefer a handful of mechanistically-motivated landmarkers over any learned dataset embedding.
+- The estimator is a neural process. That framing supplies the uncertainty the conservative-scoring mitigation needs, and the NP literature's underfitting diagnosis — fixed-width summaries plus mean pooling, fixed by attention — is evidence that PMA is the right choice. Reframe the Wagstaff sweep as "is `head_n_seeds=1` enough capacity", not "does the bound bind".
+- Early stopping in low-data regimes implicitly shortens effective context. Do not read a small `pred_rmse` gap between architectures as an architecture result without controlling for it.
+
 ## Model and Parameters
 
 - `create_model()` builds `MLUtilityWhole`: synthesizer-specific adapters -> shared Transformer or TwinEncoder body -> `mlu` head. `MLUtilityWhole[model]` returns a cached single-model view sharing the body/head.
