@@ -61,6 +61,14 @@ A dated survey of published work against this architecture is under "Literature 
 - `tf_num_inds=0` is reachable in `params2/default.py:151` and turns ISAB into full 2048×2048 self-attention. Exclude it from the search.
 - TabPFN is worth pursuing for label *cost* (envelope: ≤10k rows, ≤500 dims, ≤10 classes — all four datasets fit). It is **not** an established source of a utility gradient; no paper backs that, and it stays behind Gate A.
 
+Second pass, same file, same caveat that none of it is implemented:
+
+- The "helps weak synthesizers, not strong ones" result is reward-model overoptimization (Gao et al., ICML 2023) — measured, with a √KL x-axis and the finding that more proxy training data raises the peak. Describe it that way rather than as an unexplained result.
+- **Best-of-n is now the primary recommendation, not the fallback in fix item D.** It has an analytic KL budget and a measured overoptimization curve; gradient guidance has neither and its direction is still unvalidated. Ensemble plus a worst-case or uncertainty-weighted objective (Coste et al., ICLR 2024) is the concrete form of fix items F and G.
+- If you implement pairwise ranking, keep the score-difference form already in `metrics.pairwise_rank_loss`. BRP-NAS's joint-classifier head is neither antisymmetric nor cycle-free — its NeurIPS reviewers caught both. Take its iterative top-focused data selection, not its head.
+- Any "which tables to label next" scheme ships with a random-selection control (Munjal et al., CVPR 2022, found active-learning gains vanish under strong regularization). Use EL2N, not GraNd-at-init — the latter failed replication.
+- Whether the Deep Sets latent-width bound applies to PMA is unresolved in print. Settle it with a `d_model` × `head_n_seeds` × `dataset_size` sweep before treating it as a constraint.
+
 ## Model and Parameters
 
 - `create_model()` builds `MLUtilityWhole`: synthesizer-specific adapters -> shared Transformer or TwinEncoder body -> `mlu` head. `MLUtilityWhole[model]` returns a cached single-model view sharing the body/head.
