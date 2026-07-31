@@ -85,6 +85,10 @@ Fourth pass — meta-learning, transformers, PyTorch:
 - Meta-features gave "at most weak routing signal" over 51 datasets under false-discovery control, and none survived for neural-net vs tree comparisons. This project has 4 datasets. Prefer a handful of mechanistically-motivated landmarkers over any learned dataset embedding.
 - The estimator is a neural process. That framing supplies the uncertainty the conservative-scoring mitigation needs, and the NP literature's underfitting diagnosis — fixed-width summaries plus mean pooling, fixed by attention — is evidence that PMA is the right choice. Reframe the Wagstaff sweep as "is `head_n_seeds=1` enough capacity", not "does the bound bind".
 - Early stopping in low-data regimes implicitly shortens effective context. Do not read a small `pred_rmse` gap between architectures as an architecture result without controlling for it.
+- **Python 3.9 caps PyTorch at 2.8.** 2.9 requires 3.10, and 2.10's combo-kernel fusion — the feature that would help a small model with many tiny kernels — is behind that. SDPA needs only 2.0, so it is unaffected. Know this before profiling, because it decides whether "launch overhead dominates" has a fix available.
+- The `torch.compile` deferral in `CLAUDE.md` cited forced recompiles from `SizeScheduler`. That reason is invalid — `dynamic=True` and `mark_dynamic` exist for it. Whether compile pays under short pruned trials is still untested.
+- FlexAttention cannot replace the custom-softmax path: `score_mod` runs before softmax, and the softmax is fixed. Plain SDPA covers the `nn.Softmax` default.
+- **Measure the CatBoost noise floor before optimising anything.** Refit `eval_ml_utility()` on identical inputs across seeds. In-context risk decomposes into a reducible gap and an irreducible posterior variance; if most of `pred_rmse` is label noise, the architecture and efficiency work is optimising the wrong term.
 
 ## Model and Parameters
 
