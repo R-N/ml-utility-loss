@@ -53,7 +53,11 @@ A dated audit of training throughput, the data path, and the Optuna search lives
 
 ## Literature
 
-A dated survey of published work against this architecture is under "Literature review" in `CLAUDE.md`, with the criticism of each result recorded alongside it. None of it is implemented. What changes how you work:
+Five dated passes are under "Literature review" in `CLAUDE.md`, with the criticism of each result recorded alongside it, and a priority summary under "What the literature review concluded". None of it is implemented.
+
+**The conclusion, if you read nothing else:** the value prediction is a solved problem type; the *gradient* is the unsupported leap, and best-of-n needs no gradient and has better theory behind it. Four measurements decide whether anything else matters, and none of them has been run — the CatBoost seed-to-seed noise floor, a profile of the training loop, a random-forest-on-landmarkers baseline, and Gate A itself. Do those before building. If Gate A fails, drop gradient guidance and keep best-of-n plus ensembles plus cheap labels.
+
+What changes how you work, pass by pass:
 
 - Do not treat MSE-on-standardized-targets as settled. Yoo & Kweon (CVPR 2019) hit this project's exact failure mode — a scalar-quality predictor collapsing to the mean under a drifting target — and fixed it with a ranking loss, not with target scaling. If you turn on `rank_loss_mul`, use the LearningLoss++ formulation; `metrics.pairwise_rank_loss` is currently vanilla RankNet, which has a known wrong-penalty case.
 - `SizeScheduler` is the mechanism curriculum learning replicates on (ICLR 2021); example-difficulty ordering is the contested part. Do not add ordering expecting a free win.

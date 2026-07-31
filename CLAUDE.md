@@ -135,6 +135,29 @@ Still open, with reasons rather than as a to-do list:
 - **Conditional SDPA.** ~~Only applies when `attn_residual` is off.~~ Corrected 2026-07-31: `attn_residual` is not a blocker — `output + q` at `modules.py:198` applies *after* the attention output, which is the part SDPA computes. The real conditions are `softmax is nn.Softmax` and no caller needing the returned attention weights. Expected payoff is much smaller than the headline SDPA numbers; see below.
 - **TF32** stays off: re-evaluate after a run confirms the standardized target trains, not before.
 
+### What the literature review concluded (2026-07-31)
+
+Five passes are recorded below. This is what they add up to. **Read this before the passes; the passes are the evidence.**
+
+The structural finding: **the value prediction is sound, the gradient is the unsupported leap.** Predicting a scalar quality score from a dataset is a solved problem type — algorithm selection, NAS predictors, neural processes and learning-loss modules all do it. Extracting a usable descent direction from such a predictor is not, and every literature that tried it (ZeroGrads, dataset distillation, DPG, RLHF) either needs a differentiable downstream model or wraps the surrogate in machinery this project does not have. Meanwhile best-of-n, which needs no gradient at all, has a measured overoptimization curve and an analytic budget. The hard version has been built; the easy version has better theory.
+
+**Must-do — four measurements, none of them built.** These are not improvements; they decide whether the improvements matter. Each is cheap and each retires a branch of open questions.
+
+1. **The CatBoost noise floor.** Refit `eval_ml_utility()` on identical inputs across seeds and report the variance. If most of `pred_rmse` is label noise, the architecture and efficiency programme is optimising a term that cannot move. Half a day, and it calibrates everything else here.
+2. **Profile the training loop.** `torch.profiler`, ~30 steps post-warmup. If it is input-bound — plausible with `dataloader_worker=0` — every kernel optimisation buys zero. An hour, and it decides the whole efficiency ordering.
+3. **Random forest on landmarker features**, scored on `pred_spearman`. If it matches the set transformer, neither the architecture nor its tuning is earning its cost. A day. This is the falsification the project has never had.
+4. **Run Gate A, or explicitly abandon gradient guidance.** `evaluation/gate_a_tvae.py` exists and has never been run. Everything downstream of "MLU as a loss" has been conditional on it for the whole project.
+
+**Quick wins — hours each.** Turn on `rank_loss_mul` in the LearningLoss++ form, not vanilla RankNet. Exclude `tf_num_inds=0` from the search space. Set `dataloader_worker > 0`. SDPA plus bf16 together, *after* the profile, expecting 10-25% and needing a numerics check since nothing in the network normalises. `torch.set_float32_matmul_precision("high")`. Epoch subsampling in the spaced-repetition style, which composes with `SizeScheduler`.
+
+**Big wins — days to weeks, and they interact.** Cheap labels from landmarkers or an openly-licensed tabular foundation model, which matters twice over because more proxy training data provably raises the overoptimization peak. Best-of-n promoted from fix item D to the primary optimisation mode. Ensemble plus conservative scoring, paired with keeping the estimator on-distribution because ensemble members share out-of-distribution errors. If Gate A is pursued at all, a ZeroGrads-style local, online, resampled surrogate rather than the current offline-global one. The neural-process framing, for the uncertainty estimate conservative scoring requires. And a refreshed synthesizer baseline, because the vendored slate predates the current state of the art and "improves strong synthesizers" is being tested against a weak definition of strong.
+
+**Ruled out, with reasons:** GFNet and FFT mixing (position-dependent, destroys permutation invariance); Nyströmformer (landmarks are ISAB inducing points, already present); FlexAttention (`score_mod` is pre-softmax, cannot express a replaced softmax); FlashAttention-4 (Blackwell-only); muP (transfer contested, weight decay may be doing the work); DyT (fragile at depth, poor fit for an already norm-free network); learned dataset embeddings (weak signal at 51 datasets, this project has 4); more depth (TabPFN's 18-24 layers ride on 10⁸ pretraining datasets, this has ~400 labels).
+
+**Ordering.** Run 1 and 2 in parallel — half-day measurements with no dependencies. Then 3, which may end the architecture conversation. Quick wins proceed alongside except SDPA/bf16, which waits on the profile. Item 4 gates the entire big-win column: **if Gate A fails, drop gradient guidance** and take best-of-n plus ensembles plus cheap labels, which turns the thesis into a defensible black-box-scoring result rather than an undefended differentiable-loss claim.
+
+One caveat over all of it: nothing in the repo has had a GPU run since the 2026-07-30 changes, so every efficiency estimate above is against unmeasured code.
+
 ### Literature review (2026-07-31)
 
 A survey of published work against this architecture (set transformer over two row-sets, per-synthesizer adapters, MSE on ~400 labels per dataset, graded on Spearman). Every claim below was checked against the source rather than a search summary, and the entries record the criticism as well as the result. Nothing here has been implemented.
