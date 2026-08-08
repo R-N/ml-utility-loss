@@ -1,5 +1,6 @@
 """Self-check for the ranking metric and loss added for gate 3. Run: python test_metrics.py"""
 import torch
+import torch.nn.functional as F
 from ml_utility_loss.metrics import spearman, pairwise_rank_loss
 
 
@@ -24,6 +25,16 @@ def test_spearman():
 
 
 def test_pairwise_rank_loss():
+    """`pairwise_rank_loss` is the LearningLoss++ form (Shukla & Ahmed,
+    CVPR-W 2021, implemented 2026-08-08): each pair's target is
+    `sigmoid(y_i - y_j)`, a soft, magnitude-aware confidence level rather
+    than a hard sign label -- so it is a *calibration* loss, minimized
+    exactly when `pred` matches the confidence `y` implies, not minimized
+    by driving `pred`'s confidence to infinity the way vanilla RankNet
+    is. That is the intended fix for the "wrongly penalizes near-ties"
+    failure mode the literature review flagged; do not reintroduce a
+    scale-free-in-confidence assertion here, it describes the old bug.
+    """
     x = torch.tensor([0.1, 0.2, 0.3, 0.4, 0.5])
 
     # Correct order beats reversed order beats nothing to go on.
@@ -33,10 +44,34 @@ def test_pairwise_rank_loss():
     # No information in the labels means no pairs and no loss, not a crash.
     assert pairwise_rank_loss(x, torch.zeros(5)).item() == 0.0
 
-    # Scale-free in the labels but not in the predictions: a wider correct
-    # spread is more confident, so it costs less.
-    assert pairwise_rank_loss(10 * x, x) < pairwise_rank_loss(x, x)
-    assert torch.isclose(pairwise_rank_loss(x, x), pairwise_rank_loss(x, 100 * x))
+    # Calibration, not confidence-maximization: loss is exactly zero when
+    # pred matches y's implied confidence, and grows on BOTH sides --
+    # under-confident (0, -x) and over-confident (10x, 100x) predictions
+    # both cost more than the correctly-scaled x, and further
+    # over/under-confidence costs more still.
+    correct = pairwise_rank_loss(x, x)
+    assert correct.item() == 0.0
+    under1, under2 = pairwise_rank_loss(torch.zeros(5), x), pairwise_rank_loss(-x, x)
+    over1, over2 = pairwise_rank_loss(10 * x, x), pairwise_rank_loss(100 * x, x)
+    assert correct < under1 < under2
+    assert correct < over1 < over2
+
+    # Large-gap limit recovers vanilla RankNet's softplus term exactly,
+    # since sigmoid(y_gap) saturates to 0/1 and the entropy term (constant
+    # w.r.t. pred) is all that is left over.
+    torch.manual_seed(0)
+    y = torch.linspace(0, 100, 6)
+    pred = torch.randn(6)
+    loss = pairwise_rank_loss(pred, y)
+
+    mask = (y[:, None] - y[None, :]) > 0
+    pred_gap = (pred[:, None] - pred[None, :])[mask]
+    y_gap = (y[:, None] - y[None, :])[mask]
+    target = torch.sigmoid(y_gap)
+    entropy = target * F.logsigmoid(y_gap) + (1 - target) * F.logsigmoid(-y_gap)
+    rank_net_term = F.softplus(-pred_gap)  # == -logsigmoid(pred_gap)
+    expected = (entropy + rank_net_term).mean()
+    assert torch.isclose(loss, expected, atol=1e-4)
 
     # Differentiable, which is the whole point of using it as a loss.
     p = x.clone().requires_grad_()

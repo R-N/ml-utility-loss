@@ -29,8 +29,18 @@ from .experiments import split_experiment_data, run_local_update_test
 
 
 def _decoder_params(tvae_model):
-    """Parameters the MLU signal is allowed to move (the decoder only)."""
-    return [p for p in tvae_model.decoder.parameters() if p.requires_grad]
+    """Parameters the MLU signal is allowed to move (the decoder only).
+
+    Excludes `decoder.sigma`: it is a real `nn.Parameter` (the decoder's
+    reconstruction-noise scale) but only ever consumed by non-raw sampling
+    (`postprocess`'s noise perturbation); the raw-sample forward pass
+    `sample(raw=True)` -> `decoder.seq(input_)` never reads it, so
+    `torch.autograd.grad` on the MLU loss fails with "not been used in the
+    graph" if it is included -- found 2026-08-08 running Gate A for the
+    first time (previously-unrun code; see CLAUDE.md "Big wins
+    implementation").
+    """
+    return [p for p in tvae_model.decoder.seq.parameters() if p.requires_grad]
 
 
 def _flat_norm(tensors):

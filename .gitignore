@@ -164,6 +164,7 @@ scratchpad.py
 .VSCodeCounter/
 *.zip
 .venv-noisefloor/
+.venv-gatea/
 aug_train/catboost_noise_floor.json
 aug_train/landmarker_rf_baseline.json
 aug_train/estimator_profile.json
