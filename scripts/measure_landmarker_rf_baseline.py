@@ -26,68 +26,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 from scipy.stats import spearmanr  # noqa: E402
-from sklearn.dummy import DummyClassifier, DummyRegressor  # noqa: E402
 from sklearn.ensemble import RandomForestRegressor  # noqa: E402
 from sklearn.exceptions import ConvergenceWarning  # noqa: E402
-from sklearn.linear_model import LinearRegression, LogisticRegression  # noqa: E402
-from sklearn.model_selection import KFold, cross_val_score  # noqa: E402
-from sklearn.naive_bayes import GaussianNB  # noqa: E402
-from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor  # noqa: E402
-from sklearn.preprocessing import LabelEncoder  # noqa: E402
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor  # noqa: E402
+
+from ml_utility_loss.loss_learning.ml_utility.landmarkers import landmark_features  # noqa: E402
 
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-CV_FOLDS = 3
 HOLDOUT_FOLD = "4"  # info.csv index suffix "<i>_<j>"; hold out j == 4
-
-CLASSIFICATION_LANDMARKERS = {
-    "1nn": lambda: KNeighborsClassifier(n_neighbors=1),
-    "decision_stump": lambda: DecisionTreeClassifier(max_depth=1, random_state=0),
-    "naive_bayes": lambda: GaussianNB(),
-    "linear": lambda: LogisticRegression(max_iter=200),
-    "zeror": lambda: DummyClassifier(strategy="most_frequent"),
-}
-REGRESSION_LANDMARKERS = {
-    "1nn": lambda: KNeighborsRegressor(n_neighbors=1),
-    "decision_stump": lambda: DecisionTreeRegressor(max_depth=1, random_state=0),
-    "linear": lambda: LinearRegression(),
-    "zeror": lambda: DummyRegressor(strategy="mean"),
-}
-
-
-def encode(df):
-    df = df.copy()
-    for col in df.columns:
-        if pd.api.types.is_string_dtype(df[col]) or df[col].dtype == object:
-            df[col] = LabelEncoder().fit_transform(df[col].astype(str))
-    return df
-
-
-def landmark_features(df, task, target):
-    df = encode(df)
-    y = df[target].to_numpy()
-    X = df.drop(columns=[target]).to_numpy(dtype=float)
-    n = len(df)
-    cv = min(CV_FOLDS, n) if n >= 2 else 0
-    if cv < 2:
-        return None
-
-    suite = CLASSIFICATION_LANDMARKERS if task != "regression" else REGRESSION_LANDMARKERS
-    scoring = "accuracy" if task != "regression" else "r2"
-    kfold = KFold(n_splits=cv, shuffle=True, random_state=0)
-
-    scores = {}
-    for name, make_model in suite.items():
-        try:
-            s = cross_val_score(make_model(), X, y, cv=kfold, scoring=scoring)
-            scores[name] = float(np.mean(s))
-        except Exception:
-            scores[name] = np.nan
-    return scores
-
 
 def load_rows(name):
     info_path = REPO_ROOT / "aug_train" / name / "all" / "info.csv"
