@@ -7,7 +7,7 @@ from optuna.exceptions import TrialPruned
 from ..ml_utility.pipeline import eval_ml_utility
 from ...params import GradientPenaltyMode
 from .model.pipeline import create_model
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, RandomSampler
 #from ...data import FastDataLoader as DataLoader
 from .data import ConcatDataset, DatasetDataset, MultiPreprocessedDataset, PreprocessedDataset, collate_fn
 import torch
@@ -340,6 +340,13 @@ def train(
     dataset_size=256,
     aug_scale=1.0,
     batch_size=4,
+    # Quick win (2026-08-08): opt-in, off by default (None = full dataset
+    # every epoch, current behavior unchanged). Spaced-repetition scheduling
+    # (Amiri et al., EMNLP 2017): draw a fresh random 34-50% subset of the
+    # labeled-example pool each epoch instead of the whole thing -- an
+    # orthogonal axis to `dataset_size`/SizeScheduler (rows sampled per
+    # table, not which labeled examples are trained on this epoch).
+    epoch_frac=None,
     # Training args
     epochs=1,
     lr=1e-4,
@@ -393,9 +400,13 @@ def train(
     grad_loss_scale=None,
     g_loss_mul=0.1,
     non_role_model_mul=0.5,
-    # Off by default: MSE alone optimizes calibration, and this term trades some
-    # of that for ranking. See metrics.pairwise_rank_loss.
-    rank_loss_mul=0.0,
+    # Quick win (2026-08-08): on by default. MSE alone optimizes calibration;
+    # this term trades a slice of that for rank correlation, which is what
+    # gate 3 grades. LearningLoss++ form (metrics.pairwise_rank_loss) soft-
+    # weights each pair by true-gap magnitude, so it no longer overpenalizes
+    # near-ties the way vanilla RankNet did -- the risk that kept this off.
+    # 0.5 matches the existing non_role_model_mul precedent below.
+    rank_loss_mul=0.5,
     single_model=True,
     study_name="ml_utility",
     gradient_penalty_kwargs={},
@@ -408,6 +419,7 @@ def train(
     forward_once=None,
     synth_data=1,
     save_on_cpu=False,
+    amp_dtype=None, # Quick win (2026-08-08): opt-in bf16 autocast; see process.train_epoch's comment.
     bias_lr_mul=1.0,
     bias_weight_decay=0.0,
     aug_train=DEFAULT_AUG_TRAIN,
@@ -455,17 +467,30 @@ def train(
         dataset_size = size_scheduler.get_size()
         aug_scale = size_scheduler.get_aug()
     
-    def prepare_loader(dataset, val=False, dataset_size=dataset_size, aug_scale=aug_scale, batch_size=batch_size, size_scheduler=None):
+    def prepare_loader(dataset, val=False, dataset_size=dataset_size, aug_scale=aug_scale, batch_size=batch_size, size_scheduler=None, epoch_frac=epoch_frac):
         if size_scheduler:
             dataset_size=size_scheduler.get_size()
             aug_scale=size_scheduler.get_aug()
             batch_size=size_scheduler.get_batch_size()
         dataset.set_size(None if val else dataset_size)
         dataset.set_aug_scale(0 if val else aug_scale)
+        sampler = None
+        shuffle = not val
+        if epoch_frac and not val:
+            # RandomSampler(replacement=False) with num_samples < len(dataset)
+            # draws a fresh truncated permutation on every __iter__ call, and
+            # DataLoader calls __iter__ on its sampler once per epoch -- so a
+            # sampler built once here, on a train_loader reused across many
+            # epochs, already yields a new random subset each epoch with no
+            # further change to the epoch loop below.
+            n = max(1, int(len(dataset) * epoch_frac))
+            sampler = RandomSampler(dataset, replacement=False, num_samples=n)
+            shuffle = False
         loader = DataLoader(
             dataset, 
             batch_size=batch_size, 
-            shuffle=not val, 
+            shuffle=shuffle, 
+            sampler=sampler,
             collate_fn=collate_fn,
             num_workers=dataloader_worker,
             persistent_workers=persistent_workers,
@@ -591,6 +616,7 @@ def train(
             non_role_model_mul=non_role_model_mul,
             rank_loss_mul=rank_loss_mul,
             save_on_cpu=save_on_cpu,
+            amp_dtype=amp_dtype,
             **gradient_penalty_mode,
             **gradient_penalty_kwargs,
         )
@@ -758,6 +784,7 @@ def train(
         models=models,
         _eval=_eval,
         fixed_role_model=fixed_role_model,
+        amp_dtype=amp_dtype,
         #grad_loss_scale=grad_loss_scale,
     )
     if verbose:

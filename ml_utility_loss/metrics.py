@@ -95,17 +95,34 @@ def spearman(pred, y, eps=1e-9):
     return (p @ t) / torch.clamp(p.norm() * t.norm(), min=eps)
 
 def pairwise_rank_loss(pred, y):
-    # RankNet: logistic loss on every pair the labels actually order. Per-sample
-    # MSE optimizes calibration; gate 3 is graded on rank correlation, which
-    # this is the differentiable stand-in for.
-    # ponytail: pairs are taken over the whole batch rather than within a source
-    # dataset. Targets are standardized per dataset, so cross-dataset pairs are
-    # at least on one scale; group the mask by dataset if that stops holding.
+    # LearningLoss++ (Shukla & Ahmed, CVPR-W 2021), not vanilla RankNet.
+    # The Yoo & Kweon original treats every ordered pair as a hard sign
+    # label, so a barely-separated pair is "wrongly penalized" exactly as
+    # hard as a wide one -- the failure mode the paper proves. Replace the
+    # hard target with a soft one built from the true gap itself (their
+    # softmax/KL-divergence form, adapted from a nonneg loss pair to a
+    # signed score pair: softmax of two reals is scale-appropriate either
+    # way and needs no positivity assumption). A near-tie gets a target near
+    # [0.5, 0.5], so confidently ranking it either way is barely penalized;
+    # a wide gap gets a target near [1, 0], recovering plain RankNet
+    # (softplus(-(pred_i-pred_j))) as the limit -- verified numerically.
+    # ponytail: pairs are taken over the whole batch rather than within a
+    # source dataset. Targets are standardized per dataset, so cross-dataset
+    # pairs are at least on one scale; group the mask by dataset if that
+    # stops holding.
     pred, y = pred.flatten(), y.flatten()
     mask = (y[:, None] - y[None, :]) > 0
     if not mask.any():
         return zero_tensor(device=pred.device)
-    return F.softplus(-(pred[:, None] - pred[None, :])[mask]).mean()
+    y_gap = (y[:, None] - y[None, :])[mask].detach()
+    pred_gap = (pred[:, None] - pred[None, :])[mask]
+    target = torch.sigmoid(y_gap)
+    # KL(target || softmax(pred_gap, -pred_gap)); the two logsigmoid terms
+    # are log(target) and log(1-target), so this is exact, not an
+    # approximation, and stays numerically stable at large |y_gap|.
+    entropy = target * F.logsigmoid(y_gap) + (1 - target) * F.logsigmoid(-y_gap)
+    cross = target * F.logsigmoid(pred_gap) + (1 - target) * F.logsigmoid(-pred_gap)
+    return (entropy - cross).mean()
 
 def range(x, dim=None):
     return torch.max(x, dim=dim) - torch.min(x, dim=dim)

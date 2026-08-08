@@ -171,6 +171,14 @@ class ScaledDotProductAttention(nn.Module):
             self.softmax = self.softmax(**self.softmax_args)
             self.softmax_args = {}
         self.attn_residual = attn_residual
+        # Quick win (2026-08-08): F.scaled_dot_product_attention can only
+        # express plain softmax attention -- sparsemax/entmax15/relu15 are
+        # the reason `softmax` is a search-space dimension at all, and SDPA
+        # cannot express them. Nothing in this package ever reads the
+        # returned attention weights (`return_attns` is never set True by
+        # any caller, verified by grep), so dropping them on the SDPA path
+        # is safe. See CLAUDE.md "Conditional SDPA" for the numerics caveat.
+        self._sdpa_eligible = type(self.softmax) is nn.Softmax
 
         self.device = device
         self.to(device)
@@ -182,6 +190,17 @@ class ScaledDotProductAttention(nn.Module):
         return self
 
     def forward(self, q, k, v, mask=None, I=None):
+
+        if self._sdpa_eligible:
+            attn_mask = (mask != 0) if mask is not None else None
+            dropout_p = self.dropout.p if (self.dropout is not None and self.training) else 0.0
+            output = F.scaled_dot_product_attention(
+                q, k, v, attn_mask=attn_mask, dropout_p=dropout_p, scale=1.0 / self.temperature,
+            )
+            if self.attn_residual:
+                output = output + q
+            # No per-head weights to return; see the _sdpa_eligible comment.
+            return output, [None]
 
         # it was (2, 3) expecting 4 dims (0, 1, 2, 3)
         # to adjust, it'll be (-2, -1) for 4 dims (-4, -3, -2, -1)

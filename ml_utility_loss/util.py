@@ -284,6 +284,10 @@ def shuffle_tensor(t, dim=-2):
     return torch.take_along_dim(t, indices, dim=dim)
 
 DEFAULT_DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else "cpu")
+# Quick win (2026-08-08): TF32 matmul/conv on Ampere+ CUDA, ~2-4x throughput
+# for a negligible ~1e-3 relative precision loss on this scale of model; a
+# no-op everywhere else (CPU, pre-Ampere GPUs). See CLAUDE.md diagnosis.
+torch.set_float32_matmul_precision("high")
 
 def check_cuda(model):
     return next(model.parameters()).is_cuda

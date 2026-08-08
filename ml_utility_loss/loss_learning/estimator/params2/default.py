@@ -148,7 +148,8 @@ PARAM_SPACE = {
     #"tf_n_layers_dec": ("bool_int", 2, 4), 
     "tf_n_head": ("int_exp_2", 2, 8), 
     "tf_activation": ("activation", ["relu", "leakyrelu"]),
-    "tf_num_inds": ("bool_int_exp_2", 8, 64),
+    # Quick win (2026-08-08): see params/default.py's tf_num_inds comment.
+    "tf_num_inds": ("int_exp_2", 8, 64),
     "tf_isab_mode": ("categorical", (
         ISABMode.SEPARATE, 
         ISABMode.SHARED,

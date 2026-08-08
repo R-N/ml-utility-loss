@@ -1,9 +1,5 @@
 import numpy as np
 import pandas as pd
-from ...synthesizers.tvae.preprocessing import DataTransformer as TVAEDataTransformer
-from ...synthesizers.realtabformer.wrapper import REaLTabFormer
-from ...synthesizers.realtabformer.data_utils import make_dataset_2, map_input_ids
-from ...synthesizers.lct_gan.pipeline import create_ae
 from ...util import DEFAULT_DEVICE
 from ml_utility_loss.synthesizers.tab_ddpm.preprocessing import DatasetTransformer, split_features, DataPreprocessor as TabDDPMDataPreprocessor
 from sklearn.metrics import pairwise_distances #metric='minkowski'
@@ -274,8 +270,10 @@ class DataPreprocessor: #preprocess all with this. save all model here
         }
 
         if "tvae" in self.models:
+            from ...synthesizers.tvae.preprocessing import DataTransformer as TVAEDataTransformer
             self.tvae_transformer = TVAEDataTransformer()
         if "realtabformer" in self.models or "realtabformer_latent" in self.models:
+            from ...synthesizers.realtabformer.wrapper import REaLTabFormer
             realtabformer_params = realtabformer_params or {}
             realtabformer_params = {
                 **realtabformer_params,
@@ -328,6 +326,7 @@ class DataPreprocessor: #preprocess all with this. save all model here
                     self.vocabulary_sizes[k] = vocab_size
         if "lct_gan" in self.models or "lct_gan_latent" in self.models:
             if not self.lct_ae:
+                from ...synthesizers.lct_gan.pipeline import create_ae
                 self.lct_ae, recon = create_ae(
                     train,
                     categorical_columns=self.cat_features,

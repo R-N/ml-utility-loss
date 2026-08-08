@@ -44,11 +44,11 @@ A dated audit of training throughput, the data path, and the Optuna search lives
 - Utility labels are standardized per source dataset (`DatasetDataset.standardize_y`) and the head is `nn.Identity`. Consequences: checkpoints in `models/` are in the old raw scale and cannot be reused, `pred_rmse` is in standard deviations and comparable across datasets, and `pred_mape` is meaningless.
 - Rank quality is `pred_spearman` from `calc_metrics`. `test_metrics.py` at the repo root checks the tie handling and the ranking loss; run it after touching `metrics.py`.
 - `process.eval` takes `gradient_metrics=False` and otherwise runs under `no_grad`. The `grad_*` metrics and `avg_g_*_loss` are therefore absent or zero unless you ask for them, and asking costs a second-order graph.
-- `train()`/`train_epoch()` take `rank_loss_mul` (default `0.0`) for `metrics.pairwise_rank_loss`, a RankNet term over the pairs the labels order. Turn it on only if `pred_spearman` matters more than calibration for what you are doing.
+- `train()`/`train_epoch()` take `rank_loss_mul` (default `0.5` as of 2026-08-08) for `metrics.pairwise_rank_loss`, now the LearningLoss++ form (soft, magnitude-aware pair targets) rather than vanilla RankNet — see "Quick wins implementation" in `CLAUDE.md`. Pass `0.0` to disable if calibration matters more than `pred_spearman` for what you are doing.
 - The gradient-penalty search group in `params2/` is commented out and pinned to `NONE`; `single_model=True` also disables the non-role-model group. Do not re-enable either without a Gate A result.
 - `head_activation_final` is pinned to `identity` in `params/` and `params2/`; `params3/` only searches the data mix. `create_model` asserts rather than silently zeroing `dropout` when `layer_norm=True`.
-- Still unoptimized: about twenty forced device syncs per batch (`try_tensor_item` in the accumulator block, plus the `torch.isfinite` asserts) — the one item with real throughput left in it. Deliberately left alone: the row-index cache key (in-memory caching made it a memory cost, not a throughput one), AMP, conditional SDPA, TF32. ASHA and multi-seed re-runs are caller-side.
-- Two of those deferrals rested on wrong reasons, corrected 2026-07-31. AMP is not blocked by a double-backward (with the penalty off, `create_graph=True` never fires) and SDPA is not blocked by `attn_residual` (`output + q` applies after the part SDPA computes). Both are still smaller wins than they look — see the literature-review section in `CLAUDE.md`.
+- Still unoptimized: about twenty forced device syncs per batch (`try_tensor_item` in the accumulator block, plus the `torch.isfinite` asserts) — the one item with real throughput left in it. Deliberately left alone: the row-index cache key (in-memory caching made it a memory cost, not a throughput one). ASHA and multi-seed re-runs are caller-side.
+- Two deferrals rested on wrong reasons (corrected 2026-07-31: AMP is not blocked by a double-backward — with the penalty off, `create_graph=True` never fires — and SDPA is not blocked by `attn_residual`, since `output + q` applies after the part SDPA computes) and both are now implemented (2026-08-08): SDPA and `torch.set_float32_matmul_precision("high")` are on by default, `amp_dtype` (bf16) is opt-in and measured **~30x slower** on this CPU-only box — see "Quick wins implementation" in `CLAUDE.md`.
 - The findings under "Efficiency and tuning audit" in `CLAUDE.md` are written in the present tense but describe 2026-07-30. Read the dated "Applied" lists and the "Still open" list at the end of that section for what is true now.
 
 ## Literature
@@ -59,10 +59,10 @@ Five dated passes are under "Literature review" in `CLAUDE.md`, with the critici
 
 What changes how you work, pass by pass:
 
-- Do not treat MSE-on-standardized-targets as settled. Yoo & Kweon (CVPR 2019) hit this project's exact failure mode — a scalar-quality predictor collapsing to the mean under a drifting target — and fixed it with a ranking loss, not with target scaling. If you turn on `rank_loss_mul`, use the LearningLoss++ formulation; `metrics.pairwise_rank_loss` is currently vanilla RankNet, which has a known wrong-penalty case.
+- Do not treat MSE-on-standardized-targets as settled. Yoo & Kweon (CVPR 2019) hit this project's exact failure mode — a scalar-quality predictor collapsing to the mean under a drifting target — and fixed it with a ranking loss, not with target scaling. **Done 2026-08-08:** `metrics.pairwise_rank_loss` is now the LearningLoss++ formulation, on by default (`rank_loss_mul=0.5`) — see "Quick wins implementation" in `CLAUDE.md`.
 - `SizeScheduler` is the mechanism curriculum learning replicates on (ICLR 2021); example-difficulty ordering is the contested part. Do not add ordering expecting a free win.
-- Run a random-forest-on-meta-features baseline before proposing architecture changes. If it matches `pred_spearman`, the set transformer is not earning its cost.
-- `tf_num_inds=0` is reachable in `params2/default.py:151` and turns ISAB into full 2048×2048 self-attention. Exclude it from the search.
+- Run a random-forest-on-meta-features baseline before proposing architecture changes. If it matches `pred_spearman`, the set transformer is not earning its cost. **Done 2026-08-08:** 0.78-0.97 held-out Spearman across all four datasets, no neural network — see "Random-forest-on-landmarkers baseline" in `CLAUDE.md`. The never-yet-run set transformer has this to beat.
+- **Done 2026-08-08:** `tf_num_inds=0` (full 2048×2048 self-attention instead of ISAB) is no longer reachable — `params/default.py` and `params2/default.py` had the escape hatch, every per-dataset override already excluded it.
 - TabPFN is worth pursuing for label *cost* (envelope: ≤10k rows, ≤500 dims, ≤10 classes — all four datasets fit). It is **not** an established source of a utility gradient; no paper backs that, and it stays behind Gate A.
 
 Second pass, same file, same caveat that none of it is implemented:
@@ -84,7 +84,7 @@ Third pass, latest first:
 
 Fourth pass — meta-learning, transformers, PyTorch:
 
-- **Profile before optimising.** This supersedes the SDPA/bf16 ordering given earlier. `dataloader_worker=0` and ~20 syncs per batch are the two anti-patterns PyTorch guidance names first, so input-bound is the live hypothesis and kernel work would buy nothing. Run `torch.profiler` over ~30 steps after warmup first.
+- **Profile before optimising.** This supersedes the SDPA/bf16 ordering given earlier. `dataloader_worker=0` and ~20 syncs per batch are the two anti-patterns PyTorch guidance names first, so input-bound was the live hypothesis. **Refuted 2026-08-08:** `torch.profiler` over 51 real post-warmup steps found dataloader wait is ≈0.02% of wall time (data is fully in-memory tensors) — this workload is compute-bound, not input-bound, so SDPA/bf16/TF32 were not wasted effort. See "Estimator training loop profile" in `CLAUDE.md`.
 - **Landmarkers** (1-NN, decision stump, linear SVM, Naive Bayes, ZeroR — 1-10s per dataset) are the cheap alternative to a CatBoost fit per label. Use them as features for the random-forest baseline. A linear landmarker is also differentiable through the synthetic table, which is the smallest version of the whole idea — but its gradient points at linear separability, not CatBoost utility, so it goes behind Gate A like everything else.
 - Meta-features gave "at most weak routing signal" over 51 datasets under false-discovery control, and none survived for neural-net vs tree comparisons. This project has 4 datasets. Prefer a handful of mechanistically-motivated landmarkers over any learned dataset embedding.
 - The estimator is a neural process. That framing supplies the uncertainty the conservative-scoring mitigation needs, and the NP literature's underfitting diagnosis — fixed-width summaries plus mean pooling, fixed by attention — is evidence that PMA is the right choice. Reframe the Wagstaff sweep as "is `head_n_seeds=1` enough capacity", not "does the bound bind".
@@ -92,7 +92,7 @@ Fourth pass — meta-learning, transformers, PyTorch:
 - **Python 3.9 caps PyTorch at 2.8.** 2.9 requires 3.10, and 2.10's combo-kernel fusion — the feature that would help a small model with many tiny kernels — is behind that. SDPA needs only 2.0, so it is unaffected. Know this before profiling, because it decides whether "launch overhead dominates" has a fix available.
 - The `torch.compile` deferral in `CLAUDE.md` cited forced recompiles from `SizeScheduler`. That reason is invalid — `dynamic=True` and `mark_dynamic` exist for it. Whether compile pays under short pruned trials is still untested.
 - FlexAttention cannot replace the custom-softmax path: `score_mod` runs before softmax, and the softmax is fixed. Plain SDPA covers the `nn.Softmax` default.
-- **Measure the CatBoost noise floor before optimising anything.** Refit `eval_ml_utility()` on identical inputs across seeds. In-context risk decomposes into a reducible gap and an irreducible posterior variance; if most of `pred_rmse` is label noise, the architecture and efficiency work is optimising the wrong term.
+- **Measure the CatBoost noise floor before optimising anything.** Refit `eval_ml_utility()` on identical inputs across seeds. In-context risk decomposes into a reducible gap and an irreducible posterior variance; if most of `pred_rmse` is label noise, the architecture and efficiency work is optimising the wrong term. **Done 2026-08-08:** seed noise is 1-16% of cached label variance — not most of it — but the cached labels themselves turned out to use CatBoost's untuned `epochs=1` default, a bigger problem than noise. See "CatBoost noise floor measurement" in `CLAUDE.md`.
 
 ## Model and Parameters
 
@@ -106,3 +106,14 @@ Fourth pass — meta-learning, transformers, PyTorch:
 
 - Root `transformer/` and `transformer_debug/` are vendored reference implementations, not part of the `ml_utility_loss` package.
 - `CLAUDE.md` contains the expanded project rationale and entrypoint map; keep this file compact and update both only when their shared facts change.
+
+<!-- CODEGRAPH_START -->
+## CodeGraph
+
+In repositories indexed by CodeGraph (a `.codegraph/` directory exists at the repo root), reach for it BEFORE grep/find or reading files when you need to understand or locate code:
+
+- **MCP tool** (when available): `codegraph_explore` answers most code questions in one call — the relevant symbols' verbatim source plus the call paths between them, including dynamic-dispatch hops grep can't follow. Name a file or symbol in the query to read its current line-numbered source. If it's listed but deferred, load it by name via tool search.
+- **Shell** (always works): `codegraph explore "<symbol names or question>"` prints the same output.
+
+If there is no `.codegraph/` directory, skip CodeGraph entirely — indexing is the user's decision.
+<!-- CODEGRAPH_END -->

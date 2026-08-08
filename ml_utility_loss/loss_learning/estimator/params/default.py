@@ -136,7 +136,11 @@ PARAM_SPACE = {
     "tf_n_layers_dec": ("int", 2, 4), 
     "tf_n_head": ("int_exp_2", 2, 8), 
     "tf_activation": ("activation", ["relu", "leakyrelu"]),
-    "tf_num_inds": ("bool_int_exp_2", 8, 64),
+    # Quick win (2026-08-08): was "bool_int_exp_2", letting the sampler drop
+    # to 0 -> full SimpleMultiHeadAttention over 2048 rows, a 2048x2048 map
+    # (~537MB/attention at batch 4 x 8 heads, fp32). Every per-dataset
+    # override already excludes this; default.py was the one hole.
+    "tf_num_inds": ("int_exp_2", 8, 64),
     "tf_isab_mode": ("categorical", (
         ISABMode.SEPARATE, 
         ISABMode.SHARED,

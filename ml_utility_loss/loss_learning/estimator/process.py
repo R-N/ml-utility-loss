@@ -878,8 +878,15 @@ def train_epoch(
     include_std_loss=False,
     g_loss_mul=0.1,
     non_role_model_mul=0.5,
-    rank_loss_mul=0.0,
+    rank_loss_mul=0.5, # Quick win (2026-08-08): see pipeline.train's rank_loss_mul comment.
     save_on_cpu=False,
+    # Quick win (2026-08-08): opt-in, off by default. torch.bfloat16 needs no
+    # GradScaler (unlike fp16) but this network has no normalization
+    # anywhere (layer_norm pinned False everywhere), which is an open
+    # numerics question -- see CLAUDE.md "SDPA + bf16". Verified to run
+    # without NaN/Inf over real batches; not defaulted on pending a real
+    # convergence comparison against fp32.
+    amp_dtype=None,
     **g_loss_kwargs
 ):
     grad_cm = torch.no_grad() if val else nullcontext()
@@ -951,7 +958,14 @@ def train_epoch(
                 role_model = fixed_role_model
 
             save_cm = torch.autograd.graph.save_on_cpu(pin_memory=True) if save_on_cpu else nullcontext()
-            with save_cm:
+            # ponytail: backward ends up inside this autocast region too
+            # (avoids reindenting the ~250-line forward+loss+backward block
+            # to split it out) -- harmless for bf16, which needs no
+            # GradScaler: backward ops replay the dtype recorded on the
+            # autograd graph during forward regardless of the ambient
+            # autocast state, so this only costs a negligible dispatch check.
+            autocast_cm = torch.autocast(device_type=whole_model.device.type, dtype=amp_dtype) if amp_dtype else nullcontext()
+            with save_cm, autocast_cm:
                 # Compute prediction and loss for all adapters
                 computes = {model: {} for model in models}
                 for model, (train, test, y, y_real) in batch_dict.items():
@@ -1581,6 +1595,7 @@ def eval(
     fixed_role_model=None,
     eps=1e-8,
     gradient_metrics=False,
+    amp_dtype=None, # Quick win (2026-08-08): see train_epoch's amp_dtype comment.
 ):
     # The gradient metrics need a second-order graph (calc_gradient keeps the
     # graph so calc_g_loss can be differentiated), which costs more than the
@@ -1588,8 +1603,9 @@ def eval(
     # the penalty they belong to is off by default, so they are opt-in and the
     # rest of the evaluation runs under no_grad.
     grad_cm = nullcontext() if gradient_metrics else torch.no_grad()
+    autocast_cm = torch.autocast(device_type=whole_model.device.type, dtype=amp_dtype) if amp_dtype else nullcontext()
 
-    with grad_cm:
+    with grad_cm, autocast_cm:
         size = len(eval_loader.dataset)
 
         std_loss_fn = std_loss_fn or loss_fn
